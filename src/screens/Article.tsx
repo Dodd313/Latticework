@@ -5,26 +5,21 @@ import { monthDay } from '../dates';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
-import { Article, ArticleLink, LinkKind } from '../types';
-import { Chip, ExtLink, Icon, SectionTitle, T, Tap } from '../ui';
+import { Article, ArticleLink } from '../types';
+import { ExtLink, Icon, SectionTitle, T, Tap } from '../ui';
 
 const STANDALONE_PAD: any = BOTTOM_PAD === 8 ? 12 : 'calc(12px + env(safe-area-inset-bottom, 0px))';
-
-const LINK_LABEL: Record<LinkKind, string> = { continue: '후속 보도', reverse: '반전', cross: '연관 이슈', pattern: '유사 사례', new: '새 이슈' };
 
 function LinkCard({ link }: { link: ArticleLink }) {
   const t = useTheme();
   const nav = useNav();
   const body = (
     <View style={{ gap: 8, paddingVertical: 16, borderTopWidth: 1, borderTopColor: t.line }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Chip label={LINK_LABEL[link.kind]} tone={link.kind === 'reverse' ? 'orange' : 'blue'} />
-        {link.refDate ? (
-          <T s={12.5} c={t.sub} mono>
-            · {monthDay(link.refDate)} 보도
-          </T>
-        ) : null}
-      </View>
+      {link.refDate ? (
+        <T s={12.5} c={t.sub} mono>
+          {monthDay(link.refDate)} 보도
+        </T>
+      ) : null}
       {link.refTitle ? (
         <T serif s={18} w="700" lh={1.45}>
           {link.refTitle}
@@ -45,7 +40,6 @@ function LinkCard({ link }: { link: ArticleLink }) {
 
 function Body({ a }: { a: Article }) {
   const t = useTheme();
-  const nav = useNav();
   const { user, markRead } = useStore();
   const isRead = !!user.read[a.id];
   const progress = useRef(new Animated.Value(0)).current;
@@ -72,7 +66,6 @@ function Body({ a }: { a: Article }) {
       </View>
       <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 26, paddingBottom: 36, gap: 28 }}>
         <Rise delay={80} style={{ gap: 12 }}>
-          <Chip label={a.category} />
           <T serif s={27} w="700" lh={1.38} role="heading" level={1}>
             {a.title}
           </T>
@@ -122,14 +115,7 @@ function Body({ a }: { a: Article }) {
             {past.map((link, i) => (
               <LinkCard key={i} link={link} />
             ))}
-            {a.threadId ? (
-              <Tap onPress={() => nav.openThread(a.threadId!)} label="이슈 타임라인 보기" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 52, borderTopWidth: 1, borderTopColor: t.line, borderBottomWidth: 1, borderBottomColor: t.line }}>
-                <T s={14.5} w="700">
-                  이슈 타임라인 보기
-                </T>
-                <Icon name="next" size={18} color={t.ink} bold />
-              </Tap>
-            ) : null}
+            <View style={{ borderTopWidth: 1, borderTopColor: t.line }} />
           </View>
         ) : null}
       </ScrollView>

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
-import { todayKST } from './dates';
+import { kstDate, todayKST } from './dates';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -99,7 +99,31 @@ function mergeUser(a: UserData, b: Partial<UserData> | null | undefined): UserDa
   }
   const quiz = { ...a.quiz };
   for (const [k, v] of Object.entries(b.quiz ?? {})) quiz[k] = { ...(quiz[k] ?? {}), ...v };
-  return { read, memos, quiz, settings: { ...a.settings, ...(b.settings ?? {}) } };
+  const daily = { ...(a.daily ?? {}) };
+  for (const [k, v] of Object.entries(b.daily ?? {})) {
+    const cur = daily[k];
+    // 같은 날 기록이 둘이면 더 일찍 목표를 채운 쪽을 남긴다.
+    if (!cur || (v.doneAt && (!cur.doneAt || v.doneAt < cur.doneAt)) || (!cur.doneAt && !v.doneAt && v.read > cur.read)) daily[k] = v;
+  }
+  return { read, daily, memos, quiz, settings: { ...a.settings, ...(b.settings ?? {}) } };
+}
+
+/** 읽은 기록으로 날짜별 목표 기록을 맞춘다. 바뀐 것이 없으면 받은 객체를 그대로 돌려준다. */
+function withDaily(user: UserData, days: Day[]): UserData {
+  const daily = { ...(user.daily ?? {}) };
+  let changed = !user.daily;
+  for (const day of days) {
+    if (!day.articles.length) continue;
+    const times = day.articles.map((a) => user.read[a.id]).filter(Boolean) as string[];
+    const all = times.length === day.articles.length;
+    const cur = daily[day.date];
+    const doneAt = all ? (cur?.doneAt ?? times.slice().sort().pop()) : undefined;
+    if (!cur || cur.total !== day.articles.length || cur.read !== times.length || cur.doneAt !== doneAt) {
+      daily[day.date] = doneAt ? { total: day.articles.length, read: times.length, doneAt } : { total: day.articles.length, read: times.length };
+      changed = true;
+    }
+  }
+  return changed ? { ...user, daily } : user;
 }
 
 // 문서 하나에는 한 번에 한 건씩만 쓴다. 연달아 들어온 변경은 마지막 값 하나로 합친다.
@@ -248,6 +272,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (!alive) return;
         const remote: Partial<UserData> = {
           read: p.exists ? ((p.data() as any).read ?? {}) : {},
+          daily: p.exists ? ((p.data() as any).daily ?? {}) : {},
           memos: m.exists ? ((m.data() as any).memos ?? {}) : {},
           settings: s.exists ? (s.data() as any) : undefined,
           quiz: q.exists ? ((q.data() as any).answers ?? {}) : {},
@@ -264,7 +289,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           saveLocal(USER_KEY, merged);
           // 기기에만 있던 기록이 있으면 저장소에도 올려 둔다.
           if (Object.keys(merged.read).length !== Object.keys(remote.read ?? {}).length) {
-            writers.current.progress?.({ read: merged.read, updatedAt: new Date().toISOString() });
+            writers.current.progress?.({ read: merged.read, daily: merged.daily, updatedAt: new Date().toISOString() });
           }
           if (Object.keys(merged.memos).length !== Object.keys(remote.memos ?? {}).length) {
             writers.current.memos?.({ memos: merged.memos, updatedAt: new Date().toISOString() });
@@ -292,11 +317,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setUser(next);
     saveLocal(USER_KEY, next);
     const now = new Date().toISOString();
-    if (part === 'progress') writers.current.progress?.({ read: next.read, updatedAt: now });
+    if (part === 'progress') writers.current.progress?.({ read: next.read, daily: next.daily, updatedAt: now });
     if (part === 'memos') writers.current.memos?.({ memos: next.memos, updatedAt: now });
     if (part === 'settings') writers.current.settings?.({ ...next.settings, updatedAt: now });
     if (part === 'quiz') writers.current.quiz?.({ answers: next.quiz, updatedAt: now });
   }, []);
+
+  // 읽은 기록이나 기사 목록이 바뀌면 날짜별 목표 기록을 맞춰 저장한다.
+  useEffect(() => {
+    const next = withDaily(userRef.current, days);
+    if (next !== userRef.current) commit(next, 'progress');
+  }, [days, user.read, commit]);
 
   const markRead = useCallback(
     (articleId: string, read: boolean) => {
@@ -351,12 +382,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       try {
         const parsed = JSON.parse(json);
         const incoming = (parsed && parsed.data ? parsed.data : parsed) as Partial<UserData>;
-        if (!incoming || typeof incoming !== 'object' || (!incoming.read && !incoming.memos)) return false;
+        if (!incoming || typeof incoming !== 'object' || (!incoming.read && !incoming.daily)) return false;
         const merged = mergeUser(userRef.current, incoming);
         setUser(merged);
         saveLocal(USER_KEY, merged);
         const now = new Date().toISOString();
-        writers.current.progress?.({ read: merged.read, updatedAt: now });
+        writers.current.progress?.({ read: merged.read, daily: merged.daily, updatedAt: now });
         writers.current.memos?.({ memos: merged.memos, updatedAt: now });
         writers.current.quiz?.({ answers: merged.quiz, updatedAt: now });
         return true;
@@ -382,16 +413,47 @@ export function dayDone(day: Day, read: Record<string, string>): boolean {
   return day.articles.length > 0 && day.articles.every((a) => !!read[a.id]);
 }
 
-/** 연속으로 다 읽은 날 수. 오늘 것은 아직 안 읽었어도 기록을 끊지 않는다. */
-export function streak(days: Day[], read: Record<string, string>): number {
+/**
+ * 하루 목표의 상태.
+ * done 그날 안에 모두 읽음 · late 날짜가 지난 뒤에 모두 읽음 · pending 오늘이고 아직 남음 · missed 지난 날인데 못 채움 · none 발행 없음
+ */
+export type DayStatus = 'done' | 'late' | 'pending' | 'missed' | 'none';
+
+export function dayStatus(day: Day | undefined, user: UserData, today: string = todayKST()): DayStatus {
+  if (!day || day.articles.length === 0) return 'none';
+  if (dayDone(day, user.read)) {
+    const at = user.daily?.[day.date]?.doneAt ?? day.articles.map((a) => user.read[a.id]).sort().pop() ?? '';
+    return kstDate(at) <= day.date ? 'done' : 'late';
+  }
+  return day.date === today ? 'pending' : 'missed';
+}
+
+/** 연속으로 목표를 채운 발행일 수. 오늘 것은 아직 남아 있어도 기록을 끊지 않는다. 발행이 없는 주말은 세지도 끊지도 않는다. */
+export function streak(days: Day[], user: UserData): number {
   const today = todayKST();
   let n = 0;
   for (const day of days) {
-    if (dayDone(day, read)) n += 1;
-    else if (day.date === today) continue;
+    const st = dayStatus(day, user, today);
+    if (st === 'done') n += 1;
+    else if (st === 'pending' || st === 'none') continue;
     else break;
   }
   return n;
+}
+
+/** 지금까지 가장 길었던 연속 기록 */
+export function longestStreak(days: Day[], user: UserData): number {
+  const today = todayKST();
+  let best = 0;
+  let run = 0;
+  for (const day of days.slice().reverse()) {
+    const st = dayStatus(day, user, today);
+    if (st === 'done') run += 1;
+    else if (st === 'pending' || st === 'none') continue;
+    else run = 0;
+    if (run > best) best = run;
+  }
+  return best;
 }
 
 export function findArticle(days: Day[], id: string) {

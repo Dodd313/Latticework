@@ -5,7 +5,7 @@ import { STANDALONE } from './store';
 import { useTheme } from './theme';
 import { Icon, T, Tap } from './ui';
 
-export type TabName = 'today' | 'threads' | 'archive' | 'review';
+export type TabName = 'today' | 'archive' | 'review';
 
 export type Route = { name: 'article'; id: string } | { name: 'settings' };
 
@@ -14,8 +14,6 @@ export type Nav = {
   setTab: (tab: TabName) => void;
   push: (route: Route) => void;
   pop: () => void;
-  openThread: (id: string) => void;
-  threadFocus: string | null;
 };
 
 export const NavCtx = createContext<Nav | null>(null);
@@ -94,9 +92,8 @@ export function BackBar({ label, right }: { label: string; right?: React.ReactNo
 
 const TABS: { name: TabName; label: string }[] = [
   { name: 'today', label: '오늘' },
-  { name: 'threads', label: '이슈' },
-  { name: 'archive', label: '지난 기사' },
-  { name: 'review', label: '퀴즈' },
+  { name: 'archive', label: '기록' },
+  { name: 'review', label: '주간 리뷰' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */

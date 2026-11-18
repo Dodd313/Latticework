@@ -12,10 +12,13 @@ const shots = new URL('../shots/', import.meta.url).pathname;
 mkdirSync(shots, { recursive: true });
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
 
+// 예시 기사의 날짜를 오늘과 어제로 옮겨서 연속 기록과 목표 달성 화면을 확인한다.
+const kst = (offsetDays) => new Date(Date.now() + 9 * 3600 * 1000 + offsetDays * 86400000).toISOString().slice(0, 10);
 const server = createServer((req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-    const body = readFileSync(join(root, path === '/' ? 'index.html' : path));
+    let body = readFileSync(join(root, path === '/' ? 'index.html' : path));
+    if (path === '/preview.html') body = Buffer.from(body.toString('utf8').replaceAll('2026-03-30', kst(0)).replaceAll('2026-02-26', kst(-1)));
     res.writeHead(200, { 'content-type': types[extname(path)] ?? 'application/octet-stream' });
     res.end(body);
   } catch {
@@ -64,12 +67,24 @@ const readState = await page.evaluate(() => JSON.stringify(window.__LW_DOCS__['d
 await tap('뒤로(으)로 돌아가기');
 await snap('04-today-after-read');
 
-await tap('이슈');
-await snap('05-threads');
-await tap('지난 기사');
+// 두 번째 기사까지 읽으면 목표 달성 화면이 뜬다.
+await page.getByText('중동 긴장에 코스피 2.97% 하락, 5,277.30 마감').first().click();
+await page.waitForTimeout(700);
+await tap('읽음 표시');
+await snap('05-goal-reached');
+await page.waitForTimeout(3200);
+await tap('뒤로(으)로 돌아가기');
+await snap('05b-today-done');
+
+await tap('기록');
 await snap('06-archive');
-await tap('퀴즈');
+await tap('주간 리뷰');
 await snap('07-review');
+await page.evaluate(() => {
+  const els = [...document.querySelectorAll('div')].filter((d) => d.scrollHeight > d.clientHeight + 100 && getComputedStyle(d).overflowY !== 'visible' && d.offsetParent !== null);
+  const el = els.sort((a, b) => b.scrollHeight - a.scrollHeight)[0];
+  if (el) el.scrollTop = 9999;
+});
 await page.getByText('수입 물가가 올라서').click();
 await snap('08-review-answered');
 await tap('오늘');

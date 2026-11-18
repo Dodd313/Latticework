@@ -75,3 +75,31 @@ export function monthGrid(key: string): (string | null)[][] {
 }
 
 export const WEEKDAYS_KO = KO;
+
+export function addDays(date: string, delta: number): string {
+  const { y, m, d } = parts(date);
+  return new Date(Date.UTC(y, m - 1, d + delta)).toISOString().slice(0, 10);
+}
+
+/** 그 날짜가 든 주의 월요일부터 금요일까지 */
+export function weekdaysOf(date: string): string[] {
+  const w = weekdayIndex(date);
+  const monday = addDays(date, w === 0 ? -6 : 1 - w);
+  return [0, 1, 2, 3, 4].map((i) => addDays(monday, i));
+}
+
+/** 11월 3주차 */
+export function weekTitle(date: string): string {
+  const monday = weekdaysOf(date)[0];
+  const { m, d } = parts(addDays(monday, 3)); // 목요일이 든 달을 그 주의 달로 본다
+  return `${m}월 ${Math.ceil(d / 7)}주차`;
+}
+
+/** 시각(ISO)을 한국 날짜로 */
+export function kstDate(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  return new Date(t + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+export const WEEKDAY_SHORT = ['월', '화', '수', '목', '금'];

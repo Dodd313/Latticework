@@ -1,59 +1,82 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { isWeekend, korean, todayKST } from '../dates';
+import { WEEKDAY_SHORT, isWeekend, korean, todayKST, weekdaysOf } from '../dates';
 import { Pulse, Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { STANDALONE, streak, useStore } from '../store';
+import { STANDALONE, dayStatus, streak, useStore } from '../store';
 import { useTheme } from '../theme';
-import { Article, Followup } from '../types';
-import { Card, Chip, EmptyState, Icon, ReadMark, T, Tap, VERDICT_LABEL, verdictTone } from '../ui';
+import { Article } from '../types';
+import { Card, DayMark, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 
 function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) {
   const t = useTheme();
   const nav = useNav();
-  const related = a.links.filter((l) => l.kind !== 'new').length;
   return (
     <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
       <View style={{ gap: 10, paddingVertical: 22, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <Chip label={a.category} />
-          <ReadMark read={read} />
-        </View>
         <T serif s={lead ? 26 : 22} w="700" lh={lead ? 1.36 : 1.4} c={read ? t.sub : t.ink} role="heading" level={2}>
           {a.title}
         </T>
         <T s={15} lh={1.65} c={t.deck}>
           {a.gist}
         </T>
-        <T s={12.5} c={t.sub}>
-          {a.source} · 읽는 시간 {a.minutes}분{related > 0 ? ` · 관련 기사 ${related}건` : ''}
-        </T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <T s={12.5} c={t.sub}>
+            {a.source} · 읽는 시간 {a.minutes}분
+          </T>
+          <ReadMark read={read} />
+        </View>
       </View>
     </Tap>
   );
 }
 
-function FollowupCard({ f }: { f: Followup }) {
+/** 연속 기록과 이번 주 달성 현황. 오늘 할 일을 한 줄로 알려 준다. */
+function StreakPanel() {
   const t = useTheme();
-  const nav = useNav();
-  const open = () => {
-    if (f.threadId) nav.openThread(f.threadId);
-    else if (f.refArticleId) nav.push({ name: 'article', id: f.refArticleId });
-  };
+  const { days, user } = useStore();
+  const today = todayKST();
+  const run = streak(days, user);
+  const byDate: Record<string, (typeof days)[number]> = {};
+  days.forEach((d) => (byDate[d.date] = d));
+  const todayDay = byDate[today];
+  const status = dayStatus(todayDay, user, today);
+  const left = todayDay ? todayDay.articles.filter((a) => !user.read[a.id]).length : 0;
+  const hadBreak = days.some((d) => d.date < today && dayStatus(d, user, today) !== 'done');
+
+  let line: string;
+  if (status === 'done') line = '오늘 목표를 달성했습니다.';
+  else if (status === 'pending' && left < (todayDay?.articles.length ?? 0)) line = `${left}건 남았습니다. 마저 읽으면 연속 ${run + 1}일이 됩니다.`;
+  else if (status === 'pending' && run > 0) line = `오늘 ${left}건을 읽으면 연속 ${run + 1}일이 됩니다.`;
+  else if (status === 'pending') line = hadBreak ? `오늘 ${left}건을 읽고 연속 기록을 다시 시작하세요.` : `오늘 ${left}건을 읽으면 연속 기록이 시작됩니다.`;
+  else if (isWeekend(today)) line = run > 0 ? '주말에는 발행하지 않습니다. 연속 기록은 유지됩니다.' : '주말에는 발행하지 않습니다.';
+  else line = run > 0 ? '오늘 자 기사는 발행 전입니다. 발행되면 연속 기록을 이어 가세요.' : '오늘 자 기사는 발행 전입니다.';
+
   return (
-    <Tap onPress={open} label="후속 점검 보기">
-      <View style={{ gap: 6, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} w="700" c={t.sub} lines={1} style={{ flexShrink: 1, letterSpacing: 0.3 }}>
-            후속 점검 · {korean(f.refDate)} 보도
+    <View style={{ gap: 14, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+          <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
+            연속
           </T>
-          <Chip label={VERDICT_LABEL[f.verdict]} tone={verdictTone(f.verdict)} />
+          <T serif s={34} w="700" lh={1.1}>
+            {run}
+          </T>
+          <T s={13} w="700" c={t.sub}>
+            일
+          </T>
         </View>
-        <T s={14.5} lh={1.6} c={t.deck}>
-          {f.text}
-        </T>
+        <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel="이번 주 달성 현황">
+          {weekdaysOf(today).map((date, i) => {
+            const st = date > today ? 'future' : dayStatus(byDate[date], user, today);
+            return <DayMark key={date} status={st} label={WEEKDAY_SHORT[i]} size={34} today={date === today} />;
+          })}
+        </View>
       </View>
-    </Tap>
+      <T s={14} w="500" lh={1.5}>
+        {line}
+      </T>
+    </View>
   );
 }
 
@@ -103,9 +126,6 @@ export function TodayScreen() {
   const { days, user, status } = useStore();
   const today = todayKST();
   const day = days[0];
-  const total = day ? day.articles.length : 0;
-  const done = day ? day.articles.filter((a) => user.read[a.id]).length : 0;
-  const run = streak(days, user.read);
   const stale = day && day.date !== today;
 
   const settings = (
@@ -114,15 +134,8 @@ export function TodayScreen() {
     </Tap>
   );
 
-  const dated = day ? day.date : today;
   return (
-    <TabScreen
-      title="Latticework 시사"
-      subtitle={`${dated.slice(0, 4)}년 ${korean(dated)}`}
-      meta={day ? `읽은 기사 ${done}/${total} · 연속 ${run}일` : undefined}
-      right={settings}
-      contentStyle={{ gap: 0 }}
-    >
+    <TabScreen title="Latticework 시사" subtitle={`${today.slice(0, 4)}년 ${korean(today)}`} right={settings} contentStyle={{ gap: 0 }}>
       <InstallHint />
       {!day ? (
         status === 'loading' ? (
@@ -134,30 +147,23 @@ export function TodayScreen() {
             <View style={{ width: '54%', height: 14, backgroundColor: t.chip }} />
           </Pulse>
         ) : (
-          <EmptyState title="첫 발행을 준비 중입니다" body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 핵심 요약과 본문, 관련 기사를 함께 싣습니다." />
+          <EmptyState title="첫 발행을 준비 중입니다" body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 그날 안에 2건을 모두 읽으면 하루 목표 달성입니다." />
         )
       ) : (
         <>
+          <Rise delay={60}>
+            <StreakPanel />
+          </Rise>
           {stale ? (
-            <T s={12.5} c={t.sub} style={{ paddingTop: 12 }}>
-              {isWeekend(today) ? '주말에는 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다.'}
+            <T s={12.5} c={t.sub} style={{ paddingTop: 14 }}>
+              아래는 {korean(day.date)} 자 기사입니다.
             </T>
           ) : null}
           {day.articles.map((a, i) => (
-            <Rise key={a.id} delay={140 + i * 110}>
+            <Rise key={a.id} delay={160 + i * 110}>
               <Story a={a} read={!!user.read[a.id]} lead={i === 0} />
             </Rise>
           ))}
-          {(day.followups ?? []).map((f, i) => (
-            <Rise key={`${f.refDate}-${i}`} delay={140 + (day.articles.length + i) * 110}>
-              <FollowupCard f={f} />
-            </Rise>
-          ))}
-          {day.note ? (
-            <T s={13} c={t.sub} style={{ paddingTop: 14 }}>
-              {day.note}
-            </T>
-          ) : null}
         </>
       )}
     </TabScreen>

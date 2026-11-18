@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+import { WEEKDAY_SHORT, isWeekend, shortStamp, todayKST, weekTitle, weekdaysOf } from '../dates';
 import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { useStore } from '../store';
+import { dayStatus, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Review } from '../types';
-import { Card, EmptyState, Icon, T, Tap } from '../ui';
+import { Card, DayMark, ReadMark, SectionTitle, T, Tap } from '../ui';
 
 function Quiz({ review }: { review: Review }) {
   const t = useTheme();
@@ -35,11 +36,6 @@ function Quiz({ review }: { review: Review }) {
 
       <Rise trigger={at} y={10}>
       <Card style={{ gap: 12 }}>
-        {q.threadName ? (
-          <T s={12} w="600" c={t.blue}>
-            {q.threadName}
-          </T>
-        ) : null}
         <T serif s={20} w="700" lh={1.45} role="heading" level={2}>
           {q.q}
         </T>
@@ -137,35 +133,93 @@ function Quiz({ review }: { review: Review }) {
         </Card>
       ) : null}
 
-      {review.threadSummary ? (
-        <Tap onPress={() => nav.setTab('threads')} label="이번 주 이슈 보기">
-          <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 0 }}>
-            <View style={{ flex: 1, gap: 2 }}>
-              <T s={14} w="600">
-                이번 주 이슈
-              </T>
-              <T s={13} c={t.sub}>
-                {review.threadSummary}
-              </T>
-            </View>
-            <Icon name="next" size={18} />
-          </Card>
-        </Tap>
+    </>
+  );
+}
+
+/** 이번 주 달성 현황과 이번 주에 발행된 기사 다시 보기 */
+function WeekRecap() {
+  const t = useTheme();
+  const nav = useNav();
+  const { days, user } = useStore();
+  const today = todayKST();
+  const anchor = days[0]?.date && days[0].date > today ? today : (days[0]?.date ?? today);
+  const week = weekdaysOf(isWeekend(today) || !days.some((d) => weekdaysOf(today).includes(d.date)) ? anchor : today);
+  const inWeek = days.filter((d) => week.includes(d.date)).slice().reverse();
+  const done = inWeek.filter((d) => dayStatus(d, user, today) === 'done').length;
+  return (
+    <>
+      <View style={{ gap: 14, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+            <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
+              달성
+            </T>
+            <T serif s={34} w="700" lh={1.1}>
+              {done}
+            </T>
+            <T s={13} w="700" c={t.sub}>
+              / {inWeek.length}일
+            </T>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel="이번 주 달성 현황">
+            {week.map((date, i) => {
+              const day = days.find((d) => d.date === date);
+              return <DayMark key={date} status={date > today ? 'future' : dayStatus(day, user, today)} label={WEEKDAY_SHORT[i]} size={34} today={date === today} />;
+            })}
+          </View>
+        </View>
+      </View>
+
+      {inWeek.length > 0 ? (
+        <View style={{ paddingTop: 10 }}>
+          <SectionTitle title="이번 주 기사" />
+          {inWeek.map((d, di) =>
+            d.articles.map((a, ai) => (
+              <Rise key={a.id} delay={80 + (di * 2 + ai) * 50}>
+                <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 열기`} style={{ gap: 6, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: t.lineSoft }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <T s={12.5} c={t.sub} mono>
+                      {shortStamp(d.date)}
+                    </T>
+                    <ReadMark read={!!user.read[a.id]} />
+                  </View>
+                  <T serif s={17} w="700" lh={1.45} c={user.read[a.id] ? t.sub : t.ink}>
+                    {a.title}
+                  </T>
+                  <T s={14} lh={1.6} c={t.deck}>
+                    {a.gist}
+                  </T>
+                </Tap>
+              </Rise>
+            )),
+          )}
+        </View>
       ) : null}
     </>
   );
 }
 
 export function ReviewScreen() {
-  const { reviews } = useStore();
+  const t = useTheme();
+  const { reviews, days } = useStore();
   const review = reviews[0];
+  const today = todayKST();
   return (
-    <TabScreen title="주간 뉴스 퀴즈" subtitle={review ? `${review.title} · ${review.range}` : '한 주간 보도를 다섯 문항으로 점검합니다.'}>
-      {review && review.questions.length > 0 ? (
-        <Quiz key={review.id} review={review} />
-      ) : (
-        <EmptyState title="첫 퀴즈는 금요일 오전에 발행합니다" body="한 주간 발행된 기사에서 다섯 문항을 출제합니다. 오답 문항은 다음 주에 다시 출제합니다." />
-      )}
+    <TabScreen title="주간 리뷰" subtitle={weekTitle(days[0]?.date ?? today)} contentStyle={{ gap: 0 }}>
+      <WeekRecap />
+      <View style={{ gap: 12, paddingTop: 26 }}>
+        <View style={{ borderTopWidth: 3, borderTopColor: t.rule, paddingTop: 12 }}>
+          <SectionTitle title={review && review.questions.length > 0 ? `주간 퀴즈 · ${review.title}` : '주간 퀴즈'} />
+        </View>
+        {review && review.questions.length > 0 ? (
+          <Quiz key={review.id} review={review} />
+        ) : (
+          <T s={14} lh={1.6} c={t.sub}>
+            금요일 오전에 한 주간 기사에서 다섯 문항을 출제합니다. 오답 문항은 다음 주에 다시 출제합니다.
+          </T>
+        )}
+      </View>
     </TabScreen>
   );
 }

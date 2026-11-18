@@ -6,9 +6,10 @@ import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
 import { ReviewScreen } from './src/screens/Review';
 import { SettingsScreen } from './src/screens/Settings';
-import { ThreadsScreen } from './src/screens/Threads';
 import { TodayScreen } from './src/screens/Today';
-import { StoreProvider } from './src/store';
+import { StoreProvider, dayStatus, streak, useStore } from './src/store';
+import { todayKST } from './src/dates';
+import { Icon, T, Tap } from './src/ui';
 import { ThemeProvider, useTheme } from './src/theme';
 
 /** 탭 화면 한 장. 보이게 될 때 살짝 떠오르며 나타난다. */
@@ -44,12 +45,65 @@ function StackLayer({ closing, onClosed, bg, children }: { closing: boolean; onC
   );
 }
 
+/** 오늘 목표를 막 채웠을 때 한 번 뜨는 축하 화면. 눌러서 닫거나 잠시 뒤 저절로 닫힌다. */
+function GoalReached() {
+  const t = useTheme();
+  const { days, user } = useStore();
+  const today = todayKST();
+  const status = dayStatus(days.find((d) => d.date === today), user, today);
+  const run = streak(days, user);
+  const prev = useRef(status);
+  const [shown, setShown] = useState(false);
+  const v = useRef(new Animated.Value(0)).current;
+  const mark = useRef(new Animated.Value(0)).current;
+
+  const close = useCallback(() => {
+    Animated.timing(v, { toValue: 0, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: NATIVE_DRIVER }).start(() => setShown(false));
+  }, [v]);
+
+  useEffect(() => {
+    const was = prev.current;
+    prev.current = status;
+    if (status !== 'done' || was !== 'pending') return;
+    setShown(true);
+    v.setValue(motionOff() ? 1 : 0);
+    mark.setValue(motionOff() ? 1 : 0);
+    if (!motionOff()) {
+      Animated.timing(v, { toValue: 1, duration: 320, easing: EASE, useNativeDriver: NATIVE_DRIVER }).start();
+      Animated.spring(mark, { toValue: 1, friction: 5, tension: 160, delay: 180, useNativeDriver: NATIVE_DRIVER }).start();
+    }
+    const timer = setTimeout(close, 3200);
+    return () => clearTimeout(timer);
+  }, [status]);
+
+  if (!shown) return null;
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.ground, opacity: v, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
+      <Tap onPress={close} label="닫기" style={{ alignItems: 'center', gap: 18, alignSelf: 'stretch' }}>
+        <Animated.View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: t.green, alignItems: 'center', justifyContent: 'center', transform: [{ scale: mark }] }}>
+          <Icon name="check" size={34} color="#FFFFFF" bold />
+        </Animated.View>
+        <View style={{ alignSelf: 'stretch', borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule, paddingVertical: 22, alignItems: 'center', gap: 6 }}>
+          <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
+            오늘 목표 달성
+          </T>
+          <T serif s={44} w="700" lh={1.2}>
+            연속 {run}일
+          </T>
+        </View>
+        <T s={14} c={t.sub} center>
+          내일 오전에 다음 기사 2건이 발행됩니다.
+        </T>
+      </Tap>
+    </Animated.View>
+  );
+}
+
 function Shell() {
   const t = useTheme();
   const [tab, setTabState] = useState<TabName>('today');
-  const [visited, setVisited] = useState<Record<TabName, boolean>>({ today: true, threads: false, archive: false, review: false });
+  const [visited, setVisited] = useState<Record<TabName, boolean>>({ today: true, archive: false, review: false });
   const [stack, setStack] = useState<Route[]>([]);
-  const [threadFocus, setThreadFocus] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
 
   const setTab = useCallback((next: TabName) => {
@@ -66,15 +120,7 @@ function Shell() {
     setStack((s) => s.slice(0, -1));
     setClosing(false);
   }, []);
-  const openThread = useCallback(
-    (id: string) => {
-      setThreadFocus(id);
-      setTab('threads');
-    },
-    [setTab],
-  );
-
-  const nav = useMemo<Nav>(() => ({ tab, setTab, push, pop, openThread, threadFocus }), [tab, setTab, push, pop, openThread, threadFocus]);
+  const nav = useMemo<Nav>(() => ({ tab, setTab, push, pop }), [tab, setTab, push, pop]);
   const top = stack[stack.length - 1];
 
   const layer = (name: TabName, node: React.ReactNode) =>
@@ -90,7 +136,6 @@ function Shell() {
         <View style={styles.column}>
           <View style={[styles.fill, { overflow: 'hidden' }]}>
             {layer('today', <TodayScreen />)}
-            {layer('threads', <ThreadsScreen />)}
             {layer('archive', <ArchiveScreen />)}
             {layer('review', <ReviewScreen />)}
             {stack.map((route, i) => (
@@ -100,6 +145,7 @@ function Shell() {
             ))}
           </View>
           {top && top.name === 'article' ? null : <TabBar />}
+          <GoalReached />
         </View>
       </View>
     </NavCtx.Provider>

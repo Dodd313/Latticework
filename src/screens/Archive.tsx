@@ -1,87 +1,83 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { WEEKDAYS_KO, monthGrid, monthKey, monthTitle, shiftMonth, shortStamp, todayKST } from '../dates';
+import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { dayDone, useStore } from '../store';
-import { FONT_MONO, FONT_SANS, useTheme } from '../theme';
-import { Article, Day } from '../types';
-import { Card, Chip, Divider, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
+import { DayStatus, dayStatus, longestStreak, streak, useStore } from '../store';
+import { FONT_SANS, useTheme } from '../theme';
+import { Day, UserData } from '../types';
+import { DayMark, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 
-function topicOf(a: Article): string {
-  const parts = a.category.split('·').map((s) => s.trim());
-  return parts[parts.length - 1] || a.category;
+function Stat({ label, value }: { label: string; value: string }) {
+  const t = useTheme();
+  return (
+    <View style={{ flex: 1, gap: 2 }}>
+      <T s={12.5} w="700" c={t.sub} style={{ letterSpacing: 0.3 }}>
+        {label}
+      </T>
+      <T serif s={24} w="700" lh={1.25}>
+        {value}
+      </T>
+    </View>
+  );
 }
 
-function Calendar({ month, byDate, read, onPrev, onNext, canPrev, canNext }: { month: string; byDate: Record<string, Day>; read: Record<string, string>; onPrev: () => void; onNext: () => void; canPrev: boolean; canNext: boolean }) {
+function Legend({ status, label }: { status: DayStatus; label: string }) {
+  const t = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+      <DayMark status={status} label="" size={14} />
+      <T s={12} c={t.sub}>
+        {label}
+      </T>
+    </View>
+  );
+}
+
+function Calendar({ month, byDate, user, onPrev, onNext, canPrev, canNext }: { month: string; byDate: Record<string, Day>; user: UserData; onPrev: () => void; onNext: () => void; canPrev: boolean; canNext: boolean }) {
   const t = useTheme();
   const today = todayKST();
   const weeks = monthGrid(month);
-  const inMonth = Object.values(byDate).filter((d) => monthKey(d.date) === month);
-  const done = inMonth.filter((d) => dayDone(d, read)).length;
-  const missed = inMonth.filter((d) => !dayDone(d, read) && d.date !== today).length;
   return (
-    <Card style={{ gap: 6, paddingVertical: 10 }}>
+    <View style={{ gap: 6, paddingVertical: 10, borderTopWidth: 1, borderTopColor: t.line, borderBottomWidth: 1, borderBottomColor: t.line }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Tap onPress={onPrev} disabled={!canPrev} label="이전 달" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="back" size={20} />
-          </Tap>
-          <T s={15} w="700" role="heading" level={2}>
-            {monthTitle(month)}
-          </T>
-          <Tap onPress={onNext} disabled={!canNext} label="다음 달" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="next" size={20} />
-          </Tap>
-        </View>
-        <T s={12} c={t.sub} mono style={{ paddingRight: 4 }}>
-          열람 {done}일 · 미열람 {missed}일
+        <Tap onPress={onPrev} disabled={!canPrev} label="이전 달" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -12 }}>
+          <Icon name="back" size={20} />
+        </Tap>
+        <T serif s={18} w="700" role="heading" level={2}>
+          {monthTitle(month)}
         </T>
+        <Tap onPress={onNext} disabled={!canNext} label="다음 달" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -12 }}>
+          <Icon name="next" size={20} />
+        </Tap>
       </View>
-      <View style={{ flexDirection: 'row', gap: 2 }} aria-hidden>
+      <View style={{ flexDirection: 'row' }} aria-hidden>
         {WEEKDAYS_KO.map((d) => (
-          <View key={d} style={{ flex: 1, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+          <View key={d} style={{ flex: 1, height: 22, alignItems: 'center', justifyContent: 'center' }}>
             <T s={12} c={t.mute} lh={1.3}>
               {d}
             </T>
           </View>
         ))}
       </View>
-      <View style={{ gap: 2 }}>
+      <View style={{ gap: 4 }}>
         {weeks.map((week, wi) => (
-          <View key={wi} style={{ flexDirection: 'row', gap: 2 }}>
-            {week.map((date, di) => {
-              if (!date) return <View key={di} style={{ flex: 1, height: 32 }} />;
-              const day = byDate[date];
-              const isToday = date === today;
-              const isDone = day ? dayDone(day, read) : false;
-              const isMissed = !!day && !isDone && !isToday;
-              const bg = isToday ? t.inverse : isDone ? t.blueTint : 'transparent';
-              const fg = isToday ? t.onInverse : isDone ? t.blue : isMissed ? t.orange : day ? t.ink : t.mute;
-              return (
-                <View
-                  key={di}
-                  style={{
-                    flex: 1,
-                    height: 32,
-                    borderRadius: 0,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: bg,
-                    borderWidth: isMissed ? 1 : 0,
-                    borderColor: t.orange,
-                    borderStyle: 'dashed',
-                  }}
-                >
-                  <T s={14} w={isToday || isDone ? '600' : '400'} c={fg} mono lh={1.2}>
-                    {Number(date.slice(8))}
-                  </T>
-                </View>
-              );
-            })}
+          <View key={wi} style={{ flexDirection: 'row' }}>
+            {week.map((date, di) => (
+              <View key={di} style={{ flex: 1, height: 38, alignItems: 'center', justifyContent: 'center' }}>
+                {date ? <DayMark status={date > today ? 'future' : dayStatus(byDate[date], user, today)} label={String(Number(date.slice(8)))} size={34} today={date === today} /> : null}
+              </View>
+            ))}
           </View>
         ))}
       </View>
-    </Card>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingTop: 8 }}>
+        <Legend status="done" label="달성" />
+        <Legend status="late" label="늦게 읽음" />
+        <Legend status="missed" label="미달성" />
+        <Legend status="pending" label="오늘" />
+      </View>
+    </View>
   );
 }
 
@@ -90,10 +86,10 @@ export function ArchiveScreen() {
   const nav = useNav();
   const { days, user } = useStore();
   const [q, setQ] = useState('');
-  const [topic, setTopic] = useState<string | null>(null);
   const latest = days[0]?.date ?? todayKST();
   const [month, setMonth] = useState<string | null>(null);
   const shown = month ?? monthKey(latest);
+  const today = todayKST();
 
   const byDate = useMemo(() => {
     const m: Record<string, Day> = {};
@@ -101,105 +97,61 @@ export function ArchiveScreen() {
     return m;
   }, [days]);
 
-  const topics = useMemo(() => {
-    const seen: string[] = [];
-    days.forEach((d) => d.articles.forEach((a) => !seen.includes(topicOf(a)) && seen.push(topicOf(a))));
-    return seen.slice(0, 12);
-  }, [days]);
-
   const oldest = days.length ? monthKey(days[days.length - 1].date) : shown;
-  const newest = monthKey(todayKST());
+  const newest = monthKey(today);
   const needle = q.trim().toLowerCase();
-  const filtering = needle !== '' || topic !== null;
+  const filtering = needle !== '';
+  const doneThisMonth = days.filter((d) => monthKey(d.date) === shown && dayStatus(d, user, today) === 'done').length;
 
   const groups = days
     .filter((d) => filtering || monthKey(d.date) === shown)
-    .map((d) => ({
-      date: d.date,
-      articles: d.articles.filter((a) => {
-        if (topic && topicOf(a) !== topic) return false;
-        if (!needle) return true;
-        return [a.title, a.category, a.gist, a.threadName ?? ''].join(' ').toLowerCase().includes(needle);
-      }),
-    }))
+    .map((d) => ({ date: d.date, articles: d.articles.filter((a) => !needle || [a.title, a.gist].join(' ').toLowerCase().includes(needle)) }))
     .filter((g) => g.articles.length > 0);
 
   return (
-    <TabScreen title="지난 기사">
+    <TabScreen title="기록" subtitle="그날 안에 2건을 모두 읽으면 하루 목표 달성입니다.">
       {days.length === 0 ? (
-        <EmptyState title="발행된 기사가 없습니다" body="기사가 발행되면 날짜와 분야별로 찾아볼 수 있습니다." />
+        <EmptyState title="기록이 없습니다" body="기사를 읽으면 날짜별 달성 여부가 달력에 남습니다." />
       ) : (
         <>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, borderRadius: 0, paddingHorizontal: 12, backgroundColor: t.field }}>
+          <View style={{ flexDirection: 'row', gap: 12, paddingTop: 6, paddingBottom: 4 }}>
+            <Stat label="연속" value={`${streak(days, user)}일`} />
+            <Stat label="최장 연속" value={`${longestStreak(days, user)}일`} />
+            <Stat label="이달 달성" value={`${doneThisMonth}일`} />
+          </View>
+          <Calendar month={shown} byDate={byDate} user={user} canPrev={shown > oldest} canNext={shown < newest} onPrev={() => setMonth(shiftMonth(shown, -1))} onNext={() => setMonth(shiftMonth(shown, 1))} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, paddingHorizontal: 12, backgroundColor: t.field }}>
             <Icon name="search" size={18} color={t.sub} />
             <TextInput
               nativeID="archive-search"
               accessibilityLabel="기사 검색"
               value={q}
               onChangeText={setQ}
-              placeholder="제목, 분야, 이슈 검색"
+              placeholder="기사 제목 검색"
               placeholderTextColor={t.mute}
               style={[{ flex: 1, height: 44, fontFamily: FONT_SANS, fontSize: 16, color: t.ink }, { outlineStyle: 'none' } as any]}
             />
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -22 }} contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}>
-            {[null, ...topics].map((name) => {
-              const on = topic === name;
-              return (
-                <Tap
-                  key={name ?? '전체'}
-                  onPress={() => setTopic(name)}
-                  selected={on}
-                  label={name ?? '전체'}
-                  style={{ height: 44, paddingHorizontal: 16, borderRadius: 0, justifyContent: 'center', backgroundColor: on ? t.inverse : t.card, borderWidth: 1, borderColor: on ? t.inverse : t.line }}
-                >
-                  <T s={14} w={on ? '600' : '500'} c={on ? t.onInverse : t.ink}>
-                    {name ?? '전체'}
-                  </T>
-                </Tap>
-              );
-            })}
-          </ScrollView>
-          {!filtering ? (
-            <Calendar
-              month={shown}
-              byDate={byDate}
-              read={user.read}
-              canPrev={shown > oldest}
-              canNext={shown < newest}
-              onPrev={() => setMonth(shiftMonth(shown, -1))}
-              onNext={() => setMonth(shiftMonth(shown, 1))}
-            />
-          ) : null}
           {groups.length === 0 ? (
-            <View style={{ paddingHorizontal: 0, paddingTop: 4 }}>
-              <T s={14} c={t.sub}>
-                {filtering ? '검색 결과가 없습니다.' : '이 달에 발행된 기사가 없습니다.'}
-              </T>
-            </View>
+            <T s={14} c={t.sub} style={{ paddingTop: 4 }}>
+              {filtering ? '검색 결과가 없습니다.' : '이 달에 발행된 기사가 없습니다.'}
+            </T>
           ) : (
-            groups.map((g) => (
-              <View key={g.date} style={{ gap: 6 }}>
-                <T s={12} w="500" c={t.sub} style={{ fontFamily: FONT_MONO, paddingHorizontal: 0 }}>
+            groups.map((g, gi) => (
+              <Rise key={g.date} trigger={`${shown}-${needle}`} delay={60 + gi * 50} style={{ gap: 2 }}>
+                <T s={12.5} w="700" c={t.sub} mono style={{ paddingTop: 8, letterSpacing: 0.3 }}>
                   {shortStamp(g.date)}
-                  {g.date === todayKST() ? ' · 오늘' : ''}
+                  {g.date === today ? ' · 오늘' : ''}
                 </T>
-                <Card style={{ paddingVertical: 0 }}>
-                  {g.articles.map((a, i) => (
-                    <View key={a.id}>
-                      {i > 0 ? <Divider /> : null}
-                      <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 열기`} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 56, paddingVertical: 8 }}>
-                        <View style={{ flex: 1, gap: 2 }}>
-                          <T s={15} w="500" lines={2} lh={1.4}>
-                            {a.title}
-                          </T>
-                        </View>
-                        <ReadMark read={!!user.read[a.id]} />
-                      </Tap>
-                    </View>
-                  ))}
-                </Card>
-              </View>
+                {g.articles.map((a) => (
+                  <Tap key={a.id} onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 열기`} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 56, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: t.lineSoft }}>
+                    <T serif s={16} w="600" lines={2} lh={1.45} c={user.read[a.id] ? t.sub : t.ink} style={{ flex: 1 }}>
+                      {a.title}
+                    </T>
+                    <ReadMark read={!!user.read[a.id]} />
+                  </Tap>
+                ))}
+              </Rise>
             ))
           )}
         </>

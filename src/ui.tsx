@@ -247,6 +247,38 @@ export function ReadMark({ read }: { read: boolean }) {
   );
 }
 
+/**
+ * 하루 목표의 상태를 그리는 둥근 표식. 달력과 주간 줄에서 같이 쓴다.
+ * 달성: 먹색으로 채움 · 늦게 읽음: 먹색 테두리 · 오늘 남음: 초록 테두리 · 미달성: 주황 점선 · 발행 없음: 표식 없음
+ */
+export function DayMark({ status, label, size = 32, today }: { status: 'done' | 'late' | 'pending' | 'missed' | 'none' | 'future'; label: string; size?: number; today?: boolean }) {
+  const t = useTheme();
+  const scale = usePop(status);
+  const filled = status === 'done';
+  const border = status === 'late' ? t.rule : status === 'pending' ? t.green : status === 'missed' ? t.orange : 'transparent';
+  const fg = filled ? t.onInverse : status === 'missed' ? t.orange : status === 'none' || status === 'future' ? t.mute : t.ink;
+  return (
+    <Animated.View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: filled ? t.inverse : 'transparent',
+        borderWidth: filled || border === 'transparent' ? 0 : status === 'pending' ? 2 : 1,
+        borderColor: border,
+        borderStyle: status === 'missed' ? 'dashed' : 'solid',
+        transform: [{ scale }],
+      }}
+    >
+      <T s={size >= 36 ? 14 : 13} w={filled || today ? '700' : '400'} c={fg} mono lh={1.2}>
+        {label}
+      </T>
+    </Animated.View>
+  );
+}
+
 export const VERDICT_LABEL = { hit: '적중', miss: '빗나감', open: '미확인' } as const;
 
 export function verdictTone(v: 'hit' | 'miss' | 'open'): Tone {

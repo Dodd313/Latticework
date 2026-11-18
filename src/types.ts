@@ -6,7 +6,7 @@ export type LinkKind = 'continue' | 'reverse' | 'cross' | 'pattern' | 'new';
 export type Verdict = 'hit' | 'miss' | 'open';
 
 export type ArticleLink = {
-  kind: LinkKind;
+  kind?: LinkKind; // 예전 자료에만 있다. 'new' 는 연결 없음을 뜻했다
   refDate?: string;
   refArticleId?: string;
   refTitle?: string;
@@ -16,7 +16,7 @@ export type ArticleLink = {
 export type Article = {
   id: string;
   date: string; // YYYY-MM-DD
-  category: string; // 예: "거시 · 환율"
+  category?: string; // 예전 자료에만 있다. 화면에는 쓰지 않는다
   title: string;
   gist: string;
   source: string;
@@ -98,8 +98,16 @@ export type Settings = {
 
 export type Memo = { text: string; updatedAt: string };
 
+/** 하루 목표(그날 기사를 모두 읽기)의 기록. 달력에 그대로 남는다. */
+export type DayRecord = {
+  total: number; // 그날 발행된 기사 수
+  read: number; // 읽은 기사 수
+  doneAt?: string; // 마지막 기사를 읽어 목표를 채운 시각
+};
+
 export type UserData = {
   read: Record<string, string>; // 기사 id → 읽은 시각
+  daily: Record<string, DayRecord>; // 날짜 → 그날의 목표 기록
   memos: Record<string, Memo>;
   settings: Settings;
   quiz: Record<string, Record<string, number>>; // 복습 id → 문항 번호 → 고른 보기
@@ -107,6 +115,7 @@ export type UserData = {
 
 export const EMPTY_USER: UserData = {
   read: {},
+  daily: {},
   memos: {},
   settings: { market: 'kr' },
   quiz: {},
