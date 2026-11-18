@@ -8,7 +8,7 @@ import { useTheme } from '../theme';
 import { Review } from '../types';
 import { Card, DayMark, ReadMark, SectionTitle, T, Tap } from '../ui';
 
-function Quiz({ review }: { review: Review }) {
+export function Quiz({ review }: { review: Review }) {
   const t = useTheme();
   const nav = useNav();
   const { user, answerQuiz } = useStore();

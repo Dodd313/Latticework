@@ -5,8 +5,9 @@ import { Pulse, Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { STANDALONE, dayStatus, streak, useStore } from '../store';
 import { useTheme } from '../theme';
-import { Article } from '../types';
+import { Article, Day } from '../types';
 import { Card, DayMark, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
+import { QUIZ_OPEN_HOUR, dayQuiz, quizOpen } from './DayQuiz';
 
 function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) {
   const t = useTheme();
@@ -25,6 +26,50 @@ function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) 
             {a.source} · 읽는 시간 {a.minutes}분
           </T>
           <ReadMark read={read} />
+        </View>
+      </View>
+    </Tap>
+  );
+}
+
+/** 저녁 퀴즈로 가는 줄. 저녁 6시 전에는 잠겨 있고, 풀고 나면 정답 수를 보여 준다. */
+function QuizRow({ day }: { day: Day }) {
+  const t = useTheme();
+  const nav = useNav();
+  const { user } = useStore();
+  const review = dayQuiz(day);
+  if (!review) return null;
+  const answers = user.quiz[review.id] ?? {};
+  const total = review.questions.length;
+  const answered = review.questions.filter((_, i) => answers[String(i)] !== undefined).length;
+  const correct = review.questions.filter((q, i) => answers[String(i)] === q.answer).length;
+  const unread = day.articles.filter((a) => !user.read[a.id]).length;
+  const open = quizOpen(day.date);
+  const done = answered === total;
+  const ready = open && unread === 0;
+  const line = done
+    ? `${total}문항 가운데 ${correct}문항을 맞혔습니다.`
+    : !open
+      ? `오후 ${QUIZ_OPEN_HOUR - 12}시에 열립니다. 아침에 읽은 내용을 저녁에 확인합니다.`
+      : unread > 0
+        ? '기사를 모두 읽으면 풀 수 있습니다.'
+        : answered > 0
+          ? `${total - answered}문항 남았습니다.`
+          : `기사마다 두 문항, 모두 ${total}문항입니다.`;
+  return (
+    <Tap onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={!ready && !done} label="저녁 퀴즈 풀기">
+      <View style={{ gap: 8, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: t.line }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <T s={12.5} w="700" c={t.blue} style={{ letterSpacing: 0.3 }}>
+            저녁 퀴즈
+          </T>
+          {done ? <ReadMark read /> : ready ? <ReadMark read={false} /> : null}
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <T s={15} w="500" lh={1.55} style={{ flex: 1 }}>
+            {line}
+          </T>
+          {ready || done ? <Icon name="next" size={18} color={t.ink} bold /> : null}
         </View>
       </View>
     </Tap>
@@ -164,6 +209,9 @@ export function TodayScreen() {
               <Story a={a} read={!!user.read[a.id]} lead={i === 0} />
             </Rise>
           ))}
+          <Rise delay={160 + day.articles.length * 110}>
+            <QuizRow day={day} />
+          </Rise>
         </>
       )}
     </TabScreen>

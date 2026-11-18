@@ -7,7 +7,7 @@ import { Icon, T, Tap } from './ui';
 
 export type TabName = 'today' | 'archive' | 'review';
 
-export type Route = { name: 'article'; id: string } | { name: 'settings' };
+export type Route = { name: 'article'; id: string } | { name: 'settings' } | { name: 'quiz'; date: string };
 
 export type Nav = {
   tab: TabName;

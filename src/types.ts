@@ -13,6 +13,9 @@ export type ArticleLink = {
   text: string;
 };
 
+/** 저녁에 푸는 기억 확인 문항. 수치가 아니라 구조를 묻는다. */
+export type QuizItem = { q: string; options: string[]; answer: number; explain: string };
+
 export type Article = {
   id: string;
   date: string; // YYYY-MM-DD
@@ -26,6 +29,7 @@ export type Article = {
   summary: string[]; // 요약 3문장
   body?: string[]; // 본문 정리. 문단 단위. 원문을 옮겨 적지 않고 내용을 풀어 쓴다
   links: ArticleLink[];
+  quiz?: QuizItem[]; // 저녁 퀴즈. 기사 한 건에 2문항
   trackers?: string[]; // 화면에는 안 보인다. 2주 뒤 점검에만 쓴다
   checkDate?: string;
   threadId?: string;

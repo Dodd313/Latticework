@@ -4,6 +4,7 @@ import { EASE, NATIVE_DRIVER, motionOff } from './src/motion';
 import { Nav, NavCtx, Route, TabBar, TabName } from './src/nav';
 import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
+import { DayQuizScreen } from './src/screens/DayQuiz';
 import { ReviewScreen } from './src/screens/Review';
 import { SettingsScreen } from './src/screens/Settings';
 import { TodayScreen } from './src/screens/Today';
@@ -139,12 +140,12 @@ function Shell() {
             {layer('archive', <ArchiveScreen />)}
             {layer('review', <ReviewScreen />)}
             {stack.map((route, i) => (
-              <StackLayer key={`${i}-${route.name === 'article' ? route.id : 'settings'}`} closing={closing && i === stack.length - 1} onClosed={finishPop} bg={t.ground}>
-                {route.name === 'article' ? <ArticleScreen id={route.id} /> : <SettingsScreen />}
+              <StackLayer key={`${i}-${route.name === 'article' ? route.id : route.name === 'quiz' ? route.date : 'settings'}`} closing={closing && i === stack.length - 1} onClosed={finishPop} bg={t.ground}>
+                {route.name === 'article' ? <ArticleScreen id={route.id} /> : route.name === 'quiz' ? <DayQuizScreen date={route.date} /> : <SettingsScreen />}
               </StackLayer>
             ))}
           </View>
-          {top && top.name === 'article' ? null : <TabBar />}
+          {top && (top.name === 'article' || top.name === 'quiz') ? null : <TabBar />}
           <GoalReached />
         </View>
       </View>

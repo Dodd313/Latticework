@@ -33,6 +33,22 @@ const scheme = process.argv[2] === 'dark' ? 'dark' : 'light';
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, colorScheme: scheme, locale: 'ko-KR' });
 const page = await ctx.newPage();
+// 저녁 퀴즈는 한국 시각 18시에 열린다. 확인할 때는 화면 안의 시계를 오늘 20시로 옮긴다.
+const kstNow = new Date(Date.now() + 9 * 3600 * 1000);
+const offset = (20 - kstNow.getUTCHours()) * 3600 * 1000;
+await page.addInitScript((off) => {
+  const Real = Date;
+  class Shifted extends Real {
+    constructor(...args) {
+      if (args.length === 0) super(Real.now() + off);
+      else super(...args);
+    }
+    static now() {
+      return Real.now() + off;
+    }
+  }
+  window.Date = Shifted;
+}, offset);
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -75,6 +91,13 @@ await snap('05-goal-reached');
 await page.waitForTimeout(3200);
 await tap('뒤로(으)로 돌아가기');
 await snap('05b-today-done');
+
+await tap('저녁 퀴즈 풀기');
+await snap('05c-day-quiz');
+await page.getByText('수입 물가를 더 자극할 수 있어서').click();
+await snap('05d-day-quiz-answered');
+await tap('오늘(으)로 돌아가기');
+await snap('05e-today-quiz-progress');
 
 await tap('기록');
 await snap('06-archive');
