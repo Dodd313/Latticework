@@ -50,7 +50,7 @@ await snap('01-today');
 
 await page.getByText('원/달러 환율 1,521.1원, 2009년 3월 이후 가장 높았다').first().click();
 await snap('02-article-top');
-const scroller = page.locator('div').filter({ hasText: '3줄 요약' }).last();
+const scroller = page.locator('div').filter({ hasText: '요약' }).last();
 for (const [i, y] of [[1, 760], [2, 1520], [3, 2280], [4, 3040], [5, 9999]]) {
   await page.evaluate((yy) => {
     const els = [...document.querySelectorAll('div')].filter((d) => d.scrollHeight > d.clientHeight + 200 && getComputedStyle(d).overflowY !== 'visible');

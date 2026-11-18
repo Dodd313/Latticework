@@ -4,16 +4,12 @@ import { monthDay, stamp } from '../dates';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { FONT_SANS, useTheme } from '../theme';
-import { AXIS_LABEL, AXIS_MAX, Article, ArticleLink, LinkKind, RelevanceAxes, Stance } from '../types';
-import { Card, Chip, Divider, ExtLink, Icon, Meter, SectionTitle, T, Tap, Tone } from '../ui';
+import { Article, ArticleLink, LinkKind } from '../types';
+import { Card, Chip, ExtLink, Icon, SectionTitle, T, Tap } from '../ui';
 
 const STANDALONE_PAD: any = BOTTOM_PAD === 8 ? 12 : 'calc(12px + env(safe-area-inset-bottom, 0px))';
 
-const LINK_LABEL: Record<LinkKind, string> = { continue: '이어짐', reverse: '뒤집힘', cross: '교차', pattern: '반복 패턴', new: '새 실 시작' };
-
-const STANCE_TONE: Record<Stance, Tone> = { positive: 'blue', negative: 'orange', mixed: 'blue', watch: 'neutral' };
-
-const AXES: (keyof RelevanceAxes)[] = ['price', 'scope', 'persistence', 'pricedIn', 'linkage'];
+const LINK_LABEL: Record<LinkKind, string> = { continue: '이어짐', reverse: '뒤집힘', cross: '함께 볼 기사', pattern: '비슷한 전례', new: '새 주제' };
 
 function LinkCard({ link }: { link: ArticleLink }) {
   const t = useTheme();
@@ -75,183 +71,82 @@ function Body({ a }: { a: Article }) {
     if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) markRead(a.id, true);
   };
 
-  let n = 0;
-  const idx = () => String(++n).padStart(2, '0');
+  const past = a.links.filter((l) => l.kind !== 'new');
+  const body = a.body ?? [];
 
   return (
     <>
-      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={200} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32, gap: 32 }}>
-        <View style={{ gap: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <Chip label={a.category} />
-            <T s={13} c={t.sub} mono>
-              {stamp(a.date)} · {a.minutes}분
-            </T>
-          </View>
+      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={200} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 32, gap: 28 }}>
+        <View style={{ gap: 10 }}>
+          <T s={13} c={t.sub} mono>
+            {stamp(a.date)} · {a.category}
+          </T>
           <T s={26} w="700" lh={1.32} role="heading" level={1}>
             {a.title}
           </T>
-          <ExtLink url={a.url} label={`${a.source} 원문 보기`} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, alignSelf: 'flex-start' }}>
-            <T s={14} w="500" c={t.blue}>
-              원문 보기 · {a.source}
-            </T>
-            <Icon name="external" size={16} color={t.blue} bold />
-          </ExtLink>
-          <Card style={{ gap: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <T s={14} w="600">
-                주식투자 관련도
-              </T>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-                <T s={24} w="600" c={t.orange} mono>
-                  {a.relevance.total}
-                </T>
-                <T s={13} c={t.sub} mono>
-                  /100
-                </T>
-              </View>
-            </View>
-            <View style={{ gap: 8 }}>
-              {AXES.map((k) => (
-                <View key={k} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 22 }}>
-                  <T s={13} c={t.sub} style={{ width: 128 }}>
-                    {AXIS_LABEL[k]}
-                  </T>
-                  <Meter value={a.relevance.axes[k] ?? 0} max={AXIS_MAX[k]} />
-                  <T s={12} c={t.sub} mono style={{ width: 44, textAlign: 'right' }}>
-                    {a.relevance.axes[k] ?? 0}/{AXIS_MAX[k]}
-                  </T>
-                </View>
-              ))}
-            </View>
-            {a.relevance.reason ? (
-              <T s={13} c={t.sub}>
-                {a.relevance.reason}
-              </T>
-            ) : null}
-          </Card>
+          <T s={13} c={t.sub}>
+            {a.source} 기사를 정리했습니다 · 읽는 데 {a.minutes}분
+          </T>
         </View>
 
         {a.summary.length > 0 ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="3줄 요약" />
+          <Card style={{ gap: 12, borderRadius: 16 }}>
+            <T s={13} w="700" c={t.blue} role="heading" level={2}>
+              요약
+            </T>
             <View style={{ gap: 10 }}>
               {a.summary.map((line, i) => (
-                <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
-                  <T s={16} w="600" c={t.blue} mono lh={1.55}>
-                    {i + 1}
-                  </T>
-                  <T s={16} lh={1.55} style={{ flex: 1 }}>
+                <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: t.blue, marginTop: 11 }} aria-hidden />
+                  <T s={16} w="500" lh={1.6} style={{ flex: 1 }}>
                     {line}
                   </T>
                 </View>
               ))}
             </View>
+          </Card>
+        ) : null}
+
+        {body.length > 0 ? (
+          <View style={{ gap: 18 }}>
+            {body.map((para, i) => (
+              <T key={i} s={17} lh={1.8}>
+                {para}
+              </T>
+            ))}
           </View>
         ) : null}
 
-        {a.numbers.length > 0 ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="핵심 숫자" />
-            <Card style={{ paddingVertical: 0 }}>
-              {a.numbers.map((num, i) => (
-                <View key={i}>
-                  {i > 0 ? <Divider /> : null}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 60, paddingVertical: 10 }}>
-                    <T s={21} w="600" mono>
-                      {num.value}
-                    </T>
-                    <T s={13} c={t.sub} lh={1.4} style={{ flex: 1, textAlign: 'right' }}>
-                      {num.label}
-                    </T>
-                  </View>
-                </View>
-              ))}
-            </Card>
-          </View>
-        ) : null}
-
-        {a.impact.length > 0 || a.trap ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="시장에 미치는 영향" />
-            <View style={{ gap: 8 }}>
-              {a.impact.map((it, i) => (
-                <Card key={i} style={{ gap: 6, borderRadius: 14, padding: 14 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <T s={15} w="600" style={{ flex: 1 }}>
-                      {it.target}
-                    </T>
-                    <Chip label={it.label} tone={STANCE_TONE[it.stance] ?? 'neutral'} />
-                  </View>
-                  <T s={15} c={t.sub} lh={1.55}>
-                    {it.text}
-                  </T>
-                </Card>
-              ))}
+        <View style={{ gap: 8 }}>
+          <ExtLink
+            url={a.url}
+            label={`${a.source} 원문 전체 보기`}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 60, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: t.ink, backgroundColor: t.card }}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <T s={16} w="600">
+                원문 전체 보기
+              </T>
+              <T s={13} c={t.sub}>
+                {a.source} 기사가 앱 안에서 열립니다
+              </T>
             </View>
-            {a.trap ? (
-              <Card tone="inverse" style={{ gap: 6, borderRadius: 14 }}>
-                <T s={13} w="600" c={t.onInverseAccent}>
-                  바로 반응하면 생기는 함정
-                </T>
-                <T s={15} c={t.onInverse} lh={1.55}>
-                  {a.trap}
-                </T>
-              </Card>
-            ) : null}
-          </View>
-        ) : null}
+            <Icon name="external" size={20} color={t.ink} bold />
+          </ExtLink>
+        </View>
 
-        {a.chain.length > 0 ? (
+        {past.length > 0 ? (
           <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="왜 중요한가" />
-            <View style={{ gap: 4 }}>
-              {a.chain.map((step, i) => (
-                <View key={i} style={{ gap: 4 }}>
-                  {i > 0 ? (
-                    <View style={{ alignItems: 'center' }} aria-hidden>
-                      <Icon name="down" size={12} color={t.mute} />
-                    </View>
-                  ) : null}
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      minHeight: 40,
-                      paddingHorizontal: 14,
-                      paddingVertical: 8,
-                      backgroundColor: t.card,
-                      borderWidth: 1,
-                      borderColor: t.line,
-                      borderRadius: 10,
-                    }}
-                  >
-                    <T s={12} c={t.mute} mono>
-                      {i + 1}
-                    </T>
-                    <T s={15} w="500" style={{ flex: 1 }}>
-                      {step}
-                    </T>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {a.links.length > 0 ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="지난 기록과의 연결" />
+            <SectionTitle title="전에 읽은 기사와의 연결" />
             <View style={{ gap: 10 }}>
-              {a.links.map((link, i) => (
+              {past.map((link, i) => (
                 <LinkCard key={i} link={link} />
               ))}
             </View>
             {a.threadId ? (
-              <Tap onPress={() => nav.openThread(a.threadId!)} label="이 실 전체 보기" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 }}>
+              <Tap onPress={() => nav.openThread(a.threadId!)} label="이어진 기사 모두 보기" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 44 }}>
                 <T s={15} w="600" c={t.blue}>
-                  이 실 전체 보기
+                  이어진 기사 모두 보기
                 </T>
                 <Icon name="next" size={16} color={t.blue} bold />
               </Tap>
@@ -259,78 +154,8 @@ function Body({ a }: { a: Article }) {
           </View>
         ) : null}
 
-        {a.lattice ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="Latticework 관점" />
-            <Card style={{ gap: 10, borderRadius: 14 }}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {a.lattice.models.map((m) => (
-                  <View key={m} style={{ borderWidth: 1, borderColor: t.ink, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
-                    <T s={12} w="600" lh={1.35}>
-                      {m}
-                    </T>
-                  </View>
-                ))}
-              </View>
-              <T s={15} lh={1.55}>
-                {a.lattice.text}
-              </T>
-            </Card>
-          </View>
-        ) : null}
-
-        {a.counter ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="반론 한 줄" />
-            <T s={16} lh={1.55}>
-              {a.counter}
-            </T>
-          </View>
-        ) : null}
-
-        {a.trackers.length > 0 ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="추적 지표" />
-            <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
-              {a.trackers.map((tr, i) => (
-                <View key={i}>
-                  {i > 0 ? <Divider /> : null}
-                  <View style={{ minHeight: 48, justifyContent: 'center', paddingVertical: 10 }}>
-                    <T s={15} lh={1.4}>
-                      {tr}
-                    </T>
-                  </View>
-                </View>
-              ))}
-            </Card>
-            {a.checkDate ? (
-              <T s={13} c={t.sub} mono>
-                {monthDay(a.checkDate)}에 다시 점검하고 해석을 채점합니다
-              </T>
-            ) : null}
-          </View>
-        ) : null}
-
-        {a.glossary.length > 0 ? (
-          <View style={{ gap: 12 }}>
-            <SectionTitle index={idx()} title="용어" />
-            <View style={{ gap: 12 }}>
-              {a.glossary.map((g) => (
-                <View key={g.term} style={{ gap: 2 }}>
-                  <T s={15} w="600">
-                    {g.term}
-                  </T>
-                  <T s={14} c={t.sub}>
-                    {g.def}
-                  </T>
-                </View>
-              ))}
-            </View>
-          </View>
-        ) : null}
-
         <View style={{ gap: 12 }}>
-          <SectionTitle index={idx()} title="내 생각" />
+          <SectionTitle title="내 생각" />
           <TextInput
             nativeID={`memo-${a.id}`}
             accessibilityLabel="내 생각 메모"
@@ -338,7 +163,7 @@ function Body({ a }: { a: Article }) {
             onChangeText={onMemo}
             onBlur={() => setMemo(a.id, memoRef.current)}
             multiline
-            placeholder="이 뉴스로 내 판단이 어떻게 바뀌었나요?"
+            placeholder="읽고 든 생각을 적어 두세요"
             placeholderTextColor={t.mute}
             style={{
               minHeight: 112,
@@ -355,7 +180,7 @@ function Body({ a }: { a: Article }) {
             }}
           />
           <T s={12} c={t.mute}>
-            메모는 자동으로 저장되고, 다음 기사를 고를 때 연결 재료로 쓰입니다.
+            메모는 자동으로 저장됩니다.
           </T>
         </View>
       </ScrollView>

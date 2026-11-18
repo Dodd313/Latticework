@@ -1,7 +1,7 @@
 {
   "name": "Latticework 시사",
   "short_name": "시사",
-  "description": "주식투자 관련도로 고른 경제 뉴스 두 건을 매일 읽습니다.",
+  "description": "경제 뉴스 두 건을 매일 읽습니다.",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",

@@ -240,16 +240,6 @@ export function SectionTitle({ index, title }: { index?: string; title: string }
   );
 }
 
-export function Meter({ value, max }: { value: number; max: number }) {
-  const t = useTheme();
-  const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
-  return (
-    <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: t.lineSoft, overflow: 'hidden' }}>
-      <View style={{ width: `${pct}%`, height: 6, borderRadius: 3, backgroundColor: t.ink }} />
-    </View>
-  );
-}
-
 export function Divider() {
   const t = useTheme();
   return <View style={{ height: 1, backgroundColor: t.lineSoft }} />;

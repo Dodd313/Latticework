@@ -1,26 +1,6 @@
 // 앱 전체가 공유하는 데이터 모양.
 // 매일 아침 정리 작업이 이 모양 그대로 저장소에 쓰고, 화면은 읽기만 한다.
 
-export type RelevanceAxes = {
-  price: number; // 가격 영향 경로, 30점 만점
-  scope: number; // 영향 범위, 20점 만점
-  persistence: number; // 지속성, 20점 만점
-  pricedIn: number; // 시장 반영 정도, 15점 만점
-  linkage: number; // 지난 기록과의 연결, 15점 만점
-};
-
-export const AXIS_MAX: RelevanceAxes = { price: 30, scope: 20, persistence: 20, pricedIn: 15, linkage: 15 };
-
-export const AXIS_LABEL: Record<keyof RelevanceAxes, string> = {
-  price: '가격 영향 경로',
-  scope: '영향 범위',
-  persistence: '지속성',
-  pricedIn: '시장 반영 정도',
-  linkage: '지난 기록과의 연결',
-};
-
-export type Stance = 'positive' | 'negative' | 'mixed' | 'watch';
-
 export type LinkKind = 'continue' | 'reverse' | 'cross' | 'pattern' | 'new';
 
 export type Verdict = 'hit' | 'miss' | 'open';
@@ -43,18 +23,11 @@ export type Article = {
   url: string;
   publishedAt?: string;
   minutes: number;
-  relevance: { total: number; axes: RelevanceAxes; reason?: string };
-  summary: string[];
-  numbers: { value: string; label: string }[];
-  impact: { target: string; stance: Stance; label: string; text: string }[];
-  trap?: string;
-  chain: string[];
+  summary: string[]; // 요약 3문장
+  body?: string[]; // 본문 정리. 문단 단위. 원문을 옮겨 적지 않고 내용을 풀어 쓴다
   links: ArticleLink[];
-  lattice?: { models: string[]; text: string };
-  counter?: string;
-  trackers: string[];
+  trackers?: string[]; // 화면에는 안 보인다. 2주 뒤 점검에만 쓴다
   checkDate?: string;
-  glossary: { term: string; def: string }[];
   threadId?: string;
   threadName?: string;
   threadOrder?: number;

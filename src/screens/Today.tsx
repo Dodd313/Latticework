@@ -19,14 +19,9 @@ function ArticleCard({ a, read }: { a: Article; read: boolean }) {
             <Chip label={a.category} />
             {read ? <Chip label="읽음" tone="neutral" /> : null}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-            <T s={12} c={t.sub}>
-              투자 관련도
-            </T>
-            <T s={17} w="600" c={t.orange} mono>
-              {a.relevance.total}
-            </T>
-          </View>
+          <T s={12} c={t.sub} mono>
+            {a.minutes}분
+          </T>
         </View>
         <T s={19} w="600" lh={1.36} role="heading" level={2}>
           {a.title}
@@ -34,21 +29,14 @@ function ArticleCard({ a, read }: { a: Article; read: boolean }) {
         <T s={14} c={t.sub}>
           {a.gist}
         </T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 2 }}>
-          {threadLine ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
-              <Icon name="threads" size={16} color={t.blue} bold />
-              <T s={13} w="500" c={t.blue} lines={1} style={{ flexShrink: 1 }}>
-                {threadLine}
-              </T>
-            </View>
-          ) : (
-            <View />
-          )}
-          <T s={12} c={t.sub} mono>
-            {a.minutes}분
-          </T>
-        </View>
+        {threadLine ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <Icon name="threads" size={16} color={t.blue} bold />
+            <T s={13} w="500" c={t.blue} lines={1} style={{ flexShrink: 1 }}>
+              {threadLine}
+            </T>
+          </View>
+        ) : null}
       </Card>
     </Tap>
   );
@@ -62,11 +50,11 @@ function FollowupCard({ f }: { f: Followup }) {
     else if (f.refArticleId) nav.push({ name: 'article', id: f.refArticleId });
   };
   return (
-    <Tap onPress={open} label="추적 지표 점검 결과 보기">
+    <Tap onPress={open} label="지난 기사 점검 결과 보기">
       <Card style={{ gap: 6, paddingVertical: 12, borderRadius: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <T s={12} w="600" c={t.sub} lines={1} style={{ flexShrink: 1 }}>
-            추적 지표 점검 · {korean(f.refDate)} 기사
+            다시 보기 · {korean(f.refDate)} 기사
           </T>
           <Chip label={VERDICT_LABEL[f.verdict]} tone={verdictTone(f.verdict)} />
         </View>
@@ -137,7 +125,7 @@ export function TodayScreen() {
   return (
     <TabScreen
       title={total === 1 ? '오늘의 한 건' : '오늘의 두 건'}
-      subtitle={day ? `주식투자 관련도로 고른 ${total}건, ${minutes}분이면 읽습니다.` : '주식투자 관련도로 고른 경제 뉴스를 매일 두 건씩 읽습니다.'}
+      subtitle={day ? `${minutes}분이면 읽습니다.` : '경제 뉴스를 매일 두 건씩 읽습니다.'}
       top={
         <T s={13} w="500" c={t.sub} mono style={{ letterSpacing: 0.5 }}>
           {stamp(day ? day.date : today)}
@@ -149,7 +137,7 @@ export function TodayScreen() {
       {!day ? (
         <EmptyState
           title={status === 'loading' ? '기사를 불러오고 있습니다' : '첫 기사를 준비하고 있습니다'}
-          body="평일 오전 7시 30분 전후에 그날의 두 건이 올라옵니다. 요약, 시장 영향, 지난 기사와의 연결이 함께 정리됩니다."
+          body="평일 오전 7시 15분 전후에 그날의 두 건이 올라옵니다. 요약과 본문 정리, 전에 읽은 기사와의 연결이 함께 실립니다."
         />
       ) : (
         <>
