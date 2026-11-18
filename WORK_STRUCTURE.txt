@@ -59,7 +59,11 @@ Latticework 시사 앱: 작업 구조 공유 문서
 - App.tsx              탭 4개(오늘, 연결, 아카이브, 복습)와 안쪽 화면(기사 상세, 설정)의 전환
 - src/types.ts         데이터 모양 정의. 예약 작업이 쓰는 모양과 같아야 한다
 - src/store.tsx        저장소 연결과 상태. 데이터 접근은 이 파일에만 둔다
-- src/theme.tsx        색과 서체. 밝은 테마와 어두운 테마
+- src/theme.tsx        색과 서체. 밝은 테마와 어두운 테마. 2026-11-18 사용자가 고른 "지면형":
+                       흰 바탕, 먹색 글자, 명조 제목과 본문(Noto Serif KR), 굵고 가는 괘선, 카드와 둥근 모서리 없음.
+                       강조는 남색 하나, 읽지 않은 기사 표식만 초록 점. 읽음 상태는 글자가 아니라 표식으로 보인다
+- src/motion.tsx       움직임 공통 부품(Rise, RuleDraw, usePop, Pulse). 기기의 "동작 줄이기"를 따른다.
+                       화면 전환과 탭 전환은 App.tsx, 탭 표시선은 nav.tsx, 읽기 진행선은 Article.tsx 에 있다
 - src/ui.tsx           공통 부품(글자, 카드, 칩, 아이콘, 링크)
 - src/nav.tsx          탭 화면 틀, 뒤로 가기 줄, 아래 탭 막대
 - src/screens/*.tsx    Today, Article, Threads, Archive, Review, Settings

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Linking, Platform, Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Animated, Linking, Platform, Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { usePop } from './motion';
 import { FONT_MONO, FONT_SANS, FONT_SERIF, useTheme } from './theme';
 
 type TProps = {
@@ -154,6 +155,9 @@ export function Icon({ name, size = 24, color, bold }: { name: IconName; size?: 
   );
 }
 
+// 웹에서는 눌림과 색 바뀜이 툭 끊기지 않게 짧은 전환을 건다.
+const SOFT: any = Platform.OS === 'web' ? { transitionProperty: 'opacity, background-color, border-color', transitionDuration: '180ms', transitionTimingFunction: 'ease-out' } : null;
+
 export function Tap({
   onPress,
   label,
@@ -181,7 +185,7 @@ export function Tap({
       accessibilityRole={role}
       accessibilityLabel={label}
       accessibilityState={{ disabled: !!disabled, selected }}
-      style={({ pressed }) => [disabled ? { opacity: 0.45 } : null, style, pressed ? { opacity: 0.6 } : null]}
+      style={({ pressed }) => [SOFT, disabled ? { opacity: 0.45 } : null, style, pressed ? { opacity: 0.55 } : null]}
     >
       {children}
     </Pressable>
@@ -235,10 +239,11 @@ export function EmptyState({ title, body }: { title: string; body: string }) {
 /** 읽음 상태. 글자 대신 작은 표식으로만 보여 준다: 읽은 기사는 회색 체크, 안 읽은 기사는 초록 점. */
 export function ReadMark({ read }: { read: boolean }) {
   const t = useTheme();
+  const scale = usePop(read);
   return (
-    <View accessibilityRole="image" accessibilityLabel={read ? '읽음' : '읽지 않음'} style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+    <Animated.View accessibilityRole="image" accessibilityLabel={read ? '읽음' : '읽지 않음'} style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center', transform: [{ scale }] }}>
       {read ? <Icon name="check" size={16} color={t.mute} bold /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.green }} />}
-    </View>
+    </Animated.View>
   );
 }
 

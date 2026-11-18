@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { isWeekend, korean, todayKST } from '../dates';
+import { Pulse, Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { STANDALONE, streak, useStore } from '../store';
 import { useTheme } from '../theme';
@@ -124,10 +125,17 @@ export function TodayScreen() {
     >
       <InstallHint />
       {!day ? (
-        <EmptyState
-          title={status === 'loading' ? '기사를 불러오는 중입니다' : '첫 발행을 준비 중입니다'}
-          body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 핵심 요약과 본문, 관련 기사를 함께 싣습니다."
-        />
+        status === 'loading' ? (
+          <Pulse style={{ gap: 12, paddingVertical: 24 }}>
+            <View style={{ width: 96, height: 12, backgroundColor: t.chip }} />
+            <View style={{ height: 26, backgroundColor: t.chip }} />
+            <View style={{ width: '72%', height: 26, backgroundColor: t.chip }} />
+            <View style={{ height: 14, backgroundColor: t.chip, marginTop: 4 }} />
+            <View style={{ width: '54%', height: 14, backgroundColor: t.chip }} />
+          </Pulse>
+        ) : (
+          <EmptyState title="첫 발행을 준비 중입니다" body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 핵심 요약과 본문, 관련 기사를 함께 싣습니다." />
+        )
       ) : (
         <>
           {stale ? (
@@ -136,10 +144,14 @@ export function TodayScreen() {
             </T>
           ) : null}
           {day.articles.map((a, i) => (
-            <Story key={a.id} a={a} read={!!user.read[a.id]} lead={i === 0} />
+            <Rise key={a.id} delay={140 + i * 110}>
+              <Story a={a} read={!!user.read[a.id]} lead={i === 0} />
+            </Rise>
           ))}
           {(day.followups ?? []).map((f, i) => (
-            <FollowupCard key={`${f.refDate}-${i}`} f={f} />
+            <Rise key={`${f.refDate}-${i}`} delay={140 + (day.articles.length + i) * 110}>
+              <FollowupCard f={f} />
+            </Rise>
           ))}
           {day.note ? (
             <T s={13} c={t.sub} style={{ paddingTop: 14 }}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { monthDay, shortStamp } from '../dates';
+import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -93,9 +94,15 @@ function ThreadView({ th }: { th: Thread }) {
       </Card>
       <View style={{ paddingTop: 16, borderTopWidth: 1, borderTopColor: t.line }}>
         {th.entries.map((e, i) => (
-          <Entry key={`${e.date}-${i}`} e={e} last={i === th.entries.length - 1 && !th.nextCheck} />
+          <Rise key={`${e.date}-${i}`} trigger={th.id} delay={80 + i * 90}>
+            <Entry e={e} last={i === th.entries.length - 1 && !th.nextCheck} />
+          </Rise>
         ))}
-        {th.nextCheck ? <Entry e={{ date: th.nextCheck.date, kind: 'check', title: th.nextCheck.text }} last /> : null}
+        {th.nextCheck ? (
+          <Rise trigger={th.id} delay={80 + th.entries.length * 90}>
+            <Entry e={{ date: th.nextCheck.date, kind: 'check', title: th.nextCheck.text }} last />
+          </Rise>
+        ) : null}
       </View>
     </>
   );

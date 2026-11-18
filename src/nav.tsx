@@ -1,5 +1,6 @@
-import React, { createContext, useContext } from 'react';
-import { ScrollView, StyleProp, View, ViewStyle } from 'react-native';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Animated, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
+import { EASE, NATIVE_DRIVER, RuleDraw, motionOff } from './motion';
 import { STANDALONE } from './store';
 import { useTheme } from './theme';
 import { Icon, T, Tap } from './ui';
@@ -51,7 +52,8 @@ export function TabScreen({
           </T>
           {right}
         </View>
-        <View style={{ borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: subtitle || meta ? 1 : 0, borderBottomColor: t.rule, paddingVertical: subtitle || meta ? 9 : 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <RuleDraw color={t.rule} height={3} />
+        <View style={{ marginTop: -10, borderBottomWidth: subtitle || meta ? 1 : 0, borderBottomColor: t.rule, paddingVertical: subtitle || meta ? 9 : 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           {subtitle ? (
             <T s={12.5} w="500" style={{ flexShrink: 1 }}>
               {subtitle}
@@ -103,13 +105,36 @@ export const BOTTOM_PAD: any = STANDALONE ? 'calc(8px + env(safe-area-inset-bott
 export function TabBar() {
   const t = useTheme();
   const nav = useNav();
+  const index = Math.max(0, TABS.findIndex((x) => x.name === nav.tab));
+  const [width, setWidth] = useState(0);
+  const pos = useRef(new Animated.Value(index)).current;
+  useEffect(() => {
+    if (motionOff()) {
+      pos.setValue(index);
+      return;
+    }
+    Animated.timing(pos, { toValue: index, duration: 340, easing: EASE, useNativeDriver: NATIVE_DRIVER }).start();
+  }, [index]);
+  const PAD = 8;
+  const BAR = 24;
+  const cell = (width - PAD * 2) / TABS.length;
+  const at = (i: number) => PAD + cell * i + cell / 2 - BAR / 2;
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', paddingHorizontal: 8, paddingTop: 0, paddingBottom: BOTTOM_PAD, backgroundColor: t.ground, borderTopWidth: 1, borderTopColor: t.rule }}>
+    <View
+      accessibilityRole="tablist"
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={{ flexDirection: 'row', paddingHorizontal: PAD, paddingBottom: BOTTOM_PAD, backgroundColor: t.ground, borderTopWidth: 1, borderTopColor: t.rule }}
+    >
+      {width > 0 ? (
+        <Animated.View
+          aria-hidden
+          style={{ position: 'absolute', top: 0, left: 0, width: BAR, height: 3, backgroundColor: t.rule, transform: [{ translateX: pos.interpolate({ inputRange: [0, TABS.length - 1], outputRange: [at(0), at(TABS.length - 1)] }) }] }}
+        />
+      ) : null}
       {TABS.map((tab) => {
         const on = nav.tab === tab.name;
         return (
-          <Tap key={tab.name} role="tab" selected={on} label={tab.label} onPress={() => nav.setTab(tab.name)} style={{ flex: 1, minHeight: 54, alignItems: 'center', gap: 12 }}>
-            <View style={{ width: 24, height: 3, backgroundColor: on ? t.rule : 'transparent' }} />
+          <Tap key={tab.name} role="tab" selected={on} label={tab.label} onPress={() => nav.setTab(tab.name)} style={{ flex: 1, minHeight: 54, alignItems: 'center', justifyContent: 'center', paddingTop: 3 }}>
             <T s={13} w={on ? '700' : '500'} c={on ? t.ink : t.sub} lh={1.3}>
               {tab.label}
             </T>

@@ -35,7 +35,7 @@ page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
 
 const snap = async (name) => {
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(1100);
   await page.screenshot({ path: join(shots, `${scheme}-${name}.png`) });
 };
 const tap = (label) => page.getByLabel(label, { exact: true }).first().click();

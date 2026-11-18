@@ -1,5 +1,6 @@
-import React from 'react';
-import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
+import React, { useRef } from 'react';
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
+import { Rise, usePop } from '../motion';
 import { monthDay } from '../dates';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
@@ -47,10 +48,18 @@ function Body({ a }: { a: Article }) {
   const nav = useNav();
   const { user, markRead } = useStore();
   const isRead = !!user.read[a.id];
-  // 끝까지 읽으면 읽음으로 표시한다.
+  const progress = useRef(new Animated.Value(0)).current;
+  const autoMarked = useRef(false);
+  const checkScale = usePop(isRead);
+  // 스크롤에 맞춰 위쪽 진행선을 늘리고, 끝까지 읽으면 한 번만 읽음으로 표시한다.
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
-    if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) markRead(a.id, true);
+    const room = Math.max(1, contentSize.height - layoutMeasurement.height);
+    progress.setValue(Math.max(0, Math.min(1, contentOffset.y / room)));
+    if (!autoMarked.current && contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) {
+      autoMarked.current = true;
+      markRead(a.id, true);
+    }
   };
 
   const past = a.links.filter((l) => l.kind !== 'new');
@@ -58,8 +67,11 @@ function Body({ a }: { a: Article }) {
 
   return (
     <>
-      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={200} contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 26, paddingBottom: 36, gap: 28 }}>
-        <View style={{ gap: 12 }}>
+      <View style={{ height: 2, marginTop: -1 }} aria-hidden>
+        <Animated.View style={{ height: 2, backgroundColor: t.rule, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+      </View>
+      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 26, paddingBottom: 36, gap: 28 }}>
+        <Rise delay={80} style={{ gap: 12 }}>
           <Chip label={a.category} />
           <T serif s={27} w="700" lh={1.38} role="heading" level={1}>
             {a.title}
@@ -72,10 +84,10 @@ function Body({ a }: { a: Article }) {
               {a.date.replace(/-/g, '.')} · 읽는 시간 {a.minutes}분
             </T>
           </View>
-        </View>
+        </Rise>
 
         {a.summary.length > 0 ? (
-          <View style={{ gap: 14, paddingVertical: 18, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
+          <Rise delay={180} style={{ gap: 14, paddingVertical: 18, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
             <SectionTitle title="핵심 요약" />
             <View style={{ gap: 12 }}>
               {a.summary.map((line, i) => (
@@ -89,17 +101,17 @@ function Body({ a }: { a: Article }) {
                 </View>
               ))}
             </View>
-          </View>
+          </Rise>
         ) : null}
 
         {body.length > 0 ? (
-          <View style={{ gap: 20 }}>
+          <Rise delay={280} style={{ gap: 20 }}>
             {body.map((para, i) => (
               <T key={i} serif s={17} lh={1.9} c={t.bodyInk}>
                 {para}
               </T>
             ))}
-          </View>
+          </Rise>
         ) : null}
 
         {past.length > 0 ? (
@@ -123,13 +135,15 @@ function Body({ a }: { a: Article }) {
       </ScrollView>
 
       <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 22, paddingTop: 12, paddingBottom: STANDALONE_PAD, backgroundColor: t.ground, borderTopWidth: 1, borderTopColor: t.rule }}>
-        <Tap
-          onPress={() => markRead(a.id, !isRead)}
-          label={isRead ? '읽음 해제' : '읽음 표시'}
-          style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.rule, backgroundColor: isRead ? t.inverse : t.ground }}
-        >
-          <Icon name="check" size={22} color={isRead ? t.onInverse : t.mute} bold />
-        </Tap>
+        <Animated.View style={{ transform: [{ scale: checkScale }] }}>
+          <Tap
+            onPress={() => markRead(a.id, !isRead)}
+            label={isRead ? '읽음 해제' : '읽음 표시'}
+            style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.rule, backgroundColor: isRead ? t.inverse : t.ground }}
+          >
+            <Icon name="check" size={22} color={isRead ? t.onInverse : t.mute} bold />
+          </Tap>
+        </Animated.View>
         <ExtLink url={a.url} label="기사 원문 보기" style={{ flex: 1, height: 52, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
           <T s={16} w="700" c={t.onInverse}>
             기사 원문 보기

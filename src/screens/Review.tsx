@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -32,6 +33,7 @@ function Quiz({ review }: { review: Review }) {
         </T>
       </View>
 
+      <Rise trigger={at} y={10}>
       <Card style={{ gap: 12 }}>
         {q.threadName ? (
           <T s={12} w="600" c={t.blue}>
@@ -86,7 +88,7 @@ function Quiz({ review }: { review: Review }) {
           })}
         </View>
         {answered ? (
-          <View style={{ gap: 6, borderTopWidth: 1, borderTopColor: t.lineSoft, paddingTop: 12 }}>
+          <Rise y={8} style={{ gap: 6, borderTopWidth: 1, borderTopColor: t.lineSoft, paddingTop: 12 }}>
             <T s={14} lh={1.5}>
               {q.explain}
             </T>
@@ -97,13 +99,14 @@ function Quiz({ review }: { review: Review }) {
                 </T>
               </Tap>
             ) : null}
-          </View>
+          </Rise>
         ) : (
           <T s={13} c={t.sub}>
             답을 선택하면 해설이 표시됩니다.
           </T>
         )}
       </Card>
+      </Rise>
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Tap onPress={() => setAt(Math.max(0, at - 1))} disabled={at === 0} label="이전 문항" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
