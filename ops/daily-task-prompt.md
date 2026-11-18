@@ -105,7 +105,7 @@ ArtifactData get 으로 days/TODAY 를 다시 읽어 기사 2건과 필수 필�
 2) ArtifactData list 를 collection "days", "threads", "reviews" 각각에 대해 같은 out_dir (예: 스크래치패드의 db 폴더) 로 호출해 문서를 파일로 받는다. 한 번에 다 오지 않으면 next_cursor 로 끝까지 받는다.
 3) clone 한 폴더에서 `node scripts/export-feed.mjs <받은 폴더> docs/data/feed.json` 을 실행한다.
 4) `git status --short` 에 변경이 있으면 docs/data/feed.json 만 add 하고 "기사 묶음 갱신: TODAY" 로 commit 한 뒤 `git push origin main` 한다. 네트워크 오류면 2초, 4초, 8초 간격으로 최대 3번 다시 시도한다. 다른 파일은 건드리지 않는다. 브랜치를 새로 만들지 않고 풀 리퀘스트도 만들지 않는다.
-add_repo 가 거절되거나 push 가 끝내 실패하면 이 단계는 포기하고, 마지막 메시지에 "자체 주소 갱신 실패"와 이유를 한 줄 적는다.
+add_repo 도구가 없거나 거절되면 이 단계는 조용히 건너뛴다. 마지막 메시지에도 적지 않는다. 저장소가 이미 작업 폴더에 붙어 있으면 add_repo 와 clone 없이 그 폴더에서 `git pull --rebase origin main` 후 3)과 4)를 수행한다. push 가 거절되면 `git pull --rebase origin main` 후 한 번 더 시도하고, 그래도 안 되면 마지막 메시지에 "자체 주소 갱신 실패"와 이유를 한 줄 적는다.
 
 # 9. 마지막 메시지 (알림으로 나간다. 4줄 이내, 꾸밈 없이)
 오늘의 두 건이 준비됐습니다.
