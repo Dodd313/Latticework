@@ -328,7 +328,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;600;700&display=swap">
 <style>
 /* 한 화면 앱. 화면은 app.js가 그리고, 여기서는 바탕색과 높이, 첫 문구만 잡는다. */
-:root { --bg: #F7F4EC; --fg: #15171A; --sub: #4B5563; --focus: #1F4FA8; }
+:root { --bg: #F5F4F0; --fg: #15171A; --sub: #4B5563; --focus: #1F4FA8; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --bg: #101214; --fg: #ECEEF1; --sub: #A8B0BB; --focus: #9DB8EA; color-scheme: dark; }
 }
@@ -339,11 +339,11 @@ body { height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); 
 .boot { margin: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); color: var(--sub); font-size: 15px; }
 #root :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 #root a { text-decoration: none; color: inherit; }
-#paper { position: fixed; inset: 0; z-index: 5; pointer-events: none; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.30 0 0 0 0 0.22 0.22 0 0 0 0'/%3E%3C/filter%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.42' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.40 0 0 0 0 0.33 0 0 0 0 0.24 0.10 0 0 0 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"); background-size: 240px 240px; }
+#paper { position: fixed; inset: 0; z-index: 5; pointer-events: none; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.28 0 0 0 0 0.25 0.29 0 0 0 0'/%3E%3C/filter%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.42' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.30 0 0 0 0 0.27 0.13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"); background-size: 240px 240px; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #paper { display: none; } }
 :root[data-theme="dark"] #paper { display: none; }
 </style>
 <div id="paper" aria-hidden="true"></div>
-<div id="root"><p class="boot">Latticework 시사를 여는 중입니다</p></div>
+<div id="root"><p class="boot">Latticework를 여는 중입니다</p></div>
 <script src="app.js" defer></script>
 </body></html>

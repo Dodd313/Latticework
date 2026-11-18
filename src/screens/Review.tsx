@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { WEEKDAY_SHORT, isWeekend, shortStamp, todayKST, weekTitle, weekdaysOf } from '../dates';
+import { addDays, isWeekend, shortStamp, todayKST, weekTitle, weekdaysOf } from '../dates';
+
+const WEEK7 = ['월', '화', '수', '목', '금', '토', '일'];
 import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { dayStatus, useStore } from '../store';
+import { useGoals, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Review } from '../types';
 import { Card, DayMark, ReadMark, SectionTitle, T, Tap } from '../ui';
@@ -146,7 +148,10 @@ function WeekRecap() {
   const anchor = days[0]?.date && days[0].date > today ? today : (days[0]?.date ?? today);
   const week = weekdaysOf(isWeekend(today) || !days.some((d) => weekdaysOf(today).includes(d.date)) ? anchor : today);
   const inWeek = days.filter((d) => week.includes(d.date)).slice().reverse();
-  const done = inWeek.filter((d) => dayStatus(d, user, today) === 'done').length;
+  const goals = useGoals();
+  const all = [...week, addDays(week[4], 1), addDays(week[4], 2)];
+  const counted = all.filter((date) => date <= today && goals.statusOf(date) !== 'none');
+  const done = counted.filter((date) => goals.statusOf(date) === 'done').length;
   return (
     <>
       <View style={{ gap: 14, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
@@ -159,14 +164,13 @@ function WeekRecap() {
               {done}
             </T>
             <T s={13} w="700" c={t.sub}>
-              / {inWeek.length}일
+              / {counted.length}일
             </T>
           </View>
-          <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel="이번 주 달성 현황">
-            {week.map((date, i) => {
-              const day = days.find((d) => d.date === date);
-              return <DayMark key={date} status={date > today ? 'future' : dayStatus(day, user, today)} label={WEEKDAY_SHORT[i]} size={34} today={date === today} />;
-            })}
+          <View style={{ flexDirection: 'row', gap: 3 }} accessibilityLabel="이번 주 달성 현황">
+            {all.map((date, i) => (
+              <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={WEEK7[i]} size={30} today={date === today} />
+            ))}
           </View>
         </View>
       </View>
@@ -206,7 +210,7 @@ export function ReviewScreen() {
   const review = reviews[0];
   const today = todayKST();
   return (
-    <TabScreen title="주간 리뷰" subtitle={weekTitle(days[0]?.date ?? today)} contentStyle={{ gap: 0 }}>
+    <TabScreen title="리뷰" subtitle={weekTitle(days[0]?.date ?? today)} contentStyle={{ gap: 0 }}>
       <WeekRecap />
       <View style={{ gap: 12, paddingTop: 26 }}>
         <View style={{ borderTopWidth: 3, borderTopColor: t.rule, paddingTop: 12 }}>

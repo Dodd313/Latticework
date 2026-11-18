@@ -5,11 +5,12 @@ import { Nav, NavCtx, Route, TabBar, TabName } from './src/nav';
 import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
 import { DayQuizScreen } from './src/screens/DayQuiz';
+import { NewsScreen } from './src/screens/News';
+import { StudyScreen } from './src/screens/Study';
 import { ReviewScreen } from './src/screens/Review';
 import { SettingsScreen } from './src/screens/Settings';
 import { TodayScreen } from './src/screens/Today';
-import { StoreProvider, dayStatus, streak, useStore } from './src/store';
-import { todayKST } from './src/dates';
+import { StoreProvider, useGoals } from './src/store';
 import { Icon, T, Tap } from './src/ui';
 import { ThemeProvider, useTheme } from './src/theme';
 
@@ -49,10 +50,9 @@ function StackLayer({ closing, onClosed, bg, children }: { closing: boolean; onC
 /** 오늘 목표를 막 채웠을 때 한 번 뜨는 축하 화면. 눌러서 닫거나 잠시 뒤 저절로 닫힌다. */
 function GoalReached() {
   const t = useTheme();
-  const { days, user } = useStore();
-  const today = todayKST();
-  const status = dayStatus(days.find((d) => d.date === today), user, today);
-  const run = streak(days, user);
+  const goals = useGoals();
+  const status = goals.status;
+  const run = goals.streak;
   const prev = useRef(status);
   const [shown, setShown] = useState(false);
   const v = useRef(new Animated.Value(0)).current;
@@ -93,7 +93,7 @@ function GoalReached() {
           </T>
         </View>
         <T s={14} c={t.sub} center>
-          내일 오전에 다음 기사 2건이 발행됩니다.
+          오늘 할 일을 모두 마쳤습니다.
         </T>
       </Tap>
     </Animated.View>
@@ -140,12 +140,22 @@ function Shell() {
             {layer('archive', <ArchiveScreen />)}
             {layer('review', <ReviewScreen />)}
             {stack.map((route, i) => (
-              <StackLayer key={`${i}-${route.name === 'article' ? route.id : route.name === 'quiz' ? route.date : 'settings'}`} closing={closing && i === stack.length - 1} onClosed={finishPop} bg={t.ground}>
-                {route.name === 'article' ? <ArticleScreen id={route.id} /> : route.name === 'quiz' ? <DayQuizScreen date={route.date} /> : <SettingsScreen />}
+              <StackLayer key={`${i}-${route.name}-${route.name === 'article' ? route.id : route.name === 'quiz' ? route.date : route.name === 'study' ? route.sect : ''}`} closing={closing && i === stack.length - 1} onClosed={finishPop} bg={t.ground}>
+                {route.name === 'article' ? (
+                  <ArticleScreen id={route.id} />
+                ) : route.name === 'quiz' ? (
+                  <DayQuizScreen date={route.date} />
+                ) : route.name === 'news' ? (
+                  <NewsScreen />
+                ) : route.name === 'study' ? (
+                  <StudyScreen sect={route.sect} />
+                ) : (
+                  <SettingsScreen />
+                )}
               </StackLayer>
             ))}
           </View>
-          {top && (top.name === 'article' || top.name === 'quiz') ? null : <TabBar />}
+          {top && top.name !== 'settings' ? null : <TabBar />}
           <GoalReached />
         </View>
       </View>

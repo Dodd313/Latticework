@@ -5,18 +5,18 @@ import { Platform, useColorScheme } from 'react-native';
 // 강조는 남색 하나이고, 읽지 않은 기사 표식만 초록이다.
 const light = {
   mode: 'light' as 'light' | 'dark',
-  ground: '#F7F4EC',
-  card: '#F7F4EC',
+  ground: '#F5F4F0',
+  card: '#F5F4F0',
   ink: '#15171A',
   bodyInk: '#1B2027',
   deck: '#3A424D',
   sub: '#4A4F57',
   mute: '#6B7078',
   rule: '#15171A',
-  line: '#CFCABB',
-  lineSoft: '#DDD8CA',
-  chip: '#EBE6DA',
-  track: '#CFCABB',
+  line: '#CDCBC3',
+  lineSoft: '#DCDAD3',
+  chip: '#E9E7E1',
+  track: '#CDCBC3',
   blue: '#1F4FA8',
   blueTint: '#E7E9EC',
   onBlueTint: '#3A424D',
@@ -28,7 +28,7 @@ const light = {
   inverse: '#15171A',
   onInverse: '#FFFFFF',
   onInverseAccent: '#F6C9A3',
-  field: '#EDE9DE',
+  field: '#EBE9E3',
 };
 
 export type Theme = typeof light;

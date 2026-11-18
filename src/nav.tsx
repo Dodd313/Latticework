@@ -7,7 +7,7 @@ import { Icon, T, Tap } from './ui';
 
 export type TabName = 'today' | 'archive' | 'review';
 
-export type Route = { name: 'article'; id: string } | { name: 'settings' } | { name: 'quiz'; date: string };
+export type Route = { name: 'article'; id: string } | { name: 'settings' } | { name: 'quiz'; date: string } | { name: 'news' } | { name: 'study'; sect: 'lat' | 'voc' };
 
 export type Nav = {
   tab: TabName;
@@ -83,7 +83,7 @@ export function BackBar({ label, right }: { label: string; right?: React.ReactNo
       </Tap>
       {right ?? (
         <T serif s={15} w="700">
-          Latticework 시사
+          Latticework
         </T>
       )}
     </View>
@@ -93,7 +93,7 @@ export function BackBar({ label, right }: { label: string; right?: React.ReactNo
 const TABS: { name: TabName; label: string }[] = [
   { name: 'today', label: '오늘' },
   { name: 'archive', label: '기록' },
-  { name: 'review', label: '주간 리뷰' },
+  { name: 'review', label: '리뷰' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */

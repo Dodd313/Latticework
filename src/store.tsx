@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
-import { isWeekend, kstDate, todayKST } from './dates';
+import { addDays, isWeekend, kstDate, todayKST } from './dates';
+import { LAT_GOAL, LogRow, Q, StudyData, StudyState, emptyStudy, review, vocGoalFor, xpFor } from './study';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -41,6 +42,12 @@ export const STANDALONE: boolean = !!(globalThis as any).__LW_STANDALONE__;
 
 type Feed = { generatedAt?: string; days: Day[]; threads: Thread[]; reviews: Review[] };
 
+async function loadStudy(): Promise<StudyData> {
+  const res = await fetch('./data/study.json?t=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('복습 자료를 받지 못했습니다');
+  return (await res.json()) as StudyData;
+}
+
 async function loadFeed(): Promise<Feed> {
   const res = await fetch('./data/feed.json?t=' + Date.now(), { cache: 'no-store' });
   if (!res.ok) throw new Error('feed ' + res.status);
@@ -50,6 +57,10 @@ async function loadFeed(): Promise<Feed> {
 // 기기 안 임시 보관. 연결 전 첫 화면을 채우고, 연결이 안 될 때의 대비책으로만 쓴다.
 const CACHE_KEY = 'lw.cache.v1';
 const USER_KEY = 'lw.user.v1';
+const STUDY_DATA_KEY = 'lw.study.data.v1';
+const STUDY_KEY = 'lw.study.state.v1';
+const STUDY_LOG_KEY = 'lw.study.log.v1';
+const LOG_CAP = 6000;
 
 function loadLocal<T>(key: string): T | null {
   try {
@@ -81,6 +92,9 @@ type Store = {
   setMemo: (articleId: string, text: string) => void;
   setMarket: (market: Market) => void;
   answerQuiz: (reviewId: string, index: number, choice: number) => void;
+  studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
+  study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
+  recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean }) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
 };
@@ -159,6 +173,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [reviews, setReviews] = useState<Review[]>(cached?.reviews ?? []);
   const [user, setUser] = useState<UserData>(() => mergeUser(EMPTY_USER, loadLocal<UserData>(USER_KEY)));
 
+  const [studyData, setStudyData] = useState<StudyData | null>(() => loadLocal<StudyData>(STUDY_DATA_KEY));
+  const [study, setStudy] = useState<StudyState>(() => loadLocal<StudyState>(STUDY_KEY) ?? emptyStudy(todayKST()));
+  const studyRef = useRef(study);
+  studyRef.current = study;
+
   const writers = useRef<{ progress?: (b: any) => void; memos?: (b: any) => void; settings?: (b: any) => void; quiz?: (b: any) => void }>({});
   const userRef = useRef(user);
   userRef.current = user;
@@ -197,6 +216,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
         };
         void refresh();
+        loadStudy()
+          .then((data) => {
+            if (!alive || !data || !Array.isArray(data.concepts)) return;
+            setStudyData(data);
+            saveLocal(STUDY_DATA_KEY, data);
+          })
+          .catch(() => {
+            // 못 받으면 기기에 남아 있는 자료로 계속 쓴다.
+          });
         const doc = (globalThis as any).document;
         const onVisible = () => {
           if (doc && doc.visibilityState === 'visible') void refresh();
@@ -339,6 +367,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (next !== userRef.current) commit(next, 'progress');
   }, [days, user.read, commit]);
 
+  // 복습 자료가 있으면 오늘의 목표 문항 수를 한 번 정해 둔다.
+  const todayStr = todayKST();
+  useEffect(() => {
+    if (!studyData) return;
+    const cur = studyRef.current;
+    if (cur.days[todayStr]) return;
+    const latGoal = studyData.questions.length > 0 ? LAT_GOAL : 0;
+    const vocGoal = vocGoalFor(studyData, cur, todayStr, new Date());
+    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { lat: 0, voc: 0, latGoal, vocGoal } } };
+    setStudy(next);
+    saveLocal(STUDY_KEY, next);
+  }, [studyData, todayStr]);
+
+  const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean }) => {
+    const cur = studyRef.current;
+    const now = new Date();
+    const today = todayKST();
+    const cards = { ...cur.cards };
+    // 틀려서 다시 나온 문제는 기억 상태를 또 바꾸지 않는다.
+    if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type);
+    const day = { ...(cur.days[today] ?? { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 }) };
+    if (result.counts) {
+      if (q.sect === 'lat') {
+        day.lat += 1;
+        if (!day.latDoneAt && day.lat >= day.latGoal) day.latDoneAt = now.toISOString();
+      } else {
+        day.voc += 1;
+        if (!day.vocDoneAt && day.voc >= day.vocGoal) day.vocDoneAt = now.toISOString();
+      }
+    }
+    const next: StudyState = { ...cur, cards, days: { ...cur.days, [today]: day }, xp: cur.xp + (q.retry ? 0 : xpFor(result.grade)) };
+    studyRef.current = next;
+    setStudy(next);
+    saveLocal(STUDY_KEY, next);
+    const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade };
+    const log = loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? [];
+    log.push(row);
+    saveLocal(STUDY_LOG_KEY, log.slice(-LOG_CAP));
+  }, []);
+
   const markRead = useCallback(
     (articleId: string, read: boolean) => {
       const cur = userRef.current;
@@ -384,7 +452,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const exportData = useCallback(() => {
-    return JSON.stringify({ app: 'latticework-sisa', version: 1, exportedAt: new Date().toISOString(), data: userRef.current }, null, 2);
+    return JSON.stringify({ app: 'latticework-sisa', version: 2, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? [] }, null, 2);
   }, []);
 
   const importData = useCallback(
@@ -393,6 +461,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(json);
         const incoming = (parsed && parsed.data ? parsed.data : parsed) as Partial<UserData>;
         if (!incoming || typeof incoming !== 'object' || (!incoming.read && !incoming.daily)) return false;
+        // 복습 기록은 더 많이 쌓인 쪽을 남긴다.
+        const st = parsed && parsed.study ? (parsed.study as StudyState) : null;
+        if (st && st.cards && Object.keys(st.cards).length >= Object.keys(studyRef.current.cards).length) {
+          setStudy(st);
+          saveLocal(STUDY_KEY, st);
+          if (Array.isArray(parsed.studyLog)) saveLocal(STUDY_LOG_KEY, parsed.studyLog.slice(-LOG_CAP));
+        }
         const merged = mergeUser(userRef.current, incoming);
         setUser(merged);
         saveLocal(USER_KEY, merged);
@@ -408,7 +483,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const value: Store = { status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData };
+  const value: Store = { status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy };
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 
@@ -425,45 +500,70 @@ export function dayDone(day: Day, read: Record<string, string>): boolean {
 
 /**
  * 하루 목표의 상태.
- * done 그날 안에 모두 읽음 · late 날짜가 지난 뒤에 모두 읽음 · pending 오늘이고 아직 남음 · missed 지난 날인데 못 채움 · none 발행 없음
+ * done 그날 안에 모두 끝냄 · late 뉴스를 날짜가 지난 뒤에 읽음 · pending 오늘이고 아직 남음 · missed 지난 날인데 못 채움 · none 할 일이 없던 날
  */
 export type DayStatus = 'done' | 'late' | 'pending' | 'missed' | 'none';
 
-export function dayStatus(day: Day | undefined, user: UserData, today: string = todayKST()): DayStatus {
-  if (!day || day.articles.length === 0) return 'none';
-  if (dayDone(day, user.read)) {
-    const at = user.daily?.[day.date]?.doneAt ?? day.articles.map((a) => user.read[a.id]).sort().pop() ?? '';
-    return kstDate(at) <= day.date ? 'done' : 'late';
+/** 하루 목표를 이루는 과제 하나. 뉴스는 발행된 날에만, 영단어와 Latticework 는 복습을 시작한 날부터 매일 있다. */
+export type GoalPart = { key: 'news' | 'voc' | 'lat'; done: number; total: number; complete: boolean; late?: boolean };
+
+export function partsOf(date: string, days: Day[], user: UserData, study: StudyState, hasStudy: boolean, today: string): GoalPart[] {
+  const parts: GoalPart[] = [];
+  const day = days.find((d) => d.date === date);
+  if (day && day.articles.length > 0) {
+    const total = day.articles.length;
+    const done = day.articles.filter((a) => !!user.read[a.id]).length;
+    const at = user.daily?.[date]?.doneAt ?? day.articles.map((a) => user.read[a.id] ?? '').sort().pop() ?? '';
+    const onTime = done === total && kstDate(at) <= date;
+    parts.push({ key: 'news', done, total, complete: onTime, late: done === total && !onTime });
   }
-  return day.date === today ? 'pending' : 'missed';
+  if (hasStudy && study.start <= date) {
+    const rec = study.days[date];
+    const vocTotal = rec ? rec.vocGoal : date === today ? 0 : 1;
+    if (vocTotal > 0) parts.push({ key: 'voc', done: rec?.voc ?? 0, total: vocTotal, complete: !!rec && rec.voc >= rec.vocGoal });
+    const latTotal = rec ? rec.latGoal : LAT_GOAL;
+    if (latTotal > 0) parts.push({ key: 'lat', done: rec?.lat ?? 0, total: latTotal, complete: !!rec && rec.lat >= rec.latGoal });
+  }
+  return parts;
 }
 
-/** 연속으로 목표를 채운 발행일 수. 오늘 것은 아직 남아 있어도 기록을 끊지 않는다. 발행이 없는 주말은 세지도 끊지도 않는다. */
-export function streak(days: Day[], user: UserData): number {
-  const today = todayKST();
-  let n = 0;
-  for (const day of days) {
-    const st = dayStatus(day, user, today);
-    if (st === 'done') n += 1;
-    else if (st === 'pending' || st === 'none') continue;
-    else break;
-  }
-  return n;
+export function statusFromParts(parts: GoalPart[], date: string, today: string): DayStatus {
+  if (parts.length === 0) return 'none';
+  if (parts.every((p) => p.complete)) return 'done';
+  if (date === today) return 'pending';
+  if (parts.every((p) => p.complete || p.late)) return 'late';
+  return 'missed';
 }
 
-/** 지금까지 가장 길었던 연속 기록 */
-export function longestStreak(days: Day[], user: UserData): number {
+/** 화면에서 쓰는 목표 묶음: 날짜별 상태, 연속 기록, 오늘의 과제. */
+export function useGoals() {
+  const { days, user, study, studyData } = useStore();
   const today = todayKST();
-  let best = 0;
-  let run = 0;
-  for (const day of days.slice().reverse()) {
-    const st = dayStatus(day, user, today);
-    if (st === 'done') run += 1;
-    else if (st === 'pending' || st === 'none') continue;
-    else run = 0;
-    if (run > best) best = run;
-  }
-  return best;
+  return useMemo(() => {
+    const hasStudy = !!studyData;
+    const statusOf = (date: string): DayStatus => (date > today ? 'none' : statusFromParts(partsOf(date, days, user, study, hasStudy, today), date, today));
+    const firstNews = days.length ? days[days.length - 1].date : today;
+    const earliest = hasStudy && study.start < firstNews ? study.start : firstNews;
+    // 연속 기록: 오늘부터 거슬러 올라가며 센다. 오늘 남은 것과 할 일이 없던 날은 세지도 끊지도 않는다.
+    let streak = 0;
+    for (let i = 0, date = today; i < 800 && date >= earliest; i++, date = addDays(today, -i)) {
+      const st = statusOf(date);
+      if (st === 'done') streak += 1;
+      else if (st === 'pending' || st === 'none') continue;
+      else break;
+    }
+    let longest = 0;
+    let run = 0;
+    for (let date = earliest, i = 0; date <= today && i < 800; date = addDays(date, 1), i++) {
+      const st = statusOf(date);
+      if (st === 'done') run += 1;
+      else if (st === 'pending' || st === 'none') continue;
+      else run = 0;
+      if (run > longest) longest = run;
+    }
+    const parts = partsOf(today, days, user, study, hasStudy, today);
+    return { today, statusOf, streak, longest, parts, status: statusFromParts(parts, today, today), hasStudy };
+  }, [days, user, study, studyData, today]);
 }
 
 export function findArticle(days: Day[], id: string) {

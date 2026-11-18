@@ -57,7 +57,7 @@ const snap = async (name) => {
   await page.waitForTimeout(1100);
   await page.screenshot({ path: join(shots, `${scheme}-${name}.png`) });
 };
-const tap = (label) => page.getByLabel(label, { exact: true }).first().click();
+const tap = (label) => page.getByLabel(label, { exact: true }).last().click();
 
 await page.goto(`${base}/preview-empty.html`);
 await page.waitForTimeout(900);
@@ -67,10 +67,11 @@ await page.goto(`${base}/preview.html`);
 await page.waitForTimeout(1200);
 await snap('01-today');
 
-await page.getByText('원/달러 환율 1,521.1원, 2009년 3월 이후 가장 높았다').first().click();
+await tap('뉴스 열기');
+await snap('01b-news');
+await page.getByText('원/달러 환율 1,521.1원, 2009년 3월 이후 가장 높았다').last().click();
 await snap('02-article-top');
-const scroller = page.locator('div').filter({ hasText: '요약' }).last();
-for (const [i, y] of [[1, 760], [2, 1520], [3, 2280], [4, 3040], [5, 9999]]) {
+for (const [i, y] of [[1, 760], [5, 9999]]) {
   await page.evaluate((yy) => {
     const els = [...document.querySelectorAll('div')].filter((d) => d.scrollHeight > d.clientHeight + 200 && getComputedStyle(d).overflowY !== 'visible');
     const el = els.sort((a, b) => b.scrollHeight - a.scrollHeight)[0];
@@ -78,42 +79,32 @@ for (const [i, y] of [[1, 760], [2, 1520], [3, 2280], [4, 3040], [5, 9999]]) {
   }, y);
   await snap(`03-article-scroll-${i}`);
 }
-void scroller;
 const readState = await page.evaluate(() => JSON.stringify(window.__LW_DOCS__['data/users/u_localpreview0000000000/progress'] ?? null));
 await tap('뒤로(으)로 돌아가기');
-await snap('04-today-after-read');
+await snap('04-news-after-read');
 
 // 두 번째 기사까지 읽으면 목표 달성 화면이 뜬다.
-await page.getByText('중동 긴장에 코스피 2.97% 하락, 5,277.30 마감').first().click();
+await page.getByText('중동 긴장에 코스피 2.97% 하락, 5,277.30 마감').last().click();
 await page.waitForTimeout(700);
 await tap('읽음 표시');
 await snap('05-goal-reached');
 await page.waitForTimeout(3200);
 await tap('뒤로(으)로 돌아가기');
-await snap('05b-today-done');
-
 await tap('저녁 퀴즈 풀기');
 await snap('05c-day-quiz');
 await page.getByText('수입 물가를 더 자극할 수 있어서').click();
 await snap('05d-day-quiz-answered');
 await tap('오늘(으)로 돌아가기');
-await snap('05e-today-quiz-progress');
+await tap('오늘(으)로 돌아가기');
+await snap('05e-today-done');
 
 await tap('기록');
 await snap('06-archive');
-await tap('주간 리뷰');
+await tap('리뷰');
 await snap('07-review');
-await page.evaluate(() => {
-  const els = [...document.querySelectorAll('div')].filter((d) => d.scrollHeight > d.clientHeight + 100 && getComputedStyle(d).overflowY !== 'visible' && d.offsetParent !== null);
-  const el = els.sort((a, b) => b.scrollHeight - a.scrollHeight)[0];
-  if (el) el.scrollTop = 9999;
-});
-await page.getByText('수입 물가가 올라서').click();
-await snap('08-review-answered');
 await tap('오늘');
 await tap('설정');
 await snap('09-settings');
-await tap('한국 · 미국');
 await tap('기록 내보내기');
 await snap('10-settings-export');
 

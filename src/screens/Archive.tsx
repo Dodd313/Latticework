@@ -3,9 +3,9 @@ import { TextInput, View } from 'react-native';
 import { WEEKDAYS_KO, monthGrid, monthKey, monthTitle, shiftMonth, shortStamp, todayKST } from '../dates';
 import { Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { DayStatus, dayStatus, longestStreak, streak, useStore } from '../store';
+import { DayStatus, useGoals, useStore } from '../store';
 import { FONT_SANS, useTheme } from '../theme';
-import { Day, UserData } from '../types';
+import { Day } from '../types';
 import { DayMark, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -34,7 +34,7 @@ function Legend({ status, label }: { status: DayStatus; label: string }) {
   );
 }
 
-function Calendar({ month, byDate, user, onPrev, onNext, canPrev, canNext }: { month: string; byDate: Record<string, Day>; user: UserData; onPrev: () => void; onNext: () => void; canPrev: boolean; canNext: boolean }) {
+function Calendar({ month, statusOf, onPrev, onNext, canPrev, canNext }: { month: string; statusOf: (date: string) => DayStatus; onPrev: () => void; onNext: () => void; canPrev: boolean; canNext: boolean }) {
   const t = useTheme();
   const today = todayKST();
   const weeks = monthGrid(month);
@@ -65,7 +65,7 @@ function Calendar({ month, byDate, user, onPrev, onNext, canPrev, canNext }: { m
           <View key={wi} style={{ flexDirection: 'row' }}>
             {week.map((date, di) => (
               <View key={di} style={{ flex: 1, height: 38, alignItems: 'center', justifyContent: 'center' }}>
-                {date ? <DayMark status={date > today ? 'future' : dayStatus(byDate[date], user, today)} label={String(Number(date.slice(8)))} size={34} today={date === today} /> : null}
+                {date ? <DayMark status={date > today ? 'future' : statusOf(date)} label={String(Number(date.slice(8)))} size={34} today={date === today} /> : null}
               </View>
             ))}
           </View>
@@ -91,17 +91,20 @@ export function ArchiveScreen() {
   const shown = month ?? monthKey(latest);
   const today = todayKST();
 
-  const byDate = useMemo(() => {
-    const m: Record<string, Day> = {};
-    days.forEach((d) => (m[d.date] = d));
-    return m;
-  }, [days]);
+  const goals = useGoals();
 
   const oldest = days.length ? monthKey(days[days.length - 1].date) : shown;
   const newest = monthKey(today);
   const needle = q.trim().toLowerCase();
   const filtering = needle !== '';
-  const doneThisMonth = days.filter((d) => monthKey(d.date) === shown && dayStatus(d, user, today) === 'done').length;
+  const doneThisMonth = useMemo(() => {
+    let n = 0;
+    for (let d = 1; d <= 31; d++) {
+      const date = `${shown}-${String(d).padStart(2, '0')}`;
+      if (date <= today && goals.statusOf(date) === 'done') n += 1;
+    }
+    return n;
+  }, [shown, today, goals]);
 
   const groups = days
     .filter((d) => filtering || monthKey(d.date) === shown)
@@ -109,17 +112,17 @@ export function ArchiveScreen() {
     .filter((g) => g.articles.length > 0);
 
   return (
-    <TabScreen title="기록" subtitle="그날 안에 2건을 모두 읽으면 하루 목표 달성입니다.">
+    <TabScreen title="기록" subtitle="그날 할 일을 그날 안에 모두 마치면 달성입니다.">
       {days.length === 0 ? (
         <EmptyState title="기록이 없습니다" body="기사를 읽으면 날짜별 달성 여부가 달력에 남습니다." />
       ) : (
         <>
           <View style={{ flexDirection: 'row', gap: 12, paddingTop: 6, paddingBottom: 4 }}>
-            <Stat label="연속" value={`${streak(days, user)}일`} />
-            <Stat label="최장 연속" value={`${longestStreak(days, user)}일`} />
+            <Stat label="연속" value={`${goals.streak}일`} />
+            <Stat label="최장 연속" value={`${goals.longest}일`} />
             <Stat label="이달 달성" value={`${doneThisMonth}일`} />
           </View>
-          <Calendar month={shown} byDate={byDate} user={user} canPrev={shown > oldest} canNext={shown < newest} onPrev={() => setMonth(shiftMonth(shown, -1))} onNext={() => setMonth(shiftMonth(shown, 1))} />
+          <Calendar month={shown} statusOf={goals.statusOf} canPrev={shown > oldest} canNext={shown < newest} onPrev={() => setMonth(shiftMonth(shown, -1))} onNext={() => setMonth(shiftMonth(shown, 1))} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, paddingHorizontal: 12, backgroundColor: t.field }}>
             <Icon name="search" size={18} color={t.sub} />
             <TextInput

@@ -1,120 +1,50 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { WEEKDAY_SHORT, isWeekend, korean, todayKST, weekdaysOf } from '../dates';
+import { addDays, isWeekend, korean, todayKST, weekdaysOf } from '../dates';
 import { Pulse, Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { STANDALONE, dayStatus, streak, useStore } from '../store';
+import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
+import { levelOf } from '../study';
 import { useTheme } from '../theme';
-import { Article, Day } from '../types';
-import { Card, DayMark, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
-import { QUIZ_OPEN_HOUR, dayQuiz, quizOpen } from './DayQuiz';
+import { Card, DayMark, Icon, ReadMark, T, Tap } from '../ui';
+import { dayQuiz, quizOpen } from './DayQuiz';
 
-function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) {
-  const t = useTheme();
-  const nav = useNav();
-  return (
-    <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
-      <View style={{ gap: 10, paddingVertical: 22, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <T serif s={lead ? 26 : 22} w="700" lh={lead ? 1.36 : 1.4} c={read ? t.sub : t.ink} role="heading" level={2}>
-          {a.title}
-        </T>
-        <T s={15} lh={1.65} c={t.deck}>
-          {a.gist}
-        </T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} c={t.sub}>
-            {a.source} · 읽는 시간 {a.minutes}분
-          </T>
-          <ReadMark read={read} />
-        </View>
-      </View>
-    </Tap>
-  );
-}
+const WEEK = ['월', '화', '수', '목', '금', '토', '일'];
+const PART_NAME: Record<GoalPart['key'], string> = { news: '뉴스', voc: '영단어', lat: 'Latticework' };
 
-/** 저녁 퀴즈로 가는 줄. 저녁 6시 전에는 잠겨 있고, 풀고 나면 정답 수를 보여 준다. */
-function QuizRow({ day }: { day: Day }) {
+/** 오늘 끝낸 과제 수, 이번 주 달성 표식, 오늘 할 일 한 줄. */
+function TodayPanel() {
   const t = useTheme();
-  const nav = useNav();
-  const { user } = useStore();
-  const review = dayQuiz(day);
-  if (!review) return null;
-  const answers = user.quiz[review.id] ?? {};
-  const total = review.questions.length;
-  const answered = review.questions.filter((_, i) => answers[String(i)] !== undefined).length;
-  const correct = review.questions.filter((q, i) => answers[String(i)] === q.answer).length;
-  const unread = day.articles.filter((a) => !user.read[a.id]).length;
-  const open = quizOpen(day.date);
-  const done = answered === total;
-  const ready = open && unread === 0;
-  const line = done
-    ? `${total}문항 가운데 ${correct}문항을 맞혔습니다.`
-    : !open
-      ? `오후 ${QUIZ_OPEN_HOUR - 12}시에 열립니다. 아침에 읽은 내용을 저녁에 확인합니다.`
-      : unread > 0
-        ? '기사를 모두 읽으면 풀 수 있습니다.'
-        : answered > 0
-          ? `${total - answered}문항 남았습니다.`
-          : `기사마다 두 문항, 모두 ${total}문항입니다.`;
-  return (
-    <Tap onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={!ready && !done} label="저녁 퀴즈 풀기">
-      <View style={{ gap: 8, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} w="700" c={t.blue} style={{ letterSpacing: 0.3 }}>
-            저녁 퀴즈
-          </T>
-          {done ? <ReadMark read /> : ready ? <ReadMark read={false} /> : null}
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <T s={15} w="500" lh={1.55} style={{ flex: 1 }}>
-            {line}
-          </T>
-          {ready || done ? <Icon name="next" size={18} color={t.ink} bold /> : null}
-        </View>
-      </View>
-    </Tap>
-  );
-}
-
-/** 연속 기록과 이번 주 달성 현황. 오늘 할 일을 한 줄로 알려 준다. */
-function StreakPanel() {
-  const t = useTheme();
-  const { days, user } = useStore();
-  const today = todayKST();
-  const run = streak(days, user);
-  const byDate: Record<string, (typeof days)[number]> = {};
-  days.forEach((d) => (byDate[d.date] = d));
-  const todayDay = byDate[today];
-  const status = dayStatus(todayDay, user, today);
-  const left = todayDay ? todayDay.articles.filter((a) => !user.read[a.id]).length : 0;
-  const hadBreak = days.some((d) => d.date < today && dayStatus(d, user, today) !== 'done');
+  const goals = useGoals();
+  const { today, parts, streak, status } = goals;
+  const doneCount = parts.filter((p) => p.complete).length;
+  const left = parts.filter((p) => !p.complete).map((p) => PART_NAME[p.key]);
+  const monday = weekdaysOf(today)[0];
 
   let line: string;
-  if (status === 'done') line = '오늘 목표를 달성했습니다.';
-  else if (status === 'pending' && left < (todayDay?.articles.length ?? 0)) line = `${left}건 남았습니다. 마저 읽으면 연속 ${run + 1}일이 됩니다.`;
-  else if (status === 'pending' && run > 0) line = `오늘 ${left}건을 읽으면 연속 ${run + 1}일이 됩니다.`;
-  else if (status === 'pending') line = hadBreak ? `오늘 ${left}건을 읽고 연속 기록을 다시 시작하세요.` : `오늘 ${left}건을 읽으면 연속 기록이 시작됩니다.`;
-  else if (isWeekend(today)) line = run > 0 ? '주말에는 발행하지 않습니다. 연속 기록은 유지됩니다.' : '주말에는 발행하지 않습니다.';
-  else line = run > 0 ? '오늘 자 기사는 발행 전입니다. 발행되면 연속 기록을 이어 가세요.' : '오늘 자 기사는 발행 전입니다.';
+  if (parts.length === 0) line = isWeekend(today) ? '주말에는 뉴스를 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다. 발행되면 자동으로 올라옵니다.';
+  else if (status === 'done') line = '오늘 할 일을 모두 마쳤습니다.';
+  else if (left.length === parts.length) line = `오늘 할 일은 ${left.join(', ')}입니다. 모두 마치면 연속 ${streak + 1}일이 됩니다.`;
+  else line = `${left.join('와 ')}가 남았습니다. 마치면 연속 ${streak + 1}일이 됩니다.`;
 
   return (
-    <View style={{ gap: 14, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+    <View style={{ gap: 12, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
           <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
-            연속
+            오늘
           </T>
           <T serif s={34} w="700" lh={1.1}>
-            {run}
+            {doneCount}
           </T>
           <T s={13} w="700" c={t.sub}>
-            일
+            / {parts.length}
           </T>
         </View>
-        <View style={{ flexDirection: 'row', gap: 6 }} accessibilityLabel="이번 주 달성 현황">
-          {weekdaysOf(today).map((date, i) => {
-            const st = date > today ? 'future' : dayStatus(byDate[date], user, today);
-            return <DayMark key={date} status={st} label={WEEKDAY_SHORT[i]} size={34} today={date === today} />;
+        <View style={{ flexDirection: 'row', gap: 3 }} accessibilityLabel="이번 주 달성 현황">
+          {WEEK.map((label, i) => {
+            const date = addDays(monday, i);
+            return <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={label} size={30} today={date === today} />;
           })}
         </View>
       </View>
@@ -122,6 +52,44 @@ function StreakPanel() {
         {line}
       </T>
     </View>
+  );
+}
+
+/** 과제 한 줄. 제목 아래에 진행 막대와 남은 양을 보여 준다. */
+function SectionRow({ kicker, title, meta, part, onPress, locked }: { kicker: string; title: string; meta: string; part?: GoalPart; onPress: () => void; locked?: boolean }) {
+  const t = useTheme();
+  const complete = !!part?.complete;
+  return (
+    <Tap onPress={onPress} disabled={locked} label={`${kicker} 열기`}>
+      <View style={{ gap: 8, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.line }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <T s={12.5} w="700" c={t.blue} style={{ letterSpacing: 0.3 }}>
+            {kicker}
+          </T>
+          {part ? <ReadMark read={complete} /> : null}
+        </View>
+        <T serif s={21} w="700" lh={1.4} c={complete ? t.sub : t.ink} role="heading" level={2}>
+          {title}
+        </T>
+        {part && part.total > 1 && !complete && part.done > 0 ? (
+          <View style={{ flexDirection: 'row', gap: 4 }} aria-hidden>
+            {Array.from({ length: Math.min(part.total, 15) }).map((_, i) => (
+              <View key={i} style={{ flex: 1, height: 3, backgroundColor: i < part.done ? t.rule : t.line }} />
+            ))}
+          </View>
+        ) : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <T s={12.5} c={t.sub} style={{ flex: 1 }}>
+            {meta}
+          </T>
+          {part ? (
+            <T s={12.5} c={t.sub} mono>
+              {part.done}/{part.total}
+            </T>
+          ) : null}
+        </View>
+      </View>
+    </Tap>
   );
 }
 
@@ -168,10 +136,12 @@ function InstallHint() {
 export function TodayScreen() {
   const t = useTheme();
   const nav = useNav();
-  const { days, user, status } = useStore();
-  const today = todayKST();
+  const { days, user, status, studyData, study } = useStore();
+  const goals = useGoals();
+  const today = goals.today;
+  const part = (key: GoalPart['key']) => goals.parts.find((p) => p.key === key);
   const day = days[0];
-  const stale = day && day.date !== today;
+  const todayDay = day && day.date === today ? day : undefined;
 
   const settings = (
     <Tap onPress={() => nav.push({ name: 'settings' })} label="설정" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -8 }}>
@@ -179,39 +149,77 @@ export function TodayScreen() {
     </Tap>
   );
 
+  // 뉴스 줄: 오늘 자가 있으면 아직 안 읽은 기사의 제목을, 다 읽었으면 저녁 퀴즈 상태를 보여 준다.
+  const unread = todayDay?.articles.find((a) => !user.read[a.id]);
+  const quiz = dayQuiz(todayDay);
+  const quizAnswers = quiz ? (user.quiz[quiz.id] ?? {}) : {};
+  const quizLeft = quiz ? quiz.questions.filter((_, i) => quizAnswers[String(i)] === undefined).length : 0;
+  let newsTitle = '오늘의 주요 뉴스 2건';
+  let newsMeta = '';
+  if (!todayDay) {
+    newsTitle = day ? '지난 발행분 보기' : '첫 발행을 준비 중입니다';
+    newsMeta = isWeekend(today) ? '주말에는 발행하지 않습니다' : '오늘 자 기사는 발행 전입니다';
+  } else if (unread) {
+    newsTitle = unread.title;
+    newsMeta = `${unread.source} · 읽는 시간 ${unread.minutes}분`;
+  } else if (quiz && quizLeft > 0) {
+    newsMeta = quizOpen(today) ? `저녁 퀴즈 ${quizLeft}문항이 남았습니다` : '모두 읽음 · 저녁 6시에 퀴즈가 열립니다';
+  } else {
+    newsMeta = quiz ? '모두 읽음 · 저녁 퀴즈 완료' : '모두 읽음';
+  }
+
+  const rec = study.days[today];
+  const vocPart = part('voc');
+  const latPart = part('lat');
+  const newCount = studyData ? studyData.vocab.filter((v) => !study.cards[v.id]).length : 0;
+  const fields = studyData ? Array.from(new Set(studyData.concepts.map((c) => c.field).filter(Boolean))).slice(0, 3).join(' · ') : '';
+
   return (
-    <TabScreen title="Latticework 시사" subtitle={`${today.slice(0, 4)}년 ${korean(today)}`} right={settings} contentStyle={{ gap: 0 }}>
+    <TabScreen title="Latticework" subtitle={`${today.slice(0, 4)}년 ${korean(today)}`} meta={`연속 ${goals.streak}일`} right={settings} contentStyle={{ gap: 0 }}>
       <InstallHint />
-      {!day ? (
-        status === 'loading' ? (
-          <Pulse style={{ gap: 12, paddingVertical: 24 }}>
-            <View style={{ width: 96, height: 12, backgroundColor: t.chip }} />
-            <View style={{ height: 26, backgroundColor: t.chip }} />
-            <View style={{ width: '72%', height: 26, backgroundColor: t.chip }} />
-            <View style={{ height: 14, backgroundColor: t.chip, marginTop: 4 }} />
-            <View style={{ width: '54%', height: 14, backgroundColor: t.chip }} />
-          </Pulse>
-        ) : (
-          <EmptyState title="첫 발행을 준비 중입니다" body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 그날 안에 2건을 모두 읽으면 하루 목표 달성입니다." />
-        )
+      {status === 'loading' && !day ? (
+        <Pulse style={{ gap: 12, paddingVertical: 24 }}>
+          <View style={{ width: 96, height: 12, backgroundColor: t.chip }} />
+          <View style={{ height: 26, backgroundColor: t.chip }} />
+          <View style={{ width: '72%', height: 26, backgroundColor: t.chip }} />
+        </Pulse>
       ) : (
         <>
           <Rise delay={60}>
-            <StreakPanel />
+            <TodayPanel />
           </Rise>
-          {stale ? (
-            <T s={12.5} c={t.sub} style={{ paddingTop: 14 }}>
-              아래는 {korean(day.date)} 자 기사입니다.
+          <Rise delay={160}>
+            <SectionRow kicker="뉴스" title={newsTitle} meta={newsMeta} part={part('news')} onPress={() => nav.push({ name: 'news' })} locked={!day} />
+          </Rise>
+          {studyData ? (
+            <>
+              <Rise delay={260}>
+                <SectionRow
+                  kicker="영단어"
+                  title={vocPart ? (vocPart.complete ? '오늘 분량을 마쳤습니다' : `오늘의 표현 ${vocPart.total}개`) : '오늘은 복습할 표현이 없습니다'}
+                  meta={vocPart && !vocPart.complete ? `금융영어 · 일반회화 · 아직 안 본 표현 ${newCount}개` : '더 풀기로 약한 표현을 다시 볼 수 있습니다'}
+                  part={vocPart}
+                  onPress={() => nav.push({ name: 'study', sect: 'voc' })}
+                />
+              </Rise>
+              <Rise delay={360}>
+                <SectionRow
+                  kicker="Latticework"
+                  title={latPart?.complete ? '오늘의 5문제를 마쳤습니다' : `오늘의 ${rec?.latGoal ?? 5}문제`}
+                  meta={latPart?.complete ? '더 풀기로 약한 개념을 다시 볼 수 있습니다' : `${fields} · 개념 ${studyData.concepts.length}개`}
+                  part={latPart}
+                  onPress={() => nav.push({ name: 'study', sect: 'lat' })}
+                />
+              </Rise>
+              <T s={12.5} c={t.sub} style={{ paddingTop: 14 }}>
+                레벨 {levelOf(study.xp)} · 경험치 {study.xp}점
+              </T>
+            </>
+          ) : STANDALONE ? (
+            <T s={13} c={t.sub} style={{ paddingTop: 14 }}>
+              복습 자료를 받는 중입니다.
             </T>
           ) : null}
-          {day.articles.map((a, i) => (
-            <Rise key={a.id} delay={160 + i * 110}>
-              <Story a={a} read={!!user.read[a.id]} lead={i === 0} />
-            </Rise>
-          ))}
-          <Rise delay={160 + day.articles.length * 110}>
-            <QuizRow day={day} />
-          </Rise>
         </>
       )}
     </TabScreen>
