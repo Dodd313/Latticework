@@ -1,0 +1,52 @@
+// 로컬 확인 전용. 실제 페이지에는 들어가지 않는다.
+// 페이지를 띄우는 쪽이 주는 저장소를 흉내 내, 예시 데이터로 화면을 점검한다.
+(function () {
+  var seed = window.__LW_SEED__ || { days: [], threads: [], reviews: [] };
+  var docs = {};
+  seed.days.forEach(function (d) { docs['days/' + d.date] = d; });
+  seed.threads.forEach(function (t) { docs['threads/' + t.id] = t; });
+  seed.reviews.forEach(function (r) { docs['reviews/' + r.id] = r; });
+  var listeners = [];
+
+  function snap(path) {
+    var body = docs[path];
+    return { id: path.split('/').pop(), exists: body !== undefined, data: function () { return body; }, metadata: { fromCache: false, hasPendingWrites: false } };
+  }
+
+  function docRef(path) {
+    return {
+      id: path.split('/').pop(),
+      path: path,
+      get: function () { return Promise.resolve(snap(path)); },
+      set: function (body) { docs[path] = JSON.parse(JSON.stringify(body)); window.__LW_WRITES__ = (window.__LW_WRITES__ || 0) + 1; listeners.forEach(function (l) { l(); }); return Promise.resolve(); },
+      update: function (body) { docs[path] = Object.assign({}, docs[path] || {}, body); return Promise.resolve(); },
+      delete: function () { delete docs[path]; return Promise.resolve(); },
+    };
+  }
+
+  function query(col, order, lim) {
+    function run() {
+      var prefix = col + '/';
+      var out = Object.keys(docs).filter(function (k) { return k.indexOf(prefix) === 0 && k.slice(prefix.length).indexOf('/') === -1; }).map(snap);
+      if (order) {
+        out.sort(function (a, b) { var x = a.data()[order.field], y = b.data()[order.field]; return (x < y ? -1 : x > y ? 1 : 0) * (order.dir === 'desc' ? -1 : 1); });
+      }
+      if (lim) out = out.slice(0, lim);
+      return { docs: out, size: out.length, empty: out.length === 0, docChanges: function () { return []; }, metadata: { fromCache: false, hasPendingWrites: false } };
+    }
+    return {
+      path: col,
+      where: function () { return query(col, order, lim); },
+      orderBy: function (field, dir) { return query(col, { field: field, dir: dir || 'asc' }, lim); },
+      limit: function (n) { return query(col, order, n); },
+      get: function () { return Promise.resolve(run()); },
+      onSnapshot: function (next) { var fire = function () { next(run()); }; listeners.push(fire); setTimeout(fire, 30); return function () { listeners = listeners.filter(function (l) { return l !== fire; }); }; },
+      doc: function (id) { return docRef(col + '/' + id); },
+    };
+  }
+
+  var db = { doc: docRef, collection: function (path) { return query(path, null, null); } };
+  var user = { id: function () { return Promise.resolve('u_localpreview0000000000'); } };
+  window.claude = { use: function (name) { return new Promise(function (res) { setTimeout(function () { res(name === 'db' ? db : name === 'user' ? user : null); }, 20); }); } };
+  window.__LW_DOCS__ = docs;
+})();

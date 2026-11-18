@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Latticework 시사</title>
+<meta name="description" content="주식투자 관련도로 고른 경제 뉴스 두 건을 매일 읽습니다.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="시사">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F3F5F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B121C" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 한 화면 앱. 화면은 app.js가 그리고, 여기서는 바탕색과 높이, 첫 문구만 잡는다. */
+:root { --bg: #F3F5F7; --fg: #0F1A2A; --sub: #4A5668; --focus: #1F5FD1; color-scheme: light; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0B121C; --fg: #E8EDF4; --sub: #A9B4C3; --focus: #8AB1F5; color-scheme: dark; }
+}
+html, body { height: 100%; margin: 0; }
+body { overflow: hidden; background: var(--bg); color: var(--fg); font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+#root { display: flex; height: 100%; box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.boot { margin: auto; padding: 0 16px; color: var(--sub); font-size: 15px; }
+#root :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#root a { text-decoration: none; color: inherit; }
+</style>
+</head>
+<body>
+<div id="root"><p class="boot">Latticework 시사를 여는 중입니다</p></div>
+<script>window.__LW_STANDALONE__ = true;</script>
+<script src="app.js?v=__BUILD__" defer></script>
+<script>
+if ('serviceWorker' in navigator) {
+  addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
