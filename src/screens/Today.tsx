@@ -1,43 +1,33 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { isWeekend, korean, stamp, todayKST } from '../dates';
+import { isWeekend, korean, todayKST } from '../dates';
 import { TabScreen, useNav } from '../nav';
 import { STANDALONE, streak, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, Followup } from '../types';
 import { Card, Chip, EmptyState, Icon, ReadMark, T, Tap, VERDICT_LABEL, verdictTone } from '../ui';
 
-function ArticleCard({ a, read }: { a: Article; read: boolean }) {
+function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) {
   const t = useTheme();
   const nav = useNav();
-  const threadLine = a.threadName ? (a.isNewThread ? `새 이슈 · ${a.threadName}` : `${a.threadName}${a.threadOrder ? ` · ${a.threadOrder}번째 기사` : ''}`) : null;
+  const related = a.links.filter((l) => l.kind !== 'new').length;
   return (
     <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
-      <Card style={{ gap: 8 }}>
+      <View style={{ gap: 10, paddingVertical: 22, borderBottomWidth: 1, borderBottomColor: t.line }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <Chip label={a.category} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <T s={12} c={t.sub} mono>
-              {a.minutes}분
-            </T>
-            <ReadMark read={read} />
-          </View>
+          <ReadMark read={read} />
         </View>
-        <T s={19} w="600" lh={1.36} c={read ? t.sub : t.ink} role="heading" level={2}>
+        <T serif s={lead ? 26 : 22} w="700" lh={lead ? 1.36 : 1.4} c={read ? t.sub : t.ink} role="heading" level={2}>
           {a.title}
         </T>
-        <T s={14} c={t.sub}>
+        <T s={15} lh={1.65} c={t.deck}>
           {a.gist}
         </T>
-        {threadLine ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-            <Icon name="threads" size={16} color={t.blue} bold />
-            <T s={13} w="500" c={t.blue} lines={1} style={{ flexShrink: 1 }}>
-              {threadLine}
-            </T>
-          </View>
-        ) : null}
-      </Card>
+        <T s={12.5} c={t.sub}>
+          {a.source} · 읽는 시간 {a.minutes}분{related > 0 ? ` · 관련 기사 ${related}건` : ''}
+        </T>
+      </View>
     </Tap>
   );
 }
@@ -51,15 +41,17 @@ function FollowupCard({ f }: { f: Followup }) {
   };
   return (
     <Tap onPress={open} label="후속 점검 보기">
-      <Card style={{ gap: 6, paddingVertical: 12, borderRadius: 14 }}>
+      <View style={{ gap: 6, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: t.line }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12} w="600" c={t.sub} lines={1} style={{ flexShrink: 1 }}>
+          <T s={12.5} w="700" c={t.sub} lines={1} style={{ flexShrink: 1, letterSpacing: 0.3 }}>
             후속 점검 · {korean(f.refDate)} 보도
           </T>
           <Chip label={VERDICT_LABEL[f.verdict]} tone={verdictTone(f.verdict)} />
         </View>
-        <T s={14}>{f.text}</T>
-      </Card>
+        <T s={14.5} lh={1.6} c={t.deck}>
+          {f.text}
+        </T>
+      </View>
     </Tap>
   );
 }
@@ -88,7 +80,7 @@ function InstallHint() {
     }
   };
   return (
-    <Card tone="blue" style={{ gap: 8, borderRadius: 14 }}>
+    <Card tone="blue" style={{ gap: 8, marginTop: 14 }}>
       <T s={15} w="600">
         홈 화면에 추가하면 앱처럼 열립니다
       </T>
@@ -112,7 +104,6 @@ export function TodayScreen() {
   const day = days[0];
   const total = day ? day.articles.length : 0;
   const done = day ? day.articles.filter((a) => user.read[a.id]).length : 0;
-  const minutes = day ? day.articles.reduce((n, a) => n + (a.minutes || 0), 0) : 0;
   const run = streak(days, user.read);
   const stale = day && day.date !== today;
 
@@ -122,16 +113,14 @@ export function TodayScreen() {
     </Tap>
   );
 
+  const dated = day ? day.date : today;
   return (
     <TabScreen
-      title="오늘의 주요 뉴스"
-      subtitle={day ? `${total}건 · 읽는 시간 ${minutes}분` : '평일 오전, 경제 뉴스 2건을 발행합니다.'}
-      top={
-        <T s={13} w="500" c={t.sub} mono style={{ letterSpacing: 0.5 }}>
-          {stamp(day ? day.date : today)}
-        </T>
-      }
+      title="Latticework 시사"
+      subtitle={`${dated.slice(0, 4)}년 ${korean(dated)}`}
+      meta={day ? `읽은 기사 ${done}/${total} · 연속 ${run}일` : undefined}
       right={settings}
+      contentStyle={{ gap: 0 }}
     >
       <InstallHint />
       {!day ? (
@@ -142,47 +131,20 @@ export function TodayScreen() {
       ) : (
         <>
           {stale ? (
-            <View style={{ paddingHorizontal: 4 }}>
-              <T s={13} c={t.sub}>
-                {isWeekend(today) ? '주말에는 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다.'} 아래는 {korean(day.date)} 자 기사입니다.
-              </T>
-            </View>
+            <T s={12.5} c={t.sub} style={{ paddingTop: 12 }}>
+              {isWeekend(today) ? '주말에는 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다.'}
+            </T>
           ) : null}
-          <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderRadius: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <T s={14} w="600">
-                읽은 기사
-              </T>
-              <View style={{ flexDirection: 'row', gap: 4 }} aria-hidden>
-                {day.articles.map((a) => (
-                  <View key={a.id} style={{ width: 28, height: 6, borderRadius: 3, backgroundColor: user.read[a.id] ? t.ink : t.track }} />
-                ))}
-              </View>
-              <T s={13} c={t.sub} mono>
-                {done}/{total}
-              </T>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-              <T s={13} c={t.sub}>
-                연속
-              </T>
-              <T s={16} w="600" mono>
-                {run}일
-              </T>
-            </View>
-          </Card>
-          {day.articles.map((a) => (
-            <ArticleCard key={a.id} a={a} read={!!user.read[a.id]} />
+          {day.articles.map((a, i) => (
+            <Story key={a.id} a={a} read={!!user.read[a.id]} lead={i === 0} />
           ))}
           {(day.followups ?? []).map((f, i) => (
             <FollowupCard key={`${f.refDate}-${i}`} f={f} />
           ))}
           {day.note ? (
-            <View style={{ paddingHorizontal: 4 }}>
-              <T s={13} c={t.sub}>
-                {day.note}
-              </T>
-            </View>
+            <T s={13} c={t.sub} style={{ paddingTop: 14 }}>
+              {day.note}
+            </T>
           ) : null}
         </>
       )}

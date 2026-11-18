@@ -25,70 +25,76 @@ export function useNav(): Nav {
   return n;
 }
 
-/** 탭 화면의 공통 틀: 큰 제목과 스크롤 본문 */
+/** 탭 화면의 공통 틀: 제호 줄, 굵은 괘선과 가는 괘선 사이의 정보 줄, 스크롤 본문 */
 export function TabScreen({
   title,
   subtitle,
-  top,
+  meta,
   right,
   children,
   contentStyle,
 }: {
   title: string;
   subtitle?: string;
-  top?: React.ReactNode;
+  meta?: string;
   right?: React.ReactNode;
   children: React.ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
   const t = useTheme();
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: t.ground }} contentContainerStyle={[{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 28, gap: 12 }, contentStyle]}>
-      <View style={{ paddingHorizontal: 4, gap: 4 }}>
-        {top || right ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
-            <View style={{ flex: 1 }}>{top}</View>
-            {right}
-          </View>
-        ) : (
-          <View style={{ height: 8 }} />
-        )}
-        <T s={30} w="700" role="heading" level={1}>
-          {title}
-        </T>
-        {subtitle ? (
-          <T s={15} c={t.sub}>
-            {subtitle}
+    <ScrollView style={{ flex: 1, backgroundColor: t.ground }} contentContainerStyle={[{ paddingHorizontal: 22, paddingTop: 18, paddingBottom: 28, gap: 12 }, contentStyle]}>
+      <View style={{ gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
+          <T serif s={23} w="700" lh={1.3} role="heading" level={1}>
+            {title}
           </T>
-        ) : null}
+          {right}
+        </View>
+        <View style={{ borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: subtitle || meta ? 1 : 0, borderBottomColor: t.rule, paddingVertical: subtitle || meta ? 9 : 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          {subtitle ? (
+            <T s={12.5} w="500" style={{ flexShrink: 1 }}>
+              {subtitle}
+            </T>
+          ) : null}
+          {meta ? (
+            <T s={12.5} c={t.sub} mono>
+              {meta}
+            </T>
+          ) : null}
+        </View>
       </View>
       {children}
     </ScrollView>
   );
 }
 
-/** 안쪽 화면의 위쪽 줄: 뒤로 가기 */
+/** 안쪽 화면의 위쪽 줄: 뒤로 가기와 제호 */
 export function BackBar({ label, right }: { label: string; right?: React.ReactNode }) {
   const t = useTheme();
   const nav = useNav();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 48, paddingHorizontal: 8, backgroundColor: t.ground }}>
-      <Tap onPress={nav.pop} label={`${label}(으)로 돌아가기`} style={{ flexDirection: 'row', alignItems: 'center', height: 44, paddingRight: 12, gap: 2 }}>
-        <Icon name="back" color={t.blue} bold />
-        <T s={16} w="500" c={t.blue}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 52, paddingLeft: 12, paddingRight: 22, backgroundColor: t.ground, borderBottomWidth: 1, borderBottomColor: t.line }}>
+      <Tap onPress={nav.pop} label={`${label}(으)로 돌아가기`} style={{ flexDirection: 'row', alignItems: 'center', height: 44, paddingRight: 12, gap: 4 }}>
+        <Icon name="back" size={20} color={t.ink} bold />
+        <T s={14} w="500">
           {label}
         </T>
       </Tap>
-      {right}
+      {right ?? (
+        <T serif s={15} w="700">
+          Latticework 시사
+        </T>
+      )}
     </View>
   );
 }
 
-const TABS: { name: TabName; label: string; icon: 'today' | 'threads' | 'archive' | 'review' }[] = [
-  { name: 'today', label: '오늘', icon: 'today' },
-  { name: 'threads', label: '이슈', icon: 'threads' },
-  { name: 'archive', label: '지난 기사', icon: 'archive' },
-  { name: 'review', label: '퀴즈', icon: 'review' },
+const TABS: { name: TabName; label: string }[] = [
+  { name: 'today', label: '오늘' },
+  { name: 'threads', label: '이슈' },
+  { name: 'archive', label: '지난 기사' },
+  { name: 'review', label: '퀴즈' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */
@@ -98,23 +104,13 @@ export function TabBar() {
   const t = useTheme();
   const nav = useNav();
   return (
-    <View
-      accessibilityRole="tablist"
-      style={{ flexDirection: 'row', gap: 4, paddingHorizontal: 8, paddingTop: 6, paddingBottom: BOTTOM_PAD, backgroundColor: t.card, borderTopWidth: 1, borderTopColor: t.line }}
-    >
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', paddingHorizontal: 8, paddingTop: 0, paddingBottom: BOTTOM_PAD, backgroundColor: t.ground, borderTopWidth: 1, borderTopColor: t.rule }}>
       {TABS.map((tab) => {
         const on = nav.tab === tab.name;
         return (
-          <Tap
-            key={tab.name}
-            role="tab"
-            selected={on}
-            label={tab.label}
-            onPress={() => nav.setTab(tab.name)}
-            style={{ flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 2 }}
-          >
-            <Icon name={tab.icon} color={on ? t.ink : t.mute} bold={on} />
-            <T s={11} w={on ? '700' : '500'} c={on ? t.ink : t.mute} lh={1.3}>
+          <Tap key={tab.name} role="tab" selected={on} label={tab.label} onPress={() => nav.setTab(tab.name)} style={{ flex: 1, minHeight: 54, alignItems: 'center', gap: 12 }}>
+            <View style={{ width: 24, height: 3, backgroundColor: on ? t.rule : 'transparent' }} />
+            <T s={13} w={on ? '700' : '500'} c={on ? t.ink : t.sub} lh={1.3}>
               {tab.label}
             </T>
           </Tap>

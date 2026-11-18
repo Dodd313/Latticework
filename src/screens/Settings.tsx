@@ -18,12 +18,12 @@ function Group({ title, children, foot }: { title: string; children: React.React
   const t = useTheme();
   return (
     <View style={{ gap: 6 }}>
-      <T s={13} w="600" c={t.sub} style={{ paddingHorizontal: 4 }} role="heading" level={2}>
+      <T s={13} w="600" c={t.sub} style={{ paddingHorizontal: 0 }} role="heading" level={2}>
         {title}
       </T>
       {children}
       {foot ? (
-        <T s={13} c={t.sub} style={{ paddingHorizontal: 4 }}>
+        <T s={13} c={t.sub} style={{ paddingHorizontal: 0 }}>
           {foot}
         </T>
       ) : null}
@@ -73,18 +73,18 @@ export function SettingsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: t.ground }}>
       <BackBar label="오늘" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32, gap: 20 }}>
-        <T s={28} w="700" style={{ paddingHorizontal: 4 }} role="heading" level={1}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 20, paddingBottom: 32, gap: 24 }}>
+        <T serif s={26} w="700" role="heading" level={1}>
           설정
         </T>
 
         {STANDALONE ? null : (
         <Group title="편집 기준 · 시장 비중" foot="다음 발행분부터 적용됩니다.">
-          <View style={{ flexDirection: 'row', gap: 4, padding: 3, borderRadius: 12, backgroundColor: t.field }}>
+          <View style={{ flexDirection: 'row', gap: 4, padding: 3, borderRadius: 0, backgroundColor: t.field }}>
             {MARKETS.map((m) => {
               const on = user.settings.market === m.id;
               return (
-                <Tap key={m.id} onPress={() => setMarket(m.id)} selected={on} label={m.label} style={{ flex: 1, height: 44, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? t.card : 'transparent' }}>
+                <Tap key={m.id} onPress={() => setMarket(m.id)} selected={on} label={m.label} style={{ flex: 1, height: 44, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? t.card : 'transparent' }}>
                   <T s={14} w={on ? '700' : '500'}>
                     {m.label}
                   </T>
@@ -96,7 +96,7 @@ export function SettingsScreen() {
         )}
 
         <Group title="알림" foot="발행이 끝나면 Claude 앱으로 알림을 보냅니다.">
-          <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
+          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
             <Row label="발행 알림" value="평일 오전 7:15 전후" />
             <Divider />
             <Row label="주말" value="휴간" />
@@ -104,25 +104,25 @@ export function SettingsScreen() {
         </Group>
 
         <Group title="열람 기록" foot="기기를 바꿀 때 사용합니다. 내보낸 내용을 붙여 넣고 가져오기를 누르면 기존 기록과 병합됩니다.">
-          <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
+          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
             <Row label="읽은 기사" value={`${readCount}건`} />
             <Divider />
             <Row label="저장 위치" value={canSave ? '계정에 저장됨' : '이 기기에 저장됨'} />
           </Card>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Tap onPress={() => void doExport()} label="기록 내보내기" style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center' }}>
+            <Tap onPress={() => void doExport()} label="기록 내보내기" style={{ flex: 1, height: 48, borderRadius: 0, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center' }}>
               <T s={15} w="600" c={t.onInverse}>
                 내보내기
               </T>
             </Tap>
-            <Tap onPress={doImport} label="기록 가져오기" style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
+            <Tap onPress={doImport} label="기록 가져오기" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
               <T s={15} w="600">
                 가져오기
               </T>
             </Tap>
           </View>
           {note ? (
-            <T s={13} c={t.blue} style={{ paddingHorizontal: 4 }}>
+            <T s={13} c={t.blue} style={{ paddingHorizontal: 0 }}>
               {note}
             </T>
           ) : null}
@@ -134,12 +134,12 @@ export function SettingsScreen() {
             multiline
             placeholder="가져올 기록을 여기에 붙여 넣습니다"
             placeholderTextColor={t.mute}
-            style={{ minHeight: 96, maxHeight: 180, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 12, padding: 12, fontFamily: FONT_MONO, fontSize: 12, lineHeight: 18, color: t.ink, textAlignVertical: 'top' }}
+            style={{ minHeight: 96, maxHeight: 180, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 0, padding: 12, fontFamily: FONT_MONO, fontSize: 12, lineHeight: 18, color: t.ink, textAlignVertical: 'top' }}
           />
         </Group>
 
         <Group title="정보">
-          <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
+          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
             <Row label="버전" value={APP_VERSION} />
             <Divider />
             <Row label="연결 상태" value={status === 'live' ? '연결됨' : status === 'loading' ? '연결 중' : '오프라인'} />

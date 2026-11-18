@@ -1,5 +1,5 @@
 // 서비스 워커: 인터넷이 될 때는 항상 새 파일을 받고, 끊겼을 때만 보관본을 쓴다.
-const CACHE = 'lw-shell-v1';
+const CACHE = 'lw-shell-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {

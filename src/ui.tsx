@@ -1,13 +1,14 @@
 import React from 'react';
 import { Linking, Platform, Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { FONT_MONO, FONT_SANS, useTheme } from './theme';
+import { FONT_MONO, FONT_SANS, FONT_SERIF, useTheme } from './theme';
 
 type TProps = {
   s?: number; // 글자 크기
   w?: '400' | '500' | '600' | '700';
   c?: string;
   mono?: boolean;
+  serif?: boolean; // 명조. 제목과 본문에 쓴다
   lh?: number; // 줄 높이 배수
   center?: boolean;
   lines?: number;
@@ -20,7 +21,7 @@ type TProps = {
 // 한글은 낱말 중간에서 끊기지 않게 한다.
 const KOREAN_WRAP = Platform.OS === 'web' ? ({ wordBreak: 'keep-all', overflowWrap: 'anywhere' } as any) : null;
 
-export function T({ s = 15, w = '400', c, mono, lh, center, lines, style, children, role, level }: TProps) {
+export function T({ s = 15, w = '400', c, mono, serif, lh, center, lines, style, children, role, level }: TProps) {
   const t = useTheme();
   const a11y = role === 'heading' ? ({ accessibilityRole: 'header', 'aria-level': level ?? 2 } as any) : null;
   return (
@@ -29,13 +30,13 @@ export function T({ s = 15, w = '400', c, mono, lh, center, lines, style, childr
       numberOfLines={lines}
       style={[
         {
-          fontFamily: mono ? FONT_MONO : FONT_SANS,
+          fontFamily: serif ? FONT_SERIF : mono ? FONT_MONO : FONT_SANS,
           fontSize: s,
           fontWeight: w,
           color: c ?? t.ink,
           lineHeight: Math.round(s * (lh ?? (s >= 22 ? 1.3 : 1.5))),
           textAlign: center ? 'center' : undefined,
-          letterSpacing: s >= 22 && !mono ? -0.4 : 0,
+          letterSpacing: serif ? (s >= 20 ? -0.6 : -0.2) : s >= 22 && !mono ? -0.4 : 0,
         },
         mono ? ({ fontVariant: ['tabular-nums'] } as TextStyle) : null,
         KOREAN_WRAP,
@@ -47,43 +48,23 @@ export function T({ s = 15, w = '400', c, mono, lh, center, lines, style, childr
   );
 }
 
+/** 지면형의 구획. 상자 대신 위쪽 괘선 하나로 나눈다. 색 바탕(tone)은 강조할 때만 쓴다. */
 export function Card({ children, style, tone = 'card' }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'card' | 'blue' | 'inverse' }) {
   const t = useTheme();
-  const bg = tone === 'blue' ? t.blueTint : tone === 'inverse' ? t.inverse : t.card;
-  return (
-    <View style={[{ backgroundColor: bg, borderRadius: 16, padding: 16, borderWidth: tone === 'card' ? 1 : 0, borderColor: t.line }, style]}>{children}</View>
-  );
+  if (tone === 'card') return <View style={[{ paddingVertical: 16, borderTopWidth: 1, borderTopColor: t.line }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: tone === 'blue' ? t.blueTint : t.inverse, padding: 16 }, style]}>{children}</View>;
 }
 
 export type Tone = 'blue' | 'orange' | 'neutral' | 'solid' | 'outline' | 'onTint';
 
-export function Chip({ label, tone = 'blue', mono }: { label: string; tone?: Tone; mono?: boolean }) {
+/** 분류, 보도 구분, 점검 결과 같은 짧은 꼬리표. 지면형에서는 바탕 없이 굵은 글자로만 쓴다. */
+export function Chip({ label, tone = 'blue' }: { label: string; tone?: Tone; mono?: boolean }) {
   const t = useTheme();
-  const map: Record<Tone, { bg: string; fg: string; border?: string }> = {
-    blue: { bg: t.blueTint, fg: t.blue },
-    orange: { bg: t.orangeTint, fg: t.orange },
-    neutral: { bg: t.chip, fg: t.ink },
-    solid: { bg: t.blueSolid, fg: t.onBlueSolid },
-    outline: { bg: 'transparent', fg: t.sub, border: t.mute },
-    onTint: { bg: t.card, fg: t.blue },
-  };
-  const m = map[tone];
+  const fg: Record<Tone, string> = { blue: t.blue, orange: t.orange, neutral: t.sub, solid: t.blue, outline: t.sub, onTint: t.blue };
   return (
-    <View
-      style={{
-        backgroundColor: m.bg,
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderWidth: m.border ? 1 : 0,
-        borderColor: m.border,
-        alignSelf: 'flex-start',
-      }}
-    >
-      <T s={12} w="600" c={m.fg} mono={mono} lh={1.35}>
-        {label}
-      </T>
-    </View>
+    <T s={12.5} w="700" c={fg[tone]} lh={1.35} style={{ letterSpacing: 0.3 }}>
+      {label}
+    </T>
   );
 }
 
@@ -224,19 +205,11 @@ export function ExtLink({ url, children, style, label }: { url: string; children
   );
 }
 
-export function SectionTitle({ index, title }: { index?: string; title: string }) {
-  const t = useTheme();
+export function SectionTitle({ title }: { index?: string; title: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-      {index ? (
-        <T s={13} w="500" c={t.mute} mono>
-          {index}
-        </T>
-      ) : null}
-      <T s={17} w="700" role="heading" level={2}>
-        {title}
-      </T>
-    </View>
+    <T s={13} w="700" role="heading" level={2} style={{ letterSpacing: 0.4 }}>
+      {title}
+    </T>
   );
 }
 
@@ -248,8 +221,8 @@ export function Divider() {
 export function EmptyState({ title, body }: { title: string; body: string }) {
   const t = useTheme();
   return (
-    <Card style={{ gap: 6, paddingVertical: 22 }}>
-      <T s={16} w="600">
+    <Card style={{ gap: 8, paddingVertical: 24 }}>
+      <T serif s={19} w="700" lh={1.4}>
         {title}
       </T>
       <T s={14} c={t.sub}>
@@ -259,12 +232,12 @@ export function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-/** 읽음 상태. 글자 대신 작은 표식으로만 보여 준다: 읽은 기사는 회색 체크, 안 읽은 기사는 파란 점. */
+/** 읽음 상태. 글자 대신 작은 표식으로만 보여 준다: 읽은 기사는 회색 체크, 안 읽은 기사는 초록 점. */
 export function ReadMark({ read }: { read: boolean }) {
   const t = useTheme();
   return (
     <View accessibilityRole="image" accessibilityLabel={read ? '읽음' : '읽지 않음'} style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
-      {read ? <Icon name="check" size={16} color={t.mute} bold /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.blue }} />}
+      {read ? <Icon name="check" size={16} color={t.mute} bold /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.green }} />}
     </View>
   );
 }

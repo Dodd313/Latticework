@@ -21,7 +21,7 @@ function Quiz({ review }: { review: Review }) {
 
   return (
     <>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 0 }}>
         <View style={{ flex: 1, flexDirection: 'row', gap: 4 }} aria-hidden>
           {review.questions.map((_, i) => (
             <View key={i} style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: answers[String(i)] !== undefined ? t.ink : i === at ? t.mute : t.track }} />
@@ -38,7 +38,7 @@ function Quiz({ review }: { review: Review }) {
             {q.threadName}
           </T>
         ) : null}
-        <T s={18} w="600" lh={1.42} role="heading" level={2}>
+        <T serif s={20} w="700" lh={1.45} role="heading" level={2}>
           {q.q}
         </T>
         <View style={{ gap: 8 }}>
@@ -61,7 +61,7 @@ function Quiz({ review }: { review: Review }) {
                     minHeight: 48,
                     paddingHorizontal: 14,
                     paddingVertical: 10,
-                    borderRadius: 12,
+                    borderRadius: 0,
                     borderWidth: 1.5,
                     backgroundColor: isAnswer ? t.blueTint : isWrong ? t.orangeTint : t.card,
                     borderColor: isAnswer ? t.blue : isWrong ? t.orange : t.line,
@@ -106,7 +106,7 @@ function Quiz({ review }: { review: Review }) {
       </Card>
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        <Tap onPress={() => setAt(Math.max(0, at - 1))} disabled={at === 0} label="이전 문항" style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
+        <Tap onPress={() => setAt(Math.max(0, at - 1))} disabled={at === 0} label="이전 문항" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
           <T s={15} w="600">
             이전
           </T>
@@ -115,7 +115,7 @@ function Quiz({ review }: { review: Review }) {
           onPress={() => setAt(Math.min(review.questions.length - 1, at + 1))}
           disabled={at === review.questions.length - 1}
           label="다음 문항"
-          style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center' }}
+          style={{ flex: 1, height: 48, borderRadius: 0, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center' }}
         >
           <T s={15} w="600" c={t.onInverse}>
             다음
@@ -124,7 +124,7 @@ function Quiz({ review }: { review: Review }) {
       </View>
 
       {allDone ? (
-        <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 14 }}>
+        <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 0 }}>
           <T s={14} w="600">
             이번 주 정답 수
           </T>
@@ -136,7 +136,7 @@ function Quiz({ review }: { review: Review }) {
 
       {review.threadSummary ? (
         <Tap onPress={() => nav.setTab('threads')} label="이번 주 이슈 보기">
-          <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 14 }}>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 0 }}>
             <View style={{ flex: 1, gap: 2 }}>
               <T s={14} w="600">
                 이번 주 이슈

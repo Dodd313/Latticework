@@ -20,7 +20,7 @@ function Calendar({ month, byDate, read, onPrev, onNext, canPrev, canNext }: { m
   const done = inMonth.filter((d) => dayDone(d, read)).length;
   const missed = inMonth.filter((d) => !dayDone(d, read) && d.date !== today).length;
   return (
-    <Card style={{ gap: 6, padding: 12 }}>
+    <Card style={{ gap: 6, paddingVertical: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Tap onPress={onPrev} disabled={!canPrev} label="이전 달" style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
@@ -63,7 +63,7 @@ function Calendar({ month, byDate, read, onPrev, onNext, canPrev, canNext }: { m
                   style={{
                     flex: 1,
                     height: 32,
-                    borderRadius: 10,
+                    borderRadius: 0,
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: bg,
@@ -130,7 +130,7 @@ export function ArchiveScreen() {
         <EmptyState title="발행된 기사가 없습니다" body="기사가 발행되면 날짜와 분야별로 찾아볼 수 있습니다." />
       ) : (
         <>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, borderRadius: 12, paddingHorizontal: 12, backgroundColor: t.field }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, borderRadius: 0, paddingHorizontal: 12, backgroundColor: t.field }}>
             <Icon name="search" size={18} color={t.sub} />
             <TextInput
               nativeID="archive-search"
@@ -142,7 +142,7 @@ export function ArchiveScreen() {
               style={[{ flex: 1, height: 44, fontFamily: FONT_SANS, fontSize: 16, color: t.ink }, { outlineStyle: 'none' } as any]}
             />
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -22 }} contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}>
             {[null, ...topics].map((name) => {
               const on = topic === name;
               return (
@@ -151,7 +151,7 @@ export function ArchiveScreen() {
                   onPress={() => setTopic(name)}
                   selected={on}
                   label={name ?? '전체'}
-                  style={{ height: 44, paddingHorizontal: 16, borderRadius: 22, justifyContent: 'center', backgroundColor: on ? t.inverse : t.card, borderWidth: 1, borderColor: on ? t.inverse : t.line }}
+                  style={{ height: 44, paddingHorizontal: 16, borderRadius: 0, justifyContent: 'center', backgroundColor: on ? t.inverse : t.card, borderWidth: 1, borderColor: on ? t.inverse : t.line }}
                 >
                   <T s={14} w={on ? '600' : '500'} c={on ? t.onInverse : t.ink}>
                     {name ?? '전체'}
@@ -172,7 +172,7 @@ export function ArchiveScreen() {
             />
           ) : null}
           {groups.length === 0 ? (
-            <View style={{ paddingHorizontal: 4, paddingTop: 4 }}>
+            <View style={{ paddingHorizontal: 0, paddingTop: 4 }}>
               <T s={14} c={t.sub}>
                 {filtering ? '검색 결과가 없습니다.' : '이 달에 발행된 기사가 없습니다.'}
               </T>
@@ -180,11 +180,11 @@ export function ArchiveScreen() {
           ) : (
             groups.map((g) => (
               <View key={g.date} style={{ gap: 6 }}>
-                <T s={12} w="500" c={t.sub} style={{ fontFamily: FONT_MONO, paddingHorizontal: 4 }}>
+                <T s={12} w="500" c={t.sub} style={{ fontFamily: FONT_MONO, paddingHorizontal: 0 }}>
                   {shortStamp(g.date)}
                   {g.date === todayKST() ? ' · 오늘' : ''}
                 </T>
-                <Card style={{ paddingVertical: 0, paddingHorizontal: 14, borderRadius: 14 }}>
+                <Card style={{ paddingVertical: 0 }}>
                   {g.articles.map((a, i) => (
                     <View key={a.id}>
                       {i > 0 ? <Divider /> : null}

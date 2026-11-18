@@ -1,66 +1,81 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 
-// 차분한 장부 느낌: 푸른 기가 도는 바탕, 짙은 남색 글자, 파랑과 주황 두 강조색.
+// 지면형: 흰 종이, 먹색 글자, 가는 괘선. 강조는 남색 하나이고, 읽지 않은 기사 표식만 초록이다.
 const light = {
   mode: 'light' as 'light' | 'dark',
-  ground: '#F3F5F7',
+  ground: '#FFFFFF',
   card: '#FFFFFF',
-  ink: '#0F1A2A',
-  sub: '#4A5668',
-  mute: '#5F6B7C',
-  line: '#DCE1E8',
-  lineSoft: '#E4E8EE',
-  chip: '#E4E8EE',
-  track: '#C9D1DC',
-  blue: '#1F5FD1',
-  blueTint: '#E6EEFB',
-  onBlueTint: '#33415A',
-  blueSolid: '#1F5FD1',
+  ink: '#111418',
+  bodyInk: '#1B2027',
+  deck: '#3A424D',
+  sub: '#4B5563',
+  mute: '#6B7480',
+  rule: '#111418',
+  line: '#D5D9DF',
+  lineSoft: '#E6E9ED',
+  chip: '#EEF0F3',
+  track: '#D5D9DF',
+  blue: '#1F4FA8',
+  blueTint: '#EEF2F9',
+  onBlueTint: '#3A424D',
+  blueSolid: '#1F4FA8',
   onBlueSolid: '#FFFFFF',
   orange: '#B4530F',
   orangeTint: '#FBEBDD',
-  inverse: '#0F1A2A',
+  green: '#1E8E4E',
+  inverse: '#111418',
   onInverse: '#FFFFFF',
   onInverseAccent: '#F6C9A3',
-  field: '#E4E8EE',
+  field: '#F1F3F5',
 };
 
 export type Theme = typeof light;
 
 const dark: Theme = {
   mode: 'dark',
-  ground: '#0B121C',
-  card: '#131C29',
-  ink: '#E8EDF4',
-  sub: '#A9B4C3',
-  mute: '#8E9AAB',
-  line: '#253142',
-  lineSoft: '#1E2937',
-  chip: '#1E2937',
-  track: '#33415A',
-  blue: '#8AB1F5',
-  blueTint: '#16263F',
-  onBlueTint: '#C5D3E8',
-  blueSolid: '#8AB1F5',
-  onBlueSolid: '#0B121C',
+  ground: '#101214',
+  card: '#101214',
+  ink: '#ECEEF1',
+  bodyInk: '#D9DDE3',
+  deck: '#C3CAD4',
+  sub: '#A8B0BB',
+  mute: '#8B94A0',
+  rule: '#ECEEF1',
+  line: '#2B3138',
+  lineSoft: '#22272D',
+  chip: '#22272D',
+  track: '#343B44',
+  blue: '#9DB8EA',
+  blueTint: '#18202D',
+  onBlueTint: '#C3CAD4',
+  blueSolid: '#9DB8EA',
+  onBlueSolid: '#101214',
   orange: '#F0A566',
   orangeTint: '#3A2413',
-  inverse: '#E8EDF4',
-  onInverse: '#0B121C',
+  green: '#4CC27E',
+  inverse: '#ECEEF1',
+  onInverse: '#101214',
   onInverseAccent: '#8A4A12',
-  field: '#1E2937',
+  field: '#1B2026',
 };
 
 export const FONT_SANS = Platform.select({
-  web: "'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif",
+  web: "'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif",
   default: undefined,
 });
 
+// 제목과 본문에 쓰는 명조.
+export const FONT_SERIF = Platform.select({
+  web: "'Noto Serif KR', 'AppleMyungjo', 'Nanum Myeongjo', Batang, serif",
+  ios: 'AppleMyungjo',
+  default: 'serif',
+});
+
+// 날짜와 숫자. 지면형에서는 고정폭 글꼴 대신 본문 고딕에 숫자 폭만 맞춘다.
 export const FONT_MONO = Platform.select({
-  web: "'IBM Plex Mono', ui-monospace, Menlo, monospace",
-  ios: 'Menlo',
-  default: 'monospace',
+  web: "'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif",
+  default: undefined,
 });
 
 function readExplicit(): 'light' | 'dark' | null {

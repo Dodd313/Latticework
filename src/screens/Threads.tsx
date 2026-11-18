@@ -66,9 +66,9 @@ function ThreadView({ th }: { th: Thread }) {
   const count = th.entries.filter((e) => e.articleId).length;
   return (
     <>
-      <Card style={{ gap: 10 }}>
+      <Card style={{ gap: 10, borderTopWidth: 0, paddingTop: 6 }}>
         <View style={{ gap: 4 }}>
-          <T s={18} w="700" lh={1.3} role="heading" level={2}>
+          <T serif s={21} w="700" lh={1.38} role="heading" level={2}>
             {th.name}
           </T>
           <T s={12} c={t.sub} mono>
@@ -91,7 +91,7 @@ function ThreadView({ th }: { th: Thread }) {
           </View>
         ) : null}
       </Card>
-      <View style={{ paddingHorizontal: 4, paddingTop: 4 }}>
+      <View style={{ paddingTop: 16, borderTopWidth: 1, borderTopColor: t.line }}>
         {th.entries.map((e, i) => (
           <Entry key={`${e.date}-${i}`} e={e} last={i === th.entries.length - 1 && !th.nextCheck} />
         ))}
@@ -119,7 +119,7 @@ export function ThreadsScreen() {
         <EmptyState title="등록된 이슈가 없습니다" body="첫 기사가 발행되면 이슈별 타임라인이 만들어집니다. 후속 보도가 나오면 같은 이슈에 이어 싣습니다." />
       ) : (
         <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -22 }} contentContainerStyle={{ paddingHorizontal: 22, gap: 8 }}>
             {threads.map((th) => {
               const on = current && th.id === current.id;
               return (
@@ -131,7 +131,7 @@ export function ThreadsScreen() {
                   style={{
                     height: 44,
                     paddingHorizontal: 16,
-                    borderRadius: 22,
+                    borderRadius: 0,
                     justifyContent: 'center',
                     backgroundColor: on ? t.inverse : t.card,
                     borderWidth: 1,
