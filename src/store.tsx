@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
-import { kstDate, todayKST } from './dates';
+import { isWeekend, kstDate, todayKST } from './dates';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -177,6 +177,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         // 자체 주소: 기사 묶음 파일을 읽고, 앱으로 돌아올 때마다 새로 받는다.
+        let latest = '';
         const refresh = async () => {
           try {
             const feed = await loadFeed();
@@ -185,6 +186,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             const nextThreads = (feed.threads ?? []).filter((t) => t && t.id && Array.isArray(t.entries));
             nextThreads.sort((a, b) => (b.updatedAt ?? b.startedAt).localeCompare(a.updatedAt ?? a.startedAt));
             const nextReviews = (feed.reviews ?? []).filter((r) => r && r.id && Array.isArray(r.questions)).sort((a, b) => b.id.localeCompare(a.id));
+            latest = nextDays[0]?.date ?? '';
             setDays(nextDays);
             setThreads(nextThreads);
             setReviews(nextReviews);
@@ -200,7 +202,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (doc && doc.visibilityState === 'visible') void refresh();
         };
         doc?.addEventListener?.('visibilitychange', onVisible);
-        const timer = setInterval(() => void refresh(), 15 * 60 * 1000);
+        // 평일인데 오늘 자 기사가 아직 없으면 1분마다 다시 받아, 발행되는 대로 화면에 띄운다. 그 밖에는 15분마다.
+        let ticks = 0;
+        const timer = setInterval(() => {
+          ticks += 1;
+          if (doc && doc.visibilityState !== 'visible') return;
+          const today = todayKST();
+          const waiting = latest < today && !isWeekend(today);
+          if (waiting || ticks % 15 === 0) void refresh();
+        }, 60 * 1000);
         unsubs.push(() => {
           doc?.removeEventListener?.('visibilitychange', onVisible);
           clearInterval(timer);

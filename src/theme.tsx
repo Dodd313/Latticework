@@ -1,33 +1,34 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 
-// 지면형: 흰 종이, 먹색 글자, 가는 괘선. 강조는 남색 하나이고, 읽지 않은 기사 표식만 초록이다.
+// 지면형: 옅은 종이 바탕, 먹색 글자, 가는 괘선. 종이 결은 겉 틀(web/page.html, web/site/index.html)에서 얹는다.
+// 강조는 남색 하나이고, 읽지 않은 기사 표식만 초록이다.
 const light = {
   mode: 'light' as 'light' | 'dark',
-  ground: '#FFFFFF',
-  card: '#FFFFFF',
-  ink: '#111418',
+  ground: '#F7F4EC',
+  card: '#F7F4EC',
+  ink: '#15171A',
   bodyInk: '#1B2027',
   deck: '#3A424D',
-  sub: '#4B5563',
-  mute: '#6B7480',
-  rule: '#111418',
-  line: '#D5D9DF',
-  lineSoft: '#E6E9ED',
-  chip: '#EEF0F3',
-  track: '#D5D9DF',
+  sub: '#4A4F57',
+  mute: '#6B7078',
+  rule: '#15171A',
+  line: '#CFCABB',
+  lineSoft: '#DDD8CA',
+  chip: '#EBE6DA',
+  track: '#CFCABB',
   blue: '#1F4FA8',
-  blueTint: '#EEF2F9',
+  blueTint: '#E7E9EC',
   onBlueTint: '#3A424D',
   blueSolid: '#1F4FA8',
   onBlueSolid: '#FFFFFF',
   orange: '#B4530F',
   orangeTint: '#FBEBDD',
   green: '#1E8E4E',
-  inverse: '#111418',
+  inverse: '#15171A',
   onInverse: '#FFFFFF',
   onInverseAccent: '#F6C9A3',
-  field: '#F1F3F5',
+  field: '#EDE9DE',
 };
 
 export type Theme = typeof light;
