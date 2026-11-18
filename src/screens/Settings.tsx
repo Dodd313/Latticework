@@ -69,7 +69,6 @@ export function SettingsScreen() {
   };
 
   const readCount = Object.keys(user.read).length;
-  const memoCount = Object.keys(user.memos).length;
 
   return (
     <View style={{ flex: 1, backgroundColor: t.ground }}>
@@ -80,7 +79,7 @@ export function SettingsScreen() {
         </T>
 
         {STANDALONE ? null : (
-        <Group title="기사 선별 · 시장 비중" foot="다음 날 아침 기사부터 반영됩니다.">
+        <Group title="편집 기준 · 시장 비중" foot="다음 발행분부터 적용됩니다.">
           <View style={{ flexDirection: 'row', gap: 4, padding: 3, borderRadius: 12, backgroundColor: t.field }}>
             {MARKETS.map((m) => {
               const on = user.settings.market === m.id;
@@ -96,19 +95,17 @@ export function SettingsScreen() {
         </Group>
         )}
 
-        <Group title="알림" foot="지금은 기사 정리가 끝나면 Claude 앱으로 알림이 갑니다. 알림 시각을 바꾸고 싶으면 대화창에서 말씀해 주세요.">
+        <Group title="알림" foot="발행이 끝나면 Claude 앱으로 알림을 보냅니다.">
           <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
-            <Row label="아침 알림" value="평일 오전 7:30 전후" />
+            <Row label="발행 알림" value="평일 오전 7:15 전후" />
             <Divider />
-            <Row label="주말" value="쉼" />
+            <Row label="주말" value="휴간" />
           </Card>
         </Group>
 
-        <Group title="내 기록" foot="다른 기기나 앱으로 옮길 때 씁니다. 내보낸 내용을 그대로 붙여 넣고 가져오기를 누르면 합쳐집니다.">
+        <Group title="열람 기록" foot="기기를 바꿀 때 사용합니다. 내보낸 내용을 붙여 넣고 가져오기를 누르면 기존 기록과 병합됩니다.">
           <Card style={{ paddingVertical: 0, borderRadius: 14 }}>
             <Row label="읽은 기사" value={`${readCount}건`} />
-            <Divider />
-            <Row label="남긴 메모" value={`${memoCount}건`} />
             <Divider />
             <Row label="저장 위치" value={canSave ? '계정에 저장됨' : '이 기기에 저장됨'} />
           </Card>
@@ -147,7 +144,7 @@ export function SettingsScreen() {
             <Divider />
             <Row label="연결 상태" value={status === 'live' ? '연결됨' : status === 'loading' ? '연결 중' : '오프라인'} />
             <Divider />
-            <Row label="쌓인 기사" value={`${days.reduce((n, d) => n + d.articles.length, 0)}건`} />
+            <Row label="누적 기사" value={`${days.reduce((n, d) => n + d.articles.length, 0)}건`} />
           </Card>
         </Group>
       </ScrollView>

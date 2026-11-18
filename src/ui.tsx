@@ -259,7 +259,7 @@ export function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-export const VERDICT_LABEL = { hit: '맞음', miss: '빗나감', open: '미정' } as const;
+export const VERDICT_LABEL = { hit: '적중', miss: '빗나감', open: '미확인' } as const;
 
 export function verdictTone(v: 'hit' | 'miss' | 'open'): Tone {
   return v === 'hit' ? 'blue' : v === 'miss' ? 'orange' : 'neutral';

@@ -91,16 +91,16 @@ function Quiz({ review }: { review: Review }) {
               {q.explain}
             </T>
             {q.refArticleId ? (
-              <Tap onPress={() => nav.push({ name: 'article', id: q.refArticleId! })} label="관련 기사 다시 보기" style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
+              <Tap onPress={() => nav.push({ name: 'article', id: q.refArticleId! })} label="관련 기사 보기" style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
                 <T s={14} w="600" c={t.blue}>
-                  관련 기사 다시 보기
+                  관련 기사 보기
                 </T>
               </Tap>
             ) : null}
           </View>
         ) : (
           <T s={13} c={t.sub}>
-            답을 고르면 해설과 관련 기사가 열립니다.
+            답을 선택하면 해설이 표시됩니다.
           </T>
         )}
       </Card>
@@ -126,7 +126,7 @@ function Quiz({ review }: { review: Review }) {
       {allDone ? (
         <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 14 }}>
           <T s={14} w="600">
-            이번 주 결과
+            이번 주 정답 수
           </T>
           <T s={16} w="600" mono>
             {correctCount}/{review.questions.length}
@@ -135,11 +135,11 @@ function Quiz({ review }: { review: Review }) {
       ) : null}
 
       {review.threadSummary ? (
-        <Tap onPress={() => nav.setTab('threads')} label="이번 주의 실 보기">
+        <Tap onPress={() => nav.setTab('threads')} label="이번 주 이슈 보기">
           <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderRadius: 14 }}>
             <View style={{ flex: 1, gap: 2 }}>
               <T s={14} w="600">
-                이번 주의 실
+                이번 주 이슈
               </T>
               <T s={13} c={t.sub}>
                 {review.threadSummary}
@@ -157,11 +157,11 @@ export function ReviewScreen() {
   const { reviews } = useStore();
   const review = reviews[0];
   return (
-    <TabScreen title="주간 복습" subtitle={review ? `${review.title} · ${review.range}` : '한 주의 기사를 다섯 문항으로 되짚습니다.'}>
+    <TabScreen title="주간 뉴스 퀴즈" subtitle={review ? `${review.title} · ${review.range}` : '한 주간 보도를 다섯 문항으로 점검합니다.'}>
       {review && review.questions.length > 0 ? (
         <Quiz key={review.id} review={review} />
       ) : (
-        <EmptyState title="첫 복습은 금요일 아침에 열립니다" body="한 주 동안 읽은 기사에서 다섯 문항이 나옵니다. 틀린 문항은 다음 주에 다시 나옵니다." />
+        <EmptyState title="첫 퀴즈는 금요일 오전에 발행합니다" body="한 주간 발행된 기사에서 다섯 문항을 출제합니다. 오답 문항은 다음 주에 다시 출제합니다." />
       )}
     </TabScreen>
   );

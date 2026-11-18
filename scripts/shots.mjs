@@ -64,11 +64,11 @@ const readState = await page.evaluate(() => JSON.stringify(window.__LW_DOCS__['d
 await tap('뒤로(으)로 돌아가기');
 await snap('04-today-after-read');
 
-await tap('연결');
+await tap('이슈');
 await snap('05-threads');
-await tap('아카이브');
+await tap('지난 기사');
 await snap('06-archive');
-await tap('복습');
+await tap('퀴즈');
 await snap('07-review');
 await page.getByText('수입 물가가 올라서').click();
 await snap('08-review-answered');

@@ -34,7 +34,7 @@ function Calendar({ month, byDate, read, onPrev, onNext, canPrev, canNext }: { m
           </Tap>
         </View>
         <T s={12} c={t.sub} mono style={{ paddingRight: 4 }}>
-          읽은 날 {done} · 놓친 날 {missed}
+          열람 {done}일 · 미열람 {missed}일
         </T>
       </View>
       <View style={{ flexDirection: 'row', gap: 2 }} aria-hidden>
@@ -119,16 +119,15 @@ export function ArchiveScreen() {
       articles: d.articles.filter((a) => {
         if (topic && topicOf(a) !== topic) return false;
         if (!needle) return true;
-        const memo = user.memos[a.id]?.text ?? '';
-        return [a.title, a.category, a.gist, a.threadName ?? '', memo].join(' ').toLowerCase().includes(needle);
+        return [a.title, a.category, a.gist, a.threadName ?? ''].join(' ').toLowerCase().includes(needle);
       }),
     }))
     .filter((g) => g.articles.length > 0);
 
   return (
-    <TabScreen title="아카이브">
+    <TabScreen title="지난 기사">
       {days.length === 0 ? (
-        <EmptyState title="아직 읽은 기사가 없습니다" body="기사가 쌓이면 달력에 읽은 날이 표시되고, 제목과 태그, 내 메모로 찾아볼 수 있습니다." />
+        <EmptyState title="발행된 기사가 없습니다" body="기사가 발행되면 날짜와 분야별로 찾아볼 수 있습니다." />
       ) : (
         <>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, borderRadius: 12, paddingHorizontal: 12, backgroundColor: t.field }}>
@@ -138,7 +137,7 @@ export function ArchiveScreen() {
               accessibilityLabel="기사 검색"
               value={q}
               onChangeText={setQ}
-              placeholder="제목, 태그, 내 메모 검색"
+              placeholder="제목, 분야, 이슈 검색"
               placeholderTextColor={t.mute}
               style={[{ flex: 1, height: 44, fontFamily: FONT_SANS, fontSize: 16, color: t.ink }, { outlineStyle: 'none' } as any]}
             />
@@ -175,7 +174,7 @@ export function ArchiveScreen() {
           {groups.length === 0 ? (
             <View style={{ paddingHorizontal: 4, paddingTop: 4 }}>
               <T s={14} c={t.sub}>
-                {filtering ? '조건에 맞는 기사가 없습니다.' : '이 달에는 기사가 없습니다.'}
+                {filtering ? '검색 결과가 없습니다.' : '이 달에 발행된 기사가 없습니다.'}
               </T>
             </View>
           ) : (
@@ -194,13 +193,8 @@ export function ArchiveScreen() {
                           <T s={15} w="500" lines={2} lh={1.4}>
                             {a.title}
                           </T>
-                          {user.memos[a.id] ? (
-                            <T s={12} c={t.sub} lines={1}>
-                              메모 · {user.memos[a.id].text}
-                            </T>
-                          ) : null}
                         </View>
-                        <Chip label={user.read[a.id] ? '읽음' : '안 읽음'} tone={user.read[a.id] ? 'neutral' : 'orange'} />
+                        <Chip label={user.read[a.id] ? '읽음' : '미열람'} tone={user.read[a.id] ? 'neutral' : 'orange'} />
                       </Tap>
                     </View>
                   ))}

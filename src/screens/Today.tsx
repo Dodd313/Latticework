@@ -10,7 +10,7 @@ import { Card, Chip, EmptyState, Icon, T, Tap, VERDICT_LABEL, verdictTone } from
 function ArticleCard({ a, read }: { a: Article; read: boolean }) {
   const t = useTheme();
   const nav = useNav();
-  const threadLine = a.threadName ? (a.isNewThread ? `새 실 시작 · ${a.threadName}` : `${a.threadName}${a.threadOrder ? ` · ${a.threadOrder}번째` : ''}`) : null;
+  const threadLine = a.threadName ? (a.isNewThread ? `새 이슈 · ${a.threadName}` : `${a.threadName}${a.threadOrder ? ` · ${a.threadOrder}번째 기사` : ''}`) : null;
   return (
     <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
       <Card style={{ gap: 8 }}>
@@ -50,11 +50,11 @@ function FollowupCard({ f }: { f: Followup }) {
     else if (f.refArticleId) nav.push({ name: 'article', id: f.refArticleId });
   };
   return (
-    <Tap onPress={open} label="지난 기사 점검 결과 보기">
+    <Tap onPress={open} label="후속 점검 보기">
       <Card style={{ gap: 6, paddingVertical: 12, borderRadius: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <T s={12} w="600" c={t.sub} lines={1} style={{ flexShrink: 1 }}>
-            다시 보기 · {korean(f.refDate)} 기사
+            후속 점검 · {korean(f.refDate)} 보도
           </T>
           <Chip label={VERDICT_LABEL[f.verdict]} tone={verdictTone(f.verdict)} />
         </View>
@@ -97,7 +97,7 @@ function InstallHint() {
       </T>
       <Tap onPress={close} label="안내 닫기" style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
         <T s={14} w="600" c={t.blue}>
-          알겠습니다
+          확인
         </T>
       </Tap>
     </Card>
@@ -124,8 +124,8 @@ export function TodayScreen() {
 
   return (
     <TabScreen
-      title={total === 1 ? '오늘의 한 건' : '오늘의 두 건'}
-      subtitle={day ? `${minutes}분이면 읽습니다.` : '경제 뉴스를 매일 두 건씩 읽습니다.'}
+      title="오늘의 주요 뉴스"
+      subtitle={day ? `${total}건 · 읽는 시간 ${minutes}분` : '평일 오전, 경제 뉴스 2건을 발행합니다.'}
       top={
         <T s={13} w="500" c={t.sub} mono style={{ letterSpacing: 0.5 }}>
           {stamp(day ? day.date : today)}
@@ -136,22 +136,22 @@ export function TodayScreen() {
       <InstallHint />
       {!day ? (
         <EmptyState
-          title={status === 'loading' ? '기사를 불러오고 있습니다' : '첫 기사를 준비하고 있습니다'}
-          body="평일 오전 7시 15분 전후에 그날의 두 건이 올라옵니다. 요약과 본문 정리, 전에 읽은 기사와의 연결이 함께 실립니다."
+          title={status === 'loading' ? '기사를 불러오는 중입니다' : '첫 발행을 준비 중입니다'}
+          body="평일 오전 7시 15분 전후에 주요 뉴스 2건을 발행합니다. 핵심 요약과 본문, 관련 기사를 함께 싣습니다."
         />
       ) : (
         <>
           {stale ? (
             <View style={{ paddingHorizontal: 4 }}>
               <T s={13} c={t.sub}>
-                {isWeekend(today) ? '주말에는 새 기사가 올라오지 않습니다.' : '오늘 기사는 아직 올라오지 않았습니다.'} 아래는 {korean(day.date)} 기사입니다.
+                {isWeekend(today) ? '주말에는 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다.'} 아래는 {korean(day.date)} 자 기사입니다.
               </T>
             </View>
           ) : null}
           <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderRadius: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <T s={14} w="600">
-                {stale ? '이날 읽기' : '오늘 읽기'}
+                읽은 기사
               </T>
               <View style={{ flexDirection: 'row', gap: 4 }} aria-hidden>
                 {day.articles.map((a) => (
@@ -163,11 +163,11 @@ export function TodayScreen() {
               </T>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-              <T s={16} w="600" mono>
-                {run}
-              </T>
               <T s={13} c={t.sub}>
-                일 연속
+                연속
+              </T>
+              <T s={16} w="600" mono>
+                {run}일
               </T>
             </View>
           </Card>

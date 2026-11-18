@@ -86,9 +86,9 @@ export function BackBar({ label, right }: { label: string; right?: React.ReactNo
 
 const TABS: { name: TabName; label: string; icon: 'today' | 'threads' | 'archive' | 'review' }[] = [
   { name: 'today', label: '오늘', icon: 'today' },
-  { name: 'threads', label: '연결', icon: 'threads' },
-  { name: 'archive', label: '아카이브', icon: 'archive' },
-  { name: 'review', label: '복습', icon: 'review' },
+  { name: 'threads', label: '이슈', icon: 'threads' },
+  { name: 'archive', label: '지난 기사', icon: 'archive' },
+  { name: 'review', label: '퀴즈', icon: 'review' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */

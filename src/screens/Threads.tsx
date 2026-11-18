@@ -7,7 +7,7 @@ import { useTheme } from '../theme';
 import { Thread, ThreadEntry, ThreadEntryKind } from '../types';
 import { Card, Chip, EmptyState, T, Tap, Tone, VERDICT_LABEL, verdictTone } from '../ui';
 
-const KIND_LABEL: Record<ThreadEntryKind, string> = { start: '실 시작', continue: '이어짐', reverse: '뒤집힘', cross: '교차', pattern: '반복 패턴', check: '점검' };
+const KIND_LABEL: Record<ThreadEntryKind, string> = { start: '첫 보도', continue: '후속 보도', reverse: '반전', cross: '연관 이슈', pattern: '유사 사례', check: '후속 점검' };
 const KIND_TONE: Record<ThreadEntryKind, Tone> = { start: 'neutral', continue: 'solid', reverse: 'orange', cross: 'blue', pattern: 'blue', check: 'outline' };
 
 function Entry({ e, last }: { e: ThreadEntry; last: boolean }) {
@@ -72,13 +72,13 @@ function ThreadView({ th }: { th: Thread }) {
             {th.name}
           </T>
           <T s={12} c={t.sub} mono>
-            {monthDay(th.startedAt)} 시작 · 기사 {count}건 · {th.status === 'active' ? '진행 중' : '마무리됨'}
+            {monthDay(th.startedAt)} 첫 보도 · 기사 {count}건 · {th.status === 'active' ? '진행 중' : '종결'}
           </T>
         </View>
         {th.indicator ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderTopWidth: 1, borderTopColor: t.lineSoft, paddingTop: 10 }}>
             <T s={13} c={t.sub} style={{ flex: 1 }}>
-              추적 지표 · {th.indicator.label}
+              주요 지표 · {th.indicator.label}
             </T>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
               <T s={18} w="600" mono>
@@ -114,9 +114,9 @@ export function ThreadsScreen() {
   const current = threads.find((x) => x.id === picked) ?? threads[0];
 
   return (
-    <TabScreen title="연결" subtitle="읽은 기사를 실로 꿰어 흐름을 봅니다.">
+    <TabScreen title="이슈" subtitle="이슈별 보도 흐름을 시간순으로 봅니다.">
       {threads.length === 0 ? (
-        <EmptyState title="아직 실이 없습니다" body="첫 기사가 올라오면 주제마다 실이 하나씩 시작됩니다. 이후 기사가 이어지거나 뒤집힐 때마다 여기에 꿰어집니다." />
+        <EmptyState title="등록된 이슈가 없습니다" body="첫 기사가 발행되면 이슈별 타임라인이 만들어집니다. 후속 보도가 나오면 같은 이슈에 이어 싣습니다." />
       ) : (
         <>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
