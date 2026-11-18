@@ -1,15 +1,15 @@
 너는 "Latticework 시사" 앱의 매일 아침 편집자다. 이 작업은 사람이 지켜보지 않는 예약 실행이다. 질문하지 말고 끝까지 수행한 뒤 결과만 보고한다.
 
 # 목표
-자본시장의 구조를 이해하는 데 도움이 되는 뉴스 2건을 골라 정리하고, 세 곳에 남긴다.
+자본시장의 구조를 이해하는 데 도움이 되는 뉴스 2건을 골라 정리하고, 앱 데이터와 구글 드라이브에 남긴다.
 1. 앱 데이터: 아티팩트 https://claude.ai/artifact/WpHC549vSuf6D5WaYYj2Qo 의 데이터베이스 (ArtifactData 도구. 목록에 없으면 ToolSearch로 "select:ArtifactData"를 불러온다)
 2. 구글 드라이브: 폴더 ID 1e4AzzXDaTJWXntLN6Ftek3SmlQtDZ30- (내 드라이브 › Latticework › 시사) 에 하루 문서 1개
-3. 마지막 메시지: 사용자 휴대폰 알림으로 나가는 짧은 요약
+사용자 알림은 이 작업이 아니라 뒤따르는 다른 예약 작업이 보낸다.
 
 오늘 날짜는 한국 시각 기준이다: `TZ=Asia/Seoul date +%F` 로 구한다. 아래에서 TODAY라 부른다.
 
 # 0. 중복 방지
-ArtifactData get 으로 collection "days", doc_id TODAY 를 읽는다. 이미 기사 2건이 있으면 1~6단계를 건너뛰고 7단계 형식대로 그날의 두 건을 보고한다.
+ArtifactData get 으로 collection "days", doc_id TODAY 를 읽는다. 이미 기사 2건이 있으면 1~6단계를 건너뛰고 7단계 형식대로 보고한다.
 
 # 1. 지난 기록 읽기
 - ArtifactData query: collection "days", query {"order_by":{"field":"date","direction":"desc"},"limit":40}
@@ -36,7 +36,7 @@ ArtifactData get 으로 collection "days", doc_id TODAY 를 읽는다. 이미 �
 점수를 매기지 않고, 고른 이유를 어디에도 적지 않는다.
 
 # 3. 후보 수집
-Bash의 curl로 받는다. 항상 `-A "Mozilla/5.0 (compatible; LatticeworkDigest/1.0)" -m 20 -sS` 를 붙인다. 주소가 막혀 있으면(연결 거절, 403) 그 출처는 조용히 건너뛴다.
+Bash의 curl로 받는다. 항상 `-A "Mozilla/5.0 (compatible; LatticeworkDigest/1.0)" -m 20 -sS` 를 붙인다. 주소가 막혀 있으면(연결 거절, 403) 그 출처는 조용히 건너뛴다. 전체 작업은 12분 안에 끝낸다.
 
 국내:
 - 더벨 첫 화면: https://www.thebell.co.kr/front/index.asp (자본시장 전문 매체. 제목 목록을 읽는다. 기사 주소는 /front/newsview.asp?code=00&key=... 형태)
@@ -104,11 +104,10 @@ ArtifactData set, collection "reviews", doc_id "YYYY-Www" (ISO 주차):
 ArtifactData get 으로 days/TODAY 를 다시 읽어 기사 2건과 필수 필드(quiz 2문항 포함)가 있는지 본다. 빠진 것이 있으면 고쳐 다시 쓴다.
 드라이브: mcp__Google_Drive__search_files 로 parentId = '1e4AzzXDaTJWXntLN6Ftek3SmlQtDZ30-' and title contains 'TODAY' 를 찾아, 있으면 만들지 않는다. 없으면 mcp__Google_Drive__create_file: title "TODAY 시사", parentId "1e4AzzXDaTJWXntLN6Ftek3SmlQtDZ30-", contentMimeType "text/html", textContent 에 HTML.
 HTML 구성: h1 "TODAY 시사", 기사마다 h2 제목, 매체와 원문 링크(a), h3 "요약"(ul), h3 "본문 정리"(문단마다 p), h3 "관련 기사"(ul, links 가 있을 때만). 퀴즈는 문서에 넣지 않는다. 앱에 쓴 내용과 같은 내용이어야 한다.
-드라이브 도구가 이 세션에 없으면 드라이브 단계는 조용히 건너뛴다. 마지막 메시지에도 적지 않는다. 드라이브 문서는 다른 대화에서 채운다.
+드라이브 도구가 이 세션에 없으면 드라이브 단계는 조용히 건너뛴다. 드라이브 문서는 다른 대화에서 채운다.
 
-# 7. 마지막 메시지 (알림으로 나간다. 4줄 이내, 꾸밈 없이)
-오늘의 두 건이 발행됐습니다. 저녁 6시에 퀴즈가 열립니다.
+# 7. 마지막 메시지 (기록용. 3줄 이내)
+발행 완료: TODAY
 1. {제목}
 2. {제목}
-읽기: https://dodd313.github.io/Latticework/
 앱 데이터 쓰기가 실패했으면 그 사실과 이유를 한 줄 덧붙인다. 뉴스를 못 받아 2건을 못 채웠으면 채운 만큼만 쓰고 그렇게 말한다.
