@@ -99,24 +99,6 @@ function Body({ a }: { a: Article }) {
           </View>
         ) : null}
 
-        <View style={{ gap: 8 }}>
-          <ExtLink
-            url={a.url}
-            label={`${a.source} 기사 원문 보기`}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 60, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: t.ink, backgroundColor: t.card }}
-          >
-            <View style={{ flex: 1, gap: 2 }}>
-              <T s={16} w="600">
-                기사 원문 보기
-              </T>
-              <T s={13} c={t.sub}>
-                {a.source}
-              </T>
-            </View>
-            <Icon name="external" size={20} color={t.ink} bold />
-          </ExtLink>
-        </View>
-
         {past.length > 0 ? (
           <View style={{ gap: 12 }}>
             <SectionTitle title="관련 기사" />
@@ -142,29 +124,27 @@ function Body({ a }: { a: Article }) {
           onPress={() => markRead(a.id, !isRead)}
           label={isRead ? '읽음 해제' : '읽음 표시'}
           style={{
-            flex: 1,
+            width: 52,
             height: 52,
-            borderRadius: 14,
+            borderRadius: 26,
             alignItems: 'center',
             justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 8,
-            backgroundColor: isRead ? t.chip : t.inverse,
+            borderWidth: isRead ? 0 : 1.5,
+            borderColor: t.line,
+            backgroundColor: isRead ? t.blue : t.card,
           }}
         >
-          {isRead ? <Icon name="check" size={18} color={t.ink} bold /> : null}
-          <T s={16} w="600" c={isRead ? t.ink : t.onInverse}>
-            {isRead ? '읽음' : '읽음 표시'}
-          </T>
+          <Icon name="check" size={22} color={isRead ? '#FFFFFF' : t.mute} bold />
         </Tap>
         <ExtLink
           url={a.url}
           label="기사 원문 보기"
-          style={{ width: 88, height: 52, borderRadius: 14, borderWidth: 1, borderColor: t.ink, alignItems: 'center', justifyContent: 'center' }}
+          style={{ flex: 1, height: 52, borderRadius: 14, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}
         >
-          <T s={16} w="600">
-            원문
+          <T s={16} w="600" c={t.onInverse}>
+            기사 원문 보기
           </T>
+          <Icon name="external" size={18} color={t.onInverse} bold />
         </ExtLink>
       </View>
     </>

@@ -259,6 +259,16 @@ export function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
+/** 읽음 상태. 글자 대신 작은 표식으로만 보여 준다: 읽은 기사는 회색 체크, 안 읽은 기사는 파란 점. */
+export function ReadMark({ read }: { read: boolean }) {
+  const t = useTheme();
+  return (
+    <View accessibilityRole="image" accessibilityLabel={read ? '읽음' : '읽지 않음'} style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}>
+      {read ? <Icon name="check" size={16} color={t.mute} bold /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: t.blue }} />}
+    </View>
+  );
+}
+
 export const VERDICT_LABEL = { hit: '적중', miss: '빗나감', open: '미확인' } as const;
 
 export function verdictTone(v: 'hit' | 'miss' | 'open'): Tone {

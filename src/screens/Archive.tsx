@@ -5,7 +5,7 @@ import { TabScreen, useNav } from '../nav';
 import { dayDone, useStore } from '../store';
 import { FONT_MONO, FONT_SANS, useTheme } from '../theme';
 import { Article, Day } from '../types';
-import { Card, Chip, Divider, EmptyState, Icon, T, Tap } from '../ui';
+import { Card, Chip, Divider, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 
 function topicOf(a: Article): string {
   const parts = a.category.split('·').map((s) => s.trim());
@@ -194,7 +194,7 @@ export function ArchiveScreen() {
                             {a.title}
                           </T>
                         </View>
-                        <Chip label={user.read[a.id] ? '읽음' : '미열람'} tone={user.read[a.id] ? 'neutral' : 'orange'} />
+                        <ReadMark read={!!user.read[a.id]} />
                       </Tap>
                     </View>
                   ))}

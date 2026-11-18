@@ -5,7 +5,7 @@ import { TabScreen, useNav } from '../nav';
 import { STANDALONE, streak, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, Followup } from '../types';
-import { Card, Chip, EmptyState, Icon, T, Tap, VERDICT_LABEL, verdictTone } from '../ui';
+import { Card, Chip, EmptyState, Icon, ReadMark, T, Tap, VERDICT_LABEL, verdictTone } from '../ui';
 
 function ArticleCard({ a, read }: { a: Article; read: boolean }) {
   const t = useTheme();
@@ -15,15 +15,15 @@ function ArticleCard({ a, read }: { a: Article; read: boolean }) {
     <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
       <Card style={{ gap: 8 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <View style={{ flexDirection: 'row', gap: 6, flexShrink: 1 }}>
-            <Chip label={a.category} />
-            {read ? <Chip label="읽음" tone="neutral" /> : null}
+          <Chip label={a.category} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <T s={12} c={t.sub} mono>
+              {a.minutes}분
+            </T>
+            <ReadMark read={read} />
           </View>
-          <T s={12} c={t.sub} mono>
-            {a.minutes}분
-          </T>
         </View>
-        <T s={19} w="600" lh={1.36} role="heading" level={2}>
+        <T s={19} w="600" lh={1.36} c={read ? t.sub : t.ink} role="heading" level={2}>
           {a.title}
         </T>
         <T s={14} c={t.sub}>
