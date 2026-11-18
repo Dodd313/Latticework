@@ -101,13 +101,13 @@ ArtifactData set, collection "reviews", doc_id "YYYY-Www" (ISO 주차):
 { "id", "title": "11월 3주차" 형태, "range": "다섯 문항", "questions": [ { "q", "options": [보기 4개, 각 15자 이내], "answer": 정답 번호 0~3, "explain": 2문장, "refArticleId", "refDate" } ] }
 
 # 6. 드라이브 문서와 검증
-ArtifactData get 으로 days/TODAY 를 다시 읽어 기사 2건과 필수 필드가 있는지 본다. 빠진 것이 있으면 고쳐 다시 쓴다.
+ArtifactData get 으로 days/TODAY 를 다시 읽어 기사 2건과 필수 필드(quiz 2문항 포함)가 있는지 본다. 빠진 것이 있으면 고쳐 다시 쓴다.
 드라이브: mcp__Google_Drive__search_files 로 parentId = '1e4AzzXDaTJWXntLN6Ftek3SmlQtDZ30-' and title contains 'TODAY' 를 찾아, 있으면 만들지 않는다. 없으면 mcp__Google_Drive__create_file: title "TODAY 시사", parentId "1e4AzzXDaTJWXntLN6Ftek3SmlQtDZ30-", contentMimeType "text/html", textContent 에 HTML.
-HTML 구성: h1 "TODAY 시사", 기사마다 h2 제목, 매체와 원문 링크(a), h3 "요약"(ul), h3 "본문 정리"(문단마다 p), h3 "관련 기사"(ul, links 가 있을 때만). 앱에 쓴 내용과 같은 내용이어야 한다.
+HTML 구성: h1 "TODAY 시사", 기사마다 h2 제목, 매체와 원문 링크(a), h3 "요약"(ul), h3 "본문 정리"(문단마다 p), h3 "관련 기사"(ul, links 가 있을 때만). 퀴즈는 문서에 넣지 않는다. 앱에 쓴 내용과 같은 내용이어야 한다.
 드라이브 도구가 이 세션에 없으면 드라이브 단계는 조용히 건너뛴다. 마지막 메시지에도 적지 않는다. 드라이브 문서는 다른 대화에서 채운다.
 
 # 7. 마지막 메시지 (알림으로 나간다. 4줄 이내, 꾸밈 없이)
-오늘의 두 건이 발행됐습니다. 오늘 안에 읽으면 연속 기록이 이어집니다.
+오늘의 두 건이 발행됐습니다. 저녁 6시에 퀴즈가 열립니다.
 1. {제목}
 2. {제목}
 읽기: https://dodd313.github.io/Latticework/
