@@ -5,7 +5,9 @@
 - 이 클라우드 환경은 Expo 문서와 `expo install`이 쓰는 호스트가 막혀 있다. 패키지는 `node_modules/expo/bundledNativeModules.json`의 버전을 보고 `npm install`로 넣는다.
 - 화면은 React Native 기본 컴포넌트와 `react-native-svg`만 쓴다. 웹 전용 코드는 `Platform.OS === 'web'` 분기 안에만 둔다.
 - 데이터 접근은 `src/store.tsx` 한 곳에만 둔다. 화면은 `useStore()`만 쓴다.
-- 웹 빌드와 확인: `npm run build:web` 후 `node scripts/shots.mjs light`. 올릴 파일은 `out/index.html`과 `out/app.js`다.
+- 웹 빌드와 확인: `npm run build:web` 후 `node scripts/shots.mjs light`. `out/`은 Claude 링크에 올리고, `docs/`는 커밋하면 자체 주소에 반영된다.
+- `docs/data/feed.json`은 매일 아침 예약 작업이 main에 직접 커밋한다. 손으로 고치지 않는다. 작업 전에 `git pull`로 맞춘다.
+- `expo lint`는 이 환경에서 설정 파일을 받지 못해 돌지 않는다. 타입 검사와 `scripts/shots.mjs`로 확인한다.
 
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
