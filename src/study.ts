@@ -144,7 +144,8 @@ function latQ(c: Concept, x: LatQuestion): Q {
 
 /** 그 개념에서 가장 덜 낸 유형의 문제를 고른다. 처음 보는 개념은 쉬운 유형부터. */
 function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, skip: Set<string>): LatQuestion | null {
-  const own = qs.filter((x) => x.cid === c.id && !skip.has(x.id));
+  // 자기 말로 설명하는 문제(rc)는 내지 않는다 (2026-11-19 사용자 결정).
+  const own = qs.filter((x) => x.cid === c.id && x.t !== 'rc' && !skip.has(x.id));
   if (own.length === 0) return null;
   const count = (x: LatQuestion) => card?.asked?.[`lv${x.lv}`] ?? 0;
   return own.slice().sort((a, b) => count(a) - count(b) || a.lv - b.lv)[0];
@@ -199,9 +200,9 @@ const DECK_NAME: Record<Vocab['deck'], string> = { fin: '금융영어', gen: '�
 const VOC_TYPE_NAME: Record<string, string> = { meaning: '뜻 고르기', define: '정의에 맞는 표현', cloze: '빈칸', register: '격식 고르기', recall: '떠올리기' };
 
 function vocTypes(v: Vocab): string[] {
-  const types = ['meaning', 'define', 'recall'];
+  // 격식 고르기와 우리말에서 떠올리기는 내지 않는다 (2026-11-19 사용자 결정).
+  const types = ['meaning', 'define'];
   if (v.ex && v.ex.toLowerCase().includes(v.term.replace(/\s*\(.*?\)/g, '').toLowerCase())) types.push('cloze');
-  if (v.deck === 'gen' && REGISTERS.includes(v.level)) types.push('register');
   return types;
 }
 
