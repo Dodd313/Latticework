@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>첫 진입 · Motion Lab 2차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .ov { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+  .ln { position: absolute; background: var(--s-ink); }
+  .nd { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 6px; background: var(--s-blue); }
+  .ha .hd .brandrow { display: flex; align-items: center; gap: 8px; }
+  .ha .hd .mk { width: 26px; height: 26px; display: inline-flex; }
+  .tile { position: absolute; width: 34px; height: 34px; border-radius: 9px; }
+  .icon { position: absolute; width: 140px; height: 140px; border-radius: 34px; background: var(--s-blue); }
+  svg.net { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st" id="phone"></div>
+  <section class="notes">
+    <h2>첫 진입</h2>
+    <p>앱을 여는 1.5초를 Latticework 의 뜻, 흩어진 지식이 격자처럼 엮인다는 이야기로 씁니다. 세 가지를 만들었습니다. 하루 중 처음 열 때만 나오고, 두 번째부터는 0.2초 안에 홈이 바로 뜹니다.</p>
+    <p class="tip">위쪽 단추로 시안을 바꾸고, "느리게" 로 한 단계씩 보세요.</p>
+    <h3>세 시안</h3>
+    <table class="spec">
+      <tr><th>시안</th><th>움직임</th><th>길이</th></tr>
+      <tr><td>1 선이 모여 격자</td><td>화면 네 끝에서 선 여덟 개가 그어져 들어와 교차하고, 격자 크기로 잘리며 교차점에 파란 점이 찍힘. 완성된 표식이 작아지며 왼쪽 위 제호 옆에 내려앉고 홈이 올라옴</td><td class="num">1.5초</td></tr>
+      <tr><td>2 엉킨 점이 풀려 격자</td><td>화면 곳곳에 점 16개가 흩어져 나타나고 서로 선으로 이어져 엉킨 그물이 됨. 그물이 풀리며 반듯한 4x4 격자로 정렬됨. 흩어진 지식이 연결되어 구조가 되는 장면</td><td class="num">1.7초</td></tr>
+      <tr><td>3 타일이 모여 아이콘</td><td>네모 타일 아홉 개가 화면 바깥 여러 방향에서 날아와 3x3 으로 맞물리고, 파란 바탕이 생기며 앱 아이콘이 됨. 아이콘이 커지며 홈 화면이 됨</td><td class="num">1.6초</td></tr>
+    </table>
+    <h3>추천과 이유</h3>
+    <ul>
+      <li><strong>2번을 추천합니다.</strong> 앱이 하는 일, 지식을 이어 구조로 만드는 일을 그대로 보여 줍니다. 매일 아침 한 번 보기에 의미가 가장 큽니다.</li>
+      <li>1번은 가장 단정하고 짧습니다. 핀테크 회사 Plaid 의 로고 모션처럼 선이 세 박자로 모여 맞물리는 방식입니다.</li>
+      <li>3번은 가장 앱다운 첫인상입니다. 다만 앱 아이콘을 아직 정하지 않았으니, 아이콘을 정할 때 함께 맞춰야 합니다.</li>
+      <li>모두 2초를 넘기지 않습니다. 아이폰 설정에서 동작 줄이기를 켜면 바로 홈이 뜹니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let variant = 1;
+  let raf = 0;
+  const W = 390;
+  const H = 800;
+  const CX = 195;
+  const CY = 380;
+
+  const homeHtml = () => `<div class="scr grey">
+    <div class="ha">
+      <div class="hd"><span class="brandrow"><span class="mk" id="mk">${LW.mark(26, '#191f28', 3)}</span><span class="wm">Latticework</span></span><span class="pill2 fire">${LW.icon.fire(16, '#ff7a1a')}4일</span></div>
+      <div class="goal"><span>오늘</span><span class="sg"><i class="on"></i><i></i><i></i></span><span class="num">1 / 3</span></div>
+      <div class="clip paper"><div class="t"><b>오늘의 지면</b><span>11월 19일 목요일</span></div><div class="r"></div>
+        <div class="it"><span class="d"></span><span>공정위, 쿠팡·김범석 의장 검찰 고발 의견</span></div><div class="it read"><span class="d"></span><span>엔비디아, CEO 승계 계획 공백 논란</span></div></div>
+      <div class="scard"><div class="top"><b>학습</b><span class="lvchip">Lv.3</span><span class="xpb"><i style="transform:scaleX(.58)"></i></span><span class="xpn num">140/240</span></div>
+        <div class="srow2"><span class="ic b">A</span><div class="tx"><b>영단어</b><span>토익 어휘 · 금융영어</span></div><span class="cnt">0/6</span></div>
+        <div class="srow2"><span class="ic g">${LW.mark(26, 'currentColor', 3)}</span><div class="tx"><b>Latticework</b><span>재무학 · 논리학</span></div><span class="cnt">0/5</span></div>
+        <button class="sbtn">오늘 학습 시작</button></div>
+    </div></div>`;
+
+  function setup() {
+    cancelAnimationFrame(raf);
+    ML.clear(phone);
+    phone.innerHTML = homeHtml() + '<div class="ov" id="ov"></div>';
+    const scr = phone.querySelector('.scr');
+    scr.style.background = '#fff';
+    const parts = [...phone.querySelectorAll('.ha > *')];
+    parts.forEach((p) => (p.style.opacity = 0));
+    phone.querySelector('#mk').style.opacity = 0;
+    return { ov: phone.querySelector('#ov'), scr, parts };
+  }
+
+  /** 마지막 장면: 표식이 제호 옆으로 내려앉고 홈이 올라온다. */
+  function land(group, size, cx, cy, scr, parts, delay = 0) {
+    const mk = phone.querySelector('#mk');
+    const t = LW.pos(mk, phone);
+    const s = 26 / size;
+    group.style.transformOrigin = `${cx}px ${cy}px`;
+    ML.a(group, [{ transform: 'translate(0,0) scale(1)' }, { transform: `translate(${t.cx - cx}px, ${t.cy - cy}px) scale(${s})` }], { duration: 520, delay, easing: ML.ease.inOut }).finished.then(() => {
+      mk.style.opacity = 1;
+      group.remove();
+    }).catch(() => {});
+    ML.a(scr, [{ background: '#ffffff' }, { background: '#f2f4f6' }], { duration: 480, delay: delay + 120 });
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.stagger(parts.slice(0, 1), [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: delay + 300 }, 0);
+    ML.stagger(parts.slice(1), [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 420, delay: delay + 280 }, 60);
+  }
+
+  // 1 선이 모여 격자
+  function v1() {
+    const { ov, scr, parts } = setup();
+    const S = 120;
+    const x0 = CX - S / 2;
+    const y0 = CY - S / 2;
+    const g = document.createElement('div');
+    g.style.cssText = 'position:absolute;inset:0';
+    ov.append(g);
+    const T = 3;
+    const lines = [];
+    for (let i = 0; i < 4; i++) {
+      const x = x0 + (S / 3) * i;
+      const v = document.createElement('i');
+      v.className = 'ln';
+      Object.assign(v.style, { left: x - T / 2 + 'px', top: 0, width: T + 'px', height: H + 'px' });
+      g.append(v);
+      lines.push({ el: v, from: i % 2 ? `inset(100% 0 0 0)` : `inset(0 0 100% 0)`, trim: `inset(${y0}px 0 ${H - y0 - S}px 0)` });
+      const y = y0 + (S / 3) * i;
+      const h = document.createElement('i');
+      h.className = 'ln';
+      Object.assign(h.style, { left: 0, top: y - T / 2 + 'px', width: W + 'px', height: T + 'px' });
+      g.append(h);
+      lines.push({ el: h, from: i % 2 ? `inset(0 0 0 100%)` : `inset(0 100% 0 0)`, trim: `inset(0 ${W - x0 - S}px 0 ${x0}px)` });
+    }
+    // 1박: 끝에서 그어져 들어온다. 2박: 격자 크기로 잘린다.
+    lines.forEach((l, k) => {
+      ML.a(l.el, [
+        { clipPath: l.from, offset: 0, easing: ML.ease.out },
+        { clipPath: 'inset(0 0 0 0)', offset: 0.55, easing: ML.ease.inOut },
+        { clipPath: l.trim, offset: 1 },
+      ], { duration: 980, delay: 60 + k * 35, easing: 'linear' });
+    });
+    // 교차점의 점
+    [[1, 1], [2, 1], [1, 2], [2, 2]].forEach(([i, j], k) => {
+      const n = document.createElement('i');
+      n.className = 'nd';
+      Object.assign(n.style, { left: x0 + (S / 3) * i + 'px', top: y0 + (S / 3) * j + 'px' });
+      g.append(n);
+      ML.a(n, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 420, delay: 760 + k * 50, easing: ML.ease.spring });
+    });
+    ML.wait(1180).then(() => {
+      g.querySelectorAll('.nd').forEach((n) => ML.a(n, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 }));
+      land(g, S, CX, CY, scr, parts);
+    });
+  }
+
+  // 2 엉킨 점이 풀려 격자
+  function v2() {
+    const { ov, scr, parts } = setup();
+    const S = 132;
+    const x0 = CX - S / 2;
+    const y0 = CY - S / 2;
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+    const nodes = [];
+    for (let j = 0; j < 4; j++)
+      for (let i = 0; i < 4; i++) nodes.push({ tx: x0 + (S / 3) * i, ty: y0 + (S / 3) * j, sx: 40 + rnd() * (W - 80), sy: 90 + rnd() * (H - 200), d: rnd() * 380 });
+    const edges = [];
+    for (let j = 0; j < 4; j++)
+      for (let i = 0; i < 4; i++) {
+        if (i < 3) edges.push([j * 4 + i, j * 4 + i + 1]);
+        if (j < 3) edges.push([j * 4 + i, (j + 1) * 4 + i]);
+      }
+    const NS = 'http://www.w3.org/2000/svg';
+    const g = document.createElement('div');
+    g.style.cssText = 'position:absolute;inset:0';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'net');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', H);
+    g.append(svg);
+    ov.append(g);
+    const lineEls = edges.map(() => {
+      const l = document.createElementNS(NS, 'line');
+      l.setAttribute('stroke', '#191f28');
+      l.setAttribute('stroke-linecap', 'square');
+      svg.append(l);
+      return l;
+    });
+    const dotEls = nodes.map((n, k) => {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('fill', k % 5 === 0 ? '#3182f6' : '#191f28');
+      svg.append(c);
+      return c;
+    });
+    const eo = (t) => 1 - Math.pow(1 - t, 3);
+    const eio = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const spring = (t) => (t >= 1 ? 1 : 1 - Math.exp(-6 * t) * Math.cos(10 * t));
+    const clamp = (v) => Math.max(0, Math.min(1, v));
+    const t0 = performance.now();
+    const D = { appear: 420, link0: 260, link: 520, untangle0: 760, untangle: 640 };
+    let landed = false;
+    const frame = (now) => {
+      const t = ML.reduce ? 99999 : (now - t0) * ML.rate;
+      const u = eio(clamp((t - D.untangle0) / D.untangle));
+      nodes.forEach((n, k) => {
+        n.x = n.sx + (n.tx - n.sx) * u;
+        n.y = n.sy + (n.ty - n.sy) * u;
+        const a = spring(clamp((t - n.d * 0.6) / D.appear));
+        const r = (5 - 2 * u) * a;
+        const c = dotEls[k];
+        c.setAttribute('cx', n.x);
+        c.setAttribute('cy', n.y);
+        c.setAttribute('r', Math.max(0, r));
+        c.setAttribute('opacity', 1 - clamp((t - D.untangle0 - D.untangle + 120) / 200) * (k % 5 === 0 ? 0 : 1));
+      });
+      edges.forEach(([a, b], k) => {
+        const p = eo(clamp((t - D.link0 - k * 14) / D.link));
+        const A = nodes[a];
+        const B = nodes[b];
+        const l = lineEls[k];
+        l.setAttribute('x1', A.x);
+        l.setAttribute('y1', A.y);
+        l.setAttribute('x2', A.x + (B.x - A.x) * p);
+        l.setAttribute('y2', A.y + (B.y - A.y) * p);
+        l.setAttribute('stroke-width', 1.2 + 2 * u);
+        l.setAttribute('stroke-opacity', 0.35 + 0.65 * u);
+      });
+      if (t > D.untangle0 + D.untangle + 80 && !landed) {
+        landed = true;
+        land(g, S, CX, CY, scr, parts);
+      }
+      if (t < D.untangle0 + D.untangle + 700) raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+  }
+
+  // 3 타일이 모여 아이콘
+  function v3() {
+    const { ov, scr, parts } = setup();
+    const icon = document.createElement('div');
+    icon.className = 'icon';
+    Object.assign(icon.style, { left: CX - 70 + 'px', top: CY - 70 + 'px', transform: 'scale(0)' });
+    ov.append(icon);
+    const tiles = [];
+    const from = [[-200, -300], [0, -520], [260, -360], [-320, 0], [0, 0], [340, 40], [-240, 420], [40, 560], [280, 380]];
+    for (let j = 0; j < 3; j++)
+      for (let i = 0; i < 3; i++) {
+        const k = j * 3 + i;
+        const t = document.createElement('i');
+        t.className = 'tile';
+        const x = CX - 55 + i * 38;
+        const y = CY - 55 + j * 38;
+        Object.assign(t.style, { left: x + 'px', top: y + 'px', background: k === 4 ? '#12b76a' : k === 2 ? '#ffb020' : '#3182f6' });
+        ov.append(t);
+        tiles.push(t);
+        const [fx, fy] = from[k];
+        const rot = (k % 2 ? 1 : -1) * (40 + k * 12);
+        ML.a(t, [{ transform: `translate(${fx}px, ${fy}px) rotate(${rot}deg) scale(${k === 4 ? 0 : 0.8})` }, { transform: 'translate(0,0) rotate(0) scale(1)' }], { duration: 700, delay: 40 + k * 45, easing: ML.ease.spring });
+      }
+    ML.wait(760).then(async () => {
+      ML.a(icon, [{ transform: 'scale(.7)' }, { transform: 'scale(1)' }], { duration: 460, easing: ML.ease.spring });
+      tiles.forEach((t) => ML.a(t, [{ background: getComputedStyle(t).backgroundColor }, { background: '#ffffff' }], { duration: 240, delay: 60 }));
+      await ML.wait(520);
+      // 아이콘이 커지며 홈이 된다.
+      tiles.forEach((t) => ML.a(t, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 }));
+      ML.a(icon, [{ transform: 'scale(1)', borderRadius: '34px', background: '#3182f6' }, { transform: `scale(${H / 140 * 1.3})`, borderRadius: '8px', background: '#f2f4f6' }], { duration: 520, easing: ML.ease.sheet });
+      scr.style.background = '#f2f4f6';
+      await ML.wait(300);
+      ML.a(ov, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+      phone.querySelector('#mk').style.opacity = 1;
+      parts.forEach((p) => (p.style.opacity = ''));
+      ML.stagger(parts, [{ opacity: 0, transform: 'scale(.96) translateY(10px)' }, { opacity: 1, transform: 'scale(1) translateY(0)' }], { duration: 420 }, 50);
+    });
+  }
+
+  function again() {
+    // 두 번째 열기: 바로 홈.
+    const { ov, scr, parts } = setup();
+    ov.remove();
+    scr.style.background = '';
+    phone.querySelector('#mk').style.opacity = 1;
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.a(phone.querySelector('.scr'), [{ opacity: 0 }, { opacity: 1 }], { duration: 160 });
+  }
+
+  const run = () => [v1, v2, v3][variant - 1]();
+  const pick = (v) => () => {
+    variant = v;
+    run();
+  };
+  ML.bar({ title: '첫 진입', replay: run, home: '../index.html', extra: [['1 선', pick(1)], ['2 엉킨 점', pick(2)], ['3 타일', pick(3)], ['두 번째 열기', again]] });
+  run();
+})();
+</script>
+</body>
+</html>

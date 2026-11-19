@@ -1,0 +1,81 @@
+/* 2차 시안 공통. 학습 영역은 깨끗한 앱 톤, 뉴스 영역은 지면 톤을 그대로 쓴다. */
+:root {
+  --s-bg: #ffffff;
+  --s-bg2: #f2f4f6;
+  --s-ink: #191f28;
+  --s-sub: #4e5968;
+  --s-mute: #8b95a1;
+  --s-faint: #b0b8c1;
+  --s-line: #e5e8eb;
+  --s-blue: #3182f6;
+  --s-blue-d: #1b64da;
+  --s-blue-soft: #e8f3ff;
+  --s-green: #12b76a;
+  --s-green-d: #0a9456;
+  --s-green-soft: #e3f8ec;
+  --s-red: #f04452;
+  --s-red-soft: #ffeef0;
+  --s-amber: #ffb020;
+  --s-amber-soft: #fff4dc;
+  --s-orange: #ff7a1a;
+  --s-font: 'Pretendard Variable', Pretendard, 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.28 0 0 0 0 0.25 0.29 0 0 0 0'/%3E%3C/filter%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.42' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.30 0 0 0 0 0.27 0.13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E");
+}
+.phone.clean::after { display: none; }
+.paper { position: relative; background-color: var(--ground); }
+.paper::after { content: ''; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; background-size: 240px 240px; background-image: var(--grain); border-radius: inherit; }
+.st { font-family: var(--s-font); color: var(--s-ink); letter-spacing: -0.2px; }
+.st .scr { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--s-bg); }
+/* 단추 */
+.sbtn { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 56px; border-radius: 16px; background: var(--s-blue); color: #fff; font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.sbtn.off { background: var(--s-line); color: var(--s-faint); }
+.sbtn.green { background: var(--s-green); }
+.sbtn.red { background: var(--s-red); }
+.sbtn.ghost { background: var(--s-bg2); color: var(--s-sub); }
+/* 작은 알약 */
+.pill2 { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px 0 8px; border-radius: 15px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pill2.xp { background: var(--s-amber-soft); color: #b26b00; }
+.pill2.fire { background: #fff0e5; color: #d35a00; }
+.pill2 svg { flex: none; }
+.num { font-variant-numeric: tabular-nums; }
+.roll { position: relative; display: inline-block; overflow: hidden; vertical-align: bottom; }
+.roll > span { display: inline-block; }
+
+/* 홈 A: 회색 책상 위 신문 조각과 학습 카드 */
+.scr.grey { background: var(--s-bg2); }
+.ha { flex: 1; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.ha .hd { display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 4px; }
+.wm { font-family: var(--serif); font-weight: 700; font-size: 22px; letter-spacing: -0.3px; }
+.goal { display: flex; align-items: center; gap: 10px; padding: 0 4px; font-size: 14px; font-weight: 700; color: var(--s-sub); }
+.goal .sg { flex: 1; display: flex; gap: 4px; }
+.goal .sg i { flex: 1; height: 6px; border-radius: 3px; background: #dfe3e8; }
+.goal .sg i.on { background: var(--s-ink); }
+.clip { border-radius: 6px; padding: 16px 18px 6px; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 6px 18px rgba(25, 31, 40, 0.06); cursor: pointer; }
+.clip .t { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--sub); font-family: var(--sans); }
+.clip .t b { font-family: var(--serif); font-size: 15px; color: var(--ink); }
+.clip .r { height: 3px; background: var(--ink); margin: 10px 0 0; }
+.clip .it { display: flex; gap: 10px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--line); font-family: var(--serif); font-weight: 700; font-size: 17px; line-height: 1.45; color: var(--ink); letter-spacing: -0.4px; }
+.clip .it:last-child { border-bottom: 0; }
+.clip .it .d { width: 7px; height: 7px; border-radius: 4px; background: var(--green); margin-top: 9px; flex: none; }
+.clip .it.read { color: var(--sub); }
+.clip .it.read .d { background: transparent; box-shadow: inset 0 0 0 1.5px var(--mute); }
+.scard { background: #fff; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 6px 18px rgba(25, 31, 40, 0.05); }
+.scard .top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.scard .top b { font-size: 19px; font-weight: 800; }
+.lvchip { height: 24px; padding: 0 8px; border-radius: 8px; background: var(--s-blue-soft); color: var(--s-blue-d); font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; }
+.xpb { flex: 1; height: 8px; border-radius: 4px; background: var(--s-line); overflow: hidden; position: relative; }
+.xpb i { position: absolute; inset: 0; background: linear-gradient(90deg, #ffc247, #ff9a1a); transform-origin: left; }
+.xpn { font-size: 12.5px; color: var(--s-mute); font-weight: 700; }
+.srow2 { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.srow2 .ic { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex: none; font-weight: 800; font-size: 17px; }
+.srow2 .ic.b { background: var(--s-blue-soft); color: var(--s-blue); }
+.srow2 .ic.g { background: var(--s-green-soft); color: var(--s-green); }
+.srow2 .tx { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.srow2 .tx b { font-size: 16.5px; font-weight: 700; }
+.srow2 .tx span { font-size: 13.5px; color: var(--s-mute); }
+.srow2 .cnt { font-size: 15px; font-weight: 800; color: var(--s-faint); }
+.scard .sbtn { margin-top: 8px; }
+.tabs2 { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 64px; padding-bottom: 8px; background: #fff; border-top: 1px solid var(--s-line); position: relative; z-index: 3; }
+.tabs2 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--s-faint); font-size: 11.5px; font-weight: 700; font-family: var(--s-font); }
+.tabs2 button.on { color: var(--s-ink); }
+.tabs2.paperish { background: var(--ground); border-top-color: var(--ink); }

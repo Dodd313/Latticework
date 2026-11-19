@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>문제 풀이 · Motion Lab 2차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .top { height: 60px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 10px; }
+  .top .x { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--s-faint); }
+  .prog { position: relative; flex: 1; height: 12px; border-radius: 6px; background: var(--s-line); overflow: hidden; }
+  .prog .fill { position: absolute; inset: 0; border-radius: 6px; background: var(--s-blue); transform-origin: left; transform: scaleX(0); }
+  .prog .fill.hot { background: linear-gradient(90deg, #ffb020, #ff7a1a); }
+  .prog .shine { position: absolute; top: 2px; left: 0; width: 40%; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.55); transform: translateX(-120%); }
+  .combo { position: absolute; top: 58px; right: 16px; z-index: 5; display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px 0 9px; border-radius: 15px; background: #fff0e5; color: #d35a00; font-size: 14px; font-weight: 800; opacity: 0; }
+  .stage { position: relative; flex: 1; }
+  .q { position: absolute; inset: 0; padding: 22px 20px 0; display: flex; flex-direction: column; gap: 14px; }
+  .q .kk { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 700; color: var(--s-blue); }
+  .q .lv { height: 24px; padding: 0 8px; border-radius: 6px; background: var(--s-bg2); color: var(--s-sub); font-size: 12.5px; font-weight: 700; display: inline-flex; align-items: center; }
+  .q h1 { margin: 0 0 14px; font-size: 24px; line-height: 1.42; font-weight: 800; letter-spacing: -0.6px; }
+  .st .opts { border-top: 0; }
+  .opts { display: flex; flex-direction: column; gap: 10px; }
+  .opt { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 62px; padding: 0 18px; border-radius: 16px; border: 2px solid var(--s-line); background: #fff; font-size: 17px; font-weight: 600; transition: border-color 0.16s, background-color 0.16s, color 0.16s; }
+  .opt .rd { position: relative; width: 24px; height: 24px; border-radius: 12px; border: 2px solid var(--s-line); flex: none; display: flex; align-items: center; justify-content: center; transition: border-color 0.16s, background-color 0.16s; }
+  .opt .rd i { width: 8px; height: 8px; border-radius: 4px; background: #fff; transform: scale(0); }
+  .opt .rd svg { position: absolute; opacity: 0; }
+  .opt.on { border-color: var(--s-blue); background: var(--s-blue-soft); color: var(--s-blue-d); }
+  .opt.on .rd { border-color: var(--s-blue); background: var(--s-blue); }
+  .opt.on .rd i { transform: scale(1); }
+  .opt.ok { border-color: var(--s-green); background: var(--s-green-soft); color: var(--s-green-d); }
+  .opt.ok .rd { border-color: var(--s-green); background: var(--s-green); }
+  .opt.no { border-color: var(--s-red); background: var(--s-red-soft); color: #c22a37; }
+  .opt.no .rd { border-color: var(--s-red); background: var(--s-red); }
+  .opt.ok .rd i, .opt.no .rd i { display: none; }
+  .opts.ox { flex-direction: row; }
+  .opts.ox .opt { flex: 1; flex-direction: column; justify-content: center; min-height: 132px; gap: 10px; font-size: 18px; }
+  .opts.ox .opt .glyph { font-size: 40px; font-weight: 800; line-height: 1; }
+  .opts.ox .opt .rd { position: absolute; top: 12px; right: 12px; }
+  .foot2 { flex: none; padding: 12px 20px 26px; position: relative; }
+  .tip2 { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); background: var(--s-ink); color: #fff; font-size: 14px; font-weight: 600; padding: 9px 14px; border-radius: 10px; white-space: nowrap; opacity: 0; pointer-events: none; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; padding: 22px 20px 26px; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; gap: 16px; transform: translateY(105%); }
+  .sheet.good { background: var(--s-green-soft); }
+  .sheet.bad { background: var(--s-red-soft); }
+  .sheet .hd { display: flex; align-items: center; gap: 10px; }
+  .sheet .badge { position: relative; width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .sheet.good .badge { background: var(--s-green); }
+  .sheet.bad .badge { background: var(--s-red); }
+  .sheet b { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
+  .sheet.good b { color: var(--s-green-d); }
+  .sheet.bad b { color: #c22a37; }
+  .sheet p { margin: 0; font-size: 15.5px; line-height: 1.55; color: var(--s-sub); }
+  .sheet p strong { color: var(--s-ink); }
+  .sheet .again { font-size: 13px; color: var(--s-mute); margin-top: -6px; }
+  .fly { position: absolute; z-index: 40; display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 10px 0 7px; border-radius: 15px; background: var(--s-amber); color: #fff; font-family: var(--s-font); font-size: 15px; font-weight: 800; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st" id="phone"></div>
+  <section class="notes">
+    <h2>문제 풀이</h2>
+    <p>뉴스는 지면 톤을 그대로 두고, 문제를 푸는 화면만 흰 바탕의 깨끗한 앱 톤으로 바꿨습니다. 글자와 단추는 크고 둥글게, 색은 파랑 하나에 맞음 초록, 틀림 빨강, 경험치 노랑만 더했습니다.</p>
+    <p class="tip">맞게도 풀고 틀리게도 풀어 보세요. 세 문제를 연달아 맞히면 진행 막대가 주황으로 바뀝니다. 답을 고르기 전에 "확인" 을 눌러 보세요.</p>
+    <h3>맞혔을 때 순서</h3>
+    <table class="spec">
+      <tr><th>순서</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>1</td><td>고른 칸이 초록으로 바뀌고 체크가 그려짐</td><td class="num">160ms</td></tr>
+      <tr><td>2</td><td>아래에서 초록 판이 올라오고 동그라미 체크가 튀어 나옴</td><td class="num">380ms</td></tr>
+      <tr><td>3</td><td>"+10" 이 고른 칸에서 위쪽 경험치로 포물선을 그리며 날아감. 도착하면 숫자가 굴러 오르고 알약이 한 번 커짐</td><td class="num">620ms</td></tr>
+      <tr><td>4</td><td>진행 막대가 튕기듯 늘고 흰 빛이 한 번 지나감</td><td class="num">520ms</td></tr>
+      <tr><td>5</td><td>세 번 연속이면 "3연속" 표가 튀어 나오고 막대가 주황으로 바뀜</td><td class="num">460ms</td></tr>
+    </table>
+    <h3>틀렸을 때</h3>
+    <ul>
+      <li>고른 칸이 좌우로 짧게 떨고 빨강으로 바뀝니다. 정답 칸은 초록으로 알려 줍니다.</li>
+      <li>빨간 판에 정답과 이유 한 줄이 나옵니다. 그 문제는 끝에서 한 번 더 나옵니다.</li>
+      <li>벌칙은 없습니다. 연속 표만 조용히 사라집니다.</li>
+    </ul>
+    <h3>참고한 것</h3>
+    <ul>
+      <li>듀오링고: 아래에서 올라오는 정답과 오답 판, 연속 정답 표시, 틀린 문제를 끝에 다시 내는 흐름.</li>
+      <li>토스: 큰 글자와 넉넉한 여백, 둥근 단추, 누르면 살짝 들어가는 반응. 폭죽은 정말 기쁜 순간에만 쓴다는 원칙에 따라 문제마다 터뜨리지 않고 레벨 업에만 씁니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const QS = [
+    { kk: '재무학 · 배당할인모형', lv: '1단계 알아보기', q: '미래 배당을 할인해 주가를 구하는 모형은?', o: ['배당할인모형', '잉여현금흐름할인모형', 'PER 평가'], a: 0, w: '배당을 주주가 받는 현금의 전부로 보고 할인합니다.' },
+    { kk: '재무학 · 고든 성장모형', lv: '2단계 가려내기', q: '고든 모형은 성장률이 요구수익률보다 높아도 쓸 수 있다.', ox: true, a: 1, w: '분모인 요구수익률 빼기 성장률이 음수가 되어 값이 의미를 잃습니다.' },
+    { kk: '재무학 · 배당할인모형', lv: '3단계 써먹기', q: '요구수익률이 오르면 DDM으로 구한 주가는?', o: ['오른다', '내린다', '그대로다'], a: 1, w: '할인율이 커지니 같은 배당의 현재가치가 작아집니다.' },
+    { kk: '재무학 · 배당할인모형', lv: '3단계 써먹기', q: 'DDM이 가장 맞지 않는 회사는?', o: ['배당을 늘려 온 전력회사', '배당 없는 성장기업', '배당성향이 일정한 은행'], a: 1, w: '배당이 없으면 할인할 현금흐름이 없습니다.' },
+    { kk: '재무학 · 금리와 주가', lv: '4단계 잇기', q: '금리가 오를 때 배당주가 약한 이유를 DDM으로 보면?', o: ['요구수익률이 오른다', '배당이 줄어든다', '성장률이 오른다'], a: 0, w: '무위험금리가 오르면 요구수익률도 따라 오릅니다.' },
+  ];
+  let queue, idx, picked, settled, streak, xp, done, total;
+
+  function render() {
+    ML.clear(phone);
+    queue = QS.map((q, i) => i);
+    idx = 0;
+    picked = null;
+    settled = false;
+    streak = 0;
+    xp = 120;
+    done = 0;
+    total = QS.length;
+    phone.innerHTML = `<div class="scr">
+      <div class="top"><button class="x" aria-label="닫기">${LW.icon.close()}</button><div class="prog"><span class="fill" id="fill"></span><span class="shine" id="shine"></span></div><span class="pill2 xp" id="xp">${LW.icon.bolt(16, '#ffb020')}<span class="num" id="xpn">${xp}</span></span></div>
+      <span class="combo" id="combo">${LW.icon.fire(16, '#ff7a1a')}<span id="combon">3</span>연속 정답</span>
+      <div class="stage" id="stage"></div>
+      <div class="foot2"><span class="tip2" id="tip">답을 먼저 골라 주세요</span><button class="sbtn off" id="btn"><span class="lbl">확인</span></button></div>
+    </div>`;
+    const btn = phone.querySelector('#btn');
+    LW.press(btn);
+    btn.addEventListener('click', onBtn);
+    show(queue[0], false);
+  }
+
+  function qHtml(Q) {
+    const opts = Q.ox
+      ? `<div class="opts ox">${['○', '✕'].map((g, i) => `<button class="opt" data-i="${i}"><span class="glyph">${g}</span><span>${i ? '거짓' : '참'}</span><span class="rd"><i></i>${LW.icon.check(16, '#fff', 3.2)}${LW.icon.x(14, '#fff', 3.2)}</span></button>`).join('')}</div>`
+      : `<div class="opts">${Q.o.map((t, i) => `<button class="opt" data-i="${i}"><span>${t}</span><span class="rd"><i></i>${LW.icon.check(16, '#fff', 3.2)}${LW.icon.x(14, '#fff', 3.2)}</span></button>`).join('')}</div>`;
+    return `<div class="kk">${Q.kk}<span class="lv">${Q.lv}</span></div><h1>${Q.q}</h1>${opts}`;
+  }
+
+  function show(qi, animate = true) {
+    const stage = phone.querySelector('#stage');
+    const old = stage.querySelector('.q');
+    const q = document.createElement('div');
+    q.className = 'q';
+    q.innerHTML = qHtml(QS[qi]);
+    stage.append(q);
+    picked = null;
+    settled = false;
+    q.querySelectorAll('.opt').forEach((b) => {
+      LW.press(b, 0.98);
+      b.addEventListener('click', () => {
+        if (settled) return;
+        q.querySelectorAll('.opt.on').forEach((x) => x.classList.remove('on'));
+        b.classList.add('on');
+        ML.a(b.querySelector('.rd i'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 300, easing: ML.ease.spring });
+        picked = +b.dataset.i;
+        setBtn('확인', '', false);
+      });
+    });
+    if (old) {
+      ML.done(ML.a(old, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: 'translateX(-24px)' }], { duration: 160, easing: ML.ease.in })).then(() => old.remove());
+    }
+    if (!animate) return;
+    ML.a(q.querySelector('.kk'), [{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 300, delay: 90 });
+    ML.a(q.querySelector('h1'), [{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 300, delay: 110 });
+    ML.stagger(q.querySelectorAll('.opt'), [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280, delay: 170 }, 40);
+  }
+
+  function setBtn(label, tone, off) {
+    const btn = phone.querySelector('#btn');
+    btn.className = 'sbtn' + (tone ? ' ' + tone : '') + (off ? ' off' : '');
+    const l = btn.querySelector('.lbl');
+    if (l.textContent !== label) ML.roll(l, label, 1, 260);
+  }
+
+  function onBtn() {
+    if (!settled && picked === null) {
+      const btn = phone.querySelector('#btn');
+      ML.a(btn, [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }], { duration: 320, easing: 'ease-out' });
+      const tip = phone.querySelector('#tip');
+      tip.getAnimations().forEach((a) => a.cancel());
+      ML.a(tip, [{ opacity: 0, transform: 'translate(-50%, 6px)' }, { opacity: 1, transform: 'translate(-50%, 0)', offset: 0.14 }, { opacity: 1, offset: 0.8 }, { opacity: 0, transform: 'translate(-50%, 0)' }], { duration: 1500, easing: 'linear' });
+      return;
+    }
+    if (!settled) return check();
+    next();
+  }
+
+  function check() {
+    settled = true;
+    const qi = queue[idx];
+    const Q = QS[qi];
+    const q = phone.querySelector('#stage .q:last-child');
+    const mine = q.querySelector(`.opt[data-i="${picked}"]`);
+    const right = picked === Q.a;
+    const sheet = document.createElement('div');
+    const answerText = Q.ox ? (Q.a ? '거짓' : '참') : Q.o[Q.a];
+    if (right) {
+      mine.classList.remove('on');
+      mine.classList.add('ok');
+      ML.drawCheck(mine.querySelector('.chk'), 40);
+      streak++;
+      done++;
+      sheet.className = 'sheet good';
+      sheet.innerHTML = `<div class="hd"><span class="badge">${LW.icon.check(20, '#fff', 3.2)}</span><b>${['정답이에요', '좋아요', '완벽해요'][Math.min(2, streak - 1)]}</b></div><p>${Q.w}</p>`;
+    } else {
+      mine.classList.remove('on');
+      mine.classList.add('no');
+      ML.a(mine, [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(0)' }], { duration: 360, easing: 'ease-out' });
+      const xx = mine.querySelector('.xx');
+      ML.a(xx, [{ opacity: 0, transform: 'scale(.4) rotate(-45deg)' }, { opacity: 1, transform: 'scale(1) rotate(0)' }], { duration: 300, easing: ML.ease.spring });
+      const good = q.querySelector(`.opt[data-i="${Q.a}"]`);
+      setTimeout(() => {
+        good.classList.add('ok');
+        ML.drawCheck(good.querySelector('.chk'), 0);
+      }, 220 / ML.rate);
+      streak = 0;
+      queue.push(qi);
+      sheet.className = 'sheet bad';
+      sheet.innerHTML = `<div class="hd"><span class="badge">${LW.icon.x(18, '#fff', 3.2)}</span><b>아쉬워요</b></div><p>정답은 <strong>${answerText}</strong>입니다. ${Q.w}</p><span class="again">이 문제는 끝에서 한 번 더 나와요.</span>`;
+      const combo = phone.querySelector('#combo');
+      if (getComputedStyle(combo).opacity > 0) ML.a(combo, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+      phone.querySelector('#fill').classList.remove('hot');
+    }
+    sheet.append(Object.assign(document.createElement('div'), { className: 'spacer', style: 'height:56px' }));
+    phone.querySelector('.scr').append(sheet);
+    ML.a(sheet, [{ transform: 'translateY(105%)' }, { transform: 'translateY(0)' }], { duration: 380, easing: ML.ease.sheet });
+    ML.a(sheet.querySelector('.badge'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 460, delay: 140, easing: ML.ease.spring });
+    if (right) ML.drawCheck(sheet.querySelector('.badge .chk'), 200);
+    ML.a(sheet.querySelector('b'), [{ opacity: 0, transform: 'translateX(-8px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 260, delay: 180 });
+    ML.a(sheet.querySelector('p'), [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: 240 });
+    // 단추는 판 위로 올라와 같은 자리에 있다.
+    const foot = phone.querySelector('.foot2');
+    foot.style.zIndex = 20;
+    const last = done === total && right;
+    setBtn(last ? '완료' : right ? '계속' : '확인했어요', right ? 'green' : 'red', false);
+    if (right) {
+      flyXp(mine, 10);
+      progress();
+      if (streak >= 3) comboPop();
+    }
+  }
+
+  function flyXp(from, n) {
+    const a = LW.pos(from, phone);
+    const pill = phone.querySelector('#xp');
+    const b = LW.pos(pill, phone);
+    const f = document.createElement('span');
+    f.className = 'fly';
+    f.innerHTML = `${LW.icon.bolt(14, '#fff')}+${n}`;
+    phone.append(f);
+    const sx = a.x + a.w - 80;
+    const sy = a.cy - 15;
+    f.style.left = sx + 'px';
+    f.style.top = sy + 'px';
+    const dx = b.x - sx;
+    const dy = b.y - sy;
+    ML.a(f, [
+      { transform: 'translate(0,0) scale(.4)', opacity: 0, offset: 0, easing: ML.ease.spring },
+      { transform: 'translate(0,-18px) scale(1.1)', opacity: 1, offset: 0.3, easing: 'cubic-bezier(.5,0,.75,0)' },
+      { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 70}px) scale(1)`, opacity: 1, offset: 0.65, easing: 'cubic-bezier(.25,1,.5,1)' },
+      { transform: `translate(${dx}px, ${dy}px) scale(.55)`, opacity: 0.2, offset: 1 },
+    ], { duration: 820, delay: 200, easing: 'linear' }).finished.then(() => {
+      f.remove();
+      const xpn = phone.querySelector('#xpn');
+      xp += n;
+      ML.roll(xpn, String(xp), 1, 280);
+      ML.a(pill, [{ transform: 'scale(1)' }, { transform: 'scale(1.18)', offset: 0.35 }, { transform: 'scale(1)' }], { duration: 420, easing: 'ease-out' });
+      ML.a(pill.querySelector('svg'), [{ transform: 'rotate(0)' }, { transform: 'rotate(-18deg) scale(1.2)', offset: 0.4 }, { transform: 'rotate(0)' }], { duration: 420 });
+    }).catch(() => {});
+  }
+
+  function progress() {
+    const fill = phone.querySelector('#fill');
+    const from = (done - 1) / total;
+    const to = done / total;
+    if (streak >= 3) fill.classList.add('hot');
+    ML.a(fill, [{ transform: `scaleX(${from})` }, { transform: `scaleX(${to})` }], { duration: 520, delay: 120, easing: ML.ease.spring });
+    const shine = phone.querySelector('#shine');
+    const w = phone.querySelector('.prog').offsetWidth;
+    ML.a(shine, [{ transform: 'translateX(-120%)', opacity: 1 }, { transform: `translateX(${(w * to) / (w * 0.4) * 100}%)`, opacity: 1, offset: 0.85 }, { transform: `translateX(${(w * to) / (w * 0.4) * 100}%)`, opacity: 0 }], { duration: 640, delay: 320, easing: ML.ease.inOut });
+  }
+
+  function comboPop() {
+    const combo = phone.querySelector('#combo');
+    phone.querySelector('#combon').textContent = streak;
+    ML.a(combo, [{ opacity: 0, transform: 'translateY(-6px) scale(.6)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 460, delay: 380, easing: ML.ease.spring });
+    ML.a(combo.querySelector('svg'), [{ transform: 'scale(1)' }, { transform: 'scale(1.35)', offset: 0.5 }, { transform: 'scale(1)' }], { duration: 500, delay: 600 });
+  }
+
+  function next() {
+    const sheet = phone.querySelector('.sheet');
+    const foot = phone.querySelector('.foot2');
+    if (done === total && phone.querySelector('#btn .lbl').textContent === '완료') {
+      const scr = phone.querySelector('.scr');
+      ML.done(ML.a(scr, [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.98)' }], { duration: 200, easing: ML.ease.in })).then(() => (location.href = 'complete.html'));
+      return;
+    }
+    if (sheet) ML.done(ML.a(sheet, [{ transform: 'translateY(0)' }, { transform: 'translateY(105%)' }], { duration: 220, easing: ML.ease.in })).then(() => {
+      sheet.remove();
+      foot.style.zIndex = '';
+    });
+    idx++;
+    setBtn('확인', '', true);
+    show(queue[idx]);
+  }
+
+  ML.bar({ title: '문제 풀이', replay: render, home: '../index.html' });
+  render();
+})();
+</script>
+</body>
+</html>

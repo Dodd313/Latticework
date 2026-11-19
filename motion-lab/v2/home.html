@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 구조 · Motion Lab 2차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../home.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .scr.grey { background: var(--s-bg2); }
+  /* 세계 진입 */
+  .world { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
+  .world.white { background: #fff; }
+  .wtop { height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 10px; flex: none; }
+  .wtop .x { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--s-faint); }
+  .wtop .pb { flex: 1; height: 12px; border-radius: 6px; background: var(--s-line); }
+  .wq { padding: 22px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .wq .kk { font-size: 14px; font-weight: 700; color: var(--s-blue); }
+  .wq h1 { margin: 0 0 12px; font-size: 24px; line-height: 1.42; font-weight: 800; letter-spacing: -0.6px; }
+  .wq .o { height: 62px; border-radius: 16px; border: 2px solid var(--s-line); display: flex; align-items: center; padding: 0 18px; font-size: 17px; font-weight: 600; }
+  .shade2 { position: absolute; inset: 0; z-index: 15; background: #000; opacity: 0; pointer-events: none; }
+  /* B: 탭 */
+  .tb-page { position: absolute; inset: 0; overflow: hidden; }
+  .bst { padding: 20px 20px 0; display: flex; flex-direction: column; gap: 14px; }
+  .bst h1 { margin: 6px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.7px; }
+  .lvcard { border-radius: 20px; background: linear-gradient(140deg, #3182f6, #5a6cff); color: #fff; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .lvcard .r1 { display: flex; justify-content: space-between; align-items: baseline; }
+  .lvcard .r1 b { font-size: 30px; font-weight: 800; }
+  .lvcard .r1 span { font-size: 13.5px; opacity: 0.85; font-weight: 600; }
+  .lvcard .xb { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.28); overflow: hidden; position: relative; }
+  .lvcard .xb i { position: absolute; inset: 0; background: #fff; transform-origin: left; transform: scaleX(0.58); }
+  .boxw { background: #fff; border-radius: 20px; border: 1px solid var(--s-line); padding: 6px 16px; }
+  /* C: 두 문 */
+  .door { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; padding: 26px 24px; cursor: pointer; overflow: hidden; }
+  .door.read { top: 0; height: 46%; }
+  .door.solve { bottom: 0; height: 54%; background: #fff; }
+  .door .k { font-size: 13px; font-weight: 700; color: var(--sub); }
+  .door.read h2 { margin: 6px 0 14px; font-family: var(--serif); font-size: 34px; letter-spacing: -0.8px; }
+  .door.read .hl { font-family: var(--serif); font-size: 16px; font-weight: 700; line-height: 1.5; padding: 8px 0; border-top: 1px solid var(--line); }
+  .door.solve .k { color: var(--s-mute); font-family: var(--s-font); }
+  .door.solve h2 { margin: 6px 0 14px; font-family: var(--s-font); font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+  .seam { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); z-index: 4; }
+  .seam .pill2 { height: 36px; padding: 0 14px 0 11px; border-radius: 18px; font-size: 15px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); background: #fff; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st" id="phone"></div>
+  <section class="notes">
+    <h2>홈 구조: 두 톤을 한 앱에</h2>
+    <p>뉴스는 지면 톤, 문제 풀이는 깨끗한 앱 톤으로 나누면 홈은 두 톤을 함께 담아야 합니다. 세 가지 구조를 만들었습니다. 위쪽 단추로 바꿔 보고, 카드를 눌러 각 영역으로 들어가 보세요.</p>
+    <h3>추천: A 한 화면 두 구역</h3>
+    <ul>
+      <li>회색 책상 위에 신문 조각 한 장과 학습 카드 한 장이 놓인 구조입니다. 홈에서 이미 두 톤이 보이니, 어디로 들어가면 무엇이 나올지 미리 압니다.</li>
+      <li>연속 기록과 하루 목표는 두 영역을 함께 묶는 것이라 맨 위 공통 자리에 둡니다.</li>
+      <li>톤이 바뀌는 순간을 들어가는 움직임으로 만듭니다. 신문 조각은 한 장이 넘어오듯, 학습 카드는 카드가 커지며 화면 전체가 됩니다.</li>
+    </ul>
+    <h3>나머지 둘을 고르지 않은 이유</h3>
+    <table class="spec">
+      <tr><th>구조</th><th>좋은 점</th><th>아쉬운 점</th></tr>
+      <tr><td>B 탭으로 나눔</td><td>두 세계가 가장 또렷이 나뉨. 학습 탭을 듀오링고처럼 크게 꾸밀 수 있음</td><td>뉴스가 탭 뒤로 숨어 매일 두 건 읽기가 잊히기 쉬움. 하루 목표가 한눈에 안 보임</td></tr>
+      <tr><td>C 두 문</td><td>첫인상이 가장 강함</td><td>매번 한 번 더 눌러야 함. 기록과 리뷰를 둘 자리가 없음</td></tr>
+    </table>
+    <h3>참고한 것</h3>
+    <ul>
+      <li>토스 홈: 회색 바탕 위 흰 카드, 카드마다 한 가지 일.</li>
+      <li>듀오링고: 레벨, 경험치, 연속 기록을 학습 영역 맨 위에 모음.</li>
+      <li>카드가 커지며 다음 화면이 되는 전환은 머티리얼 디자인의 "컨테이너 전환" 과 같은 방식입니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let variant = 'A';
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    rev: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M8.3 12.2l2.6 2.6 4.8-5.2" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    news: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4 4.5h12.5v15H6.5A2.5 2.5 0 0 1 4 17zM18 8h2v9.5a2 2 0 0 1-4 0V8zM7 8h6.5v2H7zm0 4h6.5v1.6H7zm0 3.4h4.5V17H7z" fill="currentColor" fill-rule="evenodd"/></svg>',
+    learn: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M13.2 2.5L4.8 13.4h6.1l-1.1 8.1 8.4-10.9h-6.1z" fill="currentColor"/></svg>',
+  };
+  const newsItems = [['공정위, 쿠팡·김범석 의장 검찰 고발 의견', false], ['엔비디아, CEO 승계 계획 공백 논란', true]];
+
+  function render() {
+    ML.clear(phone);
+    if (variant === 'A') return renderA();
+    if (variant === 'B') return renderB();
+    return renderC();
+  }
+
+  const studyRows = () => `
+    <div class="srow2"><span class="ic b">A</span><div class="tx"><b>영단어</b><span>토익 어휘 · 금융영어</span></div><span class="cnt">0/6</span></div>
+    <div class="srow2"><span class="ic g">${LW.mark(26, 'currentColor', 3)}</span><div class="tx"><b>Latticework</b><span>재무학 · 논리학</span></div><span class="cnt">0/5</span></div>`;
+
+  function renderA() {
+    phone.innerHTML = `<div class="scr grey">
+      <div class="ha">
+        <div class="hd"><span class="wm">Latticework</span><span class="pill2 fire">${LW.icon.fire(16, '#ff7a1a')}4일</span></div>
+        <div class="goal"><span>오늘</span><span class="sg"><i class="on"></i><i></i><i></i></span><span class="num">1 / 3</span></div>
+        <div class="clip paper" id="news"><div class="t"><b>오늘의 지면</b><span>11월 19일 목요일</span></div><div class="r"></div>
+          ${newsItems.map(([t, r]) => `<div class="it ${r ? 'read' : ''}"><span class="d"></span><span>${t}</span></div>`).join('')}</div>
+        <div class="scard" id="study"><div class="top"><b>학습</b><span class="lvchip">Lv.3</span><span class="xpb"><i style="transform:scaleX(.58)"></i></span><span class="xpn num">140/240</span></div>
+          ${studyRows()}<button class="sbtn" id="start">오늘 학습 시작</button></div>
+      </div>
+      <div class="tabs2"><button class="on">${ICON.home}홈</button><button>${ICON.cal}기록</button><button>${ICON.rev}리뷰</button></div>
+      <div class="shade2" id="shade"></div>
+    </div>`;
+    const parts = phone.querySelectorAll('.ha > *');
+    ML.stagger(parts, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360 }, 60);
+    LW.press(phone.querySelector('#start'));
+    LW.press(phone.querySelector('#news'), 0.98);
+    phone.querySelector('#start').addEventListener('click', () => openStudy(phone.querySelector('#study')));
+    phone.querySelector('#news').addEventListener('click', openNews);
+  }
+
+  /** 학습 카드가 커져 화면 전체가 된다. */
+  async function openStudy(card) {
+    const scr = phone.querySelector('.scr');
+    const r = LW.pos(card, phone);
+    const H = phone.offsetHeight;
+    const W = phone.offsetWidth;
+    const w = document.createElement('div');
+    w.className = 'world white';
+    w.innerHTML = `<div class="wtop"><button class="x" id="wx">${LW.icon.close()}</button><span class="pb"></span><span class="pill2 xp">${LW.icon.bolt(16, '#ffb020')}120</span></div>
+      <div class="wq"><span class="kk">재무학 · 배당할인모형</span><h1>미래 배당을 할인해 주가를 구하는 모형은?</h1><div class="o">배당할인모형</div><div class="o">잉여현금흐름할인모형</div><div class="o">PER 평가</div></div>`;
+    scr.append(w);
+    const inner = [...w.children];
+    inner.forEach((el) => (el.style.opacity = 0));
+    const from = `inset(${r.y}px ${W - r.x - r.w}px ${H - r.y - r.h}px ${r.x}px round 22px)`;
+    ML.a(phone.querySelector('.ha'), [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.94)', opacity: 0.4 }], { duration: 420, easing: ML.ease.sheet });
+    await ML.done(ML.a(w, [{ clipPath: from }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }], { duration: 440, easing: ML.ease.sheet }));
+    inner.forEach((el) => (el.style.opacity = ''));
+    ML.stagger(inner, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 280 }, 50);
+    w.querySelector('#wx').addEventListener('click', async () => {
+      ML.a(phone.querySelector('.ha'), [{ transform: 'scale(.94)', opacity: 0.4 }, { transform: 'scale(1)', opacity: 1 }], { duration: 380, easing: ML.ease.out });
+      ML.a(w.querySelector('.wq'), [{ opacity: 1 }, { opacity: 0 }], { duration: 120 });
+      await ML.done(ML.a(w, [{ clipPath: 'inset(0px 0px 0px 0px round 0px)' }, { clipPath: from }], { duration: 360, easing: ML.ease.inOut }));
+      w.remove();
+    });
+  }
+
+  /** 신문 조각을 누르면 지면이 한 장 넘어온다. */
+  async function openNews() {
+    const scr = phone.querySelector('.scr');
+    const W = phone.offsetWidth;
+    const w = document.createElement('div');
+    w.className = 'world paper';
+    w.style.background = 'var(--ground)';
+    w.style.boxShadow = '-12px 0 24px rgba(0,0,0,.08)';
+    w.innerHTML = `<div class="topbar"><button class="back" id="wb">${ML.backSvg}홈</button><span class="brand">Latticework</span></div>
+      <div style="padding:24px 22px;display:flex;flex-direction:column;gap:14px"><div class="kicker">공정거래 · 지배구조</div><h1 style="margin:0;font-family:var(--serif);font-size:25px;line-height:1.45;letter-spacing:-.6px">공정위, 쿠팡·김범석 의장 검찰 고발 의견</h1><div style="font-size:12.5px;color:var(--sub);padding-bottom:12px;border-bottom:1px solid var(--ink)">연합뉴스 · 2026.11.19</div><p style="margin:0;font-size:16px;line-height:1.8;color:var(--deck)">공정거래위원회 심사관이 쿠팡과 김범석 의장을 동일인 지정 자료 허위 제출 혐의로 검찰에 고발해야 한다는 의견을 냈다.</p></div>`;
+    scr.append(w);
+    const shade = phone.querySelector('#shade');
+    const ha = phone.querySelector('.ha');
+    ML.a(w, [{ transform: `translateX(${W}px)` }, { transform: 'translateX(0)' }], { duration: 420, easing: ML.ease.sheet });
+    ML.a(ha, [{ transform: 'translateX(0)' }, { transform: `translateX(${-W * 0.3}px)` }], { duration: 420, easing: ML.ease.sheet });
+    ML.a(shade, [{ opacity: 0 }, { opacity: 0.08 }], { duration: 420, easing: ML.ease.sheet });
+    w.querySelector('#wb').addEventListener('click', async () => {
+      ML.a(ha, [{ transform: `translateX(${-W * 0.3}px)` }, { transform: 'translateX(0)' }], { duration: 320, easing: ML.ease.out });
+      ML.a(shade, [{ opacity: 0.08 }, { opacity: 0 }], { duration: 320, easing: ML.ease.out });
+      await ML.done(ML.a(w, [{ transform: 'translateX(0)' }, { transform: `translateX(${W}px)` }], { duration: 320, easing: ML.ease.out }));
+      w.remove();
+    });
+  }
+
+  function renderB() {
+    let tab = 1;
+    phone.innerHTML = `<div class="scr" id="bscr"><div style="position:relative;flex:1" id="pages"></div>
+      <div class="tabs2" id="tb"><button data-i="0">${ICON.news}뉴스</button><button data-i="1" class="on">${ICON.learn}학습</button><button data-i="2">${ICON.cal}기록</button></div></div>`;
+    const pages = phone.querySelector('#pages');
+    const make = (i) => {
+      const p = document.createElement('div');
+      p.className = 'tb-page' + (i === 0 ? ' paper' : '');
+      if (i === 0) {
+        p.innerHTML = `<div class="hm"><div class="mast"><b>Latticework</b></div><div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div>
+          ${newsItems.map(([t, r]) => `<div class="srow ${r ? 'done' : ''}"><div class="hd"><span class="kk">뉴스</span><span class="mark">${r ? '' : '<span class="dot"></span>'}</span></div><div class="tt" style="font-size:19px">${t}</div></div>`).join('')}</div>`;
+      } else if (i === 1) {
+        p.style.background = '#fff';
+        p.innerHTML = `<div class="bst"><div style="display:flex;justify-content:space-between;align-items:center"><h1>학습</h1><span class="pill2 fire">${LW.icon.fire(16, '#ff7a1a')}4일</span></div>
+          <div class="lvcard"><div class="r1"><b>Lv.3</b><span>다음 레벨까지 100 XP</span></div><div class="xb"><i></i></div></div>
+          <div class="boxw">${studyRows()}</div><button class="sbtn">오늘 학습 시작</button></div>`;
+      } else {
+        p.style.background = '#fff';
+        p.innerHTML = `<div class="bst"><h1>기록</h1><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px 0;text-align:center;font-size:14px;color:var(--s-mute);font-weight:600">${Array.from({ length: 30 }, (_, i) => `<span style="height:36px;width:36px;margin:0 auto;border-radius:18px;display:flex;align-items:center;justify-content:center;${i >= 15 && i < 18 ? 'background:var(--s-blue);color:#fff' : ''}">${i + 1}</span>`).join('')}</div></div>`;
+      }
+      return p;
+    };
+    pages.append(make(1));
+    phone.querySelectorAll('#tb button').forEach((b) =>
+      b.addEventListener('click', () => {
+        const i = +b.dataset.i;
+        if (i === tab) return;
+        const dir = i > tab ? 1 : -1;
+        const old = pages.lastElementChild;
+        const fresh = make(i);
+        pages.append(fresh);
+        ML.done(ML.a(old, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-dir * 18}px)` }], { duration: 160, easing: ML.ease.in })).then(() => old.remove());
+        ML.a(fresh, [{ opacity: 0, transform: `translateX(${dir * 18}px)` }, { opacity: 1, transform: 'translateX(0)' }], { duration: 260, delay: 60 });
+        phone.querySelectorAll('#tb button').forEach((x) => x.classList.toggle('on', x === b));
+        const tb = phone.querySelector('#tb');
+        tb.classList.toggle('paperish', i === 0);
+        ML.a(b.querySelector('svg'), [{ transform: 'scale(.8)' }, { transform: 'scale(1)' }], { duration: 420, easing: ML.ease.spring });
+        tab = i;
+      }),
+    );
+  }
+
+  function renderC() {
+    phone.innerHTML = `<div class="scr" style="background:#fff">
+      <div class="door read paper" id="dr"><span class="k">읽기 · 11월 19일</span><h2>오늘의 지면</h2>${newsItems.map(([t]) => `<div class="hl">${t}</div>`).join('')}</div>
+      <div class="door solve" id="ds"><span class="k">풀기 · Lv.3</span><h2>오늘의 학습</h2><div class="boxw" style="border:0;padding:0">${studyRows()}</div><button class="sbtn" style="margin-top:auto">시작하기</button></div>
+      <div class="seam"><span class="pill2 fire">${LW.icon.fire(16, '#ff7a1a')}연속 4일 · 오늘 1/3</span></div></div>`;
+    ML.a(phone.querySelector('#dr'), [{ transform: 'translateY(-30px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 420 });
+    ML.a(phone.querySelector('#ds'), [{ transform: 'translateY(30px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 420 });
+    ML.a(phone.querySelector('.seam'), [{ transform: 'translate(-50%,-50%) scale(.6)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 }], { duration: 460, delay: 220, easing: ML.ease.spring });
+    const grow = (keep, drop, up) => async () => {
+      ML.a(phone.querySelector('.seam'), [{ opacity: 1 }, { opacity: 0 }], { duration: 140 });
+      ML.a(drop, [{ transform: 'translateY(0)' }, { transform: `translateY(${up ? 100 : -100}%)` }], { duration: 420, easing: ML.ease.sheet });
+      ML.a(keep, [{ height: keep.offsetHeight + 'px' }, { height: phone.offsetHeight + 'px' }], { duration: 420, easing: ML.ease.sheet });
+      await ML.wait(1400);
+      renderC();
+    };
+    phone.querySelector('#dr').addEventListener('click', grow(phone.querySelector('#dr'), phone.querySelector('#ds'), true));
+    phone.querySelector('#ds').addEventListener('click', grow(phone.querySelector('#ds'), phone.querySelector('#dr'), false));
+  }
+
+  const pick = (v) => () => {
+    variant = v;
+    render();
+  };
+  ML.bar({ title: '홈 구조', replay: render, home: '../index.html', extra: [['A 두 구역', pick('A')], ['B 탭', pick('B')], ['C 두 문', pick('C')]] });
+  render();
+})();
+</script>
+</body>
+</html>

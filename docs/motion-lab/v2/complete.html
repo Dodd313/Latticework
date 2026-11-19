@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>세션 완료와 레벨 업 · Motion Lab 2차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .wrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 56px 20px 0; gap: 22px; }
+  .ring { position: relative; width: 150px; height: 150px; }
+  .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .mid b { font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+  .ring .mid > span { font-size: 13px; color: var(--s-mute); font-weight: 600; }
+  .ttl { text-align: center; }
+  .ttl h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.7px; }
+  .ttl p { margin: 6px 0 0; font-size: 15px; color: var(--s-sub); }
+  .cards { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .card { border-radius: 16px; overflow: hidden; border: 2px solid; text-align: center; }
+  .card .h { font-size: 12.5px; font-weight: 800; color: #fff; padding: 6px 0; letter-spacing: 0.2px; }
+  .card .v { display: flex; align-items: center; justify-content: center; gap: 4px; height: 52px; font-size: 22px; font-weight: 800; }
+  .card.a { border-color: var(--s-amber); } .card.a .h { background: var(--s-amber); } .card.a .v { color: #b26b00; }
+  .card.g { border-color: var(--s-green); } .card.g .h { background: var(--s-green); } .card.g .v { color: var(--s-green-d); }
+  .card.o { border-color: var(--s-orange); } .card.o .h { background: var(--s-orange); } .card.o .v { color: #d35a00; }
+  .lvbox { width: 100%; background: var(--s-bg2); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .lvbox .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--s-sub); font-weight: 600; }
+  .lvbox .row b { font-size: 17px; color: var(--s-ink); font-weight: 800; }
+  .bar2 { position: relative; height: 12px; border-radius: 6px; background: #dfe3e8; overflow: hidden; }
+  .bar2 i { position: absolute; inset: 0; border-radius: 6px; background: linear-gradient(90deg, #ffc247, #ff9a1a); transform-origin: left; }
+  .week2 { width: 100%; display: flex; justify-content: space-between; padding: 14px 16px; background: #fff7f0; border-radius: 16px; }
+  .wd { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--s-mute); }
+  .wd .c { position: relative; width: 32px; height: 32px; border-radius: 16px; background: #ffe3cc; display: flex; align-items: center; justify-content: center; }
+  .wd .c .f { position: absolute; inset: 0; border-radius: 16px; background: var(--s-orange); transform: scale(0); }
+  .wd.on .c .f { transform: scale(1); }
+  .wd .c svg { position: relative; }
+  .foot3 { width: 100%; padding: 12px 20px 26px; }
+  /* 레벨 업 장면 */
+  .lvup { position: absolute; inset: 0; z-index: 30; background: rgba(255, 255, 255, 0.94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 0 24px; }
+  .rays { position: absolute; width: 360px; height: 360px; left: 50%; top: 50%; margin: -250px 0 0 -180px; background: repeating-conic-gradient(from 0deg, rgba(49, 130, 246, 0.12) 0deg 10deg, transparent 10deg 30deg); border-radius: 50%; -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%); mask: radial-gradient(circle, #000 30%, transparent 70%); }
+  .medal { position: relative; flex-direction: column; gap: 2px; width: 132px; height: 132px; border-radius: 40px; background: linear-gradient(145deg, #4c9bff, #3182f6 45%, #6a5cff); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 16px 40px rgba(49, 130, 246, 0.35); }
+  .medal .lb { order: 2; font-size: 12px; font-weight: 800; opacity: 0.85; letter-spacing: 1px; }
+  .medal b { font-size: 60px; font-weight: 800; line-height: 1; }
+  .lvup h2 { position: relative; margin: 8px 0 0; font-size: 26px; font-weight: 800; letter-spacing: -0.7px; }
+  .lvup p { position: relative; margin: 0; font-size: 15px; color: var(--s-sub); text-align: center; line-height: 1.55; }
+  .lvup .sbtn { position: absolute; left: 20px; right: 20px; bottom: 26px; width: auto; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st" id="phone"></div>
+  <section class="notes">
+    <h2>세션 완료와 레벨 업</h2>
+    <p>다섯 문제를 끝내면 나오는 화면입니다. 보상의 크기를 그날 일어난 일에 맞춰 세 단계로 나눴습니다. 매번 크게 축하하면 금방 무뎌지기 때문입니다.</p>
+    <p class="tip">위쪽의 "보통 날", "레벨 업", "7일 연속" 을 차례로 눌러 보세요.</p>
+    <h3>보상의 세 단계</h3>
+    <table class="spec">
+      <tr><th>날</th><th>장면</th><th>길이</th></tr>
+      <tr><td>보통 날</td><td>정답률 고리가 그려지고 숫자가 셈. 경험치, 정답, 연속 칸이 차례로 튀어 오름. 경험치 막대가 참</td><td class="num">약 1.6초</td></tr>
+      <tr><td>레벨 업</td><td>막대가 끝까지 차면 화면이 밝아지고 레벨 판이 튀어 나오며 숫자가 3에서 4로 넘어감. 뒤에서 빛살이 천천히 돌고 폭죽이 터짐</td><td class="num">약 2.4초</td></tr>
+      <tr><td>연속 고비</td><td>7, 30, 100, 365일에만. 이번 주 칸의 오늘이 주황으로 차오르고 숫자가 굴러 오름. 작은 폭죽</td><td class="num">약 2초</td></tr>
+    </table>
+    <h3>원칙</h3>
+    <ul>
+      <li>폭죽은 레벨 업과 연속 고비에만 씁니다. 토스도 신용점수가 오르거나 월급날 같은 순간에만 씁니다.</li>
+      <li>모든 숫자는 0 이나 이전 값에서 세어 올라갑니다. 같은 숫자라도 "쌓였다" 는 느낌이 납니다.</li>
+      <li>"계속" 은 장면이 끝나기 전에도 누를 수 있게 둡니다. 축하가 길을 막으면 안 됩니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let scenario = 'normal';
+  const W = ['월', '화', '수', '목', '금', '토', '일'];
+
+  async function render() {
+    ML.clear(phone);
+    const streakFrom = scenario === 'streak' ? 6 : 4;
+    const lvFrom = { now: scenario === 'level' ? 220 : 140, max: 240 };
+    const C = 2 * Math.PI * 66;
+    phone.innerHTML = `<div class="scr">
+      <div class="wrap">
+        <div class="ring"><svg viewBox="0 0 150 150" width="150" height="150"><circle cx="75" cy="75" r="66" stroke="#eef1f4" stroke-width="12" fill="none"/><circle id="arc" cx="75" cy="75" r="66" stroke="url(#gr)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4c9bff"/><stop offset="1" stop-color="#12b76a"/></linearGradient></defs></svg>
+          <div class="mid"><b><span id="acc">0</span>%</b><span>정답률</span></div></div>
+        <div class="ttl"><h1>오늘 분량을 마쳤어요</h1><p>Latticework 5문제</p></div>
+        <div class="cards">
+          <div class="card a"><div class="h">경험치</div><div class="v">${LW.icon.bolt(18, '#ffb020')}+<span id="c1">0</span></div></div>
+          <div class="card g"><div class="h">정답</div><div class="v"><span id="c2">0</span>/5</div></div>
+          <div class="card o"><div class="h">연속</div><div class="v">${LW.icon.fire(18, '#ff7a1a')}<span class="roll" id="c3">${streakFrom}</span>일</div></div>
+        </div>
+        ${scenario === 'streak'
+          ? `<div class="week2" id="week">${W.map((w, i) => `<span class="wd ${i < 6 ? 'on' : ''}" data-i="${i}"><span class="c"><span class="f"></span>${i < 6 ? LW.icon.fire(16, '#fff') : ''}</span>${w}</span>`).join('')}</div>`
+          : `<div class="lvbox" id="lvbox"><div class="row"><span>레벨 <b class="roll" id="lv">3</b></span><span class="num"><span id="xpNow">${lvFrom.now}</span> / <span id="xpMax">${lvFrom.max}</span></span></div><div class="bar2"><i id="bar" style="transform:scaleX(${lvFrom.now / lvFrom.max})"></i></div></div>`}
+      </div>
+      <div class="foot3"><button class="sbtn" id="go">계속</button></div>
+      <div class="lvup" id="lvup"><span class="rays" id="rays"></span><div class="medal" id="medal"><span class="lb">LEVEL</span><b class="roll" id="mlv">3</b></div><h2>레벨 4가 되었어요</h2><p>지금까지 개념 42개를 오래 기억하고 있어요.<br>다음 레벨까지 300 XP</p><button class="sbtn" id="ok">좋아요</button></div>
+    </div>`;
+    LW.press(phone.querySelector('#go'));
+    LW.press(phone.querySelector('#ok'));
+    phone.querySelector('#ok').addEventListener('click', () => {
+      const l = phone.querySelector('#lvup');
+      ML.done(ML.a(l, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 })).then(() => (l.style.display = 'none'));
+    });
+    phone.querySelector('#go').addEventListener('click', render);
+    const parts = ['.ring', '.ttl', '.cards', '#lvbox', '#week', '.foot3'].map((s) => phone.querySelector(s)).filter(Boolean);
+    parts.forEach((p) => (p.style.opacity = 0));
+    await ML.wait(80);
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.a(parts[0], [{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 460, easing: ML.ease.spring });
+    ML.a(phone.querySelector('#arc'), [{ strokeDashoffset: C }, { strokeDashoffset: C * 0.2 }], { duration: 900, delay: 120, easing: ML.ease.out });
+    ML.count(phone.querySelector('#acc'), 0, 80, 900);
+    ML.a(parts[1], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 160 });
+    const cards = phone.querySelectorAll('.card');
+    ML.stagger(cards, [{ opacity: 0, transform: 'translateY(16px) scale(.92)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 460, delay: 320, easing: ML.ease.spring }, 90);
+    ML.a(parts[3], [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 560 });
+    ML.a(parts[4], [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 900 });
+    await ML.wait(420);
+    ML.count(phone.querySelector('#c1'), 0, 50, 600);
+    await ML.wait(90);
+    ML.count(phone.querySelector('#c2'), 0, 4, 500);
+    await ML.wait(500);
+    if (scenario === 'streak') return streakScene();
+    const bar = phone.querySelector('#bar');
+    if (scenario === 'normal') {
+      ML.count(phone.querySelector('#xpNow'), 140, 190, 600);
+      ML.a(bar, [{ transform: `scaleX(${140 / 240})` }, { transform: `scaleX(${190 / 240})` }], { duration: 600, easing: ML.ease.out });
+      await ML.wait(300);
+      ML.roll(phone.querySelector('#c3'), '5');
+      ML.a(phone.querySelector('.card.o svg'), [{ transform: 'scale(1)' }, { transform: 'scale(1.4)', offset: 0.4 }, { transform: 'scale(1)' }], { duration: 500 });
+      return;
+    }
+    // 레벨 업
+    ML.roll(phone.querySelector('#c3'), '5');
+    ML.count(phone.querySelector('#xpNow'), 220, 240, 360);
+    await ML.done(ML.a(bar, [{ transform: `scaleX(${220 / 240})` }, { transform: 'scaleX(1)' }], { duration: 360, easing: ML.ease.inOut }));
+    ML.a(bar, [{ filter: 'brightness(1)' }, { filter: 'brightness(1.35)' }, { filter: 'brightness(1)' }], { duration: 300, composite: 'add' });
+    await ML.wait(220);
+    const lvup = phone.querySelector('#lvup');
+    lvup.style.display = 'flex';
+    ML.a(lvup, [{ opacity: 0 }, { opacity: 1 }], { duration: 240 });
+    const medal = phone.querySelector('#medal');
+    ML.a(medal, [{ transform: 'scale(.3) rotate(-12deg)', opacity: 0 }, { transform: 'scale(1) rotate(0)', opacity: 1 }], { duration: 620, delay: 120, easing: ML.ease.spring });
+    ML.a(phone.querySelector('#rays'), [{ transform: 'rotate(0) scale(.6)', opacity: 0 }, { transform: 'rotate(40deg) scale(1)', opacity: 1, offset: 0.2 }, { transform: 'rotate(200deg) scale(1)', opacity: 1 }], { duration: 9000, delay: 200, easing: 'linear' });
+    ML.stagger(lvup.querySelectorAll('h2, p'), [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 520 }, 70);
+    ML.a(lvup.querySelector('.sbtn'), [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 820 });
+    await ML.wait(560);
+    ML.roll(phone.querySelector('#mlv'), '4', 1, 380);
+    const p = LW.pos(medal, phone);
+    LW.confetti(phone.querySelector('.scr'), p.cx, p.cy, 56);
+    ML.a(medal, [{ transform: 'scale(1)' }, { transform: 'scale(1.08)', offset: 0.3 }, { transform: 'scale(1)' }], { duration: 420 });
+    phone.querySelector('#lv').textContent = '4';
+    phone.querySelector('#xpMax').textContent = '300';
+    phone.querySelector('#xpNow').textContent = '0';
+    bar.getAnimations().forEach((a) => a.cancel());
+    bar.style.transform = 'scaleX(0)';
+  }
+
+  async function streakScene() {
+    const today = phone.querySelector('.wd[data-i="6"]');
+    today.querySelector('.c').insertAdjacentHTML('beforeend', LW.icon.fire(16, '#fff'));
+    const fl = today.querySelector('.c svg');
+    fl.style.opacity = 0;
+    today.classList.add('on');
+    today.style.color = 'var(--s-ink)';
+    ML.a(today.querySelector('.f'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 520, easing: ML.ease.spring });
+    fl.style.opacity = '';
+    ML.a(fl, [{ transform: 'translateY(8px) scale(.3)', opacity: 0 }, { transform: 'translateY(0) scale(1)', opacity: 1 }], { duration: 520, delay: 120, easing: ML.ease.spring });
+    await ML.wait(260);
+    ML.roll(phone.querySelector('#c3'), '7');
+    const card = phone.querySelector('.card.o');
+    ML.a(card, [{ transform: 'scale(1)' }, { transform: 'scale(1.08)', offset: 0.35 }, { transform: 'scale(1)' }], { duration: 480, easing: 'ease-out' });
+    const t = phone.querySelector('.ttl h1');
+    ML.done(ML.a(t, [{ opacity: 1 }, { opacity: 0 }], { duration: 140 })).then(() => {
+      t.textContent = '일주일 연속 학습!';
+      ML.a(t, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 260 });
+    });
+    const p = LW.pos(today.querySelector('.c'), phone);
+    LW.confetti(phone.querySelector('.scr'), p.cx, p.cy, 30, 0.7);
+  }
+
+  const pick = (s) => () => {
+    scenario = s;
+    render();
+  };
+  ML.bar({ title: '세션 완료', replay: render, home: '../index.html', extra: [['보통 날', pick('normal')], ['레벨 업', pick('level')], ['7일 연속', pick('streak')]] });
+  render();
+})();
+</script>
+</body>
+</html>

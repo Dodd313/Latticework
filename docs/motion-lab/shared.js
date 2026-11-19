@@ -104,10 +104,10 @@
   ML.backSvg = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   /** 위쪽 실험 막대: 목록, 다시 재생, 느리게, 현재 앱과 제안 비교. */
-  ML.bar = ({ title, replay, modes = false, extra = [] }) => {
+  ML.bar = ({ title, replay, modes = false, extra = [], home = 'index.html' }) => {
     const bar = document.createElement('div');
     bar.className = 'lab-bar';
-    bar.innerHTML = `<a class="home" href="index.html">${ML.backSvg}목록</a><span class="title">${title}</span>`;
+    bar.innerHTML = `<a class="home" href="${home}">${ML.backSvg}목록</a><span class="title">${title}</span>`;
     const add = (label, fn, pressed) => {
       const b = document.createElement('button');
       b.type = 'button';
