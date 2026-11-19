@@ -93,7 +93,7 @@ export function Chip({ label, tone = 'blue' }: { label: string; tone?: Tone; mon
   );
 }
 
-export type IconName = 'today' | 'threads' | 'archive' | 'review' | 'gear' | 'back' | 'next' | 'external' | 'search' | 'check' | 'down';
+export type IconName = 'home' | 'today' | 'threads' | 'archive' | 'review' | 'gear' | 'back' | 'next' | 'external' | 'search' | 'check' | 'down';
 
 export function Icon({ name, size = 24, color, bold }: { name: IconName; size?: number; color?: string; bold?: boolean }) {
   const t = useTheme();
@@ -102,6 +102,14 @@ export function Icon({ name, size = 24, color, bold }: { name: IconName; size?: 
   const common = { fill: 'none', stroke, strokeWidth: sw, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   let body: React.ReactNode = null;
   switch (name) {
+    case 'home':
+      body = (
+        <>
+          <Path d="M4 11.2L12 4.5l8 6.7" {...common} />
+          <Path d="M6 10v9.5h4.2v-5.2h3.6v5.2H18V10" {...common} />
+        </>
+      );
+      break;
     case 'today':
       body = (
         <>

@@ -90,10 +90,11 @@ export function BackBar({ label, right }: { label: string; right?: React.ReactNo
   );
 }
 
-const TABS: { name: TabName; label: string }[] = [
-  { name: 'today', label: '오늘' },
-  { name: 'archive', label: '기록' },
-  { name: 'review', label: '리뷰' },
+// 아래 탭은 아이콘만 보여 준다. 이름은 화면 읽기 프로그램용으로만 남긴다.
+const TABS: { name: TabName; label: string; icon: 'home' | 'archive' | 'review' }[] = [
+  { name: 'today', label: '오늘', icon: 'home' },
+  { name: 'archive', label: '기록', icon: 'archive' },
+  { name: 'review', label: '리뷰', icon: 'review' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */
@@ -132,9 +133,7 @@ export function TabBar() {
         const on = nav.tab === tab.name;
         return (
           <Tap key={tab.name} role="tab" selected={on} label={tab.label} onPress={() => nav.setTab(tab.name)} style={{ flex: 1, minHeight: 54, alignItems: 'center', justifyContent: 'center', paddingTop: 3 }}>
-            <T s={13} w={on ? '700' : '500'} c={on ? t.ink : t.sub} lh={1.3}>
-              {tab.label}
-            </T>
+            <Icon name={tab.icon} size={26} color={on ? t.ink : t.mute} bold={on} />
           </Tap>
         );
       })}
