@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>09 읽기 진행과 읽음 표시 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .prog { position: relative; height: 2px; background: transparent; flex: none; }
+  .prog i { position: absolute; inset: 0; background: var(--ink); transform-origin: left; transform: scaleX(0); }
+  .scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+  .body { padding: 24px 22px 40px; display: flex; flex-direction: column; gap: 14px; }
+  .body h1 { margin: 0; font-family: var(--serif); font-size: 25px; line-height: 1.45; letter-spacing: -0.6px; }
+  .body .by { font-size: 12.5px; color: var(--sub); padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+  .body p { margin: 0; font-size: 16px; line-height: 1.8; color: var(--deck); }
+  .end { margin-top: 18px; padding: 18px 0; border-top: 3px solid var(--ink); display: flex; align-items: center; gap: 12px; }
+  .end .seal { position: relative; width: 28px; height: 28px; border-radius: 14px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .end .seal .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--green); }
+  .end .seal .bg { position: absolute; inset: 0; border-radius: 14px; background: var(--green); transform: scale(0); }
+  .end .seal .chk { position: absolute; left: 4px; top: 4px; opacity: 0; }
+  .end b { font-size: 15px; }
+  .end span.s { font-size: 13px; color: var(--sub); display: block; }
+  .meta2 { display: inline-flex; align-items: center; gap: 6px; }
+  .meta2 .rd { position: relative; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; }
+  .meta2 .rd .dot { width: 7px; height: 7px; border-radius: 4px; background: var(--green); }
+  .meta2 .rd .chk { position: absolute; inset: 0; opacity: 0; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>읽기 진행과 읽음 표시</h2>
+    <p>지금은 기사 위쪽의 진행선이 폭을 바꾸며 늘어나 스크롤할 때마다 화면 배치를 다시 계산합니다. 끝까지 읽으면 읽음 처리는 되지만, 그 순간을 알려 주는 표시가 없습니다.</p>
+    <p class="tip">기사를 끝까지 내려 보세요. 마지막 문단을 지나면 끝 표시에 도장이 찍히고, 위쪽 초록 점도 체크로 바뀝니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>요소</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>진행선</td><td>폭 대신 가로 배율로 늘어남. 스크롤과 같은 프레임에 그려지고 곡선 없이 바로 따라감</td><td class="num">지연 0</td></tr>
+      <tr><td>끝 표시</td><td>초록 점이 원으로 번지고 그 위에 흰 체크가 그려짐. 문구가 "끝까지 읽었습니다" 로 굴러 바뀜</td><td class="num">460ms spring</td></tr>
+      <tr><td>위쪽 표시</td><td>초록 점이 줄어든 뒤 회색 체크가 그려짐</td><td class="num">140 + 260ms</td></tr>
+      <tr><td>진행선 마무리</td><td>다 차면 초록으로 한 번 바뀌었다가 옅어짐</td><td class="num">600ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>스크롤에 붙은 것은 곡선을 쓰지 않습니다. 손과 화면 사이에 틈이 생기면 끈적하게 느껴집니다.</li>
+      <li>읽음 처리는 하루 목표의 한 칸입니다. 칸이 채워지는 순간을 그 자리에서 보여 줘야 보상이 됩니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let sealed = false;
+  const P = [
+    '공정거래위원회 심사관이 쿠팡과 김범석 의장을 동일인 지정 자료 허위 제출 혐의로 검찰에 고발해야 한다는 의견을 냈다.',
+    '동일인으로 지정되면 친족 회사와의 거래가 공시 대상이 되고, 사익편취 규제를 받는다.',
+    '쿠팡은 미국 상장사인 쿠팡 Inc 의 외국인 최대주주를 국내법상 동일인으로 볼 수 없다는 입장이다.',
+    '공정위는 2021년 김 의장을 동일인으로 지정하지 않고 법인을 동일인으로 지정했으나, 이후 외국인 동일인 지정 기준을 새로 마련했다.',
+    '전원회의 판단은 다른 외국계 지배 기업에도 기준이 된다. 시장에서는 지배구조 공시 범위가 넓어질 가능성을 함께 보고 있다.',
+    '최종 판단은 내년 상반기 전원회의에서 나올 전망이다.',
+  ];
+
+  function render() {
+    ML.clear(phone);
+    sealed = false;
+    phone.innerHTML = `<div class="screen">
+      <div class="topbar"><button class="back">${ML.backSvg}뉴스</button><span class="meta meta2"><span class="rd" id="rd"><span class="dot"></span>${ML.checkSvg(14, 'var(--mute)', 2.6)}</span>1 / 2</span></div>
+      <div class="prog"><i id="bar"></i></div>
+      <div class="scroll" id="sc"><div class="body"><div class="kicker">공정거래 · 지배구조</div><h1>공정위, 쿠팡·김범석 의장 검찰 고발 의견</h1><div class="by">연합뉴스 · 2026.11.19</div>
+        ${P.concat(P).map((p) => `<p>${p}</p>`).join('')}
+        <div class="end" id="end"><span class="seal"><span class="bg"></span><span class="dot"></span>${ML.checkSvg(20, '#fff', 3)}</span><div><b class="roll" id="et">끝까지 내려 읽어 주세요</b><span class="s">읽음 처리는 자동으로 됩니다</span></div></div>
+      </div></div></div>`;
+    const sc = phone.querySelector('#sc');
+    const bar = phone.querySelector('#bar');
+    sc.addEventListener('scroll', () => {
+      const p = Math.min(1, sc.scrollTop / (sc.scrollHeight - sc.clientHeight));
+      if (ML.mode === 'current') {
+        bar.style.transform = 'none';
+        bar.style.right = 'auto';
+        bar.style.width = p * 100 + '%';
+      } else {
+        bar.style.transform = `scaleX(${p})`;
+      }
+      if (p > 0.98) seal();
+    }, { passive: true });
+  }
+
+  async function seal() {
+    if (sealed) return;
+    sealed = true;
+    const end = phone.querySelector('#end');
+    if (ML.mode === 'current') {
+      phone.querySelector('#rd .dot').style.display = 'none';
+      phone.querySelector('#rd .chk').style.opacity = 1;
+      return;
+    }
+    ML.a(end.querySelector('.bg'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 460, easing: ML.ease.spring });
+    ML.a(end.querySelector('.dot'), [{ opacity: 1 }, { opacity: 0 }], { duration: 120 });
+    ML.drawCheck(end.querySelector('.chk'), 120);
+    ML.roll(end.querySelector('#et'), '끝까지 읽었습니다');
+    ML.a(phone.querySelector('#rd .dot'), [{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 140, easing: ML.ease.in });
+    ML.drawCheck(phone.querySelector('#rd .chk'), 160);
+    ML.a(phone.querySelector('#bar'), [{ background: 'var(--ink)', opacity: 1 }, { background: 'var(--green)', opacity: 1, offset: 0.25 }, { background: 'var(--green)', opacity: 0 }], { duration: 600, delay: 200, composite: 'replace' });
+  }
+
+  ML.bar({ title: '09 읽기 진행', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

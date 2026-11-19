@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>10 새 호 도착 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  .pill { position: absolute; left: 50%; top: 14px; z-index: 30; transform: translateX(-50%); background: var(--ink); color: #fff; height: 38px; padding: 0 16px 0 12px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; border-radius: 19px; white-space: nowrap; opacity: 0; }
+  .pill .gd { width: 8px; height: 8px; border-radius: 4px; background: var(--green); }
+  .wait { padding: 18px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .wait .kk { font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .wait .tt { font-family: var(--serif); font-size: 19px; font-weight: 700; color: var(--sub); }
+  .wait .bars { display: flex; gap: 3px; }
+  .wait .bars i { width: 5px; height: 5px; border-radius: 3px; background: var(--mute); }
+  .news { overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>새 호 도착</h2>
+    <p>아침 7시 전후에 앱을 열면 오늘 뉴스가 아직 없을 수 있습니다. 지금은 1분마다 조용히 다시 확인하고, 도착하면 목록이 소리 없이 바뀝니다. 보고 있던 사람은 무엇이 바뀌었는지 모릅니다.</p>
+    <p class="tip">"도착" 을 누르면 새 호가 들어오는 장면이 나옵니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>순서</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>기다릴 때</td><td>"오늘 호를 준비하고 있습니다" 와 점 세 개가 천천히 차례로 밝아짐. 바쁘게 돌지 않음</td><td class="num">1.6초 주기</td></tr>
+      <tr><td>1</td><td>위에서 "새 호가 도착했습니다" 알약이 내려옴</td><td class="num">380ms sheet</td></tr>
+      <tr><td>2</td><td>기다림 줄이 접히고 그 자리에 기사 두 줄이 위에서부터 펼쳐짐</td><td class="num">320ms, 70ms 간격</td></tr>
+      <tr><td>3</td><td>오늘 0/3 의 분모가 바뀌지 않고, 뉴스 줄의 초록 점이 한 번 맥박침</td><td class="num">600ms</td></tr>
+      <tr><td>4</td><td>알약이 2.4초 뒤 올라감. 누르면 첫 기사로 감</td><td class="num">220ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>보는 중에 내용이 바뀌면 반드시 이유를 보여 줘야 합니다. 말없이 바뀌면 화면이 튀는 것처럼 느껴집니다.</li>
+      <li>기다림 표시는 느린 호흡으로 둡니다. 빠르게 도는 표시는 오류처럼 보입니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let arrived = false;
+
+  function render() {
+    ML.clear(phone);
+    arrived = false;
+    phone.innerHTML = `<div class="screen"><div class="hm">
+      <div class="mast"><b>Latticework</b></div>
+      <div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div>
+      <div class="news" id="news"><div class="wait" id="wait"><span class="kk">뉴스</span><span class="tt">오늘 호를 준비하고 있습니다</span><span class="bars"><i></i><i></i><i></i></span></div></div>
+      <div class="srow"><div class="hd"><span class="kk">영단어</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 표현 6개</div><div class="mt"><span>토익 어휘 · 일반회화</span><span>0/6</span></div></div>
+      <div class="srow"><div class="hd"><span class="kk">Latticework</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 5문제</div><div class="mt"><span>논리학 · 재무학</span><span>0/5</span></div></div>
+    </div><div class="pill" id="pill"><span class="gd"></span>새 호가 도착했습니다</div></div>`;
+    if (ML.mode === 'new') {
+      phone.querySelectorAll('.wait .bars i').forEach((d, i) => ML.a(d, [{ background: 'var(--mute)' }, { background: 'var(--ink)', offset: 0.3 }, { background: 'var(--mute)', offset: 0.6 }, { background: 'var(--mute)' }], { duration: 1600, delay: i * 200, iterations: Infinity, easing: 'linear' }));
+    }
+  }
+
+  const rows = () => [
+    ['공정위, 쿠팡·김범석 의장 검찰 고발 의견', '공정거래 · 지배구조'],
+    ['엔비디아, CEO 승계 계획 공백 논란', '상장 규정'],
+  ].map(([t, k]) => `<div class="srow nrow"><div class="hd"><span class="kk">뉴스</span><span class="mark"><span class="dot"></span></span></div><div class="tt" style="font-size:19px">${t}</div><div class="mt"><span>${k}</span><span></span></div></div>`).join('');
+
+  async function arrive() {
+    if (arrived) return;
+    arrived = true;
+    const news = phone.querySelector('#news');
+    if (ML.mode === 'current') {
+      news.innerHTML = rows();
+      return;
+    }
+    const pill = phone.querySelector('#pill');
+    ML.a(pill, [{ opacity: 0, transform: 'translate(-50%, -24px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], { duration: 380, easing: ML.ease.sheet });
+    const h0 = news.offsetHeight;
+    const wait = phone.querySelector('#wait');
+    await ML.done(ML.a(wait, [{ opacity: 1 }, { opacity: 0 }], { duration: 140 }));
+    news.innerHTML = rows();
+    const h1 = news.offsetHeight;
+    ML.a(news, [{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 320, easing: ML.ease.out }).finished.then((a) => a.cancel());
+    ML.stagger(news.querySelectorAll('.nrow'), [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80 }, 70);
+    news.querySelectorAll('.nrow .dot').forEach((d, i) => ML.a(d, [{ transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(30,142,78,.45)' }, { transform: 'scale(1.25)', boxShadow: '0 0 0 8px rgba(30,142,78,0)' }, { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(30,142,78,0)' }], { duration: 600, delay: 420 + i * 70, easing: 'ease-out' }));
+    await ML.wait(2400);
+    ML.a(pill, [{ opacity: 1, transform: 'translate(-50%, 0)' }, { opacity: 0, transform: 'translate(-50%, -24px)' }], { duration: 220, easing: ML.ease.in });
+  }
+
+  ML.bar({ title: '10 새 호 도착', replay: render, modes: true, extra: [['도착', () => arrive()]] });
+  render();
+})();
+</script>
+</body>
+</html>

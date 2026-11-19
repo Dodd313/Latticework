@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>11 누름 반응 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  .wrap { padding: 24px 22px; display: flex; flex-direction: column; gap: 26px; }
+  .wrap h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--sub); letter-spacing: 0.3px; }
+  .rowp { position: relative; overflow: hidden; cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .rowp .wash { position: absolute; border-radius: 50%; background: var(--ink); opacity: 0.06; pointer-events: none; transform: scale(0); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chipb { height: 36px; padding: 0 14px; background: var(--chip); font-size: 14px; font-weight: 700; }
+  .chipb[aria-pressed='true'] { background: var(--ink); color: #fff; }
+  .note { font-size: 13px; color: var(--sub); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>누름 반응</h2>
+    <p>지금은 누르면 투명도만 0.6 으로 바뀝니다. 손가락 밑에서 무언가 눌린다는 느낌이 없고, 비활성 "확인" 단추를 누르면 아무 반응이 없어 고장인지 헷갈립니다.</p>
+    <p class="tip">줄, 칩, 단추를 눌렀다 떼 보세요. 회색 "확인" 도 눌러 보세요.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>요소</th><th>누를 때</th><th>뗄 때</th></tr>
+      <tr><td>과제 줄</td><td>손가락 자리에서 옅은 먹이 번짐. 크기는 그대로</td><td class="num">번짐 360ms, 사라짐 220ms</td></tr>
+      <tr><td>단추</td><td>0.97배로 줄어듦</td><td class="num">누름 90ms, 복귀 420ms spring</td></tr>
+      <tr><td>칩</td><td>0.94배, 선택되면 먹이 가운데서 차오름</td><td class="num">90ms, 240ms</td></tr>
+      <tr><td>비활성 단추</td><td>좌우로 두 번 짧게 떨고, 위쪽에 "답을 먼저 고르세요" 가 잠깐 나타남</td><td class="num">320ms, 1.4초</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>누르는 순간 바로 반응해야 합니다. 100ms 를 넘으면 눌렸는지 의심합니다.</li>
+      <li>떼는 쪽은 살짝 튕기며 돌아와 손맛을 줍니다. 아이폰 웹에서는 진동을 쓸 수 없어 눈으로 대신합니다.</li>
+      <li>목록 줄은 크기를 바꾸지 않습니다. 줄 전체가 줄어들면 글자가 흔들려 읽기 불편합니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+
+  function render() {
+    ML.clear(phone);
+    phone.innerHTML = `<div class="screen"><div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="meta">누름 반응</span></div>
+      <div class="wrap">
+        <div><h4>과제 줄</h4>
+          <div class="srow rowp"><div class="hd"><span class="kk">영단어</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 표현 6개</div><div class="mt"><span>토익 어휘 · 일반회화</span><span>0/6</span></div></div>
+          <div class="srow rowp"><div class="hd"><span class="kk">Latticework</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 5문제</div><div class="mt"><span>논리학 · 재무학</span><span>0/5</span></div></div>
+        </div>
+        <div><h4>칩</h4><div class="chips">${['전체', '토익 어휘', '일반회화', '금융영어'].map((t, i) => `<button class="chipb" aria-pressed="${i === 0}">${t}</button>`).join('')}</div></div>
+        <div><h4>단추</h4><div style="display:flex;flex-direction:column;gap:10px"><button class="btn" id="ok" style="background:var(--ink)"><span class="lbl">다음 문제</span></button><button class="btn" id="dis"><span class="lbl">확인</span></button></div></div>
+        <div class="note" id="toast" style="opacity:0">답을 먼저 고르세요</div>
+      </div></div>`;
+    phone.querySelectorAll('.rowp').forEach(row);
+    phone.querySelectorAll('.chipb').forEach(chip);
+    press(phone.querySelector('#ok'), 0.97);
+    disabled(phone.querySelector('#dis'));
+  }
+
+  const dim = (el) => {
+    el.addEventListener('pointerdown', () => (el.style.opacity = 0.6));
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => el.addEventListener(ev, () => (el.style.opacity = '')));
+  };
+
+  function press(el, s) {
+    if (ML.mode === 'current') return dim(el);
+    el.addEventListener('pointerdown', () => ML.a(el, [{ transform: getComputedStyle(el).transform === 'none' ? 'scale(1)' : getComputedStyle(el).transform }, { transform: `scale(${s})` }], { duration: 90, easing: ML.ease.out }));
+    const up = () => ML.a(el, [{ transform: getComputedStyle(el).transform === 'none' ? 'scale(1)' : getComputedStyle(el).transform }, { transform: 'scale(1)' }], { duration: 420, easing: ML.ease.spring });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => el.addEventListener(ev, up));
+  }
+
+  function row(el) {
+    if (ML.mode === 'current') return dim(el);
+    let wash = null;
+    el.addEventListener('pointerdown', (e) => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const R = Math.hypot(Math.max(x, r.width - x), Math.max(y, r.height - y));
+      wash = document.createElement('span');
+      wash.className = 'wash';
+      Object.assign(wash.style, { left: x - R + 'px', top: y - R + 'px', width: R * 2 + 'px', height: R * 2 + 'px' });
+      el.prepend(wash);
+      ML.a(wash, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 360, easing: ML.ease.out });
+    });
+    const up = () => {
+      if (!wash) return;
+      const w = wash;
+      wash = null;
+      ML.done(ML.a(w, [{ opacity: 0.06 }, { opacity: 0 }], { duration: 220, delay: 60 })).then(() => w.remove());
+    };
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => el.addEventListener(ev, up));
+  }
+
+  function chip(el) {
+    if (ML.mode === 'current') {
+      dim(el);
+      el.addEventListener('click', () => phone.querySelectorAll('.chipb').forEach((c) => c.setAttribute('aria-pressed', String(c === el))));
+      return;
+    }
+    press(el, 0.94);
+    el.addEventListener('click', () => {
+      phone.querySelectorAll('.chipb').forEach((c) => {
+        const on = c === el;
+        if (c.getAttribute('aria-pressed') === String(on)) return;
+        c.setAttribute('aria-pressed', String(on));
+        if (on) ML.a(c, [{ boxShadow: 'inset 0 0 0 0 var(--ink)', background: 'var(--chip)', color: 'var(--ink)' }, { boxShadow: `inset 0 0 0 ${c.offsetWidth}px var(--ink)`, background: 'var(--ink)', color: '#fff' }], { duration: 240, fill: 'none' });
+      });
+    });
+  }
+
+  function disabled(el) {
+    if (ML.mode === 'current') return;
+    el.addEventListener('click', async () => {
+      ML.a(el, [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }], { duration: 320, easing: 'ease-out' });
+      const t = phone.querySelector('#toast');
+      t.getAnimations().forEach((a) => a.cancel());
+      ML.a(t, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)', offset: 0.15 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1400, easing: 'linear' });
+    });
+  }
+
+  ML.bar({ title: '11 누름 반응', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

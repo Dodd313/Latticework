@@ -47,6 +47,9 @@ copyFileSync(join(site, 'sw.js'), join(docs, 'sw.js'));
 copyFileSync(join(site, 'manifest.webmanifest'), join(docs, 'manifest.webmanifest'));
 cpSync(join(site, 'icons'), join(docs, 'icons'), { recursive: true });
 writeFileSync(join(docs, '.nojekyll'), '');
+// 움직임 시안은 그대로 옮긴다. 주소: /motion-lab/
+rmSync(join(docs, 'motion-lab'), { recursive: true, force: true });
+cpSync(join(root, 'motion-lab'), join(docs, 'motion-lab'), { recursive: true });
 if (!existsSync(join(docs, 'data', 'feed.json'))) writeFileSync(join(docs, 'data', 'feed.json'), '{"days":[],"threads":[],"reviews":[]}\n');
 
 console.log(`완료: out/index.html, out/app.js (${Math.round(readFileSync(join(out, 'app.js')).length / 1024)}KB), docs/ (빌드 ${build})`);

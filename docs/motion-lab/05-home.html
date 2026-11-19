@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>05 홈 진입 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  .boot { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--sub); font-size: 15px; z-index: 10; background: var(--ground); }
+  .sk { padding: 18px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+  .sk i { display: block; height: 14px; background: linear-gradient(90deg, var(--chip) 0%, var(--chip) 40%, #f2f1ec 50%, var(--chip) 60%, var(--chip) 100%); background-size: 300% 100%; }
+  .sk i.t { height: 24px; width: 80%; }
+  .sk i.s { width: 40%; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>홈 진입</h2>
+    <p>녹화한 첫 진입은 "여는 중" 문구, 빈 화면 한 프레임, 제호, 0.1초 스친 회색 자리표시, 내용 순서였습니다. 단계가 많고 마지막 둘은 깜빡임으로 보입니다. 또 순차 등장은 홈에 돌아올 때마다 반복되면 금방 지루해집니다.</p>
+    <p class="tip">위쪽의 "첫 진입", "돌아올 때", "느린 연결" 을 하나씩 눌러 보세요.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>경우</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>그날 첫 진입</td><td>"여는 중" 이 그대로 제호 자리로 바뀌고, 굵은 괘선과 가는 괘선이 그어진 뒤 오늘 칸과 과제 줄이 차례로 10px 올라옴. 숫자는 0 부터 셈</td><td class="num">전체 900ms, 줄 간격 70ms</td></tr>
+      <tr><td>돌아올 때</td><td>순차 등장 없이 전체가 한 번에 120ms 동안 나타남</td><td class="num">120ms</td></tr>
+      <tr><td>느린 연결</td><td>300ms 안에 자료가 오면 자리표시를 아예 보이지 않음. 늦으면 자리표시를 최소 400ms 보여 준 뒤 내용과 맞바꿈. 자리표시 위로 종이 결 같은 밝은 띠가 천천히 지나감</td><td class="num">300ms 문턱, 400ms 최소</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>움직임은 하루를 여는 의식처럼 하루에 한 번만 길게 씁니다. 그 뒤로는 기다리게 하지 않습니다.</li>
+      <li>자리표시가 순간적으로 스치면 오히려 고장처럼 보입니다. 아예 안 보이거나, 보일 거면 충분히 보여야 합니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const W = ['월', '화', '수', '목', '금', '토', '일'];
+  let scenario = 'first';
+
+  const homeHtml = () => `
+    <div class="mast"><b id="brand">Latticework</b></div>
+    <div class="rules"><span class="r3"></span><span class="r1"></span><span id="date">2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div>
+    <div id="body">
+      <div class="panel part">
+        <div class="top"><div class="big"><span class="k">오늘</span><span class="n" id="pn">1</span><span class="k">/ 3</span></div>
+        <div class="week">${W.map((w, i) => `<span class="day ${i < 3 ? 'done' : i === 3 ? 'today' : ''}"><span class="flood"></span><span class="lb">${w}</span></span>`).join('')}</div></div>
+        <div class="line">영단어와 Latticework가 남았습니다. 마치면 연속 5일이 됩니다.</div>
+      </div>
+      <div class="srow part done"><div class="hd"><span class="kk">뉴스</span><span class="mark">${ML.checkSvg(16, 'var(--mute)', 2.4)}</span></div><div class="tt">오늘의 주요 뉴스 2건</div><div class="mt"><span>모두 읽음</span><span>2/2</span></div></div>
+      <div class="srow part"><div class="hd"><span class="kk">영단어</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 표현 6개</div><div class="mt"><span>토익 어휘 · 일반회화 · 금융영어</span><span>0/6</span></div></div>
+      <div class="srow part"><div class="hd"><span class="kk">Latticework</span><span class="mark"><span class="dot"></span></span></div><div class="tt">오늘의 5문제</div><div class="mt"><span>논리학 · 재무학 · 통계학</span><span>0/5</span></div></div>
+    </div>`;
+
+  async function render() {
+    ML.clear(phone);
+    phone.innerHTML = `<div class="screen"><div class="hm" id="hm"></div><div class="tabbar"><span class="ind" style="transform:translateX(${(390 - 16) / 6 - 12 + 8}px)"></span><button class="on">홈</button><button>기록</button><button>리뷰</button></div></div>`;
+    const hm = phone.querySelector('#hm');
+    if (ML.mode === 'current') return current(hm);
+    if (scenario === 'back') {
+      hm.innerHTML = homeHtml();
+      ML.a(hm, [{ opacity: 0 }, { opacity: 1 }], { duration: 120 });
+      return;
+    }
+    if (scenario === 'slow') {
+      hm.innerHTML = `<div class="mast"><b>Latticework</b></div><div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div>
+        <div id="sk">${[0, 1, 2, 3].map((i) => `<div class="sk"><i class="s"></i><i class="t"></i><i></i></div>`).join('')}</div>`;
+      const bars = hm.querySelectorAll('.sk i');
+      bars.forEach((b) => ML.a(b, [{ backgroundPosition: '100% 0' }, { backgroundPosition: '-50% 0' }], { duration: 1400, iterations: Infinity, easing: 'linear' }));
+      await ML.wait(1300); // 자료가 늦게 온 경우
+      const sk = hm.querySelector('#sk');
+      await ML.done(ML.a(sk, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 }));
+      sk.remove();
+      const tmp = document.createElement('div');
+      tmp.innerHTML = homeHtml();
+      const body = tmp.querySelector('#body');
+      hm.append(body);
+      ML.stagger(body.querySelectorAll('.part'), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300 }, 50);
+      return;
+    }
+    // 그날 첫 진입
+    const boot = document.createElement('div');
+    boot.className = 'boot';
+    boot.textContent = 'Latticework를 여는 중입니다';
+    phone.querySelector('.screen').append(boot);
+    hm.innerHTML = homeHtml();
+    const parts = hm.querySelectorAll('.part');
+    parts.forEach((p) => (p.style.opacity = 0));
+    const r3 = hm.querySelector('.r3');
+    const r1 = hm.querySelector('.r1');
+    r3.style.transform = r1.style.transform = 'scaleX(0)';
+    hm.querySelector('#date').style.opacity = 0;
+    hm.querySelector('.streak').style.opacity = 0;
+    hm.querySelector('#brand').style.opacity = 0;
+    await ML.wait(500);
+    ML.done(ML.a(boot, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 })).then(() => boot.remove());
+    hm.querySelector('#brand').style.opacity = '';
+    ML.a(hm.querySelector('#brand'), [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80 });
+    r3.style.transform = r1.style.transform = '';
+    ML.a(r3, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 520, delay: 160 });
+    ML.a(r1, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 520, delay: 240 });
+    ['#date', '.streak'].forEach((s, i) => {
+      const el = hm.querySelector(s);
+      el.style.opacity = '';
+      ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: 380 + i * 60 });
+    });
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.stagger(parts, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: 460 }, 70);
+    const pn = hm.querySelector('#pn');
+    pn.textContent = '0';
+    await ML.wait(560);
+    ML.count(pn, 0, 1, 400);
+  }
+
+  async function current(hm) {
+    // 지금 앱: 문구, 빈 화면, 제호, 자리표시 0.1초, 내용 순차 등장(110ms 간격, 480ms).
+    const boot = document.createElement('div');
+    boot.className = 'boot';
+    boot.textContent = 'Latticework를 여는 중입니다';
+    phone.querySelector('.screen').append(boot);
+    await ML.wait(500);
+    boot.textContent = '';
+    await ML.wait(60);
+    boot.remove();
+    hm.innerHTML = `<div class="mast"><b>Latticework</b></div><div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div><div id="sk"><div class="sk"><i class="s"></i><i class="t"></i></div></div>`;
+    ML.a(hm.querySelector('.r3'), [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 620 });
+    await ML.wait(110);
+    hm.querySelector('#sk').remove();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = homeHtml();
+    hm.append(tmp.querySelector('#body'));
+    ML.stagger(hm.querySelectorAll('.part'), [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 480, delay: 60 }, 110);
+  }
+
+  const pick = (s) => () => {
+    scenario = s;
+    ML.mode = 'new';
+    document.querySelectorAll('.lab-bar button[aria-pressed]').forEach((b) => {
+      if (b.textContent === '현재 앱') b.setAttribute('aria-pressed', 'false');
+      if (b.textContent === '제안') b.setAttribute('aria-pressed', 'true');
+    });
+    render();
+  };
+  ML.bar({ title: '05 홈 진입', replay: render, modes: true, extra: [['첫 진입', pick('first')], ['돌아올 때', pick('back')], ['느린 연결', pick('slow')]] });
+  render();
+})();
+</script>
+</body>
+</html>

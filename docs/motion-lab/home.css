@@ -1,0 +1,36 @@
+/* 홈 화면 모양. 04, 05, 10 시안이 같이 쓴다. */
+.hm { padding: 18px 22px 0; display: flex; flex-direction: column; }
+.hm .mast { display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+.hm .mast b { font-family: var(--serif); font-weight: 700; font-size: 23px; }
+.hm .rules { position: relative; margin-top: 10px; padding: 9px 0; display: flex; justify-content: space-between; font-size: 12.5px; }
+.hm .rules .r3, .hm .rules .r1 { position: absolute; left: 0; right: 0; background: var(--rule, var(--ink)); transform-origin: left; }
+.hm .rules .r3 { top: 0; height: 3px; }
+.hm .rules .r1 { bottom: 0; height: 1px; }
+.hm .rules .streak { color: var(--sub); font-variant-numeric: tabular-nums; }
+.panel { padding: 18px 0; border-bottom: 1px solid var(--ink); display: flex; flex-direction: column; gap: 12px; }
+.panel .top { display: flex; justify-content: space-between; align-items: center; }
+.panel .big { display: flex; align-items: baseline; gap: 6px; }
+.panel .big .k { font-size: 13px; font-weight: 700; color: var(--sub); }
+.panel .big .n { font-family: var(--serif); font-weight: 700; font-size: 34px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.panel .line { font-size: 14px; font-weight: 500; line-height: 1.5; }
+.week { display: flex; gap: 3px; }
+.day { position: relative; width: 30px; height: 30px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; color: var(--mute); }
+.day .flood { position: absolute; inset: 0; border-radius: 15px; background: var(--ink); transform: scale(0); }
+.day .lb { position: relative; }
+.day.done .flood { transform: scale(1); }
+.day.done { color: #fff; font-weight: 700; }
+.day.today { box-shadow: inset 0 0 0 2px var(--green); color: var(--ink); font-weight: 700; }
+.day.miss { box-shadow: inset 0 0 0 1px var(--orange); color: var(--orange); }
+.srow { display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+.srow .hd { display: flex; justify-content: space-between; align-items: center; }
+.srow .hd .kk { font-size: 12.5px; font-weight: 700; color: var(--blue); letter-spacing: 0.3px; }
+.srow .tt { font-family: var(--serif); font-weight: 700; font-size: 21px; line-height: 1.4; letter-spacing: -0.5px; }
+.srow .mt { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.mark { position: relative; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+.mark .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--green); }
+.mark .chk { position: absolute; inset: 0; }
+.srow.done .tt { color: var(--sub); }
+.tabbar { margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); padding: 0 8px 14px; position: relative; }
+.tabbar button { height: 56px; display: flex; align-items: center; justify-content: center; color: var(--mute); }
+.tabbar button.on { color: var(--ink); }
+.tabbar .ind { position: absolute; top: 0; left: 0; width: 24px; height: 3px; background: var(--ink); transform-origin: left; }

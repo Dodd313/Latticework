@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>01 정답과 오답 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .q { padding: 28px 22px 0; display: flex; flex-direction: column; gap: 22px; }
+  .fold .label.hint { color: var(--orange); }
+  .fold .label.right { color: var(--green); }
+  .fold .label.wrong { color: var(--orange); }
+  .opt.crossed .tx, .opt.crossed .mk { color: var(--mute); }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>정답과 오답</h2>
+    <p>문제를 풀 때 가장 자주 보는 장면입니다. 지금 앱은 고른 보기가 회색 중간색을 거쳐 칠해지고, 정답과 오답이 아무 움직임 없이 바뀝니다. 제안은 "먹이 번진다"는 한 가지 비유로 고르기, 틀림, 맞힘을 구분합니다.</p>
+    <p class="tip">"가" 나 "나" 를 먼저 골라 틀려 보고, 힌트를 본 뒤 "다" 를 고르세요. 위쪽의 "현재 앱" 을 누르면 지금 모습과 비교할 수 있습니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>장면</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>누름</td><td>줄이 0.985배로 살짝 눌림</td><td class="num">90ms</td></tr>
+      <tr><td>고름</td><td>먹이 왼쪽에서 오른쪽으로 번져 칠해짐. 글자는 40ms 늦게 흰색으로</td><td class="num">180ms out</td></tr>
+      <tr><td>다른 보기로 바꿈</td><td>앞의 먹은 오른쪽으로 걷힘</td><td class="num">160ms in</td></tr>
+      <tr><td>확인 단추 켜짐</td><td>회색 위로 먹이 번짐</td><td class="num">220ms out</td></tr>
+      <tr><td>틀림</td><td>줄이 좌우로 세 번 흔들림, 글자 위로 취소선이 그어짐, 먹이 걷힘</td><td class="num">320 + 220ms</td></tr>
+      <tr><td>힌트</td><td>칸이 내용 높이만큼 펼쳐지고 글이 6px 올라오며 나타남</td><td class="num">280ms out</td></tr>
+      <tr><td>맞힘</td><td>체크가 그려지며 튀어 오름, 초록 밑줄이 그어짐</td><td class="num">260 + 460ms spring</td></tr>
+      <tr><td>단추 글자</td><td>"확인" 이 위로 빠지고 "다음" 이 올라옴</td><td class="num">320ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>틀렸다는 신호를 색만이 아니라 몸짓으로 줍니다. 아이폰 홈 화면 앱은 진동을 쓸 수 없어서 흔들림이 진동을 대신합니다.</li>
+      <li>칠하는 동안 회색 중간색을 거치지 않아 글자가 끝까지 읽힙니다.</li>
+      <li>정답과 오답이 다른 모양으로 끝나서, 다시 볼 때도 한눈에 구분됩니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const Q = {
+    kicker: '논리학 · 가추 · 인식',
+    q: '가추(abduction)는 어떤 추론인가?',
+    o: ['일반 원리에서 개별 결론을 끌어낸다', '개별 사례에서 일반 법칙을 끌어낸다', '관찰을 가장 잘 설명하는 가설을 고른다', '결론을 부정해 전제를 부정한다'],
+    a: 2,
+    h: '"설명" 이 핵심어다.',
+    w: '관찰에서 그것을 가장 잘 설명하는 가설로 거슬러 가는 추론이다. 최선의 설명으로의 추론이라고도 한다.',
+  };
+  const MK = ['가', '나', '다', '라'];
+  let st;
+
+  function render() {
+    ML.clear(phone);
+    st = { picked: null, tries: 0, done: false, crossed: new Set() };
+    phone.innerHTML = `
+      <div class="screen">
+        <div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="meta">Latticework · 3 / 5</span></div>
+        <div class="segs">${[0, 1, 2, 3, 4].map((i) => `<span class="seg"><i style="transform:scaleX(${i < 2 ? 1 : 0})"></i></span>`).join('')}</div>
+        <main class="q">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="kicker">${Q.kicker}</div>
+            <h1 class="qtext">${Q.q}</h1>
+          </div>
+          <div class="opts">${Q.o
+            .map((t, i) => `<button class="opt" data-i="${i}"><span class="fill"></span><span class="mk">${MK[i]}</span><span class="tx">${t}<span class="strike"></span></span>${ML.checkSvg(20, '#fff')}<span class="uline"></span></button>`)
+            .join('')}</div>
+          <div class="fold" id="fold"><div><div class="label" id="flabel"></div><p id="ftext"></p></div></div>
+        </main>
+        <footer class="foot"><button class="btn" id="btn"><span class="ink"></span><span class="lbl" id="lbl">확인</span></button></footer>
+      </div>`;
+    const segs = phone.querySelectorAll('.seg i');
+    segs[2].style.background = 'var(--green)';
+    segs[2].style.transform = 'scaleX(1)';
+    phone.querySelectorAll('.opt .chk').forEach((c) => (c.style.opacity = 0));
+    phone.querySelectorAll('.opt').forEach((b) => {
+      b.addEventListener('pointerdown', () => press(b));
+      b.addEventListener('click', () => pick(+b.dataset.i));
+    });
+    phone.querySelector('#btn').addEventListener('click', check);
+  }
+
+  const row = (i) => phone.querySelector(`.opt[data-i="${i}"]`);
+  const cur = () => ML.mode === 'current';
+
+  function press(b) {
+    if (cur() || st.done) return;
+    ML.a(b, [{ transform: 'scale(1)' }, { transform: 'scale(.985)' }, { transform: 'scale(1)' }], { duration: 260, easing: ML.ease.out });
+  }
+
+  function inkOn(i) {
+    const r = row(i);
+    const fill = r.querySelector('.fill');
+    const txt = [r.querySelector('.tx'), r.querySelector('.mk')];
+    if (cur()) {
+      // 지금 앱: 배경색이 180ms 동안 회색 중간색을 거쳐 칠해진다.
+      fill.style.transform = 'scaleX(1)';
+      ML.a(fill, [{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+      txt.forEach((t) => ML.a(t, [{ color: 'var(--ink)' }, { color: '#fff' }], { duration: 180, easing: 'ease-out' }));
+      return;
+    }
+    ML.a(fill, [{ transform: 'scaleX(0)', transformOrigin: 'left' }, { transform: 'scaleX(1)', transformOrigin: 'left' }], { duration: 180 });
+    txt.forEach((t) => ML.a(t, [{ color: 'var(--ink)' }, { color: '#fff' }], { duration: 120, delay: 40 }));
+  }
+
+  function inkOff(i, toMute) {
+    const r = row(i);
+    const fill = r.querySelector('.fill');
+    const txt = [r.querySelector('.tx'), r.querySelector('.mk')];
+    const end = toMute ? 'var(--mute)' : 'var(--ink)';
+    if (cur()) {
+      fill.getAnimations().forEach((a) => a.cancel());
+      fill.style.transform = 'scaleX(0)';
+      txt.forEach((t) => {
+        t.getAnimations().forEach((a) => a.cancel());
+        t.style.color = end;
+      });
+      return;
+    }
+    ML.a(fill, [{ transform: 'scaleX(1)', transformOrigin: 'right' }, { transform: 'scaleX(0)', transformOrigin: 'right' }], { duration: 160, easing: ML.ease.in });
+    txt.forEach((t) => ML.a(t, [{ color: '#fff' }, { color: end }], { duration: 160 }));
+  }
+
+  function setBtn(on) {
+    const ink = phone.querySelector('#btn .ink');
+    if (cur()) {
+      ink.getAnimations().forEach((a) => a.cancel());
+      ink.style.transform = on ? 'scaleX(1)' : 'scaleX(0)';
+      ML.a(ink, [{ opacity: on ? 0 : 1 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+      return;
+    }
+    if (on) ML.a(ink, [{ transform: 'scaleX(0)', transformOrigin: 'left' }, { transform: 'scaleX(1)', transformOrigin: 'left' }], { duration: 220 });
+    else ML.a(ink, [{ transform: 'scaleX(1)', transformOrigin: 'right' }, { transform: 'scaleX(0)', transformOrigin: 'right' }], { duration: 180, easing: ML.ease.in });
+  }
+
+  function pick(i) {
+    if (st.done || st.crossed.has(i) || st.picked === i) return;
+    if (st.picked !== null) inkOff(st.picked);
+    else setBtn(true);
+    st.picked = i;
+    inkOn(i);
+  }
+
+  function showFold(kind, label, text) {
+    const fold = phone.querySelector('#fold');
+    const lab = phone.querySelector('#flabel');
+    const p = phone.querySelector('#ftext');
+    const wasOpen = fold.style.height === 'auto';
+    if (cur()) {
+      lab.className = 'label ' + kind;
+      lab.textContent = label;
+      p.textContent = text;
+      fold.style.height = 'auto';
+      return;
+    }
+    const swap = () => {
+      lab.className = 'label ' + kind;
+      lab.textContent = label;
+      p.textContent = text;
+    };
+    if (!wasOpen) {
+      swap();
+      ML.a(fold.firstElementChild, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220, delay: 60 });
+      ML.unfold(fold);
+      return;
+    }
+    // 이미 열려 있으면 글을 바꾸며 높이를 맞춘다.
+    const inner = fold.firstElementChild;
+    const h0 = fold.offsetHeight;
+    ML.done(ML.a(inner, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: ML.ease.in })).then(() => {
+      swap();
+      fold.style.height = h0 + 'px';
+      ML.a(inner, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220 });
+      ML.unfold(fold, 240);
+    });
+  }
+
+  function crossOut(i) {
+    const r = row(i);
+    st.crossed.add(i);
+    const strike = r.querySelector('.strike');
+    if (cur()) {
+      strike.style.transform = 'scaleX(1)';
+      inkOff(i, true);
+      return;
+    }
+    ML.a(r, [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }], { duration: 320, easing: 'linear' });
+    inkOff(i, true);
+    ML.a(strike, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 220, delay: 140 });
+  }
+
+  function markRight(i) {
+    const r = row(i);
+    const chk = r.querySelector('.chk');
+    if (cur()) {
+      chk.style.opacity = 1;
+      return;
+    }
+    ML.drawCheck(chk, 60);
+    ML.a(r.querySelector('.uline'), [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 320, delay: 80 });
+  }
+
+  function label(text) {
+    const lbl = phone.querySelector('#lbl');
+    if (cur()) {
+      lbl.textContent = text;
+      return;
+    }
+    ML.roll(lbl, text);
+  }
+
+  function check() {
+    if (st.done) {
+      render();
+      return;
+    }
+    if (st.picked === null) {
+      if (!cur()) ML.a(phone.querySelector('#btn'), [{ transform: 'translateX(0)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }], { duration: 200, easing: 'linear' });
+      return;
+    }
+    st.tries += 1;
+    const i = st.picked;
+    if (i === Q.a) {
+      st.done = true;
+      markRight(i);
+      showFold('right', st.tries === 1 ? '정답' : '두 번째에 정답', Q.w);
+      label('다음');
+    } else if (st.tries === 1) {
+      st.picked = null;
+      crossOut(i);
+      setBtn(false);
+      showFold('hint', '힌트', Q.h);
+    } else {
+      st.done = true;
+      crossOut(i);
+      setTimeout(() => {
+        inkOn(Q.a);
+        markRight(Q.a);
+      }, cur() ? 0 : 240 / ML.rate);
+      showFold('wrong', '오답 · 끝에 다시 나옵니다', Q.w);
+      label('다음');
+    }
+  }
+
+  ML.bar({ title: '01 정답과 오답', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

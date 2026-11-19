@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>08 제목 이어 보이기 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .list { padding: 18px 22px 0; }
+  .list h2 { margin: 0 0 10px; font-family: var(--serif); font-size: 23px; line-height: 44px; border-bottom: 3px solid var(--ink); }
+  .story { padding: 18px 0; border-bottom: 1px solid var(--line); cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
+  .story .k { font-size: 12.5px; font-weight: 700; color: var(--blue); }
+  .story h3 { margin: 0; font-family: var(--serif); font-size: 20px; line-height: 1.45; letter-spacing: -0.5px; transform-origin: 0 0; }
+  .story .sm { font-size: 14px; color: var(--deck); line-height: 1.6; }
+  .art { position: absolute; inset: 0; background: var(--ground); display: flex; flex-direction: column; z-index: 10; }
+  .art .body { padding: 24px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .art h1 { margin: 0; font-family: var(--serif); font-size: 25px; line-height: 1.45; letter-spacing: -0.6px; transform-origin: 0 0; }
+  .art .by { font-size: 12.5px; color: var(--sub); padding-bottom: 12px; border-bottom: 1px solid var(--ink); transform-origin: left; }
+  .art p { margin: 0; font-size: 16px; line-height: 1.8; color: var(--deck); }
+  .ghost { position: absolute; z-index: 20; margin: 0; font-family: var(--serif); letter-spacing: -0.5px; transform-origin: 0 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>제목 이어 보이기</h2>
+    <p>목록에서 기사를 누르면 지금은 새 화면이 통째로 들어오고, 방금 누른 제목은 사라졌다가 다른 크기로 다시 나타납니다. 눈이 제목을 다시 찾아야 합니다.</p>
+    <p class="tip">아무 기사나 눌러 보세요. 제목이 그 자리에서 커지며 기사 화면 제목 자리로 옮겨 갑니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>요소</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>제목</td><td>목록 속 위치와 크기에서 기사 화면의 위치와 크기로 옮겨 감. 글자는 다시 그리지 않고 한 덩어리로 움직임</td><td class="num">380ms inOut</td></tr>
+      <tr><td>나머지 목록</td><td>제목을 뺀 나머지는 옅어지기만 함</td><td class="num">160ms</td></tr>
+      <tr><td>기사 바탕</td><td>누른 줄의 자리에서 위아래로 펼쳐짐</td><td class="num">380ms sheet</td></tr>
+      <tr><td>본문</td><td>제목이 자리를 잡은 뒤 아래 괘선이 그어지고 본문이 6px 올라옴</td><td class="num">260ms, 240ms 뒤</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>누른 것이 그대로 다음 화면이 되면 "이 기사를 열었다" 는 연결이 끊기지 않습니다.</li>
+      <li>글자 크기를 바꾸는 대신 덩어리를 키우기 때문에 줄바꿈이 다르면 끝에서 한 번 맞바꿉니다. 아이폰 앱으로 옮길 때도 같은 방식으로 만들 수 있습니다.</li>
+      <li>뒤로 가면 거꾸로 돌아가 목록의 그 줄에 제목이 내려앉습니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const STORIES = [
+    ['공정거래 · 지배구조', '공정위, 쿠팡·김범석 의장 검찰 고발 의견', '외국인 동일인 지정의 첫 사례가 될지 전원회의 판단에 관심이 쏠린다.'],
+    ['상장 규정', '엔비디아, CEO 승계 계획 공백 논란', 'NYSE 와 달리 나스닥은 상장사에 승계 계획 공시를 요구하지 않는다.'],
+  ];
+  let openIdx = -1;
+
+  function render() {
+    ML.clear(phone);
+    openIdx = -1;
+    phone.innerHTML = `<div class="screen"><div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="brand">Latticework</span></div>
+      <div class="list" id="list"><h2>오늘의 뉴스</h2>${STORIES.map((s, i) => `<div class="story" data-i="${i}"><span class="k">${s[0]}</span><h3>${s[1]}</h3><div class="sm">${s[2]}</div></div>`).join('')}</div></div>`;
+    phone.querySelectorAll('.story').forEach((el) => el.addEventListener('click', () => open(+el.dataset.i)));
+  }
+
+  const rel = (el) => {
+    const a = el.getBoundingClientRect();
+    const b = phone.getBoundingClientRect();
+    return { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height };
+  };
+
+  async function open(i) {
+    if (openIdx >= 0) return;
+    openIdx = i;
+    const row = phone.querySelectorAll('.story')[i];
+    const h3 = row.querySelector('h3');
+    const art = document.createElement('div');
+    art.className = 'art';
+    art.innerHTML = `<div class="topbar"><button class="back" id="back">${ML.backSvg}뉴스</button><span class="brand">Latticework</span></div>
+      <div class="body"><div class="kicker">${STORIES[i][0]}</div><h1>${STORIES[i][1]}</h1><div class="by">연합뉴스 · 2026.11.19</div>
+      <p>${STORIES[i][2]} 이번 판단은 앞으로 같은 구조의 기업에도 기준이 된다.</p><p>시장에서는 지배구조 공시 범위가 넓어질 가능성을 함께 보고 있다.</p></div>`;
+    phone.append(art);
+    art.querySelector('#back').addEventListener('click', close);
+    if (ML.mode === 'current') {
+      ML.a(art, [{ transform: 'translateX(36px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 360 });
+      return;
+    }
+    const h1 = art.querySelector('h1');
+    const from = rel(h3);
+    const to = rel(h1);
+    const rowR = rel(row);
+    // 제목 대신 움직일 덩어리. 목록 제목을 복제해 크기만 바꾼다.
+    const ghost = h3.cloneNode(true);
+    ghost.className = 'ghost';
+    Object.assign(ghost.style, { left: from.x + 'px', top: from.y + 'px', width: from.w + 'px', fontSize: '20px', lineHeight: 1.45 });
+    phone.append(ghost);
+    h3.style.visibility = 'hidden';
+    h1.style.visibility = 'hidden';
+    const s = 25 / 20;
+    ML.a(ghost, [{ transform: 'translate(0,0) scale(1)' }, { transform: `translate(${to.x - from.x}px, ${to.y - from.y}px) scale(${s})` }], { duration: 380, easing: ML.ease.inOut });
+    ML.a(phone.querySelector('#list'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
+    ML.a(art, [{ clipPath: `inset(${rowR.y}px 0 ${800 - rowR.y - rowR.h}px 0)` }, { clipPath: 'inset(0 0 0 0)' }], { duration: 380, easing: ML.ease.sheet });
+    const rest = [art.querySelector('.topbar'), art.querySelector('.kicker'), ...art.querySelectorAll('p')];
+    rest.forEach((el) => (el.style.opacity = 0));
+    const by = art.querySelector('.by');
+    by.style.opacity = 0;
+    await ML.wait(300);
+    h1.style.visibility = '';
+    ML.done(ML.a(ghost, [{ opacity: 1 }, { opacity: 0 }], { duration: 100 })).then(() => ghost.remove());
+    rest.forEach((el) => (el.style.opacity = ''));
+    by.style.opacity = '';
+    ML.a(by, [{ opacity: 0, transform: 'scaleX(.2)' }, { opacity: 1, transform: 'scaleX(1)' }], { duration: 260 });
+    ML.stagger(rest, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 240, delay: 60 }, 40);
+  }
+
+  async function close() {
+    const art = phone.querySelector('.art');
+    if (!art) return;
+    if (ML.mode === 'current') {
+      ML.done(ML.a(art, [{ opacity: 1 }, { opacity: 0, transform: 'translateX(36px)' }], { duration: 220, easing: ML.ease.in })).then(() => art.remove());
+      openIdx = -1;
+      return;
+    }
+    const row = phone.querySelectorAll('.story')[openIdx];
+    const h3 = row.querySelector('h3');
+    const h1 = art.querySelector('h1');
+    const from = rel(h1);
+    const to = rel(h3);
+    const rowR = rel(row);
+    const ghost = h3.cloneNode(true);
+    ghost.className = 'ghost';
+    ghost.style.visibility = '';
+    Object.assign(ghost.style, { left: to.x + 'px', top: to.y + 'px', width: to.w + 'px', fontSize: '20px', lineHeight: 1.45 });
+    phone.append(ghost);
+    h1.style.visibility = 'hidden';
+    const s = 25 / 20;
+    ML.a(ghost, [{ transform: `translate(${from.x - to.x}px, ${from.y - to.y}px) scale(${s})` }, { transform: 'translate(0,0) scale(1)' }], { duration: 340, easing: ML.ease.inOut });
+    ML.a(art, [{ clipPath: 'inset(0 0 0 0)' }, { clipPath: `inset(${rowR.y}px 0 ${800 - rowR.y - rowR.h}px 0)` }], { duration: 340, easing: ML.ease.inOut });
+    ML.a(phone.querySelector('#list'), [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 120 });
+    await ML.wait(340);
+    h3.style.visibility = '';
+    art.remove();
+    ghost.remove();
+    openIdx = -1;
+  }
+
+  ML.bar({ title: '08 제목 이어 보이기', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

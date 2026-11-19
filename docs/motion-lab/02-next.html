@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>02 문제 넘김 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .stage { position: relative; flex: 1; overflow: hidden; }
+  .q { position: absolute; inset: 0; padding: 28px 22px 0; display: flex; flex-direction: column; gap: 22px; }
+  .opt.on .fill { transform: scaleX(1); }
+  .opt.on .tx, .opt.on .mk { color: #fff; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>문제 넘김</h2>
+    <p>녹화에서 두 가지 문제가 보였습니다. 다음 문제로 넘어가면 앞 문제에서 고른 자리가 새 문제 위에 검게 남았다가 서서히 사라집니다. 또 새 문제가 한 프레임 보였다가 사라진 뒤 다시 떠오릅니다.</p>
+    <p class="tip">"다음" 을 눌러 보세요. 보기를 고르고 "확인" 을 누르면 다시 "다음" 이 나옵니다. "현재 앱" 으로 바꾸면 녹화에서 본 두 문제를 그대로 재현합니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>장면</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>앞 문제</td><td>통째로 왼쪽으로 28px 밀리며 사라짐. 고른 자리도 함께 나감</td><td class="num">180ms in</td></tr>
+      <tr><td>진행 막대</td><td>지금 칸은 초록에서 먹으로, 다음 칸은 왼쪽부터 초록으로 차오름</td><td class="num">260ms, 100ms 뒤</td></tr>
+      <tr><td>새 문제</td><td>분류, 질문, 보기 순서로 오른쪽 24px 에서 들어옴</td><td class="num">300ms out, 35ms 간격</td></tr>
+      <tr><td>단추</td><td>"다음" 이 빠지고 꺼진 "확인" 이 올라옴</td><td class="num">320ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>문제와 문제 사이를 책장 넘김처럼 한 방향으로 흐르게 해서 "하나 끝났다" 는 감각을 줍니다.</li>
+      <li>앞 문제의 흔적이 새 문제에 남지 않습니다. 앱에서는 보기 줄에 문제마다 다른 key 를 주거나 색 전환을 빼면 해결됩니다.</li>
+      <li>새 내용은 처음부터 보이지 않는 상태로 그려야 깜빡이지 않습니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const QS = [
+    { k: '논리학 · 가추 · 인식', q: '가추(abduction)는 어떤 추론인가?', o: ['일반 원리에서 개별 결론을 끌어낸다', '개별 사례에서 일반 법칙을 끌어낸다', '관찰을 가장 잘 설명하는 가설을 고른다', '결론을 부정해 전제를 부정한다'], a: 2 },
+    { k: '재무학 · 배당할인모형 · 적용', q: '다음 해 배당이 2,000원, 요구수익률이 10%, 배당 성장률이 5%로 일정하다. 고든 성장 모형으로 구한 주가는 얼마인가?', o: ['20,000원', '40,000원', '13,333원', '42,000원'], a: 1 },
+    { k: '통계학 · t 통계량 · 구분', q: '표본이 작고 모분산을 모를 때 평균 검정에 쓰는 분포는 무엇인가?', o: ['정규분포', 't 분포', '카이제곱 분포', 'F 분포'], a: 1 },
+    { k: '재무학 · 베타 · 특징', q: '베타가 1.5인 주식은 시장 수익률이 1%포인트 오를 때 평균적으로 얼마나 움직이는가?', o: ['0.5%포인트', '1%포인트', '1.5%포인트', '15%포인트'], a: 2 },
+  ];
+  const MK = ['가', '나', '다', '라'];
+  let at, picked, settled;
+
+  const qHtml = (Q) => `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="kicker">${Q.k}</div>
+      <h1 class="qtext">${Q.q}</h1>
+    </div>
+    <div class="opts">${Q.o.map((t, i) => `<button class="opt" data-i="${i}"><span class="fill"></span><span class="mk">${MK[i]}</span><span class="tx">${t}</span>${ML.checkSvg(20, '#fff')}</button>`).join('')}</div>`;
+
+  function mount(q, i, state) {
+    q.innerHTML = qHtml(QS[i]);
+    q.querySelectorAll('.chk').forEach((c) => (c.style.opacity = 0));
+    if (state === 'settled') {
+      const r = q.querySelector(`.opt[data-i="${QS[i].a}"]`);
+      r.classList.add('on');
+      r.querySelector('.chk').style.opacity = 1;
+    }
+    q.querySelectorAll('.opt').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (settled) return;
+        q.querySelectorAll('.opt.on').forEach((x) => x.classList.remove('on'));
+        b.classList.add('on');
+        picked = +b.dataset.i;
+        btnState(true);
+      }),
+    );
+  }
+
+  function render() {
+    ML.clear(phone);
+    at = 0;
+    picked = QS[0].a;
+    settled = true;
+    phone.innerHTML = `
+      <div class="screen">
+        <div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="meta">Latticework · <span id="pos">1</span> / 5</span></div>
+        <div class="segs">${[0, 1, 2, 3, 4].map(() => `<span class="seg"><i></i></span>`).join('')}</div>
+        <div class="stage" id="stage"><main class="q" id="q0"></main></div>
+        <footer class="foot"><button class="btn" id="btn"><span class="ink" style="transform:scaleX(1)"></span><span class="lbl" id="lbl">다음</span></button></footer>
+      </div>`;
+    const segs = phone.querySelectorAll('.seg i');
+    segs[0].style.transform = 'scaleX(1)';
+    segs[0].style.background = 'var(--green)';
+    mount(phone.querySelector('#q0'), 0, 'settled');
+    phone.querySelector('#btn').addEventListener('click', onBtn);
+  }
+
+  function btnState(on) {
+    const ink = phone.querySelector('#btn .ink');
+    ink.getAnimations().forEach((a) => a.cancel());
+    ink.style.transform = on ? 'scaleX(1)' : 'scaleX(0)';
+    if (on && ML.mode !== 'current') ML.a(ink, [{ transform: 'scaleX(0)', transformOrigin: 'left' }, { transform: 'scaleX(1)', transformOrigin: 'left' }], { duration: 220 });
+  }
+
+  function onBtn() {
+    if (!settled) {
+      if (picked === null) return;
+      settled = true;
+      const r = phone.querySelector(`.q .opt[data-i="${QS[at].a}"]`);
+      r.classList.add('on');
+      if (picked !== QS[at].a) phone.querySelector(`.q .opt[data-i="${picked}"]`).classList.remove('on');
+      if (ML.mode === 'current') r.querySelector('.chk').style.opacity = 1;
+      else ML.drawCheck(r.querySelector('.chk'));
+      setLabel('다음');
+      return;
+    }
+    next();
+  }
+
+  function setLabel(t) {
+    const lbl = phone.querySelector('#lbl');
+    if (ML.mode === 'current') lbl.textContent = t;
+    else ML.roll(lbl, t);
+  }
+
+  function next() {
+    const stage = phone.querySelector('#stage');
+    const old = stage.querySelector('.q');
+    const prev = at;
+    at = (at + 1) % QS.length;
+    if (at === 0) {
+      render();
+      return;
+    }
+    settled = false;
+    picked = null;
+    phone.querySelector('#pos').textContent = String(at + 1);
+    const segs = phone.querySelectorAll('.seg i');
+
+    if (ML.mode === 'current') {
+      // 지금 앱: 같은 자리에서 내용만 바뀌고, 고른 자리의 먹이 새 문제 위에서 서서히 사라진다.
+      const ghost = old.querySelector('.opt.on');
+      const ghostIndex = ghost ? +ghost.dataset.i : -1;
+      mount(old, at, 'fresh');
+      segs[prev].style.background = 'var(--ink)';
+      segs[at].style.transform = 'scaleX(1)';
+      segs[at].style.background = 'var(--green)';
+      setLabel('확인');
+      btnState(false);
+      const g = old.querySelector(`.opt[data-i="${ghostIndex}"]`);
+      if (g) {
+        const f = g.querySelector('.fill');
+        f.style.transform = 'scaleX(1)';
+        ML.a(f, [{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out' });
+        ML.a(g.querySelector('.tx'), [{ color: '#fff' }, { color: 'var(--ink)' }], { duration: 180 });
+      }
+      // 한 프레임 다 보인 뒤 투명해졌다가 떠오른다.
+      setTimeout(() => ML.a(old, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 480 }), 34);
+      return;
+    }
+
+    const fresh = document.createElement('main');
+    fresh.className = 'q';
+    fresh.style.opacity = '0';
+    stage.append(fresh);
+    mount(fresh, at, 'fresh');
+    ML.done(ML.a(old, [{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(-28px)', opacity: 0 }], { duration: 180, easing: ML.ease.in })).then(() => old.remove());
+    ML.a(segs[prev], [{ background: 'var(--green)' }, { background: 'var(--ink)' }], { duration: 260 });
+    segs[at].style.background = 'var(--green)';
+    ML.a(segs[at], [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 260, delay: 100 });
+    fresh.style.opacity = '';
+    const parts = [fresh.querySelector('.kicker'), fresh.querySelector('.qtext'), ...fresh.querySelectorAll('.opt')];
+    ML.stagger(parts, [{ transform: 'translateX(24px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 300, delay: 150 }, 35);
+    setLabel('확인');
+    btnState(false);
+  }
+
+  ML.bar({ title: '02 문제 넘김', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

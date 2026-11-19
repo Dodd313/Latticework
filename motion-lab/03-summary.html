@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>03 세션 마무리 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .sum { padding: 40px 22px 0; display: flex; flex-direction: column; gap: 26px; }
+  .box { position: relative; padding: 22px 0; display: flex; flex-direction: column; gap: 10px; }
+  .box .r3, .box .r1 { position: absolute; left: 0; right: 0; height: 3px; background: var(--ink); transform-origin: left; }
+  .box .r3 { top: 0; }
+  .box .r1 { bottom: 0; height: 1px; }
+  .lab2 { font-size: 13px; font-weight: 700; color: var(--sub); letter-spacing: 0.4px; }
+  .head { font-family: var(--serif); font-weight: 700; font-size: 28px; line-height: 1.35; }
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stat .k { font-size: 12.5px; font-weight: 700; color: var(--sub); }
+  .stat .v { font-family: var(--serif); font-weight: 700; font-size: 30px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .xp { display: flex; flex-direction: column; gap: 8px; }
+  .xp .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--sub); }
+  .xp .lv { font-family: var(--serif); font-weight: 700; font-size: 18px; color: var(--ink); }
+  .bar { position: relative; height: 6px; background: var(--line); overflow: hidden; }
+  .bar i { position: absolute; inset: 0; background: var(--ink); transform-origin: left; }
+  .stamp { position: absolute; right: 0; top: 18px; padding: 6px 10px; border: 2px solid var(--green); color: var(--green); font-weight: 700; font-size: 14px; letter-spacing: 0.3px; opacity: 0; }
+  .btns { display: flex; gap: 10px; }
+  .btns button { flex: 1; height: 52px; font-weight: 700; font-size: 16px; }
+  .btns .line { border: 1px solid var(--ink); }
+  .btns .solid { background: var(--ink); color: #fff; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>세션 마무리</h2>
+    <p>지금은 다섯 문제를 끝내면 결과가 글 한 줄로 나옵니다. 경험치와 레벨도 숫자로만 바뀝니다. 끝냈다는 보상이 약하면 매일 돌아올 이유도 약해집니다.</p>
+    <p class="tip">"마치기" 를 누르세요. 이번 판에서 레벨이 하나 오릅니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>순서</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>1</td><td>굵은 괘선이 왼쪽에서 그어짐</td><td class="num">420ms</td></tr>
+      <tr><td>2</td><td>제목이 6px 올라오며 나타남</td><td class="num">300ms</td></tr>
+      <tr><td>3</td><td>맞힌 수, 걸린 시간, 경험치가 0 에서부터 세며 올라감</td><td class="num">700ms out</td></tr>
+      <tr><td>4</td><td>경험치 막대가 끝까지 차고 한 번 초록으로 빛난 뒤 비워짐</td><td class="num">300 + 120 + 360ms</td></tr>
+      <tr><td>5</td><td>레벨 숫자가 위로 굴러 바뀌고 도장이 찍힘</td><td class="num">320ms, 도장 460ms spring</td></tr>
+      <tr><td>6</td><td>단추가 마지막에 올라옴</td><td class="num">260ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>보상은 짧고 분명하게 한 번만 줍니다. 2초 안에 끝나고 화면을 가리지 않습니다.</li>
+      <li>숫자를 세며 올리면 같은 숫자라도 "쌓였다" 는 느낌이 납니다.</li>
+      <li>레벨이 오르지 않는 날은 4번과 5번이 빠지고 1초 남짓에 끝납니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+
+  function render() {
+    ML.clear(phone);
+    phone.innerHTML = `
+      <div class="screen" id="quiz">
+        <div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="meta">Latticework · 5 / 5</span></div>
+        <div class="segs">${[0, 1, 2, 3, 4].map((i) => `<span class="seg"><i style="transform:scaleX(1);background:${i === 4 ? 'var(--green)' : 'var(--ink)'}"></i></span>`).join('')}</div>
+        <main style="padding:28px 22px 0;display:flex;flex-direction:column;gap:22px">
+          <div style="display:flex;flex-direction:column;gap:12px"><div class="kicker">재무학 · 베타 · 특징</div><h1 class="qtext">베타가 1.5인 주식은 시장 수익률이 1%포인트 오를 때 평균적으로 얼마나 움직이는가?</h1></div>
+          <div class="opts">${['0.5%포인트', '1%포인트', '1.5%포인트', '15%포인트'].map((t, i) => `<div class="opt" style="${i === 2 ? 'background:var(--ink);color:#fff' : ''}"><span class="mk" style="${i === 2 ? 'color:#fff' : ''}">${['가', '나', '다', '라'][i]}</span><span class="tx">${t}</span></div>`).join('')}</div>
+        </main>
+        <footer class="foot"><button class="btn" id="finish" style="background:var(--ink)"><span class="lbl">마치기</span></button></footer>
+      </div>`;
+    phone.querySelector('#finish').addEventListener('click', finish);
+  }
+
+  async function finish() {
+    const quiz = phone.querySelector('#quiz');
+    ML.done(ML.a(quiz, [{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(-28px)', opacity: 0 }], { duration: 180, easing: ML.ease.in })).then(() => quiz.remove());
+    const s = document.createElement('div');
+    s.className = 'screen';
+    s.innerHTML = `
+      <div class="topbar"><button class="back">${ML.backSvg}오늘</button><span class="meta">Latticework</span></div>
+      <div class="sum">
+        <div class="box">
+          <span class="r3"></span><span class="r1"></span>
+          <span class="stamp" id="stamp">레벨 업</span>
+          <div class="lab2">Latticework</div>
+          <div class="head" id="head">오늘 분량을 마쳤습니다</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">한 번에 맞힘</div><div class="v"><span id="c1">0</span>/5</div></div>
+          <div class="stat"><div class="k">걸린 시간</div><div class="v"><span id="c2">0</span>분</div></div>
+          <div class="stat"><div class="k">경험치</div><div class="v">+<span id="c3">0</span></div></div>
+        </div>
+        <div class="xp">
+          <div class="row"><span>레벨 <span class="lv" id="lv">3</span></span><span><span id="xpNow">220</span> / <span id="xpMax">240</span></span></div>
+          <div class="bar"><i id="xpbar" style="transform:scaleX(.917)"></i></div>
+        </div>
+        <div class="btns" id="btns"><button class="line">더 풀기</button><button class="solid" id="again">오늘로 돌아가기</button></div>
+      </div>`;
+    phone.append(s);
+    const r3 = s.querySelector('.r3');
+    const r1 = s.querySelector('.r1');
+    const parts = [s.querySelector('.lab2'), s.querySelector('#head'), s.querySelector('.stats'), s.querySelector('.xp'), s.querySelector('#btns')];
+    parts.forEach((p) => (p.style.opacity = 0));
+    r3.style.transform = r1.style.transform = 'scaleX(0)';
+    await ML.wait(140);
+    r3.style.transform = r1.style.transform = '';
+    ML.a(r3, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 420 });
+    ML.a(r1, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 420, delay: 80 });
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.stagger(parts.slice(0, 2), [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 120 }, 60);
+    ML.a(parts[2], [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 260 });
+    ML.a(parts[3], [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 320 });
+    ML.a(parts[4], [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 260, delay: 1500 });
+    await ML.wait(300);
+    ML.count(s.querySelector('#c1'), 0, 4, 700);
+    ML.count(s.querySelector('#c2'), 0, 3, 700);
+    await ML.count(s.querySelector('#c3'), 0, 46, 700);
+    // 경험치 막대: 끝까지 차고, 빛나고, 비워진 뒤 새 레벨의 몫만큼 찬다.
+    const bar = s.querySelector('#xpbar');
+    ML.count(s.querySelector('#xpNow'), 220, 240, 300);
+    await ML.done(ML.a(bar, [{ transform: 'scaleX(.917)' }, { transform: 'scaleX(1)' }], { duration: 300 }));
+    await ML.done(ML.a(bar, [{ background: 'var(--ink)' }, { background: 'var(--green)' }, { background: 'var(--ink)' }], { duration: 240, easing: 'linear' }));
+    ML.roll(s.querySelector('#lv'), '4');
+    s.querySelector('#xpMax').textContent = '300';
+    s.querySelector('#xpNow').textContent = '0';
+    ML.count(s.querySelector('#xpNow'), 0, 26, 360);
+    ML.a(bar, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(.087)' }], { duration: 360, delay: 60 });
+    const stamp = s.querySelector('#stamp');
+    ML.a(stamp, [{ opacity: 0, transform: 'scale(1.35) rotate(-8deg)' }, { opacity: 1, transform: 'scale(1) rotate(-3deg)' }], { duration: 460, easing: ML.ease.spring, delay: 120 });
+    s.querySelector('#again').addEventListener('click', render);
+  }
+
+  ML.bar({ title: '03 세션 마무리', replay: render });
+  render();
+})();
+</script>
+</body>
+</html>

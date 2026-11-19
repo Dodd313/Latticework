@@ -1,0 +1,84 @@
+/* Motion Lab 공통: 앱과 같은 지면형 토큰, 휴대폰 틀, 실험 막대, 설명 칸 */
+:root {
+  --ground: #f5f4f0;
+  --ink: #15171a;
+  --body: #1b2027;
+  --deck: #3a424d;
+  --sub: #4a4f57;
+  --mute: #6b7078;
+  --line: #cdcbc3;
+  --line-soft: #dcdad3;
+  --chip: #e9e7e1;
+  --blue: #1f4fa8;
+  --green: #1e8e4e;
+  --orange: #b4530f;
+  --disabled: #8e9094;
+  --frame: #e4e2db;
+  --serif: 'Noto Serif KR', 'AppleMyungjo', 'Nanum Myeongjo', serif;
+  --sans: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--frame); color: var(--ink); font-family: var(--sans); word-break: keep-all; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+a { color: inherit; }
+
+/* 실험 막대 */
+.lab-bar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 16px; background: var(--ink); color: #fff; }
+.lab-bar a.home { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; text-decoration: none; font-size: 14px; font-weight: 500; opacity: 0.85; }
+.lab-bar .title { font-weight: 700; font-size: 14px; margin-right: auto; }
+.lab-bar button { min-height: 36px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 13px; font-weight: 500; color: #fff; }
+.lab-bar button[aria-pressed='true'] { background: #fff; color: var(--ink); border-color: #fff; }
+
+/* 휴대폰과 설명 칸 */
+.lab { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; align-items: flex-start; padding: 24px 16px 60px; }
+.phone { position: relative; width: 390px; height: 800px; flex: none; overflow: hidden; background: var(--ground); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 24px 60px rgba(0, 0, 0, 0.12); border-radius: 28px; isolation: isolate; }
+.phone::after { content: ''; position: absolute; inset: 0; z-index: 60; pointer-events: none; mix-blend-mode: multiply; background-size: 240px 240px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.30 0 0 0 0 0.28 0 0 0 0 0.25 0.29 0 0 0 0'/%3E%3C/filter%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.42' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.30 0 0 0 0 0.27 0.13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23g)'/%3E%3Crect width='240' height='240' filter='url(%23f)'/%3E%3C/svg%3E"); }
+.notes { width: 420px; max-width: 100%; font-size: 14.5px; line-height: 1.7; color: var(--deck); }
+.notes h2 { margin: 0 0 6px; font-family: var(--serif); font-size: 22px; line-height: 1.35; color: var(--ink); }
+.notes h3 { margin: 26px 0 8px; font-size: 13px; letter-spacing: 0.4px; color: var(--ink); padding-top: 10px; border-top: 2px solid var(--ink); }
+.notes p { margin: 0 0 10px; }
+.notes ul { margin: 0; padding-left: 18px; }
+.notes li { margin: 4px 0; }
+.spec { width: 100%; border-collapse: collapse; font-size: 13px; }
+.spec th, .spec td { text-align: left; vertical-align: top; padding: 7px 8px 7px 0; border-bottom: 1px solid var(--line); }
+.spec th { font-weight: 700; color: var(--ink); white-space: nowrap; }
+.spec td.num { font-family: ui-monospace, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+.tip { font-size: 13px; color: var(--sub); background: rgba(21, 23, 26, 0.04); padding: 10px 12px; }
+
+@media (max-width: 560px) {
+  .lab { padding: 0 0 40px; gap: 18px; }
+  .phone { width: 100%; height: calc(100svh - 56px); min-height: 640px; border-radius: 0; box-shadow: none; }
+  .notes { padding: 0 16px; }
+}
+
+/* 앱 안의 공통 모양 */
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--ground); }
+.topbar { height: 52px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 12px; border-bottom: 1px solid var(--line); }
+.topbar .back { display: inline-flex; align-items: center; gap: 4px; height: 44px; padding-right: 12px; font-size: 14px; font-weight: 500; }
+.topbar .meta { font-size: 12.5px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.topbar .brand { font-family: var(--serif); font-weight: 700; font-size: 15px; }
+.segs { display: flex; gap: 4px; padding: 0 22px; margin-top: -1px; }
+.seg { position: relative; flex: 1; height: 3px; background: var(--line); overflow: hidden; }
+.seg i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); background: var(--ink); }
+.kicker { font-size: 12.5px; font-weight: 700; color: var(--blue); letter-spacing: 0.3px; }
+.serif { font-family: var(--serif); }
+.qtext { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 22px; line-height: 1.5; letter-spacing: -0.5px; }
+.opts { border-top: 1px solid var(--ink); }
+.opt { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; min-height: 58px; padding: 12px 4px; border-bottom: 1px solid var(--line); overflow: hidden; }
+.opt .fill { position: absolute; inset: 0; background: var(--ink); transform-origin: left; transform: scaleX(0); }
+.opt .mk { position: relative; width: 16px; font-family: var(--serif); font-weight: 700; font-size: 15px; color: var(--sub); }
+.opt .tx { position: relative; flex: 1; font-size: 16px; line-height: 1.5; }
+.opt .tx .strike { position: absolute; left: 0; right: 0; top: 54%; height: 1.5px; background: currentColor; transform-origin: left; transform: scaleX(0); }
+.opt .chk { position: relative; width: 20px; height: 20px; flex: none; }
+.opt .uline { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--green); transform-origin: left; transform: scaleX(0); }
+.foot { margin-top: auto; padding: 12px 22px 22px; border-top: 1px solid var(--ink); background: var(--ground); }
+.btn { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; overflow: hidden; background: var(--disabled); color: #fff; font-size: 16px; font-weight: 700; }
+.btn .ink { position: absolute; inset: 0; background: var(--ink); transform-origin: left; transform: scaleX(0); }
+.btn .lbl { position: relative; display: inline-block; }
+.fold { overflow: hidden; height: 0; }
+.fold .label { font-size: 12.5px; font-weight: 700; letter-spacing: 0.3px; margin-bottom: 6px; }
+.fold p { margin: 0; font-size: 15px; line-height: 1.7; color: var(--deck); }
+.roll { position: relative; display: inline-block; overflow: hidden; vertical-align: bottom; }
+.roll > span { display: inline-block; }

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>07 화면 넘김과 밀어서 돌아가기 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  .layer { position: absolute; inset: 0; background: var(--ground); display: flex; flex-direction: column; }
+  .layer.under .hm { flex: 1; }
+  .shade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 5; }
+  .top { z-index: 10; box-shadow: -1px 0 0 var(--line), -12px 0 24px rgba(0, 0, 0, 0.06); touch-action: pan-y; }
+  .art { padding: 24px 22px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+  .art h1 { margin: 0; font-family: var(--serif); font-size: 25px; line-height: 1.45; letter-spacing: -0.6px; }
+  .art .by { font-size: 12.5px; color: var(--sub); padding-bottom: 12px; border-bottom: 1px solid var(--ink); }
+  .art p { margin: 0; font-size: 16px; line-height: 1.8; color: var(--deck); }
+  .edge { position: absolute; left: 0; top: 0; bottom: 0; width: 24px; z-index: 12; }
+  .hintEdge { position: absolute; left: 0; top: 50%; width: 4px; height: 64px; margin-top: -32px; background: var(--blue); opacity: 0; z-index: 13; border-radius: 0 3px 3px 0; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>화면 넘김과 밀어서 돌아가기</h2>
+    <p>지금은 기사로 들어갈 때 새 화면이 36px 만 미끄러지고, 아래 화면은 그대로 있습니다. 깊이가 느껴지지 않습니다. 더 큰 문제는 홈 화면에 추가한 앱에서는 화면 왼쪽 끝을 밀어 돌아가는 동작이 없다는 점입니다. 아이폰에서 손이 가장 먼저 가는 동작이 막혀 있습니다.</p>
+    <p class="tip">홈의 뉴스 줄을 누른 뒤, 기사 화면의 왼쪽 끝을 잡고 오른쪽으로 끌어 보세요. 반쯤 끌다 놓으면 되돌아오고, 빠르게 튕기면 짧게 끌어도 돌아갑니다.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>요소</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>들어오는 화면</td><td>오른쪽 끝에서 전체 폭만큼 들어옴. 왼쪽 가장자리에 옅은 그림자</td><td class="num">420ms sheet</td></tr>
+      <tr><td>아래 화면</td><td>왼쪽으로 30% 밀리고 8% 어두워짐. 함께 움직여 깊이가 생김</td><td class="num">같은 시간</td></tr>
+      <tr><td>끌기</td><td>손가락을 그대로 따라감. 아래 화면은 비율대로 돌아옴</td><td class="num">지연 0</td></tr>
+      <tr><td>놓기</td><td>40% 넘게 끌었거나 초당 500px 넘게 튕기면 돌아감. 아니면 제자리로 돌아옴. 남은 거리에 맞춰 시간을 줄임</td><td class="num">160~320ms</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>아래 화면이 함께 밀려야 "위에 한 장이 얹혔다" 는 구조가 보입니다. 돌아갈 곳이 눈에 보이면 길을 잃지 않습니다.</li>
+      <li>손가락을 따라오는 움직임은 시간 곡선보다 중요합니다. 1px 이라도 늦으면 무겁게 느껴집니다.</li>
+      <li>웹 앱에서는 왼쪽 끝 24px 안에서 시작한 가로 끌기만 받습니다. 세로 스크롤과 다투지 않게 하기 위해서입니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const W = 390;
+  let under, top, shade;
+
+  function render() {
+    ML.clear(phone);
+    phone.innerHTML = `<div class="layer under" id="under"><div class="hm">
+        <div class="mast"><b>Latticework</b></div>
+        <div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 4일</span></div>
+        <div class="srow" id="open" style="cursor:pointer"><div class="hd"><span class="kk">뉴스</span><span class="mark"><span class="dot"></span></span></div><div class="tt">공정위, 쿠팡·김범석 의장 검찰 고발 의견</div><div class="mt"><span>눌러서 기사 열기</span><span>1/2</span></div></div>
+        <div class="srow"><div class="hd"><span class="kk">뉴스</span></div><div class="tt">엔비디아, CEO 승계 계획 공백 논란</div><div class="mt"><span></span><span>2/2</span></div></div>
+      </div></div><div class="shade" id="shade"></div>`;
+    under = phone.querySelector('#under');
+    shade = phone.querySelector('#shade');
+    top = null;
+    phone.querySelector('#open').addEventListener('click', push);
+  }
+
+  function push() {
+    if (top) return;
+    top = document.createElement('div');
+    top.className = 'layer top';
+    top.innerHTML = `<div class="topbar"><button class="back" id="back">${ML.backSvg}오늘</button><span class="brand">Latticework</span></div>
+      <div class="art"><div class="kicker">공정거래 · 지배구조</div><h1>공정위, 쿠팡·김범석 의장 검찰 고발 의견</h1><div class="by">연합뉴스 · 2026.11.19</div>
+      <p>공정거래위원회 심사관이 쿠팡과 김범석 의장을 동일인 지정 자료 허위 제출 혐의로 검찰에 고발해야 한다는 의견을 냈다. 동일인으로 지정되면 친족 회사와의 거래가 공시 대상이 된다.</p>
+      <p>쿠팡은 미국 상장사의 외국인 최대주주를 동일인으로 볼 수 없다는 입장이다. 전원회의 판단이 다른 외국계 지배 기업에도 기준이 된다.</p></div>
+      <div class="edge" id="edge"></div><span class="hintEdge" id="hint"></span>`;
+    phone.append(top);
+    top.querySelector('#back').addEventListener('click', () => pop(0));
+    if (ML.mode === 'current') {
+      ML.a(top, [{ transform: 'translateX(36px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 360 });
+      return;
+    }
+    ML.a(top, [{ transform: `translateX(${W}px)` }, { transform: 'translateX(0)' }], { duration: 420, easing: ML.ease.sheet });
+    ML.a(under, [{ transform: 'translateX(0)' }, { transform: `translateX(${-W * 0.3}px)` }], { duration: 420, easing: ML.ease.sheet });
+    ML.a(shade, [{ opacity: 0 }, { opacity: 0.08 }], { duration: 420, easing: ML.ease.sheet });
+    // 처음 한 번만, 왼쪽 끝을 밀 수 있다는 것을 살짝 알려 준다.
+    ML.a(top.querySelector('#hint'), [{ opacity: 0 }, { opacity: 0.7, offset: 0.3 }, { opacity: 0 }], { duration: 1400, delay: 700, fill: 'none' });
+    drag(top.querySelector('#edge'));
+  }
+
+  function setX(x) {
+    const p = Math.max(0, Math.min(1, x / W));
+    [top, under, shade].forEach((el) => el.getAnimations().forEach((a) => { a.commitStyles?.(); a.cancel(); }));
+    top.style.transform = `translateX(${x}px)`;
+    under.style.transform = `translateX(${-W * 0.3 * (1 - p)}px)`;
+    shade.style.opacity = 0.08 * (1 - p);
+  }
+
+  async function pop(fromX = 0, velocity = 0) {
+    if (!top) return;
+    const t = top;
+    if (ML.mode === 'current') {
+      // 지금 앱: 나가는 화면이 투명해지는 동안 아래 화면과 겹쳐 보인다.
+      ML.done(ML.a(t, [{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(36px)', opacity: 0 }], { duration: 220, easing: ML.ease.in })).then(() => t.remove());
+      top = null;
+      return;
+    }
+    const remain = (W - fromX) / W;
+    const dur = Math.max(160, Math.min(320, velocity > 0 ? ((W - fromX) / velocity) * 1000 : 320 * remain + 40));
+    top = null;
+    ML.a(under, [{ transform: getComputedStyle(under).transform }, { transform: 'translateX(0)' }], { duration: dur, easing: ML.ease.out });
+    ML.a(shade, [{ opacity: getComputedStyle(shade).opacity }, { opacity: 0 }], { duration: dur, easing: ML.ease.out });
+    await ML.done(ML.a(t, [{ transform: `translateX(${fromX}px)` }, { transform: `translateX(${W}px)` }], { duration: dur, easing: ML.ease.out }));
+    t.remove();
+  }
+
+  function settle(fromX) {
+    const dur = 140 + 160 * (fromX / W);
+    ML.a(top, [{ transform: `translateX(${fromX}px)` }, { transform: 'translateX(0)' }], { duration: dur, easing: ML.ease.out });
+    ML.a(under, [{ transform: getComputedStyle(under).transform }, { transform: `translateX(${-W * 0.3}px)` }], { duration: dur, easing: ML.ease.out });
+    ML.a(shade, [{ opacity: getComputedStyle(shade).opacity }, { opacity: 0.08 }], { duration: dur, easing: ML.ease.out });
+  }
+
+  function drag(edge) {
+    let x0 = null;
+    let samples = [];
+    edge.addEventListener('pointerdown', (e) => {
+      x0 = e.clientX;
+      samples = [[e.timeStamp, 0]];
+      edge.setPointerCapture(e.pointerId);
+    });
+    edge.addEventListener('pointermove', (e) => {
+      if (x0 === null || !top) return;
+      const dx = Math.max(0, e.clientX - x0);
+      samples.push([e.timeStamp, dx]);
+      if (samples.length > 5) samples.shift();
+      setX(dx);
+    });
+    const end = (e) => {
+      if (x0 === null || !top) return;
+      const dx = Math.max(0, e.clientX - x0);
+      const [t1, d1] = samples[0];
+      const v = e.timeStamp > t1 ? ((dx - d1) / (e.timeStamp - t1)) * 1000 : 0;
+      x0 = null;
+      if (dx > W * 0.4 || v > 500) pop(dx, Math.max(v, 0));
+      else settle(dx);
+    };
+    edge.addEventListener('pointerup', end);
+    edge.addEventListener('pointercancel', end);
+  }
+
+  ML.bar({ title: '07 화면 넘김', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

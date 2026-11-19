@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>04 하루 목표 달성 · Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  .banner { position: absolute; left: 12px; right: 12px; top: 12px; z-index: 30; background: var(--ink); color: #fff; padding: 14px 16px; display: flex; align-items: center; gap: 12px; transform: translateY(-140%); }
+  .banner .ck { width: 28px; height: 28px; border-radius: 14px; background: var(--green); display: flex; align-items: center; justify-content: center; flex: none; }
+  .banner b { display: block; font-size: 15px; }
+  .banner span { font-size: 13px; opacity: 0.8; }
+  .over { position: absolute; inset: 0; z-index: 40; background: var(--ground); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 32px; }
+  .over .ck { width: 72px; height: 72px; border-radius: 36px; background: var(--green); display: flex; align-items: center; justify-content: center; }
+  .over .bx { align-self: stretch; border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 22px 0; text-align: center; }
+  .over .bx div { font-size: 13px; font-weight: 700; color: var(--sub); }
+  .over .bx b { font-family: var(--serif); font-size: 44px; }
+  .go { position: absolute; left: 22px; right: 22px; bottom: 86px; z-index: 20; height: 48px; background: var(--ink); color: #fff; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone" id="phone"></div>
+  <section class="notes">
+    <h2>하루 목표 달성</h2>
+    <p>지금은 마지막 과제를 끝내는 순간 화면 전체가 3.2초 동안 축하 화면으로 덮입니다. 무엇이 바뀌었는지는 축하 화면이 걷힌 뒤에야 보입니다. 제안은 바뀌는 자리에서 직접 바뀌고, 위에서 작은 띠가 내려와 알려 준 뒤 사라집니다.</p>
+    <p class="tip">아래 "마지막 문제 풀기" 를 누르세요. "현재 앱" 과 비교해 보세요.</p>
+    <h3>움직임 명세</h3>
+    <table class="spec">
+      <tr><th>순서</th><th>움직임</th><th>시간</th></tr>
+      <tr><td>1</td><td>과제 줄의 4/5 가 5/5 로 굴러 바뀌고, 초록 점이 줄어들며 체크가 그려짐</td><td class="num">320ms</td></tr>
+      <tr><td>2</td><td>오늘 2/3 이 3/3 으로 굴러 바뀜</td><td class="num">320ms</td></tr>
+      <tr><td>3</td><td>이번 주 오늘 칸에 먹이 가운데서 번져 차오름</td><td class="num">460ms spring</td></tr>
+      <tr><td>4</td><td>연속 4일이 5일로 굴러 바뀜</td><td class="num">320ms</td></tr>
+      <tr><td>5</td><td>위에서 띠가 내려와 2.2초 머문 뒤 올라감. 눌러서 바로 닫을 수 있음</td><td class="num">380ms 들어옴, 220ms 나감</td></tr>
+    </table>
+    <h3>왜</h3>
+    <ul>
+      <li>보상이 실제로 바뀐 숫자와 표식 위에서 일어나야 "내가 이걸 채웠다" 가 남습니다.</li>
+      <li>화면을 가리지 않아 흐름이 끊기지 않습니다. 기사를 읽다가 끝냈을 때도 그 화면에 그대로 머뭅니다.</li>
+      <li>연속 기록이 10일, 30일, 100일처럼 고비를 넘는 날에만 더 큰 장면을 따로 둡니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const W = ['월', '화', '수', '목', '금', '토', '일'];
+  let busy = false;
+
+  function render() {
+    ML.clear(phone);
+    busy = false;
+    phone.innerHTML = `
+      <div class="screen">
+        <div class="hm">
+          <div class="mast"><b>Latticework</b></div>
+          <div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 19일 목요일</span><span class="streak">연속 <span id="streak">4</span>일</span></div>
+          <div class="panel">
+            <div class="top">
+              <div class="big"><span class="k">오늘</span><span class="n" id="pn">2</span><span class="k">/ 3</span></div>
+              <div class="week">${W.map((w, i) => `<span class="day ${i < 3 ? 'done' : i === 3 ? 'today' : ''}" data-i="${i}"><span class="flood"></span><span class="lb">${w}</span></span>`).join('')}</div>
+            </div>
+            <div class="line" id="pl">Latticework가 남았습니다. 마치면 연속 5일이 됩니다.</div>
+          </div>
+          <div class="srow done"><div class="hd"><span class="kk">뉴스</span><span class="mark">${ML.checkSvg(16, 'var(--mute)', 2.4)}</span></div><div class="tt">오늘의 주요 뉴스 2건</div><div class="mt"><span>모두 읽음</span><span>2/2</span></div></div>
+          <div class="srow done"><div class="hd"><span class="kk">영단어</span><span class="mark">${ML.checkSvg(16, 'var(--mute)', 2.4)}</span></div><div class="tt">오늘 분량을 마쳤습니다</div><div class="mt"><span>더 풀기로 약한 표현을 다시 볼 수 있습니다</span><span>6/6</span></div></div>
+          <div class="srow" id="last"><div class="hd"><span class="kk">Latticework</span><span class="mark" id="mk"><span class="dot"></span>${ML.checkSvg(16, 'var(--mute)', 2.4)}</span></div><div class="tt" id="lt">오늘의 5문제</div><div class="mt"><span>논리학 · 재무학 · 통계학</span><span><span id="cnt">4</span>/5</span></div></div>
+        </div>
+        <button class="go" id="go">마지막 문제 풀기</button>
+        <div class="banner" id="banner"><span class="ck">${ML.checkSvg(16, '#fff', 3)}</span><div><b>오늘 할 일을 모두 마쳤습니다</b><span>연속 5일째입니다</span></div></div>
+        <div class="over" id="over"><div class="ck">${ML.checkSvg(34, '#fff', 3)}</div><div class="bx"><div>오늘 목표 달성</div><b>연속 5일</b></div><span style="color:var(--sub);font-size:14px">오늘 할 일을 모두 마쳤습니다.</span></div>
+      </div>`;
+    phone.querySelector('#mk .chk').style.opacity = 0;
+    phone.querySelector('#go').addEventListener('click', complete);
+    phone.querySelector('#banner').addEventListener('click', hideBanner);
+  }
+
+  let hideTimer;
+  function hideBanner() {
+    clearTimeout(hideTimer);
+    const b = phone.querySelector('#banner');
+    ML.a(b, [{ transform: 'translateY(0)' }, { transform: 'translateY(-140%)' }], { duration: 220, easing: ML.ease.in });
+  }
+
+  async function complete() {
+    if (busy) return;
+    busy = true;
+    const go = phone.querySelector('#go');
+    ML.a(go, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
+    const today = phone.querySelector('.day[data-i="3"]');
+    if (ML.mode === 'current') {
+      const over = phone.querySelector('#over');
+      over.style.display = 'flex';
+      ML.a(over, [{ opacity: 0 }, { opacity: 1 }], { duration: 320 });
+      ML.a(over.querySelector('.ck'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 520, delay: 180, easing: ML.ease.spring });
+      await ML.wait(3200);
+      await ML.done(ML.a(over, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 }));
+      over.style.display = 'none';
+      phone.querySelector('#cnt').textContent = '5';
+      phone.querySelector('#pn').textContent = '3';
+      phone.querySelector('#streak').textContent = '5';
+      phone.querySelector('#last').classList.add('done');
+      phone.querySelector('#mk .dot').style.display = 'none';
+      phone.querySelector('#mk .chk').style.opacity = 1;
+      today.classList.remove('today');
+      today.classList.add('done');
+      phone.querySelector('#pl').textContent = '오늘 할 일을 모두 마쳤습니다.';
+      return;
+    }
+    await ML.wait(200);
+    ML.roll(phone.querySelector('#cnt'), '5');
+    ML.a(phone.querySelector('#mk .dot'), [{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 140, easing: ML.ease.in });
+    ML.drawCheck(phone.querySelector('#mk .chk'), 100);
+    ML.a(phone.querySelector('#lt'), [{ color: 'var(--ink)' }, { color: 'var(--sub)' }], { duration: 300, delay: 120 });
+    await ML.wait(260);
+    ML.roll(phone.querySelector('#pn'), '3');
+    const pl = phone.querySelector('#pl');
+    ML.done(ML.a(pl, [{ opacity: 1 }, { opacity: 0 }], { duration: 140 })).then(() => {
+      pl.textContent = '오늘 할 일을 모두 마쳤습니다.';
+      ML.a(pl, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220 });
+    });
+    await ML.wait(200);
+    today.classList.remove('today');
+    today.style.color = '#fff';
+    today.style.fontWeight = '700';
+    ML.a(today.querySelector('.flood'), [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 460, easing: ML.ease.spring });
+    ML.a(today, [{ boxShadow: 'inset 0 0 0 2px var(--green)' }, { boxShadow: 'inset 0 0 0 0 var(--green)' }], { duration: 200 });
+    await ML.wait(240);
+    ML.roll(phone.querySelector('#streak'), '5');
+    await ML.wait(200);
+    const b = phone.querySelector('#banner');
+    ML.a(b, [{ transform: 'translateY(-140%)' }, { transform: 'translateY(0)' }], { duration: 380, easing: ML.ease.sheet });
+    ML.drawCheck(b.querySelector('.chk'), 160);
+    hideTimer = setTimeout(hideBanner, 2600 / ML.rate);
+  }
+
+  ML.bar({ title: '04 하루 목표 달성', replay: render, modes: true });
+  render();
+})();
+</script>
+</body>
+</html>

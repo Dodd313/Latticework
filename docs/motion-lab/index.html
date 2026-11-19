@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Motion Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="shared.css">
+<style>
+  body { background: var(--ground); }
+  .idx { max-width: 880px; margin: 0 auto; padding: 32px 16px 80px; color: var(--deck); font-size: 15px; line-height: 1.75; }
+  .idx h1 { margin: 0; font-family: var(--serif); font-size: 32px; color: var(--ink); line-height: 1.3; }
+  .idx .sub { padding: 10px 0; margin: 12px 0 26px; border-top: 3px solid var(--ink); border-bottom: 1px solid var(--ink); font-size: 13px; color: var(--sub); }
+  .idx h2 { margin: 40px 0 10px; font-size: 13px; letter-spacing: 0.4px; color: var(--ink); padding-top: 10px; border-top: 2px solid var(--ink); }
+  .lead { font-family: var(--serif); font-size: 21px; line-height: 1.6; color: var(--ink); margin: 0 0 10px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 24px; }
+  .cards a { display: flex; flex-direction: column; gap: 4px; padding: 16px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
+  .cards a .n { font-size: 12.5px; font-weight: 700; color: var(--blue); }
+  .cards a b { font-family: var(--serif); font-size: 18px; color: var(--ink); line-height: 1.4; }
+  .cards a span.d { font-size: 13.5px; color: var(--sub); line-height: 1.6; }
+  .cards a:hover b { text-decoration: underline; text-underline-offset: 4px; }
+  table.spec { margin-top: 6px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 7px; margin-right: 6px; }
+  .tag.bug { background: var(--orange); color: #fff; }
+  .tag.gap { background: var(--ink); color: #fff; }
+  .tag.flow { background: var(--blue); color: #fff; }
+  ol.find { padding-left: 22px; margin: 0; }
+  ol.find li { margin: 8px 0; }
+  .demo { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .demo button { font-size: 13px; height: 34px; padding: 0 12px; border: 1px solid var(--ink); }
+  .track { position: relative; height: 22px; border-bottom: 1px solid var(--line); }
+  .track i { position: absolute; left: 0; top: 6px; width: 10px; height: 10px; border-radius: 5px; background: var(--ink); }
+  .track span { position: absolute; right: 0; top: 2px; font-size: 12px; color: var(--sub); font-family: ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<div class="idx">
+  <h1>Motion Lab</h1>
+  <div class="sub">Latticework 움직임 시안 · 2026년 11월 19일 · 각 시안 위쪽에서 "현재 앱" 과 "제안" 을 바꿔 볼 수 있습니다</div>
+
+  <p class="lead">먹이 번지고, 괘선이 그어지고, 도장이 찍힌다.</p>
+  <p>앱이 신문 지면처럼 생겼으니 움직임도 지면에서 일어날 법한 것만 씁니다. 고르면 먹이 번지고, 화면이 열리면 괘선이 그어지고, 끝내면 도장이 찍힙니다. 튀어 오르거나 빛나는 효과는 쓰지 않습니다. 움직임은 무엇이 바뀌었는지 알려 줄 때만 씁니다.</p>
+
+  <h2>시안 11개</h2>
+  <div class="cards">
+    <a href="01-answer.html"><span class="n">01</span><b>답 고르기와 채점</b><span class="d">먹이 번지는 선택, 틀리면 흔들림과 취소선, 맞으면 체크와 초록 밑줄</span></a>
+    <a href="02-next.html"><span class="n">02</span><b>다음 문제로</b><span class="d">이전 선택이 남아 비치는 문제와 한 프레임 깜빡임을 고친 전환</span></a>
+    <a href="03-summary.html"><span class="n">03</span><b>세션 마무리</b><span class="d">숫자 세기, 경험치 막대, 레벨 업 도장</span></a>
+    <a href="04-goal.html"><span class="n">04</span><b>하루 목표 달성</b><span class="d">화면을 덮는 3.2초 축하 대신 바뀌는 자리에서 직접 바뀜</span></a>
+    <a href="05-home.html"><span class="n">05</span><b>홈 진입</b><span class="d">그날 첫 진입, 돌아올 때, 느린 연결을 따로 설계</span></a>
+    <a href="06-tabs.html"><span class="n">06</span><b>탭 전환</b><span class="d">방향이 있는 전환, 늘었다 줄어드는 표시선, 채운 아이콘</span></a>
+    <a href="07-stack.html"><span class="n">07</span><b>화면 넘김과 밀어서 돌아가기</b><span class="d">아래 화면이 함께 밀리는 깊이, 왼쪽 끝 끌기</span></a>
+    <a href="08-morph.html"><span class="n">08</span><b>제목 이어 보이기</b><span class="d">누른 기사 제목이 그대로 기사 화면 제목이 됨</span></a>
+    <a href="09-read.html"><span class="n">09</span><b>읽기 진행과 읽음 표시</b><span class="d">스크롤에 붙는 진행선, 끝까지 읽으면 도장</span></a>
+    <a href="10-arrival.html"><span class="n">10</span><b>새 호 도착</b><span class="d">보는 중에 오늘 뉴스가 도착할 때 알리기</span></a>
+    <a href="11-press.html"><span class="n">11</span><b>누름 반응</b><span class="d">먹 번짐, 눌림과 튕김, 비활성 단추의 대답</span></a>
+  </div>
+
+  <h2>실제 앱을 녹화해 찾은 개선 지점</h2>
+  <p>아이폰 크기 화면에서 홈, 뉴스, 기사, 영단어, Latticework, 기록, 리뷰를 직접 지나가며 초당 60장으로 녹화하고 한 장씩 넘겨 봤습니다.</p>
+  <ol class="find">
+    <li><span class="tag bug">고장</span>다음 문제로 넘어갈 때 이전 문제에서 고른 칸의 검은 바탕이 새 문제 위에 남아 옅어집니다. 새 문제가 틀린 칸을 고른 것처럼 보입니다. <a href="02-next.html">02</a></li>
+    <li><span class="tag bug">고장</span>새 문제가 한 프레임 완전히 보였다가 사라진 뒤 다시 떠오릅니다. 깜빡임으로 보입니다. <a href="02-next.html">02</a></li>
+    <li><span class="tag bug">고장</span>보기를 고를 때 바탕색이 180ms 동안 섞이며 칙칙한 회색을 거칩니다. <a href="01-answer.html">01</a></li>
+    <li><span class="tag bug">고장</span>첫 진입이 문구, 빈 화면, 제호, 0.1초 자리표시, 내용 다섯 단계로 끊겨 보입니다. <a href="05-home.html">05</a></li>
+    <li><span class="tag bug">고장</span>뒤로 갈 때 나가는 화면이 투명해지며 아래 화면과 글자가 겹쳐 보입니다. <a href="07-stack.html">07</a></li>
+    <li><span class="tag bug">고장</span>괘선 그리기와 읽기 진행선이 폭을 바꿔 움직여 매 프레임 배치를 다시 계산합니다. 느린 폰에서 끊깁니다. <a href="09-read.html">09</a></li>
+    <li><span class="tag gap">빠짐</span>틀렸을 때와 맞았을 때 움직임이 없습니다. 색만 바뀝니다. <a href="01-answer.html">01</a></li>
+    <li><span class="tag gap">빠짐</span>힌트와 해설이 움직임 없이 툭 튀어나와 아래 내용이 한 번에 밀립니다. <a href="01-answer.html">01</a></li>
+    <li><span class="tag gap">빠짐</span>위쪽 진행 칸이 한 번에 채워집니다. 마지막 칸을 채우는 맛이 없습니다. <a href="02-next.html">02</a></li>
+    <li><span class="tag gap">빠짐</span>경험치, 레벨, 맞힌 수가 그냥 바뀝니다. 쌓인다는 느낌이 없습니다. <a href="03-summary.html">03</a></li>
+    <li><span class="tag gap">빠짐</span>홈 과제 줄의 숫자와 표시가 끝낸 뒤 그냥 바뀌어 있습니다. <a href="04-goal.html">04</a></li>
+    <li><span class="tag gap">빠짐</span>이번 주 칸과 기록 달력이 정지 그림입니다. 오늘 칸이 채워지는 순간이 없습니다. <a href="04-goal.html">04</a></li>
+    <li><span class="tag gap">빠짐</span>누름 반응이 투명도뿐입니다. 비활성 "확인" 은 눌러도 대답이 없습니다. <a href="11-press.html">11</a></li>
+    <li><span class="tag gap">빠짐</span>끝까지 읽어 읽음 처리되는 순간을 알려 주지 않습니다. <a href="09-read.html">09</a></li>
+    <li><span class="tag gap">빠짐</span>오늘 뉴스가 보는 중에 도착하면 말없이 목록이 바뀝니다. <a href="10-arrival.html">10</a></li>
+    <li><span class="tag flow">흐름</span>홈 화면에 추가한 앱에서 왼쪽 끝을 밀어 돌아갈 수 없습니다. 가장 크게 불편한 점입니다. <a href="07-stack.html">07</a></li>
+    <li><span class="tag flow">흐름</span>화면을 넘길 때 아래 화면이 움직이지 않아 깊이가 없습니다. <a href="07-stack.html">07</a></li>
+    <li><span class="tag flow">흐름</span>탭 전환에 방향이 없습니다. 어느 탭이든 아래에서 올라옵니다. 아이콘은 선 굵기만 바뀝니다. <a href="06-tabs.html">06</a></li>
+    <li><span class="tag flow">흐름</span>기사를 열면 누른 제목이 사라졌다 다른 자리에서 다시 나타납니다. <a href="08-morph.html">08</a></li>
+    <li><span class="tag flow">흐름</span>하루 목표 달성 화면이 3.2초 동안 전부를 가립니다. <a href="04-goal.html">04</a></li>
+    <li><span class="tag flow">흐름</span>홈에 돌아올 때마다 순차 등장이 반복됩니다. 하루 한 번이면 충분합니다. <a href="05-home.html">05</a></li>
+  </ol>
+
+  <h2>곡선 다섯 개</h2>
+  <p>모든 시안은 이 다섯 곡선만 씁니다. 눌러서 비교해 보세요.</p>
+  <div class="demo" id="demo"></div>
+  <div id="tracks"></div>
+  <table class="spec">
+    <tr><th>이름</th><th>쓰는 곳</th><th>값</th></tr>
+    <tr><td>out</td><td>들어오는 것, 대부분</td><td class="num">cubic-bezier(.22,1,.36,1)</td></tr>
+    <tr><td>in</td><td>나가는 것</td><td class="num">cubic-bezier(.55,0,1,.45)</td></tr>
+    <tr><td>inOut</td><td>자리를 옮기는 것</td><td class="num">cubic-bezier(.65,0,.35,1)</td></tr>
+    <tr><td>sheet</td><td>화면 넘김, 위에서 내려오는 띠</td><td class="num">cubic-bezier(.32,.72,0,1)</td></tr>
+    <tr><td>spring</td><td>도장, 체크, 손을 뗀 단추</td><td class="num">linear(...) 약 8% 넘침</td></tr>
+  </table>
+
+  <h2>시간 규칙</h2>
+  <table class="spec">
+    <tr><th>종류</th><th>시간</th><th>예</th></tr>
+    <tr><td>누름 반응</td><td class="num">90ms</td><td>단추가 눌림</td></tr>
+    <tr><td>작은 상태 변화</td><td class="num">140~240ms</td><td>점이 체크로, 칩 선택</td></tr>
+    <tr><td>내용 바꿈</td><td class="num">240~320ms</td><td>다음 문제, 탭 전환, 숫자 굴림</td></tr>
+    <tr><td>공간 이동</td><td class="num">380~420ms</td><td>화면 넘김, 제목 이어 보이기</td></tr>
+    <tr><td>보상</td><td class="num">2초 이하</td><td>세션 마무리, 하루 목표</td></tr>
+  </table>
+
+  <h2>지키는 원칙</h2>
+  <ol class="find">
+    <li>움직이는 것은 위치, 크기, 투명도뿐입니다. 폭, 높이, 바탕색은 움직이지 않습니다. 느린 폰에서도 끊기지 않게 하기 위해서입니다.</li>
+    <li>나가는 것은 들어오는 것보다 짧습니다. 사라지는 쪽을 오래 보여 줄 이유가 없습니다.</li>
+    <li>손가락에 붙은 움직임에는 곡선을 쓰지 않습니다. 손을 뗀 뒤부터 곡선이 이어받습니다.</li>
+    <li>같은 장면은 하루에 한 번만 길게 보여 줍니다. 두 번째부터는 짧게 끝냅니다.</li>
+    <li>아이폰 설정에서 "동작 줄이기" 를 켜면 모든 움직임이 즉시 끝납니다. 시안도 그대로 따릅니다.</li>
+    <li>아이폰 웹 앱은 진동을 쓸 수 없습니다. 손맛은 눌림과 튕김으로 대신합니다.</li>
+  </ol>
+
+  <h2>앱에 넣는 순서 제안</h2>
+  <table class="spec">
+    <tr><th>순서</th><th>항목</th><th>이유</th></tr>
+    <tr><td>1</td><td>01, 02 고장 세 가지</td><td>매일 수십 번 보는 화면이고 지금 틀려 보입니다</td></tr>
+    <tr><td>2</td><td>07 밀어서 돌아가기</td><td>가장 크게 불편합니다</td></tr>
+    <tr><td>3</td><td>11 누름 반응, 09 진행선</td><td>작고 모든 화면에 퍼집니다</td></tr>
+    <tr><td>4</td><td>03, 04 보상</td><td>매일 돌아오게 만드는 부분입니다</td></tr>
+    <tr><td>5</td><td>05, 06, 08, 10</td><td>완성도를 높이는 부분입니다</td></tr>
+  </table>
+</div>
+<script src="shared.js"></script>
+<script>
+(function () {
+  const demo = document.getElementById('demo');
+  const tracks = document.getElementById('tracks');
+  Object.entries(ML.ease).forEach(([k, v]) => {
+    const t = document.createElement('div');
+    t.className = 'track';
+    t.innerHTML = `<i></i><span>${k}</span>`;
+    tracks.append(t);
+    const b = document.createElement('button');
+    b.textContent = k;
+    b.addEventListener('click', () => run(t, v));
+    demo.append(b);
+  });
+  const all = document.createElement('button');
+  all.textContent = '모두';
+  all.addEventListener('click', () => tracks.querySelectorAll('.track').forEach((t, i) => run(t, Object.values(ML.ease)[i])));
+  demo.append(all);
+  function run(t, e) {
+    const dot = t.querySelector('i');
+    const w = t.offsetWidth - 80;
+    dot.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${w}px)` }], { duration: 700, easing: e, fill: 'both' });
+  }
+})();
+</script>
+</body>
+</html>
