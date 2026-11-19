@@ -197,7 +197,7 @@ export function TodayScreen() {
                 <SectionRow
                   kicker="영단어"
                   title={vocPart ? (vocPart.complete ? '오늘 분량을 마쳤습니다' : `오늘의 표현 ${vocPart.total}개`) : '오늘은 복습할 표현이 없습니다'}
-                  meta={vocPart && !vocPart.complete ? `금융영어 · 일반회화 · 아직 안 본 표현 ${newCount}개` : '더 풀기로 약한 표현을 다시 볼 수 있습니다'}
+                  meta={vocPart && !vocPart.complete ? `토익 어휘 · 일반회화 · 금융영어 · 아직 안 본 표현 ${newCount}개` : '더 풀기로 약한 표현을 다시 볼 수 있습니다'}
                   part={vocPart}
                   onPress={() => nav.push({ name: 'study', sect: 'voc' })}
                 />

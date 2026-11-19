@@ -72,10 +72,17 @@ await page.waitForTimeout(2500);
 await snap('01-home');
 await tap('Latticework 열기');
 await solve('02-lat');
+// 더 풀기를 두 번 해도 같은 문제가 되풀이되지 않는지 본다.
+await tap('더 풀기');
+await solve('02b-lat-more');
+await tap('더 풀기');
+await solve('02c-lat-more');
 await tap('오늘로 돌아가기');
 await snap('03-home-after-lat');
 await tap('영단어 열기');
 await solve('04-voc');
+await tap('더 풀기');
+await solve('04b-voc-more');
 await tap('오늘로 돌아가기');
 await snap('05-home-after-voc');
 await tap('기록');
@@ -83,7 +90,16 @@ await snap('06-record');
 const state = await page.evaluate(() => {
   const s = JSON.parse(localStorage.getItem('lw.study.state.v1') || '{}');
   const log = JSON.parse(localStorage.getItem('lw.study.log.v1') || '[]');
-  return { days: s.days, cards: Object.keys(s.cards || {}).length, xp: s.xp, log: log.length, sample: Object.values(s.cards || {}).slice(0, 2) };
+  const count = {};
+  const units = {};
+  for (const r of log) {
+    count[r.q] = (count[r.q] || 0) + 1;
+    units[r.k] = units[r.k] || new Set();
+    units[r.k].add(r.u);
+  }
+  const repeats = Object.entries(count).filter(([, n]) => n > 2).length;
+  const twice = Object.entries(count).filter(([, n]) => n === 2).length;
+  return { repeatsOver2: repeats, askedTwice: twice, distinctQuestions: Object.keys(count).length, latUnits: units.lat ? units.lat.size : 0, vocUnits: units.voc ? units.voc.size : 0, days: s.days, cards: Object.keys(s.cards || {}).length, xp: s.xp, log: log.length, sample: Object.values(s.cards || {}).slice(0, 2) };
 });
 console.log(JSON.stringify({ errors, state }, null, 1));
 await browser.close();

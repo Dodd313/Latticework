@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
 import { addDays, isWeekend, kstDate, todayKST } from './dates';
-import { LAT_GOAL, LogRow, Q, StudyData, StudyState, emptyStudy, review, vocGoalFor, xpFor } from './study';
+import { Asked, LAT_GOAL, LogRow, Q, StudyData, StudyState, emptyStudy, review, vocGoalFor, xpFor } from './study';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -94,6 +94,7 @@ type Store = {
   answerQuiz: (reviewId: string, index: number, choice: number) => void;
   studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
+  studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
   recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean }) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
@@ -407,6 +408,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLocal(STUDY_LOG_KEY, log.slice(-LOG_CAP));
   }, []);
 
+  const studyAsked = useCallback((): Asked => {
+    const today = todayKST();
+    const keys = new Set<string>();
+    const units = new Set<string>();
+    for (const row of loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []) {
+      if (kstDate(row.t) !== today) continue;
+      keys.add(row.q);
+      units.add(row.u);
+    }
+    return { keys, units };
+  }, []);
+
   const markRead = useCallback(
     (articleId: string, read: boolean) => {
       const cur = userRef.current;
@@ -483,7 +496,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const value: Store = { status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy };
+  const value: Store = { status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked };
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 

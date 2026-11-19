@@ -10,7 +10,11 @@ export type Concept = { id: string; name: string; en?: string; field?: string; t
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용 · 5 설명. t 는 mc(4지선다), ox(맞다·틀리다), rc(떠올리고 스스로 채점). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox' | 'rc'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string; r?: string };
 
-export type Vocab = { id: string; deck: 'fin' | 'gen'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string };
+export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string; pos?: string };
+
+/** 오늘 이미 낸 문제와 항목. 같은 날 같은 문제를 다시 내지 않는 데 쓴다. */
+export type Asked = { keys: Set<string>; units: Set<string> };
+const NONE: Asked = { keys: new Set(), units: new Set() };
 
 export type StudyData = { version: number; updatedAt?: string; concepts: Concept[]; questions: LatQuestion[]; vocab: Vocab[] };
 
@@ -35,7 +39,7 @@ export type StudyState = { v: 1; start: string; cards: Record<string, Card>; day
 export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3 };
 
 export const LAT_GOAL = 5;
-export const VOC_NEW_PER_DAY = 5;
+export const VOC_NEW_PER_DAY = 6;
 export const VOC_REVIEW_CAP = 10;
 export const LAT_NEW_PER_DAY = 3;
 
@@ -147,46 +151,51 @@ function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, 
 }
 
 /**
- * Latticework 세션. 복습할 때가 된 개념을 기억이 약한 순서로 먼저 넣고, 남는 자리에 새 개념을 넣는다.
- * 그래도 남으면 오늘 나온 개념을 다른 유형으로 한 번 더 묻는다.
+ * Latticework 세션.
+ * 하루 분량(daily): 복습할 때가 된 개념을 기억이 약한 순서로 먼저 넣고, 남는 자리에 새 개념을 넣는다.
+ * 더 풀기(weak): 오늘 아직 안 나온 개념을 먼저 고른다. 복습할 개념, 새 개념, 나머지 순이다.
+ * 어느 쪽이든 오늘 이미 낸 문제는 다시 내지 않고, 한 세션에서 한 개념은 한 번만 나온다(자리가 남을 때만 다른 유형으로 한 번 더).
  */
-export function buildLat(data: StudyData, state: StudyState, today: string, now: Date, count: number, mode: 'daily' | 'weak' = 'daily'): Q[] {
-  const byId: Record<string, Concept> = {};
-  data.concepts.forEach((c) => (byId[c.id] = c));
+export function buildLat(data: StudyData, state: StudyState, today: string, now: Date, count: number, mode: 'daily' | 'weak' = 'daily', asked: Asked = NONE): Q[] {
   const seen = data.concepts.filter((c) => state.cards[c.id]);
   const fresh = data.concepts.filter((c) => !state.cards[c.id]);
   const weakest = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const due = weakest.filter((c) => state.cards[c.id].due <= today);
+  const untouched = (c: Concept) => !asked.units.has(c.id);
 
   const order: Concept[] = [];
   const push = (c: Concept) => {
-    if (order.length < count && !order.includes(c)) order.push(c);
+    if (!order.includes(c)) order.push(c);
   };
-  due.forEach(push);
-  if (mode === 'daily') fresh.slice(0, LAT_NEW_PER_DAY).forEach(push);
-  weakest.forEach(push);
-  fresh.forEach(push);
+  if (mode === 'daily') {
+    due.forEach(push);
+    fresh.slice(0, LAT_NEW_PER_DAY).forEach(push);
+    weakest.forEach(push);
+    fresh.forEach(push);
+  } else {
+    due.filter(untouched).forEach(push);
+    fresh.forEach(push);
+    weakest.filter(untouched).forEach(push);
+    weakest.forEach(push);
+  }
 
   const out: Q[] = [];
-  const used = new Set<string>();
+  const used = new Set<string>(asked.keys);
   const add = (c: Concept) => {
+    if (out.length >= count) return;
     const x = pickLatQuestion(c, data.questions, state.cards[c.id], used);
-    if (!x) return false;
+    if (!x) return;
     used.add(x.id);
     out.push(latQ(c, x));
-    return true;
   };
   order.forEach(add);
-  // 자리가 남으면 같은 개념을 다른 유형으로 한 번 더.
-  let guard = 0;
-  while (out.length < count && order.length > 0 && guard < count * 4) {
-    add(order[guard % order.length]);
-    guard += 1;
-  }
-  return out.slice(0, count);
+  // 개념이 모자라 자리가 남을 때만, 이번에 나온 개념을 다른 유형으로 한 번 더 묻는다.
+  if (out.length < count) order.slice(0, count).forEach(add);
+  return out;
 }
 
 const REGISTERS = ['친구끼리', '일반', '격식', '속어'];
+const DECK_NAME: Record<Vocab['deck'], string> = { fin: '금융영어', gen: '일반회화', toeic: '토익 어휘' };
 const VOC_TYPE_NAME: Record<string, string> = { meaning: '뜻 고르기', define: '정의에 맞는 표현', cloze: '빈칸', register: '격식 고르기', recall: '떠올리기' };
 
 function vocTypes(v: Vocab): string[] {
@@ -198,20 +207,21 @@ function vocTypes(v: Vocab): string[] {
 
 function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
   const rand = rng(`${seed}:${v.id}:${type}`);
-  const deckName = v.deck === 'fin' ? '금융영어' : '일반회화';
-  const kicker = `${deckName} · ${VOC_TYPE_NAME[type]}`;
+  const kicker = `${DECK_NAME[v.deck]} · ${VOC_TYPE_NAME[type]}`;
   const base = { key: `${v.id}:${type}`, unit: v.id, sect: 'voc' as Section, type, kicker };
   // 오답 보기: 같은 단어장에서, 되도록 같은 묶음에서 고른다.
   const pool = data.vocab.filter((x) => x.id !== v.id && x.deck === v.deck);
-  const near = shuffle(pool.filter((x) => v.group && x.group === v.group), rand);
-  const far = shuffle(pool.filter((x) => !v.group || x.group !== v.group), rand);
+  // 같은 묶음(금융영어의 단원, 토익 어휘의 품사)이 가까운 보기다.
+  const kin = (x: Vocab) => (v.group ? x.group === v.group : v.pos ? x.pos === v.pos : false);
+  const near = shuffle(pool.filter(kin), rand);
+  const far = shuffle(pool.filter((x) => !kin(x)), rand);
   const others = [...near, ...far].slice(0, 3);
   const withAnswer = (right: string, wrong: string[]) => {
     const options = shuffle([right, ...wrong], rand);
     return { options, answer: options.indexOf(right) };
   };
   const bare = v.term.replace(/\s*\(.*?\)/g, '');
-  const detail = [v.ko, v.def, v.similar ? `비슷한 표현: ${v.similar}` : '', v.formal ? `격식 있는 표현: ${v.formal}` : ''].filter(Boolean).join('\n');
+  const detail = [v.pos ? `${v.term} (${v.pos}) ${v.ko}` : `${v.term}: ${v.ko}`, v.def, v.deck === 'toeic' && v.ex ? `예문: ${v.ex}` : '', v.similar ? `비슷한 표현: ${v.similar}` : '', v.formal ? `격식 있는 표현: ${v.formal}` : ''].filter(Boolean).join('\n');
 
   if (type === 'meaning') {
     return { ...base, q: v.term, ...withAnswer(v.ko, others.map((x) => x.ko)), hint: v.def, explain: detail };
@@ -229,32 +239,42 @@ function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
   return { ...base, q: `"${v.ko}"를 영어로 떠올려 보세요.`, pre: v.deck === 'gen' ? `쓰는 자리: ${v.level}` : undefined, reveal: [v.term, v.def, v.ex ?? ''].filter(Boolean).join('\n') };
 }
 
-/** 영단어 세션. 복습할 때가 된 표현(기억이 약한 순)과 새 표현을 섞는다. */
-export function buildVoc(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak' = 'daily', count?: number): Q[] {
+/**
+ * 영단어 세션. 복습할 때가 된 표현(기억이 약한 순)과 새 표현을 섞는다.
+ * 더 풀기(weak)는 오늘 아직 안 나온 표현을 먼저 고른다. 오늘 이미 낸 문제는 다시 내지 않는다.
+ */
+export function buildVoc(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak' = 'daily', count?: number, asked: Asked = NONE): Q[] {
   const seen = data.vocab.filter((v) => state.cards[v.id]);
   const fresh = data.vocab.filter((v) => !state.cards[v.id]);
   const weakest = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const due = weakest.filter((v) => state.cards[v.id].due <= today);
-  // 새 표현은 두 단어장에서 번갈아 가져온다.
-  const fin = fresh.filter((v) => v.deck === 'fin');
-  const gen = fresh.filter((v) => v.deck === 'gen');
+  const untouched = (v: Vocab) => !asked.units.has(v.id);
+  // 새 표현은 단어장을 번갈아 가져온다. 토익 어휘를 가장 자주 넣는다.
+  const decks: Record<Vocab['deck'], Vocab[]> = { toeic: [], gen: [], fin: [] };
+  fresh.forEach((v) => decks[v.deck]?.push(v));
+  const turn: Vocab['deck'][] = ['toeic', 'gen', 'toeic', 'fin'];
   const mixed: Vocab[] = [];
-  for (let i = 0; i < Math.max(fin.length, gen.length); i++) {
-    if (gen[i]) mixed.push(gen[i]);
-    if (fin[i]) mixed.push(fin[i]);
+  for (let i = 0, guard = 0; mixed.length < fresh.length && guard < fresh.length * 8; i++, guard++) {
+    const next = decks[turn[i % turn.length]].shift();
+    if (next) mixed.push(next);
   }
-  let picked: Vocab[];
-  if (mode === 'daily') picked = [...due.slice(0, VOC_REVIEW_CAP), ...mixed.slice(0, VOC_NEW_PER_DAY)];
-  else picked = [...weakest, ...mixed].slice(0, count ?? 10);
-  if (count !== undefined) picked = picked.slice(0, count);
-  const rand = rng(`${today}:voc:${picked.length}`);
-  return shuffle(picked, rand).map((v) => {
+
+  let order: Vocab[];
+  if (mode === 'daily') order = [...due.slice(0, VOC_REVIEW_CAP), ...mixed.slice(0, VOC_NEW_PER_DAY)];
+  else order = [...due.filter(untouched), ...mixed, ...weakest.filter(untouched), ...weakest];
+  order = order.filter((v, i) => order.indexOf(v) === i);
+
+  const limit = count ?? order.length;
+  const out: Q[] = [];
+  for (const v of order) {
+    if (out.length >= limit) break;
     const card = state.cards[v.id];
-    const types = vocTypes(v);
-    // 처음 보는 표현은 뜻부터. 그 뒤로는 가장 덜 낸 유형.
-    const type = card ? types.slice().sort((a, b) => (card.asked?.[a] ?? 0) - (card.asked?.[b] ?? 0))[0] : 'meaning';
-    return vocQ(v, type, data, today);
-  });
+    // 처음 보는 표현은 뜻부터. 그 뒤로는 가장 덜 낸 유형. 오늘 이미 낸 문제는 건너뛴다.
+    const types = (card ? vocTypes(v).slice().sort((a, b) => (card.asked?.[a] ?? 0) - (card.asked?.[b] ?? 0)) : ['meaning', ...vocTypes(v)]).filter((t) => !asked.keys.has(`${v.id}:${t}`));
+    if (types.length === 0) continue;
+    out.push(vocQ(v, types[0], data, today));
+  }
+  return shuffle(out, rng(`${today}:voc:${out.length}:${asked.keys.size}`));
 }
 
 /** 오늘 영단어 목표 문항 수. 하루에 한 번 정해 두고 바꾸지 않는다. */

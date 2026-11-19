@@ -6,7 +6,7 @@ import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { useStore } from '../store';
 import { LAT_GOAL, Q, Section, buildLat, buildVoc, levelOf, xpFor } from '../study';
 import { useTheme } from '../theme';
-import { Icon, T, Tap } from '../ui';
+import { Icon, Rich, T, Tap } from '../ui';
 
 const PAD: any = BOTTOM_PAD === 8 ? 12 : 'calc(12px + env(safe-area-inset-bottom, 0px))';
 const MARK = ['가', '나', '다', '라', '마'];
@@ -28,7 +28,7 @@ function Button({ label, onPress, disabled, kind = 'solid' }: { label: string; o
 export function StudyScreen({ sect }: { sect: Section }) {
   const t = useTheme();
   const nav = useNav();
-  const { studyData, study, recordStudy } = useStore();
+  const { studyData, study, recordStudy, studyAsked } = useStore();
   const today = todayKST();
   const rec = study.days[today];
   const goal = sect === 'lat' ? (rec?.latGoal ?? LAT_GOAL) : (rec?.vocGoal ?? 0);
@@ -39,7 +39,8 @@ export function StudyScreen({ sect }: { sect: Section }) {
     if (!studyData) return { queue: [], extra: false };
     const left = Math.max(0, goal - doneAtOpen);
     const now = new Date();
-    if (left > 0) return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, left) : buildVoc(studyData, study, today, now, 'daily', left), extra: false };
+    const asked = studyAsked();
+    if (left > 0) return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, left, 'daily', asked) : buildVoc(studyData, study, today, now, 'daily', left, asked), extra: false };
     return { queue: [], extra: true };
   }, []);
 
@@ -51,6 +52,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const [crossed, setCrossed] = useState<number[]>([]);
   const [attempts, setAttempts] = useState(0);
   const [tally, setTally] = useState({ right: 0, total: 0, xp: 0 });
+  const [exhausted, setExhausted] = useState(false);
   const shownAt = useRef(Date.now());
 
   const q = queue[at];
@@ -103,7 +105,9 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const more = () => {
     if (!studyData) return;
     const now = new Date();
-    const list = sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak') : buildVoc(studyData, study, today, now, 'weak', 8);
+    const asked = studyAsked();
+    const list = sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak', asked) : buildVoc(studyData, study, today, now, 'weak', 8, asked);
+    setExhausted(list.length === 0);
     setExtra(true);
     setQueue(list);
     setTally({ right: 0, total: 0, xp: 0 });
@@ -146,7 +150,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
                 {SECT_NAME[sect]}
               </T>
               <T serif s={28} w="700" lh={1.35}>
-                {tally.total > 0 ? (extra ? '더 풀기를 마쳤습니다' : '오늘 분량을 마쳤습니다') : '오늘 분량은 이미 마쳤습니다'}
+                {exhausted ? '오늘 낼 수 있는 문제를 모두 풀었습니다' : tally.total > 0 ? (extra ? '더 풀기를 마쳤습니다' : '오늘 분량을 마쳤습니다') : '오늘 분량은 이미 마쳤습니다'}
               </T>
               {tally.total > 0 ? (
                 <T s={15} lh={1.6} c={t.deck}>
@@ -159,7 +163,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
             </View>
           </Rise>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Button label="더 풀기" kind="line" onPress={more} />
+            {exhausted ? null : <Button label="더 풀기" kind="line" onPress={more} />}
             <Button label="오늘로 돌아가기" onPress={nav.pop} />
           </View>
         </ScrollView>
@@ -170,14 +174,14 @@ export function StudyScreen({ sect }: { sect: Section }) {
               <T s={12.5} w="700" c={t.blue} style={{ letterSpacing: 0.3 }}>
                 {q.kicker}
               </T>
-              <T serif s={q.q.length > 40 ? 20 : 23} w="700" lh={1.5} role="heading" level={1}>
+              <Rich serif s={q.q.length > 40 ? 20 : 23} w="700" lh={1.5} role="heading" level={1}>
                 {q.q}
-              </T>
+              </Rich>
               {q.pre ? (
                 <View style={{ paddingVertical: 14, borderTopWidth: 1, borderTopColor: t.line, borderBottomWidth: 1, borderBottomColor: t.line }}>
-                  <T serif s={16.5} lh={1.75} c={t.bodyInk}>
+                  <Rich serif s={16.5} lh={1.75} c={t.bodyInk}>
                     {q.pre}
-                  </T>
+                  </Rich>
                 </View>
               ) : null}
             </Rise>
@@ -207,9 +211,9 @@ export function StudyScreen({ sect }: { sect: Section }) {
                       <T serif s={15} w="700" c={on || isAnswer ? t.onInverse : t.sub} style={{ width: 16 }}>
                         {MARK[i]}
                       </T>
-                      <T s={16} w={on || isAnswer ? '700' : '400'} lh={1.5} c={on || isAnswer ? t.onInverse : isCrossed ? t.mute : t.ink} style={[{ flex: 1 }, isCrossed ? ({ textDecorationLine: 'line-through' } as any) : null]}>
+                      <Rich s={16} w={on || isAnswer ? '700' : '400'} lh={1.5} c={on || isAnswer ? t.onInverse : isCrossed ? t.mute : t.ink} style={[{ flex: 1 }, isCrossed ? ({ textDecorationLine: 'line-through' } as any) : null]}>
                         {opt}
-                      </T>
+                      </Rich>
                       {isAnswer ? <Icon name="check" size={18} color={t.onInverse} bold /> : null}
                     </Tap>
                   );
@@ -222,9 +226,9 @@ export function StudyScreen({ sect }: { sect: Section }) {
                 <T s={12.5} w="700" c={t.orange} style={{ letterSpacing: 0.3 }}>
                   힌트
                 </T>
-                <T s={15} lh={1.65}>
+                <Rich s={15} lh={1.65}>
                   {q.hint}
-                </T>
+                </Rich>
               </Rise>
             ) : null}
             {phase === 'hint' && !q.hint ? (
@@ -239,9 +243,9 @@ export function StudyScreen({ sect }: { sect: Section }) {
                   {phase === 'right' ? (attempts === 1 ? '정답' : '두 번째에 정답') : '오답 · 끝에 다시 나옵니다'}
                 </T>
                 {q.explain ? (
-                  <T s={15} lh={1.7} c={t.deck}>
+                  <Rich s={15} lh={1.7} c={t.deck}>
                     {q.explain}
-                  </T>
+                  </Rich>
                 ) : null}
               </Rise>
             ) : null}
@@ -251,9 +255,9 @@ export function StudyScreen({ sect }: { sect: Section }) {
                 <T s={12.5} w="700" style={{ letterSpacing: 0.4 }}>
                   기준 답
                 </T>
-                <T serif s={16.5} lh={1.8} c={t.bodyInk}>
+                <Rich serif s={16.5} lh={1.8} c={t.bodyInk}>
                   {q.reveal}
-                </T>
+                </Rich>
               </Rise>
             ) : null}
             {phase === 'think' ? (

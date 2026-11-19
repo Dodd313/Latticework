@@ -50,6 +50,30 @@ export function T({ s = 15, w = '400', c, mono, serif, lh, center, lines, style,
 }
 
 /** 지면형의 구획. 상자 대신 위쪽 괘선 하나로 나눈다. 색 바탕(tone)은 강조할 때만 쓴다. */
+/**
+ * 문제 본문용 글자. <sub>…</sub> 와 <sup>…</sup> 만 아래첨자와 위첨자로 그리고, 그 밖의 태그는 지운다.
+ */
+export function Rich({ children, ...rest }: Omit<TProps, 'children'> & { children?: string }) {
+  const text = String(children ?? '');
+  const size = rest.s ?? 15;
+  const parts: React.ReactNode[] = [];
+  const re = /<(sub|sup)>([\s\S]*?)<\/\1>/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  const clean = (x: string) => x.replace(/<[^>]+>/g, '');
+  while ((m = re.exec(text))) {
+    if (m.index > last) parts.push(clean(text.slice(last, m.index)));
+    parts.push(
+      <Text key={parts.length} style={[{ fontSize: Math.round(size * 0.7) }, Platform.OS === 'web' ? ({ position: 'relative', top: m[1] === 'sub' ? '0.3em' : '-0.45em' } as any) : null]}>
+        {clean(m[2])}
+      </Text>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(clean(text.slice(last)));
+  return <T {...rest}>{parts}</T>;
+}
+
 export function Card({ children, style, tone = 'card' }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; tone?: 'card' | 'blue' | 'inverse' }) {
   const t = useTheme();
   if (tone === 'card') return <View style={[{ paddingVertical: 16, borderTopWidth: 1, borderTopColor: t.line }, style]}>{children}</View>;
