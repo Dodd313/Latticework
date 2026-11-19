@@ -8,7 +8,7 @@ const raw = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const day = raw.data ?? raw;
 const out = [];
 out.push(`<h1>${esc(day.date)} 시사</h1>`);
-out.push(`<p>오늘 읽을 경제 뉴스 ${day.articles.length}건입니다. 앱: <a href="https://dodd313.github.io/Latticework/">Latticework 시사</a></p>`);
+out.push(`<p>오늘 읽을 뉴스 ${day.articles.length}건입니다. 앱: <a href="https://dodd313.github.io/Latticework/">Latticework</a></p>`);
 
 for (const a of day.articles) {
   out.push(`<h2>${esc(a.title)}</h2>`);
