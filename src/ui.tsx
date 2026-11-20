@@ -773,7 +773,7 @@ export type StatTone = 'yellow' | 'green' | 'blue' | 'orange';
  * 결과 카드: 바깥은 색(테두리 2), 머리에 아이콘, 안쪽 흰 패널(모서리 14, 높이 56)에 굵은 숫자.
  * lead 를 주면 숫자 앞에 아이콘(예: bolt)을 둔다.
  */
-export function StatCard({ tone, icon, value, lead, a11yLabel, style }: { tone: StatTone; icon: IconName | React.ReactNode; value: React.ReactNode; lead?: IconName; a11yLabel?: string; style?: StyleProp<ViewStyle> }) {
+export function StatCard({ tone, icon, label, value, lead, a11yLabel, style }: { tone: StatTone; icon: IconName | React.ReactNode; label?: string; value: React.ReactNode; lead?: IconName; a11yLabel?: string; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
   const m: Record<StatTone, [string, string, string]> = {
     yellow: [t.yellow, t.onYellow, t.orangeText],
@@ -784,7 +784,14 @@ export function StatCard({ tone, icon, value, lead, a11yLabel, style }: { tone: 
   const [bg, head, ink] = m[tone];
   return (
     <View accessible={!!a11yLabel} accessibilityLabel={a11yLabel} style={[{ flex: 1, borderRadius: 16, padding: 2, backgroundColor: bg }, style]}>
-      <View style={{ height: 25, alignItems: 'center', justifyContent: 'center' }}>{typeof icon === 'string' ? <Icon name={icon as IconName} size={14} color={head} sw={icon === 'check' ? 3.2 : undefined} /> : icon}</View>
+      <View style={{ height: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        {typeof icon === 'string' ? <Icon name={icon as IconName} size={13} color={head} sw={icon === 'check' ? 3.2 : undefined} /> : icon}
+        {label ? (
+          <T s={12} w="700" c={head} lh={1.4}>
+            {label}
+          </T>
+        ) : null}
+      </View>
       <View style={{ height: 56, borderRadius: 14, backgroundColor: t.card, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         {lead ? <Icon name={lead} size={18} color={t.yellow} /> : null}
         {typeof value === 'string' || typeof value === 'number' ? (

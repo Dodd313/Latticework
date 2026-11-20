@@ -315,7 +315,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
   }, []);
 
   const [queue, setQueue] = useState<Q[]>(first.queue);
-  const [, setExtra] = useState(first.extra);
+  const [extra, setExtra] = useState(first.extra);
   const [at, setAt] = useState(0);
   const [phase, setPhase] = useState<Phase>(first.queue[0]?.reveal !== undefined ? 'think' : 'answer');
   const [picked, setPicked] = useState<number | null>(null);
@@ -474,6 +474,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
         streakFrom={streakAtOpen}
         streakTo={goals.streak}
         exhausted={exhausted}
+        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${extra ? '더 풀기 완료' : '학습 완료'}`}
         onMore={more}
         onDone={nav.pop}
       />
@@ -617,10 +618,12 @@ function Finish({
   streakFrom,
   streakTo,
   exhausted,
+  title,
   onMore,
   onDone,
 }: {
   tally: { right: number; total: number; xp: number };
+  title: string;
   xpFrom: number;
   xpTo: number;
   streakFrom: number;
@@ -675,17 +678,25 @@ function Finish({
                 <T s={36} w="800" mono lh={40 / 36} style={{ letterSpacing: -1 }}>
                   {Math.round(accN)}%
                 </T>
+                <T s={13} w="600" c={t.mute} lh={1.4}>
+                  정답률
+                </T>
               </Ring>
+            </Enter>
+            <Enter delay={140} duration={320} y={8} style={{ alignItems: 'center' }}>
+              <T type="t2" w="700" center>
+                {title}
+              </T>
             </Enter>
             <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: 10 }}>
               <Enter delay={260} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="yellow" icon="bolt" lead="bolt" value={`+${Math.round(xpN)}`} a11yLabel={`경험치 ${tally.xp}`} />
+                <StatCard tone="yellow" icon="bolt" label="경험치" value={`+${Math.round(xpN)}`} a11yLabel={`경험치 ${tally.xp}`} />
               </Enter>
               <Enter delay={320} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="green" icon="check" value={`${Math.round(rightN)}/${tally.total}`} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
+                <StatCard tone="green" icon="check" label="정답" value={`${Math.round(rightN)}/${tally.total}`} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
               </Enter>
               <Enter delay={380} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="orange" icon="calFill" value={`${Math.round(stN)}일`} a11yLabel={`연속 ${streakTo}일`} />
+                <StatCard tone="orange" icon="calFill" label="연속" value={`${Math.round(stN)}일`} a11yLabel={`연속 ${streakTo}일`} />
               </Enter>
             </View>
           </>
@@ -718,7 +729,7 @@ function LevelBox({ lv, cur, need, value, hideLv }: { lv: number; cur: number; n
           </T>
         )}
         <T type="t6" w="600" c={t.sub} mono>
-          {cur} / {need}
+          {cur} / {need} XP
         </T>
       </View>
       <ProgressBar value={value} height={12} color={t.yellow} a11yLabel={`Lv.${lv} ${cur}/${need}`} />

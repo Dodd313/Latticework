@@ -208,47 +208,6 @@ function Seg({ color, delay }: { color: string; delay: number }) {
   );
 }
 
-/** 그 달의 주마다 할당량을 마친 날. 목요일이 든 달을 그 주의 달로 본다. */
-function Weeks({ month, statusOf, extraOf }: { month: string; statusOf: (date: string) => DayStatus; extraOf: (date: string) => number }) {
-  const t = useTheme();
-  const today = todayKST();
-  const rows = useMemo(() => {
-    const out: { title: string; days: { date: string; done: boolean }[] }[] = [];
-    let mon = weekdaysOf(`${month}-01`)[0];
-    if (monthKey(addDays(mon, 3)) !== month) mon = addDays(mon, 7);
-    for (; monthKey(addDays(mon, 3)) === month && mon <= today; mon = addDays(mon, 7)) {
-      const days = Array.from({ length: 7 }, (_, i) => {
-        const date = addDays(mon, i);
-        return { date, done: date <= today && statusOf(date) === 'done' };
-      });
-      out.push({ title: weekTitle(mon).replace(/차$/, ''), days });
-    }
-    return out;
-  }, [month, today, statusOf]);
-  if (rows.length === 0) return null;
-  return (
-    <Box style={{ paddingVertical: 10 }}>
-      {rows.map((r, k) => {
-        const n = r.days.filter((d) => d.done).length;
-        return (
-          <View key={`${month}-${r.title}`} accessible accessibilityLabel={`${r.title} ${n}/7`} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }}>
-            <T s={15} w="600" mono style={{ width: 64 }} lines={1}>
-              {r.title}
-            </T>
-            <View style={{ flex: 1, flexDirection: 'row', gap: 4 }}>
-              {r.days.map((d, i) => (
-                <Seg key={d.date} color={d.done ? heatColor(extraOf(d.date)) : t.line} delay={300 + (k * 7 + i) * 12} />
-              ))}
-            </View>
-            <T s={14} w="600" c={t.mute} mono style={{ width: 34, textAlign: 'right' }}>
-              {`${n}/7`}
-            </T>
-          </View>
-        );
-      })}
-    </Box>
-  );
-}
 
 const PART_NAME = { news: '뉴스', voc: '영단어', lat: 'Latticework' } as const;
 
@@ -366,7 +325,6 @@ export function ArchiveScreen() {
             <Stat label="이번 달" value={doneThisMonth} />
           </View>
           <Calendar month={shown} statusOf={goals.statusOf} extraOf={goals.extraOf} canPrev={shown > oldest} canNext={shown < newest} onPrev={() => setMonth(shiftMonth(shown, -1))} onNext={() => setMonth(shiftMonth(shown, 1))} onPick={setPicked} />
-          <Weeks month={shown} statusOf={goals.statusOf} extraOf={goals.extraOf} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 14, borderRadius: 14, backgroundColor: t.card }}>
             <Icon name="search" size={20} color={t.faint} bold />
             <TextInput
