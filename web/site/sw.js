@@ -1,5 +1,5 @@
 // 서비스 워커: 인터넷이 될 때는 항상 새 파일을 받고, 끊겼을 때만 보관본을 쓴다.
-const CACHE = 'lw-shell-v2';
+const CACHE = 'lw-shell-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -19,7 +19,8 @@ self.addEventListener('fetch', (event) => {
   // 주소 뒤의 꼬리표(?t=, ?v=)는 떼고 보관해 보관본이 쌓이지 않게 한다.
   const key = url.origin + url.pathname;
   event.respondWith(
-    fetch(req)
+    // 브라우저의 HTTP 보관본(최대 10분)을 건너뛰고 서버에 바뀐 것이 있는지 매번 확인한다.
+    fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' })
       .then((res) => {
         if (res && res.ok) {
           const copy = res.clone();
