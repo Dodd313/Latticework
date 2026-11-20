@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>격자 지도 · Motion Lab 6차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root {
+    --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple500: #a234c7; --purple600: #9128b4; --purple700: #8222a2;
+    --purple-weak: #f7edfa;
+  }
+  .scr { background: var(--grey100) !important; }
+  .view { position: absolute; inset: 0 0 64px 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+  .view::-webkit-scrollbar { display: none; }
+
+  /* 머리 */
+  .ttl1 { padding: 20px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .stack { padding: 0 12px 28px; display: flex; flex-direction: column; gap: 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .tl { position: relative; background: #fff; border-radius: 16px; padding: 12px 16px 11px; text-align: left; transition: background-color .2s, box-shadow .2s; }
+  .tl span { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); transition: color .2s; }
+  .tl b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; transition: color .2s; }
+  .tl .gl { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .tl .gl.ring { box-shadow: inset 0 0 0 2px var(--grey400); }
+  .tl .gl.dot { background: var(--grey300); border-radius: 5px; }
+  .tl[data-f] { cursor: pointer; }
+  .tl[aria-pressed='true'] { background: var(--grey800); }
+  .tl[aria-pressed='true'] span { color: rgba(255, 255, 255, .62); }
+  .tl[aria-pressed='true'] b { color: #fff; }
+  .tl[aria-pressed='true'] .gl.ring { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .7); }
+  .tl[aria-pressed='true'] .gl.dot { background: rgba(255, 255, 255, .7); }
+  .tl.down { transform: scale(.97); }
+
+  /* 영역 카드 */
+  .card { background: #fff; border-radius: 20px; padding: 18px 20px 20px; }
+  .ch { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .ch .ic { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .ch .nm { flex: 1; font-size: 17px; line-height: 25.5px; font-weight: 700; }
+  .ch .ct { display: flex; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .ch .ct b { font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.6px; }
+  .ch .ct small { font-size: 17px; font-weight: 600; color: var(--grey400); margin-left: 1px; }
+  .grp { display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: 6px; align-items: start; }
+  .grp + .grp { margin-top: 12px; }
+  .gl2 { font-size: 13px; line-height: 17px; font-weight: 600; color: var(--grey500); padding-top: 1px; word-break: keep-all; }
+  .cells { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 4px; }
+  .card.concept .cells { gap: 5px; }
+  .card.concept .gl2 { padding-top: 6px; }
+
+  /* 칸: 하나가 항목 하나 */
+  .cell { position: relative; aspect-ratio: 1; border-radius: 5px; background: var(--c); cursor: pointer; transition: opacity .24s ease, transform .2s; -webkit-tap-highlight-color: transparent; }
+  .card.concept .cell { border-radius: 8px; }
+  .cell.w { background: #fff; box-shadow: inset 0 0 0 2px var(--c); }
+  .cell .fl { position: absolute; inset: 0; border-radius: inherit; transform: scale(0); }
+  .cell .halo { position: absolute; inset: -3px; border-radius: 8px; pointer-events: none; box-shadow: 0 0 0 2px var(--c); opacity: 0; }
+  .card.concept .cell .halo { border-radius: 11px; }
+  .cell.sel { z-index: 2; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--grey900); }
+  .cell.w.sel { box-shadow: inset 0 0 0 2px var(--c), 0 0 0 2px #fff, 0 0 0 4px var(--grey900); }
+  .view.focus .cell:not(.lk):not(.sel) { opacity: .16; }
+  .view.f-due .cell:not(.m), .view.f-today .cell:not(.m) { opacity: .16; }
+
+  /* 탭 막대 (5차와 같음) */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 25; }
+  .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs button.on { color: var(--grey900); }
+
+  /* 항목 카드 */
+  .sheet { position: absolute; left: 8px; right: 8px; bottom: 72px; z-index: 20; background: #fff; border-radius: 24px; padding: 16px 20px 20px; box-shadow: 0 12px 40px rgba(2, 32, 71, .16), 0 0 0 1px rgba(2, 32, 71, .05); }
+  .sheet .top { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+  .sheet .sw { width: 12px; height: 12px; border-radius: 4px; flex: none; }
+  .sheet .sw.w { box-shadow: inset 0 0 0 2px var(--c); }
+  .sheet .path { flex: 1; font-size: 13px; font-weight: 600; color: var(--grey500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet .x { width: 32px; height: 32px; margin-right: -8px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--grey400); }
+  .sheet h3 { margin: 6px 0 0; font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sheet .en { margin-top: 1px; font-size: 14px; line-height: 20px; color: var(--grey500); }
+  .sheet .st { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--grey100); }
+  .sheet .st span { display: block; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .sheet .st b { font-size: 17px; line-height: 25px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet .st b.due { color: var(--orange700); }
+  .sheet .lks { display: flex; gap: 6px; margin: 14px -20px 0; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .sheet .lks::-webkit-scrollbar { display: none; }
+  .sheet .lk { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; max-width: 168px; padding: 0 12px 0 10px; border-radius: 10px; background: var(--grey100); font-size: 13px; font-weight: 600; color: var(--grey700); }
+  .sheet .lk .sw { width: 10px; height: 10px; border-radius: 3px; }
+  .sheet .lk em { font-style: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet .lk.down { background: var(--grey200); }
+  .sheet .tbtn { margin-top: 16px; }
+
+  .rollnum { display: inline-block; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>지식 탭 · 격자 지도</h2>
+    <p>뉴스, 단어, 개념을 영역별 격자로 놓았습니다. 칸 하나가 항목 하나입니다. 칸은 처음 본 날 순서로 왼쪽 위에서 오른쪽 아래로 놓이므로, 격자의 끝이 가장 최근에 배운 것입니다.</p>
+    <h3>읽는 법 (화면에는 쓰지 않음)</h3>
+    <table class="spec">
+      <tr><th>모양</th><th>뜻</th></tr>
+      <tr><td>칸의 색</td><td>영역. 뉴스 blue, 단어 purple, 개념 green</td></tr>
+      <tr><td>칸의 진하기</td><td>반복 횟수. 1회 100, 2회 200, 3~4회 300, 5~7회 500, 8회 이상 700 단계</td></tr>
+      <tr><td>속이 빈 칸</td><td>기억이 90% 아래로 내려간 항목(복습할 것). 테두리 색은 반복 단계를 따른다</td></tr>
+      <tr><td>칸 크기</td><td>개념 칸이 단어·뉴스 칸보다 크다. 이 앱의 중심이 개념이기 때문</td></tr>
+      <tr><td>카드 오른쪽 숫자</td><td>기억 중 / 전체. 뉴스는 기억 모델이 없어 전체만</td></tr>
+      <tr><td>위 세 칸</td><td>전체, 오늘(오늘 처음 보거나 복습한 것), 복습. 오늘과 복습은 누르면 해당 칸만 남기고 나머지를 흐리게 한다. 뉴스·단어·개념 수는 각 카드 오른쪽에 이미 있어서, 위 칸에 다시 두지 않았다(중복 제거)</td></tr>
+    </table>
+    <h3>움직임</h3>
+    <ul>
+      <li><b>들어올 때</b>: 카드마다 칸이 왼쪽 위에서 대각선으로 차오른다(칸당 16ms 간격, 380ms). 칸 순서가 곧 날짜 순서라서 물결이 공부한 시간을 다시 훑는 셈이다. 카드는 화면에 들어올 때 한 번만 채워진다.</li>
+      <li><b>칸 누르기</b>: 그 항목과 연결된 칸만 남고 나머지는 흐려진다. 기사에 나온 개념, 개념의 용어인 단어, 같은 주제의 개념이 영역을 넘어 함께 켜진다. 아래 카드의 연결 칩을 누르면 그 항목으로 건너간다. 옵시디언 그래프의 "이웃 강조"를 격자 위에서 한다.</li>
+      <li><b>복습</b>: 빈 칸 안에서 색이 가운데부터 차오르고(340ms), 칸이 한 번 튀고(Toss quick, bounce 스프링), 테두리 하나가 퍼지며 사라진다. 카드의 숫자는 올라가고 위의 복습 수는 내려간다.</li>
+      <li><b>세션 끝</b>: 복습 세션을 마치고 이 탭으로 오면, 푼 개념들이 110ms 간격으로 차례로 채워진다.</li>
+    </ul>
+    <h3>빌려 온 것</h3>
+    <ul>
+      <li>GitHub 기여 그래프: 둥근 사각 칸, 단계별 색, 시간 순서의 배치.</li>
+      <li>주기율표: 행 앞의 묶음 이름(주제, 단어장, 달), 묶음마다 길이가 다른 행.</li>
+      <li>옵시디언 그래프 뷰: 노드를 누르면 이웃만 남기는 강조와 링크를 따라가는 탐색.</li>
+      <li>Apple 피트니스 링: "채워야 할 빈 것"을 속이 빈 모양으로 보여 주는 방식.</li>
+      <li>Latticework 아이콘: 둥근 흰 사각 격자. 탭 아이콘도 같은 격자다.</li>
+    </ul>
+    <h3>장점</h3>
+    <ul>
+      <li>186개 항목이 스크롤 두 번 안에 전부 보인다. 그래프 뷰처럼 확대·이동할 필요가 없다.</li>
+      <li>빈 칸의 양이 곧 복습할 양이라 한눈에 "어디가 비었는지" 보인다. 범례 없이도 채우고 싶어지는 모양이다.</li>
+      <li>칸 위치가 고정이라 날마다 같은 자리에서 같은 항목을 찾는다. 공간 기억이 생긴다.</li>
+      <li>앱 아이콘, 홈 카드, 기록 탭과 같은 언어(흰 카드, 둥근 사각, Toss 색)라 따로 놀지 않는다.</li>
+    </ul>
+    <h3>약점 (솔직하게)</h3>
+    <ul>
+      <li>연결이 상시 보이지 않는다. 칸을 눌러야 영역을 넘는 연결이 드러난다. "지식이 엮인다"는 느낌은 그래프 뷰보다 약하다.</li>
+      <li>단어·뉴스 칸이 18px 안팎이라 손가락으로 정확히 누르기 어렵다. 실제 앱에서는 길게 눌러 끌면 칸을 훑는 돋보기가 필요하다.</li>
+      <li>항목이 천 개를 넘으면 토익 단어장 하나가 화면을 다 차지한다. 그때는 단어장별로 접거나, 반복 단계별로 묶어 "칸 하나 = 열 단어"로 바꿔야 한다.</li>
+      <li>뉴스는 복습이 없어서 칸이 다 차 있고 숫자도 하나뿐이다. 다른 두 카드와 결이 다르다.</li>
+      <li>"진하기 = 반복 횟수"는 처음 보는 사람이 바로 읽지 못한다. 대신 같은 칸이 날마다 진해지는 걸 보며 배우게 된다.</li>
+    </ul>
+    <h3>실제 앱에 필요한 데이터</h3>
+    <ul>
+      <li>항목마다 처음 본 날, 마지막 복습 날, 반복 횟수, 기억 유지 일수(FSRS의 stability). 지금 앱은 정답 여부만 저장하므로 복습 기록 표를 새로 둬야 한다.</li>
+      <li>개념의 분야·주제, 단어의 단어장, 기사의 날짜. 이미 있는 값이다.</li>
+      <li>연결: 기사에 나온 개념(기사 요약 생성 때 함께 뽑기), 개념의 용어인 단어, 같은 주제의 개념.</li>
+      <li>"오늘" 칸을 위한 오늘 처음 본 것·오늘 복습한 것 목록.</li>
+      <li>이 시안의 반복·기억 값은 고정 시드로 만든 예시다. 항목 이름과 묶음은 실제 앱 데이터다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const SRC = window.KDATA;
+  const DAY = 864e5;
+  const TODAY = SRC.today;
+  const T0 = new Date(TODAY + 'T00:00:00');
+  const PAL = {
+    news: ['#c9e2ff', '#90c2ff', '#64a8ff', '#3182f6', '#1b64da'],
+    word: ['#edccf8', '#da9bef', '#c770e4', '#a234c7', '#8222a2'],
+    concept: ['#aeefd5', '#76e4b8', '#3fd599', '#03b26c', '#029359'],
+  };
+  const KIND = {
+    news: { nm: '뉴스', bg: 'var(--blue-weak)' },
+    word: { nm: '단어', bg: 'var(--purple-weak)' },
+    concept: { nm: '개념', bg: 'var(--green-weak)' },
+  };
+  const DECK = { toeic: '토익', fin: '금융', gen: '일반' };
+  const TOPICS = ['CAPM', 'APT', '자본배분', '지수모형', '최적 포트폴리오'];
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    know: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3.5" y="3.5" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="12.9" y="3.5" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="3.5" y="12.9" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="12.9" y="12.9" width="7.6" height="7.6" rx="2.2" fill="currentColor"/></svg>',
+    news: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 4.5h12.5v15H6.5A2.5 2.5 0 0 1 4 17zM18 8h2v9.5a2 2 0 0 1-4 0V8zM7 8h6.5v2H7zm0 4h6.5v1.6H7zm0 3.4h4.5V17H7z" fill="var(--blue600)" fill-rule="evenodd"/></svg>',
+    word: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4.5 3.5V17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="var(--purple500)"/></svg>',
+    concept: () => `<span style="color:var(--green600);display:flex">${LW.mark(20, 'currentColor', 3.4)}</span>`,
+    x: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  };
+
+  // ---------- 상태 ----------
+  let N, byId, links;
+  function load() {
+    N = SRC.nodes.map((n) => Object.assign({}, n));
+    byId = new Map(N.map((n) => [n.id, n]));
+    links = new Map(N.map((n) => [n.id, []]));
+    SRC.edges.forEach((e) => {
+      if (!links.has(e.s) || !links.has(e.t)) return;
+      links.get(e.s).push(e.t);
+      links.get(e.t).push(e.s);
+    });
+    N.forEach(derive);
+  }
+  const days = (a) => Math.round((T0 - new Date(a + 'T00:00:00')) / DAY);
+  function derive(n) {
+    n.lv = n.reps <= 1 ? 0 : n.reps === 2 ? 1 : n.reps <= 4 ? 2 : n.reps <= 7 ? 3 : 4;
+    if (n.kind === 'news') { n.R = 1; n.weak = false; }
+    else { n.R = 1 / (1 + days(n.last) / (9 * n.stability)); n.weak = n.R < 0.9; }
+    n.today = n.first === TODAY || n.last === TODAY;
+  }
+  const color = (n) => PAL[n.kind][n.weak ? Math.max(2, n.lv) : n.lv];
+  const held = (kind) => N.filter((n) => n.kind === kind && !n.weak).length;
+  const total = (kind) => N.filter((n) => n.kind === kind).length;
+  const dueCount = () => N.filter((n) => n.weak).length;
+  const todayCount = () => N.filter((n) => n.today).length;
+  const md = (s) => { const d = new Date(s + 'T00:00:00'); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
+  const addDays = (s, k) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + Math.round(k)); return d.toISOString().slice(0, 10); };
+  const byFirst = (a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : a.id < b.id ? -1 : 1);
+
+  function groups(kind) {
+    const L = N.filter((n) => n.kind === kind).sort(byFirst);
+    if (kind === 'news') {
+      const m = new Map();
+      L.forEach((n) => { const k = +n.first.slice(5, 7) + '월'; (m.get(k) || m.set(k, []).get(k)).push(n); });
+      return [...m].map(([nm, items]) => ({ nm, items }));
+    }
+    if (kind === 'word') return Object.keys(DECK).map((d) => ({ nm: DECK[d], items: L.filter((n) => n.deck === d) })).filter((g) => g.items.length);
+    const out = TOPICS.map((t) => ({ nm: t, items: L.filter((n) => n.topic === t) }));
+    out.push({ nm: '기타', items: L.filter((n) => !TOPICS.includes(n.topic)) });
+    return out.filter((g) => g.items.length);
+  }
+
+  // ---------- 그리기 ----------
+  const S = { filter: null, sel: null, seen: new Set() };
+  let view, io;
+
+  function cellHtml(n) {
+    return `<button class="cell ${n.weak ? 'w' : ''}" data-id="${n.id}" style="--c:${color(n)}" aria-label="${n.label.replace(/"/g, '&quot;')}"></button>`;
+  }
+  function cardHtml(kind) {
+    const cols = kind === 'concept' ? 8 : 12;
+    const hasMem = kind !== 'news';
+    return `<section class="card ${kind}" data-kind="${kind}">
+      <div class="ch"><span class="ic" style="background:${KIND[kind].bg}">${typeof ICON[kind] === 'function' ? ICON[kind]() : ICON[kind]}</span><span class="nm">${KIND[kind].nm}</span>
+        <span class="ct"><b class="n" data-n="${hasMem ? held(kind) : total(kind)}">0</b>${hasMem ? `<small>/${total(kind)}</small>` : ''}</span></div>
+      ${groups(kind).map((g) => `<div class="grp"><span class="gl2">${g.nm}</span><div class="cells" style="--cols:${cols}">${g.items.map(cellHtml).join('')}</div></div>`).join('')}
+    </section>`;
+  }
+  function tileHtml(f, nm, v, glyph) {
+    return `<button class="tl" ${f ? `data-f="${f}" aria-pressed="false"` : ''}><span>${glyph ? `<i class="gl ${glyph}"></i>` : ''}${nm}</span><b data-n="${v}">0</b></button>`;
+  }
+
+  function render() {
+    if (io) io.disconnect();
+    load();
+    S.filter = null; S.sel = null; S.seen = new Set(); S.t0 = performance.now(); sheet = null;
+    phone.innerHTML = `<div class="scr">
+      <div class="view" id="view">
+        <div class="ttl1">지식</div>
+        <div class="stack">
+          <div class="tiles" id="tiles">${tileHtml(null, '전체', N.length)}${tileHtml('today', '오늘', todayCount())}${tileHtml('due', '복습', dueCount(), 'ring')}</div>
+          ${['news', 'word', 'concept'].map(cardHtml).join('')}
+        </div>
+      </div>
+      <nav class="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['know', ICON.know, '지식']].map(([k, i, l]) => `<button data-k="${k}" class="${k === 'know' ? 'on' : ''}">${i}${l}</button>`).join('')}</nav>
+    </div>`;
+    view = phone.querySelector('#view');
+    bind();
+    enter();
+  }
+
+  // ---------- 들어올 때: 읽는 순서대로 칸이 차오른다 ----------
+  function enter() {
+    ML.stagger(view.querySelectorAll('.ttl1, .tl'), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320 }, 40);
+    view.querySelectorAll('.tl b').forEach((b, i) => setTimeout(() => ML.count(b, 0, +b.dataset.n, 640), (80 + i * 40) / ML.rate));
+    io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); wave(e.target); } }), { root: view, threshold: 0.12 });
+    let k = 0;
+    view.querySelectorAll('.card').forEach((c) => {
+      c.style.opacity = '0';
+      c.dataset.d = String(140 + k++ * 110);
+      io.observe(c);
+    });
+  }
+  function wave(card) {
+    const d0 = performance.now() - S.t0 < 400 ? +card.dataset.d : 0;
+    S.seen.add(card);
+    card.style.opacity = '';
+    ML.a(card, [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: d0 }).finished.then((a) => a.cancel()).catch(() => {});
+    const step = card.classList.contains('concept') ? 24 : 15;
+    let row = 0;
+    card.querySelectorAll('.cells').forEach((g) => {
+      const cols = +g.style.getPropertyValue('--cols');
+      const cells = g.querySelectorAll('.cell');
+      cells.forEach((el, i) => {
+        const r = row + Math.floor(i / cols), c = i % cols;
+        const an = ML.a(el, [{ transform: 'scale(.25)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 380, delay: d0 + 120 + (r + c) * step, easing: ML.ease.out });
+        an.finished.then(() => an.cancel()).catch(() => {});
+      });
+      row += Math.ceil(cells.length / cols) + 1;
+    });
+    const n = card.querySelector('.ct b');
+    setTimeout(() => ML.count(n, 0, +n.dataset.n, 700), (d0 + 160) / ML.rate);
+  }
+
+  // ---------- 누르기 ----------
+  function bind() {
+    view.addEventListener('click', (e) => {
+      const c = e.target.closest('.cell');
+      if (c) return select(c.dataset.id);
+      const t = e.target.closest('.tl[data-f]');
+      if (t) return setFilter(S.filter === t.dataset.f ? null : t.dataset.f);
+      if (S.sel) closeSheet();
+    });
+    view.querySelectorAll('.tl[data-f]').forEach((t) => {
+      t.addEventListener('pointerdown', () => K.spring(t, [{ transform: 'scale(1)' }, { transform: 'scale(.96)' }], 'quick'));
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => t.addEventListener(ev, () => K.spring(t, [{ transform: 'scale(.96)' }, { transform: 'scale(1)' }], 'quick')));
+    });
+  }
+  const cellOf = (id) => view.querySelector(`.cell[data-id="${CSS.escape(id)}"]`);
+
+  function setFilter(f) {
+    if (S.sel) closeSheet();
+    S.filter = f;
+    view.classList.toggle('f-due', f === 'due');
+    view.classList.toggle('f-today', f === 'today');
+    view.querySelectorAll('.tl[data-f]').forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.f === f)));
+    markFilter();
+  }
+  function markFilter() {
+    view.querySelectorAll('.cell').forEach((el) => {
+      const n = byId.get(el.dataset.id);
+      el.classList.toggle('m', S.filter === 'due' ? n.weak : S.filter === 'today' ? n.today : true);
+    });
+  }
+
+  // ---------- 항목 카드 ----------
+  let sheet = null;
+  function swatch(n) { return `<i class="sw ${n.weak ? 'w' : ''}" style="--c:${color(n)};${n.weak ? '' : `background:${color(n)}`}"></i>`; }
+  function sheetHtml(n) {
+    const path = n.kind === 'concept' ? `${n.field} · ${n.topic}` : n.kind === 'word' ? [DECK[n.deck], n.group].filter(Boolean).join(' · ') : '뉴스';
+    const ls = links.get(n.id).map((id) => byId.get(id)).sort((a, b) => ['concept', 'word', 'news'].indexOf(a.kind) - ['concept', 'word', 'news'].indexOf(b.kind));
+    const st = n.kind === 'news'
+      ? [['읽음', `${n.reps}회`], ['날짜', md(n.first)]]
+      : [['반복', `${n.reps}회`], ['기억', `${Math.round(n.R * 100)}%`, n.weak], ['복습', n.weak ? '오늘' : md(addDays(n.last, n.stability)), n.weak]];
+    return `<div class="top">${swatch(n)}<span class="path">${path}</span><button class="x" aria-label="닫기">${ICON.x}</button></div>
+      <h3>${n.label}</h3>${n.en ? `<div class="en">${n.en}</div>` : ''}
+      <div class="st" style="grid-template-columns:repeat(${st.length},minmax(0,1fr))">${st.map(([k, v, due]) => `<div><span>${k}</span><b class="${due ? 'due' : ''}">${v}</b></div>`).join('')}</div>
+      ${ls.length ? `<div class="lks">${ls.map((l) => `<button class="lk" data-id="${l.id}">${swatch(l)}<em>${l.label}</em></button>`).join('')}</div>` : ''}
+      ${n.weak ? '<button class="tbtn" id="rev">복습</button>' : ''}`;
+  }
+
+  function select(id) {
+    const n = byId.get(id);
+    if (S.filter) { S.filter = null; view.classList.remove('f-due', 'f-today'); view.querySelectorAll('.tl[data-f]').forEach((t) => t.setAttribute('aria-pressed', 'false')); }
+    view.querySelectorAll('.cell.sel, .cell.lk').forEach((el) => el.classList.remove('sel', 'lk'));
+    const el = cellOf(id);
+    el.classList.add('sel');
+    links.get(id).forEach((l) => cellOf(l)?.classList.add('lk'));
+    view.classList.add('focus');
+    K.spring(el, [{ transform: 'scale(.82)' }, { transform: 'scale(1)' }], 'bounce');
+    // 이웃 칸이 한 번에 켜지되, 고른 칸에서 가까운 순서로
+    const r0 = el.getBoundingClientRect();
+    links.get(id).forEach((l) => {
+      const c = cellOf(l); if (!c) return;
+      const r = c.getBoundingClientRect();
+      const d = Math.hypot(r.left - r0.left, r.top - r0.top);
+      ML.a(c, [{ transform: 'scale(.7)' }, { transform: 'scale(1)' }], { duration: 300, delay: Math.min(260, d * 0.45), easing: ML.ease.spring }).finished.then((a) => a.cancel()).catch(() => {});
+    });
+    const fresh = !sheet;
+    if (!sheet) {
+      sheet = document.createElement('div');
+      sheet.className = 'sheet';
+      phone.querySelector('.scr').append(sheet);
+    }
+    sheet.innerHTML = sheetHtml(n);
+    S.sel = id;
+    if (fresh) K.spring(sheet, [{ transform: 'translateY(calc(100% + 80px))' }, { transform: 'translateY(0)' }], 'medium');
+    else ML.a(sheet.querySelector('h3'), [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 220 });
+    sheet.querySelector('.x').addEventListener('click', closeSheet);
+    sheet.querySelectorAll('.lk').forEach((b) => { K.press(b); b.addEventListener('click', () => select(b.dataset.id)); });
+    const rv = sheet.querySelector('#rev');
+    if (rv) { K.press(rv); rv.addEventListener('click', () => review(id)); }
+    view.querySelector('.stack').style.paddingBottom = sheet.offsetHeight + 28 + 'px';
+    requestAnimationFrame(() => reveal(el));
+  }
+  // 고른 칸이 카드에 가리지 않게
+  function reveal(el) {
+    const v = view.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const sh = sheet ? sheet.offsetHeight : 0;
+    const lim = v.bottom + 64 - 72 - sh - 16;
+    if (r.bottom > lim) view.scrollBy({ top: r.bottom - lim + 8, behavior: ML.reduce ? 'auto' : 'smooth' });
+    else if (r.top < v.top + 12) view.scrollBy({ top: r.top - v.top - 60, behavior: ML.reduce ? 'auto' : 'smooth' });
+  }
+  function closeSheet() {
+    view.classList.remove('focus');
+    view.querySelectorAll('.cell.sel, .cell.lk').forEach((el) => el.classList.remove('sel', 'lk'));
+    S.sel = null;
+    if (!sheet) return Promise.resolve();
+    const s = sheet; sheet = null;
+    const stack = view.querySelector('.stack');
+    const pad = parseFloat(stack.style.paddingBottom) || 28;
+    const max = view.scrollHeight - (pad - 28) - view.clientHeight;
+    if (view.scrollTop > max) view.scrollTo({ top: max, behavior: ML.reduce ? 'auto' : 'smooth' });
+    setTimeout(() => { if (!sheet) stack.style.paddingBottom = ''; }, 420 / ML.rate);
+    return ML.done(ML.a(s, [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(40px)', opacity: 0 }], { duration: 180, easing: ML.ease.in })).then(() => s.remove());
+  }
+
+  // ---------- 복습: 빈 칸이 가운데부터 차오른다 ----------
+  async function review(id) {
+    await closeSheet();
+    await ML.wait(80);
+    fill(id);
+  }
+  function fill(id) {
+    const n = byId.get(id);
+    if (!n.weak) return Promise.resolve();
+    const el = cellOf(id);
+    n.reps += 1; n.last = TODAY; n.stability = +(n.stability * 2.3 + 1).toFixed(1);
+    derive(n);
+    const col = color(n);
+    const fl = document.createElement('i');
+    fl.className = 'fl';
+    fl.style.background = col;
+    el.append(fl);
+    ML.a(fl, [{ transform: 'scale(0)', borderRadius: '50%' }, { transform: 'scale(1)', borderRadius: 'inherit' }], { duration: 340, easing: ML.ease.out });
+    const p = ML.wait(240).then(() => {
+      el.classList.remove('w');
+      el.style.setProperty('--c', col);
+      fl.remove();
+      K.spring(el, [{ transform: 'scale(1)' }, { transform: 'scale(1.24)' }], 'quick');
+      return ML.wait(120);
+    }).then(() => {
+      K.spring(el, [{ transform: 'scale(1.24)' }, { transform: 'scale(1)' }], 'bounce');
+      const h = document.createElement('i');
+      h.className = 'halo';
+      el.append(h);
+      ML.done(ML.a(h, [{ transform: 'scale(1)', opacity: 0.7 }, { transform: 'scale(1.9)', opacity: 0 }], { duration: 520, easing: ML.ease.out })).then(() => h.remove());
+    });
+    // 숫자
+    const card = el.closest('.card');
+    const cn = card.querySelector('.ct b');
+    ML.roll(cn, String(held(n.kind)), 1);
+    const tb = view.querySelectorAll('.tl b');
+    ML.roll(tb[2], String(dueCount()), -1);
+    if (tb[1].textContent !== String(todayCount())) ML.roll(tb[1], String(todayCount()), 1);
+    if (S.filter) markFilter();
+    return p;
+  }
+
+  // ---------- 실험용 동작 ----------
+  async function demoOne() {
+    if (S.sel) await closeSheet();
+    if (S.filter) setFilter(null);
+    const n = N.find((x) => x.kind === 'concept' && x.weak);
+    if (!n) return;
+    select(n.id);
+    await ML.wait(1100);
+    const rv = sheet && sheet.querySelector('#rev');
+    if (!rv) return;
+    rv.classList.add('down');
+    K.spring(rv, [{ transform: 'scale(1)' }, { transform: 'scale(.96)' }], 'quick');
+    await ML.wait(160);
+    rv.classList.remove('down');
+    review(n.id);
+  }
+  async function sessionEnd() {
+    if (S.sel) await closeSheet();
+    if (S.filter) setFilter(null);
+    const card = view.querySelector('.card.concept');
+    if (!S.seen.has(card)) { io.unobserve(card); wave(card); }
+    view.scrollTo({ top: card.offsetTop - 12, behavior: ML.reduce ? 'auto' : 'smooth' });
+    await ML.wait(520);
+    const list = [...card.querySelectorAll('.cell.w')].slice(0, 6);
+    for (const el of list) { fill(el.dataset.id); await ML.wait(110); }
+  }
+
+  ML.bar({
+    title: '지식 · 격자 지도',
+    home: '../index.html',
+    replay: render,
+    extra: [['복습 하나', demoOne], ['세션 끝', sessionEnd], ['복습만', () => setFilter(S.filter === 'due' ? null : 'due')]],
+  });
+  render();
+})();
+</script>
+</body>
+</html>

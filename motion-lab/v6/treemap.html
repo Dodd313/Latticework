@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>지식 나무 · Motion Lab 6차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root {
+    --purple50: #f9f0fc; --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple400: #b44bd7; --purple500: #a234c7; --purple600: #9128b4; --purple700: #8222a2;
+    --purple-weak: #f7edfa;
+  }
+  .scr { background: var(--grey100) !important; }
+  .view { position: absolute; inset: 0 0 64px 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+  .view::-webkit-scrollbar { display: none; }
+  .ttl1 { padding: 20px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .stack { padding: 0 12px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .card { position: relative; background: #fff; border-radius: 20px; overflow: hidden; }
+
+  /* 성장 카드: 위 세 숫자 + 아래 누적 면 그래프 */
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 16px 20px 0; }
+  .stat span { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); }
+  .stat span i { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+  .stat b { display: block; margin-top: 1px; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; }
+  .spark { position: relative; height: 92px; margin-top: 8px; touch-action: pan-y; cursor: crosshair; }
+  .spark svg { position: absolute; inset: 0; display: block; overflow: visible; }
+  .spark .hair { position: absolute; top: 18px; bottom: 0; width: 1px; margin-left: -.5px; background: var(--grey300); opacity: 0; pointer-events: none; }
+  .spark .tag { position: absolute; top: 0; height: 18px; padding: 0 6px; transform: translateX(-50%); border-radius: 6px; background: var(--grey800); color: #fff; font-size: 11px; line-height: 18px; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .spark .pin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 4px; background: #fff; box-shadow: 0 0 0 2px var(--c); opacity: 0; pointer-events: none; }
+  .dates { display: flex; justify-content: space-between; padding: 6px 20px 12px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--grey400); font-variant-numeric: tabular-nums; }
+
+  /* 나무 카드 */
+  .trow { display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 12px 0 12px; }
+  .crumbs { flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px; overflow: hidden; }
+  .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 16px; font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--grey600); background: transparent; transition: background-color .18s, color .18s; -webkit-tap-highlight-color: transparent; }
+  .chip i { width: 8px; height: 8px; border-radius: 4px; }
+  .chip.cur { background: var(--grey900); color: #fff; }
+  .chip:not(.cur):hover { background: var(--grey100); }
+  .chip.down:not(.cur) { background: var(--grey200); }
+  .crumbs .sep { flex: none; display: flex; color: var(--grey300); }
+  .seg { flex: none; position: relative; display: grid; grid-template-columns: auto auto; height: 32px; padding: 2px; border-radius: 10px; background: var(--grey100); }
+  .seg .th { position: absolute; top: 2px; bottom: 2px; left: 2px; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(2, 32, 71, .1); }
+  .seg button { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--grey500); transition: color .18s; }
+  .seg button[aria-pressed='true'] { color: var(--grey900); }
+  .seg button em { font-style: normal; font-variant-numeric: tabular-nums; color: var(--grey400); transition: color .18s; }
+  .seg button[aria-pressed='true'] em { color: var(--orange600); }
+
+  .map { position: relative; margin: 0 8px 8px; height: 366px; overflow: hidden; border-radius: 12px; touch-action: pan-y; }
+  .layer { position: absolute; inset: 0; }
+  .blk { position: absolute; overflow: hidden; border-radius: 10px; background: var(--f); color: var(--ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: filter .15s; }
+  .blk.down { filter: brightness(.94); }
+  .blk.weak { background: var(--wt); box-shadow: inset 0 0 0 1.5px var(--wb); }
+  .blk.gone { pointer-events: none; }
+  .blk .lb { position: absolute; left: 10px; top: 8px; right: 8px; }
+  .blk .nm { display: block; font-size: 13px; line-height: 17px; font-weight: 600; opacity: .86; word-break: keep-all; overflow-wrap: anywhere; }
+  .blk .ct { display: block; font-size: 20px; line-height: 26px; font-weight: 700; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; }
+  .blk.sm .lb { left: 7px; top: 5px; right: 5px; }
+  .blk.sm .nm { font-size: 11px; line-height: 14px; }
+  .blk.sm .ct { font-size: 15px; line-height: 19px; }
+  .blk .row { display: flex; align-items: center; gap: 6px; }
+  .blk .due { display: inline-flex; align-items: center; gap: 2px; height: 20px; padding: 0 6px 0 4px; border-radius: 10px; background: #fff; color: var(--dc); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .blk.sm .due { height: 18px; padding: 0 5px 0 3px; font-size: 11px; }
+  .blk.flat .lb { display: flex; align-items: baseline; gap: 6px; }
+  .blk.one .nm, .blk.flat .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .blk .bar { position: absolute; left: 10px; right: 10px; bottom: 10px; height: 4px; border-radius: 2px; background: var(--bt); overflow: hidden; }
+  .blk .bar i { position: absolute; inset: 0; border-radius: 2px; background: var(--bf); transform-origin: left; }
+  /* 낱개 항목 */
+  .blk.leaf { border-radius: 8px; }
+  .blk.leaf .lb { left: 8px; top: 6px; right: 6px; bottom: 6px; overflow: hidden; }
+  .blk.leaf .nm { opacity: 1; overflow-wrap: normal; font-size: 12px; line-height: 16px; font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines, 2); overflow: hidden; }
+  .blk.leaf.tiny .lb { left: 5px; top: 4px; right: 4px; bottom: 4px; }
+  .blk.leaf.tiny .nm { font-size: 11px; line-height: 14px; letter-spacing: -0.1px; }
+  .blk.leaf.big .nm { font-size: 14px; line-height: 19px; font-weight: 700; }
+  .blk.leaf.sel { z-index: 3; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--grey900); }
+  .blk.leaf.weak.sel { box-shadow: inset 0 0 0 1.5px var(--wb), 0 0 0 2px #fff, 0 0 0 4px var(--grey900); }
+  .map.dim .blk.leaf:not(.sel) { opacity: .35; }
+
+  /* 탭 막대 (5차와 같음) */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 25; }
+  .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs button.on { color: var(--grey900); }
+
+  /* 항목 카드 */
+  .sheet { position: absolute; left: 8px; right: 8px; bottom: 72px; z-index: 20; background: #fff; border-radius: 24px; padding: 14px 20px 20px; box-shadow: 0 12px 40px rgba(2, 32, 71, .16), 0 0 0 1px rgba(2, 32, 71, .05); }
+  .sheet .top { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+  .sheet .top i { width: 8px; height: 8px; border-radius: 4px; flex: none; }
+  .sheet .path { flex: 1; font-size: 13px; font-weight: 600; color: var(--grey500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet .x { width: 32px; height: 32px; margin-right: -8px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--grey400); }
+  .sheet h3 { margin: 4px 0 0; font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: keep-all; }
+  .sheet .en { margin-top: 1px; font-size: 14px; line-height: 20px; color: var(--grey500); }
+  .sheet .mem { position: relative; height: 6px; margin-top: 16px; border-radius: 3px; background: var(--grey100); overflow: hidden; }
+  .sheet .mem i { position: absolute; inset: 0; border-radius: 3px; transform-origin: left; }
+  .sheet .mem u { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; }
+  .sheet .st { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; }
+  .sheet .st span { display: block; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .sheet .st b { font-size: 17px; line-height: 25px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet .tbtn { margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>지식 탭 · 지식 나무</h2>
+    <p>지금까지 배운 모든 것을 한 장의 면적 지도(트리맵)로 나눴습니다. 면적은 항목 수, 색의 진하기는 지금 기억이 얼마나 남았는지입니다. 위의 그래프는 60일 동안 지식이 어떻게 쌓였는지를 보여 줍니다.</p>
+    <h3>읽는 법 (화면에는 쓰지 않음)</h3>
+    <table class="spec">
+      <tr><th>모양</th><th>뜻</th></tr>
+      <tr><td>색상</td><td>영역. 뉴스 blue500, 영단어 purple500, Latticework 개념 green500. 위 세 숫자의 점과 같은 색</td></tr>
+      <tr><td>칸 면적</td><td>첫 화면: 묶음(단어장, 주제, 기사 주차)의 항목 수. 묶음 안: 항목의 반복 횟수. 많이 돌린 것이 크다</td></tr>
+      <tr><td>칸 진하기</td><td>기억 정도(FSRS 식 R = (1 + 경과일 / (9 × 유지일))⁻¹). 묶음은 평균. 기억이 옅으면 연해진다. 70%에서 100 단계, 100%에서 600 단계</td></tr>
+      <tr><td>칸 아래 얇은 막대</td><td>묶음에서 "굳은" 항목의 비율. 기억 유지일이 7일을 넘은 항목</td></tr>
+      <tr><td>오른쪽 위 ↻ 숫자</td><td>기억이 90% 아래로 내려가 복습할 항목 수</td></tr>
+      <tr><td>속이 연한 칸 (테두리만)</td><td>묶음 안에서 복습할 항목. 채워야 할 빈 칸으로 보이게 했다</td></tr>
+      <tr><td>위 그래프</td><td>세 영역의 누적 항목 수를 쌓은 면 그래프. 오른쪽 끝 높이가 곧 위 세 숫자다</td></tr>
+    </table>
+    <h3>움직임</h3>
+    <ul>
+      <li><b>들어올 때</b>: 그래프가 9월 22일부터 오늘까지 왼쪽에서 오른쪽으로 그려진다(1.1초). 위 세 숫자는 따로 세지 않고 그 순간 그래프가 지나는 날짜의 누적값을 그대로 보여 준다. 아래 지도의 칸도 그 묶음의 첫 항목 날짜를 그래프가 지나는 순간 나타난다. 숫자, 그래프, 지도가 하나의 시간축으로 함께 자란다.</li>
+      <li><b>그래프 훑기</b>: 그래프를 누르고 좌우로 끌면 그날까지의 누적값이 위 숫자에 바로 나온다. 손을 떼면 오늘 값으로 돌아간다.</li>
+      <li><b>묶음 열기</b>: 칸을 누르면 그 칸이 지도 전체로 커지고(FLIP 확대, 480ms, 시트 곡선), 다른 칸은 같은 비율로 밖으로 밀려난다. 안의 항목들은 눌렀던 칸 자리에서 펼쳐진다. 위쪽 칩 줄에 묶음 이름이 붙는다. "전체" 칩을 누르면 같은 길을 거꾸로 돌아간다.</li>
+      <li><b>모두 / 복습</b>: 복습을 고르면 면적의 기준이 "복습할 항목 수"로 바뀐다. 복습이 없는 묶음(뉴스 전부 포함)이 먼저 줄며 사라지고(200ms), 남은 칸이 새 자리로 옮긴다(440ms). 두 움직임을 겹치지 않게 나눠, 칸이 서로 엇갈려 지나가는 어지러움을 줄였다. 어디에 복습이 몰렸는지가 면적으로 보인다.</li>
+      <li><b>항목 누르기</b>: 아래에서 카드가 올라와 반복 횟수, 기억, 다음 복습일을 보여 준다. 기억 막대의 흰 눈금이 90% 선이다.</li>
+    </ul>
+    <h3>빌려 온 것</h3>
+    <ul>
+      <li>Finviz 시장 지도, Apple 저장 공간 막대, DaisyDisk: 전체 중 어디가 큰지를 면적으로 나누는 방식과 눌러서 들어가는 탐색.</li>
+      <li>토스 증권 차트: 카드 가장자리까지 닿는 면 그래프, 누르고 끌어 값을 읽는 조작.</li>
+      <li>GitHub 기여 그래프: 진하기 하나로 양을 읽게 하는 단색 단계.</li>
+      <li>Apple 피트니스: 채워야 할 것을 속이 빈 모양으로 보여 주는 방식.</li>
+      <li>옵시디언 그래프 뷰에서는 "내 지식 전체를 한 화면에" 라는 목표만 가져왔다. 연결선은 쓰지 않는다.</li>
+    </ul>
+    <h3>장점</h3>
+    <ul>
+      <li>"어디에 지식이 쌓였고, 어디가 옅어지는지"를 한 화면에서 비율로 읽는다. 토익이 절반을 차지하고 개념은 아직 작다는 사실이 바로 보인다.</li>
+      <li>항목이 천 개가 넘어도 첫 화면 모양은 같다. 묶음 단위로만 나뉘기 때문이다. 그래프 뷰처럼 점이 뭉개지지 않는다.</li>
+      <li>칸이 커서 손가락으로 누르기 쉽다. 가장 작은 묶음도 40px를 넘는다.</li>
+      <li>그래프와 숫자와 지도가 같은 날짜로 묶여 있어, 들어올 때 한 번 보는 것만으로 "60일 동안 이만큼 쌓였다"가 전해진다.</li>
+    </ul>
+    <h3>약점 (솔직하게)</h3>
+    <ul>
+      <li>연결(기사에 나온 개념, 개념의 용어인 단어)이 보이지 않는다. 사용자가 말한 "옵시디언식"의 엮이는 느낌은 이 시안에서 가장 약하다.</li>
+      <li>트리맵은 정확한 비교에 약하다. 비슷한 크기의 칸 둘 중 어느 쪽이 큰지는 숫자를 봐야 안다.</li>
+      <li>항목이 늘면 칸 배치가 바뀐다(정렬 기준이 크기라서). 날마다 같은 자리에 같은 묶음이 있지 않을 수 있다. 실제 앱에서는 순서를 고정한 배치(ordered treemap)로 바꾸는 게 낫다.</li>
+      <li>"진하기 = 기억"은 처음에 읽히지 않는다. 연한 칸을 눌러 복습하면 진해지는 경험을 몇 번 해야 배운다.</li>
+      <li>단어 69개가 한 칸에 들어간 토익 안쪽은 칸이 작아 이름이 다 보이지 않는다. 눌러야 이름이 나온다.</li>
+      <li>뉴스는 앱에 복습 기록이 없다. 이 시안은 "한 번 읽은 기사 4일, 두 번 읽은 기사 12일 기억"으로 가정해 칠했다.</li>
+    </ul>
+    <h3>실제 앱에 필요한 데이터</h3>
+    <ul>
+      <li>항목마다 처음 본 날, 마지막 복습 날, 반복 횟수, 기억 유지 일수(FSRS stability). 지금 앱은 정답 여부만 저장하므로 복습 기록 표가 새로 필요하다.</li>
+      <li>묶음 기준: 단어의 단어장, 개념의 주제(같은 주제가 하나뿐이면 "기타"로 묶음), 기사의 날짜(주 단위). 모두 이미 있는 값이다.</li>
+      <li>기사를 다시 읽은 기록. 없으면 뉴스 칸의 진하기는 날짜만으로 정해야 한다.</li>
+      <li>이 시안의 반복·기억 값은 고정 시드로 만든 예시다. 항목 이름과 묶음은 실제 앱 데이터다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const SRC = window.KDATA;
+  const DAY = 864e5;
+  const TODAY = SRC.today;
+  const T0 = new Date(TODAY + 'T00:00:00');
+  const SPAN = 60;
+  const ZOOM = 480;
+  const EASE = ML.ease.sheet;
+
+  // Toss 색 단계 100~700. 기억이 옅으면 앞쪽(연함), 짙으면 뒤쪽.
+  const STEPS = {
+    news: ['#c9e2ff', '#90c2ff', '#64a8ff', '#4593fc', '#3182f6', '#2272eb', '#1b64da'],
+    word: ['#edccf8', '#da9bef', '#c770e4', '#b44bd7', '#a234c7', '#9128b4', '#8222a2'],
+    concept: ['#aeefd5', '#76e4b8', '#3fd599', '#15c47e', '#03b26c', '#02a262', '#029359'],
+  };
+  const KIND = {
+    news: { nm: '뉴스', tile: '뉴스', c: '#3182f6', weak: '#e8f2ff', ink: '#1b64da' },
+    word: { nm: '영단어', tile: '단어', c: '#a234c7', weak: '#f7edfa', ink: '#8222a2' },
+    concept: { nm: 'Latticework', tile: '개념', c: '#03b26c', weak: '#e2f9f0', ink: '#029359' },
+  };
+  const ORDER = ['news', 'word', 'concept'];
+  const DECK = { toeic: '토익', fin: '금융', gen: '일반' };
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    know: '<svg viewBox="0 0 24 24" width="24" height="24"><rect x="3.5" y="3.5" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="12.9" y="3.5" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="3.5" y="12.9" width="7.6" height="7.6" rx="2.2" fill="currentColor"/><rect x="12.9" y="12.9" width="7.6" height="7.6" rx="2.2" fill="currentColor"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M9.5 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    rev: (c) => `<svg viewBox="0 0 24 24" width="13" height="13"><path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/><path d="M18.6 3.6v4.2h-4.2" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    x: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  };
+
+  // ---------- 데이터 ----------
+  const days = (a) => Math.round((T0 - new Date(a + 'T00:00:00')) / DAY);
+  const addDays = (s, k) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + Math.round(k)); return d; };
+  const md = (d) => `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  let N, TREE, GROUPS;
+  function load() {
+    N = SRC.nodes.map((n) => Object.assign({}, n));
+    N.forEach((n) => {
+      if (n.kind === 'news') { n.stability = n.reps >= 2 ? 12 : 4; n.last = n.first; }
+      n.R = 1 / (1 + days(n.last) / (9 * n.stability));
+      n.weak = n.kind !== 'news' && n.R < 0.9; // 뉴스는 복습 대상이 아니다. 진하기만 옅어진다.
+      n.firm = n.stability >= 7;
+    });
+    const groups = [];
+    // 뉴스: 주 단위(월요일 시작)
+    const wk = new Map();
+    N.filter((n) => n.kind === 'news').forEach((n) => {
+      const d = new Date(n.first + 'T00:00:00');
+      const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      const key = mon.toISOString().slice(0, 10);
+      if (!wk.has(key)) wk.set(key, { id: 'g:news:' + key, kind: 'news', name: `${mon.getMonth() + 1}월 ${Math.ceil(mon.getDate() / 7)}주`, items: [] });
+      wk.get(key).items.push(n);
+    });
+    groups.push(...wk.values());
+    Object.keys(DECK).forEach((d) => groups.push({ id: 'g:word:' + d, kind: 'word', name: DECK[d], items: N.filter((n) => n.kind === 'word' && n.deck === d) }));
+    const tc = {};
+    N.filter((n) => n.kind === 'concept').forEach((n) => (tc[n.topic] = (tc[n.topic] || 0) + 1));
+    const tops = Object.keys(tc).filter((t) => tc[t] > 1);
+    tops.forEach((t) => groups.push({ id: 'g:concept:' + t, kind: 'concept', name: t, items: N.filter((n) => n.kind === 'concept' && n.topic === t) }));
+    groups.push({ id: 'g:concept:etc', kind: 'concept', name: '기타', items: N.filter((n) => n.kind === 'concept' && !tops.includes(n.topic)) });
+    groups.forEach((g) => {
+      const it = g.items;
+      g.n = it.length;
+      g.R = it.reduce((s, n) => s + n.R, 0) / it.length;
+      g.firm = it.filter((n) => n.firm).length / it.length;
+      g.due = it.filter((n) => n.weak).length;
+      g.start = it.map((n) => n.first).sort()[0];
+    });
+    GROUPS = new Map(groups.map((g) => [g.id, g]));
+    TREE = ORDER.map((k) => ({ kind: k, groups: groups.filter((g) => g.kind === k) }));
+  }
+
+  // 기억 정도 → 색. lo 이하면 100 단계, hi 이상이면 600 단계.
+  const DARK = { news: '#194aa6', word: '#8222a2', concept: '#027648' }; // blue900, purple700, green900
+  const lumi = (c) => { const l = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  function tone(kind, R, lo = 0.6, hi = 0.95, top = 5) {
+    const t = Math.max(0, Math.min(1, (R - lo) / (hi - lo))) * top;
+    const i = Math.min(4, Math.floor(t));
+    const f = t - i;
+    const a = hex(STEPS[kind][i]), b = hex(STEPS[kind][i + 1]);
+    const c = a.map((v, k) => Math.round(v + (b[k] - v) * f));
+    // 흰 글자와 같은 색의 진한 글자 중 대비(WCAG)가 큰 쪽을 쓴다
+    const L = lumi(c), Li = lumi(hex(DARK[kind]));
+    const cw = 1.05 / (L + 0.05), ci = (L + 0.05) / (Li + 0.05);
+    return { fill: `rgb(${c.join(',')})`, light: ci > cw * 1.15 };
+  }
+
+  // ---------- 트리맵 (Bruls 의 squarified) ----------
+  function squarify(list, x, y, w, h) {
+    const total = list.reduce((s, d) => s + d.v, 0);
+    if (!total) return;
+    const k = (w * h) / total;
+    const rest = list.filter((d) => d.v > 0).sort((a, b) => b.v - a.v).map((d) => ((d.a = d.v * k), d));
+    const worst = (row, side) => {
+      const s = row.reduce((t, d) => t + d.a, 0);
+      let mx = 0, mn = Infinity;
+      row.forEach((d) => { mx = Math.max(mx, d.a); mn = Math.min(mn, d.a); });
+      return Math.max((side * side * mx) / (s * s), (s * s) / (side * side * mn));
+    };
+    while (rest.length) {
+      const side = Math.min(w, h);
+      const row = [rest.shift()];
+      while (rest.length && worst(row.concat(rest[0]), side) <= worst(row, side)) row.push(rest.shift());
+      const s = row.reduce((t, d) => t + d.a, 0);
+      if (w >= h) {
+        const cw = s / h; let yy = y;
+        row.forEach((d) => { const hh = d.a / cw; d.r = { x, y: yy, w: cw, h: hh }; yy += hh; });
+        x += cw; w -= cw;
+      } else {
+        const rh = s / w; let xx = x;
+        row.forEach((d) => { const ww = d.a / rh; d.r = { x: xx, y, w: ww, h: rh }; xx += ww; });
+        y += rh; h -= rh;
+      }
+    }
+    list.filter((d) => !(d.v > 0)).forEach((d) => (d.r = null));
+  }
+  const GAP = 3;
+  const inset = (r) => (r ? { x: r.x + GAP / 2, y: r.y + GAP / 2, w: Math.max(0, r.w - GAP), h: Math.max(0, r.h - GAP) } : null);
+  // 첫 화면: 영역 → 묶음 두 단계. 값이 0 인 묶음은 null.
+  function layoutRoot(W, H, mode) {
+    const val = (g) => (mode === 'due' ? g.due : g.n);
+    const kinds = TREE.map((t) => ({ t, v: t.groups.reduce((s, g) => s + val(g), 0) }));
+    squarify(kinds, -GAP / 2, -GAP / 2, W + GAP, H + GAP);
+    const out = new Map();
+    kinds.forEach((k) => {
+      const gs = k.t.groups.map((g) => ({ g, v: val(g) }));
+      if (k.r) squarify(gs, k.r.x, k.r.y, k.r.w, k.r.h);
+      gs.forEach((d) => out.set(d.g.id, k.r ? inset(d.r) : null));
+    });
+    return out;
+  }
+  function layoutGroup(g, W, H, mode) {
+    const list = g.items.map((n) => ({ n, v: mode === 'due' && !n.weak ? 0 : n.reps }));
+    squarify(list, -GAP / 2, -GAP / 2, W + GAP, H + GAP);
+    const out = new Map();
+    list.forEach((d) => out.set(d.n.id, inset(d.r)));
+    return out;
+  }
+
+  // ---------- 상태 ----------
+  const S = { at: null, mode: 'all', sel: null, busy: false };
+  let view, map, W, H, sheet;
+
+  function cumAt(dayIdx) {
+    // dayIdx: 0 = 오늘에서 SPAN-1 일 전, SPAN-1 = 오늘
+    const lim = SPAN - 1 - dayIdx;
+    const c = { news: 0, word: 0, concept: 0 };
+    N.forEach((n) => { if (days(n.first) >= lim) c[n.kind]++; });
+    return c;
+  }
+  let SERIES;
+  function series() {
+    SERIES = [];
+    for (let i = 0; i < SPAN; i++) SERIES.push(cumAt(i));
+  }
+
+  // ---------- 그리기 ----------
+  function render(hero = true) {
+    load();
+    series();
+    Object.assign(S, { at: null, mode: 'all', sel: null, busy: false });
+    sheet = null;
+    const now = SERIES[SPAN - 1];
+    phone.innerHTML = `<div class="scr">
+      <div class="view" id="view">
+        <div class="ttl1">지식</div>
+        <div class="stack">
+          <section class="card" id="growth">
+            <div class="stats">${ORDER.map((k) => `<div class="stat"><span><i style="background:${KIND[k].c}"></i>${KIND[k].tile}</span><b data-k="${k}">${now[k]}</b></div>`).join('')}</div>
+            <div class="spark" id="spark"></div>
+            <div class="dates"><span>${md(addDays(TODAY, -(SPAN - 1)))}</span><span>${md(T0)}</span></div>
+          </section>
+          <section class="card" id="tree">
+            <div class="trow"><div class="crumbs" id="crumbs"></div>
+              <div class="seg" id="seg"><span class="th"></span><button data-m="all" aria-pressed="true">모두</button><button data-m="due" aria-pressed="false">복습<em>${N.filter((n) => n.weak).length}</em></button></div></div>
+            <div class="map" id="map"></div>
+          </section>
+        </div>
+      </div>
+      <nav class="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['know', ICON.know, '지식']].map(([k, i, l]) => `<button data-k="${k}" class="${k === 'know' ? 'on' : ''}">${i}${l}</button>`).join('')}</nav>
+    </div>`;
+    view = phone.querySelector('#view');
+    map = phone.querySelector('#map');
+    W = map.clientWidth; H = map.clientHeight;
+    drawSpark();
+    crumbs(false);
+    segThumb(false);
+    const layer = rootLayer(layoutRoot(W, H, S.mode));
+    map.append(layer);
+    bind();
+    if (hero) intro(layer);
+  }
+
+  // 누적 면 그래프: 아래부터 개념, 단어, 뉴스를 쌓는다.
+  let SP;
+  function drawSpark() {
+    const el = phone.querySelector('#spark');
+    const w = el.clientWidth, h = el.clientHeight, top = 22;
+    const max = Math.max(...SERIES.map((c) => c.news + c.word + c.concept));
+    const X = (i) => (i / (SPAN - 1)) * w;
+    const Y = (v) => h - (v / max) * (h - top);
+    const stack = ['concept', 'word', 'news'];
+    const lines = {};
+    let base = SERIES.map(() => 0);
+    const paths = stack.map((k) => {
+      const topv = SERIES.map((c, i) => base[i] + c[k]);
+      const up = topv.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
+      const down = base.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).reverse();
+      lines[k] = topv;
+      const d = { k, area: `M${up.join('L')}L${down.join('L')}Z`, line: `M${up.join('L')}` };
+      base = topv;
+      return d;
+    });
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <defs><clipPath id="sweep"><rect id="sweepR" x="0" y="0" width="${w}" height="${h}"/></clipPath></defs>
+      <g clip-path="url(#sweep)">
+        ${paths.map((p) => `<path d="${p.area}" fill="${KIND[p.k].c}" fill-opacity="0.18"/>`).join('')}
+        ${paths.map((p) => `<path d="${p.line}" fill="none" stroke="${KIND[p.k].c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+      </g></svg>
+      <span class="hair"></span><span class="tag"></span>${stack.map((k) => `<span class="pin" data-k="${k}" style="--c:${KIND[k].c}"></span>`).join('')}`;
+    SP = { el, w, h, X, Y, lines, hair: el.querySelector('.hair'), tag: el.querySelector('.tag'), pins: [...el.querySelectorAll('.pin')], rect: el.querySelector('#sweepR') };
+  }
+  function setStats(c) {
+    phone.querySelectorAll('.stat b').forEach((b) => (b.textContent = c[b.dataset.k]));
+  }
+  function scrubTo(i, show = true) {
+    i = Math.max(0, Math.min(SPAN - 1, Math.round(i)));
+    const x = SP.X(i);
+    SP.hair.style.left = x + 'px';
+    SP.tag.style.left = Math.max(30, Math.min(SP.w - 30, x)) + 'px';
+    SP.tag.textContent = i === SPAN - 1 ? md(T0) : md(addDays(TODAY, -(SPAN - 1 - i)));
+    SP.pins.forEach((p) => { p.style.left = x + 'px'; p.style.top = SP.Y(SP.lines[p.dataset.k][i]) + 'px'; });
+    [SP.hair, SP.tag, ...SP.pins].forEach((e) => (e.style.opacity = show ? 1 : 0));
+    setStats(SERIES[i]);
+    return i;
+  }
+
+  // ----- 첫 화면 칸 -----
+  function groupHtml(g, r) {
+    const tn = tone(g.kind, g.R);
+    const ink = tn.light ? DARK[g.kind] : '#fff';
+    // 이름 줄 수를 재서, 큰 글자로 다 들어가지 않으면 작은 글자로 바꾼다
+    const showBar = r.w >= 56 && r.h >= 64;
+    MCTX.font = `600 13px 'Pretendard Variable', Pretendard, -apple-system, 'Noto Sans KR', sans-serif`;
+    const nl = (px, pad) => Math.min(2, Math.ceil((MCTX.measureText(g.name).width * px) / 13 / Math.max(1, r.w - pad)));
+    const needBig = 8 + nl(13, 18) * 17 + 26 + (showBar ? 18 : 6);
+    const needSm = 5 + nl(11, 12) * 14 + 19 + (showBar ? 16 : 4);
+    const sm = r.w < 76 || r.h < needBig;
+    const flat = r.h < Math.min(44, needSm) && r.w >= 64; // 낮은 칸: 이름과 수를 한 줄에
+    const one = !flat && sm && r.h < needSm && r.h >= 5 + 14 + 19 + 4 && r.w >= 56; // 두 줄이 안 되면 한 줄로 줄임
+    const showName = flat || one || (r.w >= 40 && r.h >= needSm);
+    const showDue = g.due > 0 && !flat && r.h >= 40 && r.w >= (sm ? 62 : 80);
+    const due = showDue && S.mode === 'all' ? `<span class="due">${ICON.rev(KIND[g.kind].c)}${g.due}</span>` : '';
+    return `<div class="blk grp ${sm ? 'sm' : ''} ${flat ? 'flat' : ''} ${one ? 'one' : ''}" data-g="${g.id}" style="--f:${tn.fill};--ink:${ink};--dc:${KIND[g.kind].ink};--bt:${tn.light ? 'rgba(0,29,58,.09)' : 'rgba(255,255,255,.32)'};--bf:${tn.light ? KIND[g.kind].c : '#fff'}">
+      <div class="lb">${showName ? `<span class="nm">${esc(g.name)}</span>` : ''}<span class="row"><span class="ct">${S.mode === 'due' ? g.due : g.n}</span>${due}</span></div>
+      ${showBar && S.mode === 'all' ? `<span class="bar"><i style="transform:scaleX(${g.firm.toFixed(3)})"></i></span>` : ''}
+    </div>`;
+  }
+  const place = (el, r) => { el.style.left = r.x + 'px'; el.style.top = r.y + 'px'; el.style.width = r.w + 'px'; el.style.height = r.h + 'px'; };
+  function rootLayer(L) {
+    const layer = document.createElement('div');
+    layer.className = 'layer';
+    layer.dataset.at = 'root';
+    GROUPS.forEach((g) => {
+      const r = L.get(g.id);
+      if (!r) return;
+      const t = document.createElement('div');
+      t.innerHTML = groupHtml(g, r);
+      const el = t.firstElementChild;
+      place(el, r);
+      layer.append(el);
+    });
+    return layer;
+  }
+
+  // ----- 묶음 안 칸 -----
+  function leafHtml(n, r) {
+    const tn = n.kind === 'news' ? tone(n.kind, n.R) : tone(n.kind, n.R, 0.88, 1, 4);
+    const ink = n.weak ? KIND[n.kind].ink : tn.light ? DARK[n.kind] : '#fff';
+    // 큰 글자부터 들어가는 크기를 고른다: 14 → 12 → 11
+    const sizes = [r.w >= 120 && r.h >= 64 && 14, 12, 11].filter(Boolean);
+    let px = 0, lines = 1;
+    for (const p of sizes) {
+      const lh = p === 14 ? 19 : p === 12 ? 16 : 14;
+      lines = Math.max(1, Math.floor((r.h - (p === 11 ? 8 : 12)) / lh));
+      if (labelFits(n.label, r.w - (p === 11 ? 10 : 14), Math.min(4, lines), p)) { px = p; break; }
+    }
+    const big = px === 14, tiny = px === 11, fits = px > 0;
+    return `<div class="blk leaf ${n.weak ? 'weak' : ''} ${big ? 'big' : ''} ${tiny ? 'tiny' : ''}" data-id="${n.id}" style="--f:${tn.fill};--ink:${ink};--wt:${KIND[n.kind].weak};--wb:${STEPS[n.kind][1]};--lines:${Math.min(4, lines)}">
+      ${fits ? `<div class="lb"><span class="nm">${esc(n.label)}</span></div>` : ''}</div>`;
+  }
+  // 이름이 칸에 들어가는지 실제 글자 폭으로 잰다. 영어 낱말은 중간에서 끊지 않는다.
+  const MCTX = document.createElement('canvas').getContext('2d');
+  function labelFits(label, w, lines, px) {
+    if (w < 26) return false;
+    MCTX.font = `${px > 12 ? 700 : 600} ${px}px 'Pretendard Variable', Pretendard, -apple-system, 'Noto Sans KR', sans-serif`;
+    const latin = /^[\x00-\x7f]+$/.test(label);
+    if (latin) {
+      const longest = Math.max(...label.split(/\s+/).map((t) => MCTX.measureText(t).width));
+      if (longest > w) return false;
+    }
+    if (!latin && lines < 2 && MCTX.measureText(label).width > w) return false;
+    return lines >= 1;
+  }
+  function groupLayer(g, L) {
+    const layer = document.createElement('div');
+    layer.className = 'layer';
+    layer.dataset.at = g.id;
+    g.items.forEach((n) => {
+      const r = L.get(n.id);
+      if (!r) return;
+      const t = document.createElement('div');
+      t.innerHTML = leafHtml(n, r);
+      const el = t.firstElementChild;
+      place(el, r);
+      layer.append(el);
+    });
+    return layer;
+  }
+
+  // r 을 칸 g 안으로 줄여 넣은 자리, 그 반대
+  const into = (r, g) => ({ x: g.x + (r.x / W) * g.w, y: g.y + (r.y / H) * g.h, w: (r.w / W) * g.w, h: (r.h / H) * g.h });
+  const outof = (r, g) => ({ x: ((r.x - g.x) / g.w) * W, y: ((r.y - g.y) / g.h) * H, w: (r.w / g.w) * W, h: (r.h / g.h) * H });
+  const kf = (a, b) => [{ left: a.x + 'px', top: a.y + 'px', width: a.w + 'px', height: a.h + 'px' }, { left: b.x + 'px', top: b.y + 'px', width: b.w + 'px', height: b.h + 'px' }];
+  const rectOf = (el) => ({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight });
+
+  async function open(gid) {
+    if (S.busy || S.at) return;
+    S.busy = true;
+    closeSheet();
+    const g = GROUPS.get(gid);
+    const old = map.querySelector('.layer');
+    const gel = old.querySelector(`[data-g="${CSS.escape(gid)}"]`);
+    const gr = rectOf(gel);
+    const L = layoutGroup(g, W, H, S.mode);
+    const layer = groupLayer(g, L);
+    map.append(layer);
+    S.at = gid;
+    crumbs(true);
+    // 바깥 칸은 같은 비율로 밀려나고, 눌린 칸은 지도 전체가 된다
+    old.querySelectorAll('.blk').forEach((el) => {
+      const r = rectOf(el);
+      ML.a(el, kf(r, outof(r, gr)), { duration: ZOOM, easing: EASE });
+      ML.a(el.querySelector('.lb'), [{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'linear' });
+      el.querySelectorAll('.due,.bar').forEach((x) => ML.a(x, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'linear' }));
+    });
+    ML.a(gel, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: 120, easing: 'linear' });
+    // 안의 항목은 눌린 칸 자리에서 펼쳐진다
+    let last;
+    layer.querySelectorAll('.blk').forEach((el) => {
+      const r = rectOf(el);
+      last = ML.a(el, kf(into(r, gr), r), { duration: ZOOM, easing: EASE });
+      ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'linear' });
+      const lb = el.querySelector('.lb');
+      if (lb) ML.a(lb, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: ZOOM * 0.55, easing: 'linear' });
+    });
+    await ML.done(last);
+    old.remove();
+    layer.querySelectorAll('.blk').forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+    S.busy = false;
+  }
+
+  async function back() {
+    if (S.busy || !S.at) return;
+    S.busy = true;
+    closeSheet();
+    const old = map.querySelector('.layer');
+    const R = layoutRoot(W, H, S.mode);
+    const layer = rootLayer(R);
+    map.prepend(layer);
+    const gid = S.at;
+    const gr = R.get(gid) || { x: W / 2 - 1, y: H / 2 - 1, w: 2, h: 2 };
+    S.at = null;
+    crumbs(true);
+    let last;
+    layer.querySelectorAll('.blk').forEach((el) => {
+      const r = rectOf(el);
+      last = ML.a(el, kf(outof(r, gr), r), { duration: ZOOM, easing: EASE });
+      el.querySelectorAll('.lb,.due,.bar').forEach((x) => ML.a(x, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: ZOOM * 0.5, easing: 'linear' }));
+      if (el.dataset.g === gid) ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'linear' });
+    });
+    old.querySelectorAll('.blk').forEach((el) => {
+      const r = rectOf(el);
+      ML.a(el, kf(r, into(r, gr)), { duration: ZOOM, easing: EASE });
+      const lb = el.querySelector('.lb');
+      if (lb) ML.a(lb, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'linear' });
+      ML.a(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, delay: ZOOM * 0.35, easing: 'linear' });
+    });
+    await ML.done(last);
+    old.remove();
+    layer.querySelectorAll('.blk, .blk *').forEach((el) => el.getAnimations().forEach((a) => a.cancel()));
+    S.busy = false;
+  }
+
+  // 모두 ↔ 복습: 같은 칸이 새 면적으로 제자리에서 다시 나뉜다
+  async function setMode(m) {
+    if (S.busy || S.mode === m) return;
+    S.busy = true;
+    S.mode = m;
+    closeSheet();
+    segThumb(true);
+    const old = map.querySelector('.layer');
+    const prev = new Map([...old.querySelectorAll('.blk')].map((el) => [el.dataset.g || el.dataset.id, rectOf(el)]));
+    const g = S.at && GROUPS.get(S.at);
+    const L = g ? layoutGroup(g, W, H, m) : layoutRoot(W, H, m);
+    const layer = g ? groupLayer(g, L) : rootLayer(L);
+    // 사라지는 칸은 옛 층에 남겨 줄여 없앤다
+    old.querySelectorAll('.blk').forEach((el) => {
+      const k = el.dataset.g || el.dataset.id;
+      if (L.get(k)) { el.remove(); return; }
+      const r = rectOf(el);
+      el.classList.add('gone');
+      ML.a(el, [{ transform: 'scale(1)', opacity: 1 }, { transform: 'scale(.8)', opacity: 0 }], { duration: 200, easing: ML.ease.in });
+      void r;
+    });
+    map.append(layer);
+    let last;
+    layer.querySelectorAll('.blk').forEach((el) => {
+      const k = el.dataset.g || el.dataset.id;
+      const r = rectOf(el);
+      const p = prev.get(k);
+      // 빠질 칸이 먼저 사라진 뒤(200ms), 남은 칸이 새 자리로 옮긴다
+      if (p) {
+        last = ML.a(el, kf(p, r), { duration: 440, delay: 160, easing: ML.ease.inOut });
+        const lb = el.querySelector('.lb');
+        if (lb) ML.a(lb, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 480, easing: 'linear' });
+      } else {
+        last = ML.a(el, [{ transform: 'scale(.8)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 320, delay: 360, easing: ML.ease.out });
+      }
+      el.querySelectorAll('.due,.bar').forEach((x) => ML.a(x, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 520, easing: 'linear' }));
+    });
+    await ML.done(last);
+    old.remove();
+    S.busy = false;
+  }
+  function segThumb(anim) {
+    const seg = phone.querySelector('#seg');
+    const b = seg.querySelector(`[data-m="${S.mode}"]`);
+    seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const th = seg.querySelector('.th');
+    const to = { transform: `translateX(${b.offsetLeft - 2}px)`, width: b.offsetWidth + 'px' };
+    if (anim) {
+      const from = { transform: getComputedStyle(th).transform === 'none' ? 'translateX(0px)' : getComputedStyle(th).transform, width: th.offsetWidth + 'px' };
+      K.spring(th, [from, to], 'quick');
+    } else Object.assign(th.style, to);
+    Object.assign(th.style, to);
+  }
+
+  function crumbs(anim) {
+    const el = phone.querySelector('#crumbs');
+    const g = S.at && GROUPS.get(S.at);
+    el.innerHTML = `<button class="chip ${g ? '' : 'cur'}" data-c="root">전체</button>${g ? `<span class="sep">${ICON.chev}</span><button class="chip cur" data-c="g"><i style="background:${KIND[g.kind].c}"></i>${esc(g.name)}</button>` : ''}`;
+    el.querySelectorAll('.chip').forEach((c) => K.press(c));
+    el.querySelector('[data-c="root"]').addEventListener('click', back);
+    if (anim && g) {
+      K.spring(el.querySelector('.sep'), [{ opacity: 0, transform: 'translateX(-6px)' }, { opacity: 1, transform: 'none' }], 'medium');
+      K.spring(el.querySelector('[data-c="g"]'), [{ opacity: 0, transform: 'translateX(-12px) scale(.92)' }, { opacity: 1, transform: 'none' }], 'medium', { delay: 40 });
+    }
+  }
+
+  // ----- 항목 카드 -----
+  function openSheet(id) {
+    const n = N.find((x) => x.id === id);
+    const g = GROUPS.get(S.at);
+    map.querySelectorAll('.leaf.sel').forEach((e) => e.classList.remove('sel'));
+    map.querySelector(`[data-id="${CSS.escape(id)}"]`)?.classList.add('sel');
+    map.classList.add('dim');
+    const nextD = addDays(n.last, n.stability);
+    const nextTxt = n.weak ? '오늘' : md(nextD);
+    const verb = n.kind === 'news' ? '다시 읽기' : n.kind === 'concept' ? '문제 풀기' : '복습하기';
+    const html = `<div class="top"><i style="background:${KIND[n.kind].c}"></i><span class="path">${KIND[n.kind].nm} · ${esc(g.name)}</span><button class="x" aria-label="닫기">${ICON.x}</button></div>
+      <h3>${esc(n.label)}</h3>${n.en ? `<div class="en">${esc(n.en)}</div>` : ''}
+      <div class="mem"><i style="background:${n.weak ? STEPS[n.kind][2] : KIND[n.kind].c};transform:scaleX(${n.R.toFixed(3)})"></i><u style="left:90%"></u></div>
+      <div class="st"><div><span>기억</span><b>${Math.round(n.R * 100)}%</b></div><div><span>반복</span><b>${n.reps}회</b></div><div><span>다음 복습</span><b>${nextTxt}</b></div></div>
+      ${n.weak ? `<button class="tbtn" style="--tc:${KIND[n.kind].c}">${verb}</button>` : ''}`;
+    const fresh = !sheet;
+    if (fresh) {
+      sheet = document.createElement('div');
+      sheet.className = 'sheet';
+      phone.querySelector('.scr').append(sheet);
+    }
+    sheet.innerHTML = html;
+    sheet.querySelector('.x').addEventListener('click', closeSheet);
+    const tb = sheet.querySelector('.tbtn');
+    if (tb) { tb.style.background = KIND[n.kind].c; tb.style.color = '#fff'; K.press(tb); }
+    if (fresh) K.spring(sheet, [{ transform: 'translateY(calc(100% + 80px))' }, { transform: 'none' }], 'medium');
+    // 고른 칸이 카드에 가리지 않게 화면을 올린다
+    const stack = view.querySelector('.stack');
+    stack.style.paddingBottom = sheet.offsetHeight + 16 + 'px';
+    const leaf = map.querySelector('.leaf.sel');
+    const vr = view.getBoundingClientRect();
+    const lr = leaf.getBoundingClientRect();
+    const sheetTop = vr.height - 8 - sheet.offsetHeight;
+    const over = lr.bottom - vr.top - (sheetTop - 16);
+    if (over > 0) view.scrollTo({ top: view.scrollTop + Math.min(over, lr.top - vr.top - 12 + 0), behavior: ML.reduce ? 'auto' : 'smooth' });
+    ML.a(sheet.querySelector('.mem i'), [{ transform: 'scaleX(0)' }, { transform: `scaleX(${n.R.toFixed(3)})` }], { duration: 520, delay: fresh ? 160 : 0 });
+  }
+  function closeSheet() {
+    map && map.classList.remove('dim');
+    map && map.querySelectorAll('.leaf.sel').forEach((e) => e.classList.remove('sel'));
+    if (!sheet) return;
+    const s = sheet;
+    sheet = null;
+    if (view.scrollTop > 0) view.scrollTo({ top: 0, behavior: ML.reduce ? 'auto' : 'smooth' });
+    setTimeout(() => { if (!sheet) view.querySelector('.stack').style.paddingBottom = ''; }, 420);
+    ML.done(ML.a(s, [{ transform: 'none', opacity: 1 }, { transform: 'translateY(40px)', opacity: 0 }], { duration: 200, easing: ML.ease.in })).then(() => s.remove());
+  }
+
+  // ---------- 입력 ----------
+  function bind() {
+    map.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('.blk');
+      if (!b || S.busy) return;
+      b.classList.add('down');
+      const up = () => { b.classList.remove('down'); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    });
+    map.addEventListener('click', (e) => {
+      const b = e.target.closest('.blk');
+      if (!b || S.busy) return;
+      if (b.dataset.g) open(b.dataset.g);
+      else if (b.dataset.id) { if (b.classList.contains('sel')) closeSheet(); else openSheet(b.dataset.id); }
+    });
+    phone.querySelectorAll('#seg button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
+    view.addEventListener('click', (e) => { if (sheet && !e.target.closest('.blk')) closeSheet(); });
+    // 그래프 훑기
+    const sp = SP.el;
+    let drag = false;
+    const idx = (e) => ((e.clientX - sp.getBoundingClientRect().left) / SP.w) * (SPAN - 1);
+    sp.addEventListener('pointerdown', (e) => { if (sweeping) return; drag = true; sp.setPointerCapture(e.pointerId); scrubTo(idx(e)); });
+    sp.addEventListener('pointermove', (e) => { if (drag) scrubTo(idx(e)); });
+    const end = () => {
+      if (!drag) return;
+      drag = false;
+      [SP.hair, SP.tag, ...SP.pins].forEach((x) => ML.a(x, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'linear', fill: 'none' }));
+      [SP.hair, SP.tag, ...SP.pins].forEach((x) => (x.style.opacity = 0));
+      const now = SERIES[SPAN - 1];
+      phone.querySelectorAll('.stat b').forEach((b) => { const from = +b.textContent; ML.count(b, from, now[b.dataset.k], 360); });
+    };
+    sp.addEventListener('pointerup', end);
+    sp.addEventListener('pointercancel', end);
+  }
+
+  // ---------- 들어올 때 ----------
+  let sweeping = false;
+  function intro(layer) {
+    sweeping = true;
+    const SWEEP = 1100;
+    const an = ML.a(SP.rect, [{ width: '0px' }, { width: SP.w + 'px' }], { duration: SWEEP, easing: 'cubic-bezier(.33,.0,.2,1)', delay: 120 });
+    // 묶음은 첫 항목 날짜를 그래프가 지나는 순간 나타난다
+    const blks = [...layer.querySelectorAll('.blk')];
+    const shown = new Set();
+    blks.forEach((el) => { el.style.opacity = 0; });
+    setStats({ news: 0, word: 0, concept: 0 });
+    SP.hair.style.opacity = 0;
+    const ease = (p) => { // 같은 곡선을 근사해 진행값 → 위치
+      const c = [0.33, 0, 0.2, 1];
+      let lo = 0, hi = 1;
+      for (let k = 0; k < 20; k++) { const m = (lo + hi) / 2; const x = 3 * c[0] * m * (1 - m) ** 2 + 3 * c[2] * m * m * (1 - m) + m ** 3; if (x < p) lo = m; else hi = m; }
+      const t = (lo + hi) / 2;
+      return 3 * c[1] * t * (1 - t) ** 2 + 3 * c[3] * t * t * (1 - t) + t ** 3;
+    };
+    const tick = () => {
+      if (!an || !SP.rect.isConnected) return;
+      const ct = an.currentTime ?? 0;
+      const p = Math.max(0, Math.min(1, (ct - 120) / SWEEP));
+      const f = ease(p);
+      const i = Math.floor(f * (SPAN - 1) + 1e-6);
+      if (p > 0) setStats(SERIES[i]);
+      const day = addDays(TODAY, -(SPAN - 1 - i)).toISOString().slice(0, 10);
+      blks.forEach((el) => {
+        if (shown.has(el)) return;
+        const g = GROUPS.get(el.dataset.g);
+        if (p > 0 && g.start <= day) {
+          shown.add(el);
+          el.style.opacity = '';
+          K.spring(el, [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'scale(1)' }], 'medium', { fill: 'none' });
+          const bar = el.querySelector('.bar i');
+          if (bar) ML.a(bar, [{ transform: 'scaleX(0)' }, { transform: bar.style.transform }], { duration: 700, delay: 120 });
+        }
+      });
+      if (p < 1) requestAnimationFrame(tick);
+      else {
+        setStats(SERIES[SPAN - 1]);
+        blks.forEach((el) => { if (!shown.has(el)) { el.style.opacity = ''; } });
+        sweeping = false;
+      }
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- 실험 막대 ----------
+  const demoOpen = async (gid, leaf) => {
+    if (S.at && S.at !== gid) { await back(); await ML.wait(120); }
+    if (!S.at) await open(gid);
+    if (leaf) {
+      await ML.wait(200);
+      const g = GROUPS.get(gid);
+      const pick = g.items.filter((n) => n.weak).sort((a, b) => b.reps - a.reps)[0] || g.items[0];
+      openSheet(pick.id);
+    }
+  };
+  ML.bar({
+    title: '지식 · 지식 나무',
+    replay: () => render(true),
+    home: '../index.html',
+    extra: [
+      ['토익 열기', () => demoOpen('g:word:toeic')],
+      ['CAPM 항목', () => demoOpen('g:concept:CAPM', true)],
+      ['복습 보기', () => setMode(S.mode === 'due' ? 'all' : 'due')],
+      ['전체로', () => back()],
+    ],
+  });
+  window.TM = { open, back, setMode, openSheet, scrubTo, render, get S() { return S; } };
+  render(true);
+})();
+</script>
+</body>
+</html>

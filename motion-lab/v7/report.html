@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>리포트 한 장 · Motion Lab 7차</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../shared.css">
 <link rel="stylesheet" href="../v3/kit.css">
 <style>
@@ -31,7 +30,7 @@
   .hrow { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
   .big { display: flex; align-items: baseline; }
   .big b { font-size: 56px; line-height: 60px; font-weight: 800; letter-spacing: -2px; }
-  .big span { font-size: 24px; line-height: 30px; font-weight: 700; color: var(--grey400); letter-spacing: -0.5px; margin-left: 2px; }
+  .big .of { font-size: 24px; line-height: 30px; font-weight: 700; color: var(--grey400); letter-spacing: -0.5px; margin-left: 2px; }
   .big .dl { align-self: center; margin-left: 10px; }
   .xs { text-align: right; padding-bottom: 6px; }
   .xs b { display: block; font-size: 22px; line-height: 28px; font-weight: 700; color: var(--orange700); }
@@ -53,6 +52,7 @@
   .cmp .r.cur .tk i { background: linear-gradient(90deg, #ffc342, #fe9800 55%, #ed6700); }
   .cmp .c { width: 24px; text-align: right; font-size: 15px; font-weight: 700; color: var(--grey600); font-variant-numeric: tabular-nums; }
   .cmp .r.cur .c { color: var(--grey900); }
+  .cmp .c { opacity: 0; }
 
   /* 증감 */
   .dl { display: inline-flex; align-items: center; gap: 3px; height: 24px; padding: 0 8px 0 7px; border-radius: 12px; font-size: 13px; font-weight: 700; background: var(--green-weak); color: var(--green600); white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0; }
@@ -67,10 +67,10 @@
   .v { display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 2px; }
   .v b { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.6px; }
   .v small { font-size: 17px; line-height: 22px; font-weight: 600; color: var(--grey400); margin-left: 1px; }
-  .v .dl { margin-left: 6px; align-self: center; }
+  .dlr { margin-top: 6px; height: 24px; }
   .three .v b { font-size: 24px; line-height: 32px; }
-  .segs { display: flex; gap: 3px; margin-top: 10px; }
-  .segs i { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); }
+  .dots { display: flex; gap: 3px; margin-top: 10px; }
+  .dots i { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); }
   .pb { height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; margin-top: 10px; }
   .pb i { display: block; height: 100%; border-radius: 4px; background: var(--blue500); transform-origin: left; transform: scaleX(0); }
   .rc { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
@@ -108,7 +108,7 @@
   .spark .dot { transform-box: fill-box; transform-origin: center; opacity: 0; }
 
   /* 계속 */
-  .foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; padding: 28px 20px 20px; background: linear-gradient(180deg, rgba(242, 244, 246, 0) 0%, var(--grey100) 34%); }
+  .cta { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; padding: 28px 20px 20px; background: linear-gradient(180deg, rgba(242, 244, 246, 0) 0%, var(--grey100) 34%); }
 
   /* 시작 화면: 앱(5차)과 같다 */
   .splash { position: absolute; inset: 0; z-index: 50; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
@@ -235,7 +235,7 @@
     key: 'month', title: '11월', period: '2026년 11월 1일 ~ 30일',
     days: range(1, 30), today: 30, cols: 7, offset: 6, CH: 42, S: 34,
     of: 30, prevDays: 11,
-    news: { read: 38, pub: 42, qOk: 31, qAll: 36, topics: [['M&A', 11], ['거시경제', 9], ['지배구조', 7], ['반도체', 6]], prevRead: 29, prevAcc: 88 },
+    news: { read: 38, pub: 42, qOk: 31, qAll: 36, topics: [['M&A', 11], ['거시경제', 9], ['지배구조', 7]], prevRead: 29, prevAcc: 88 },
     voc: { days: range(1, 30), labels: null, newN: 41, strong: 60, prev: 96 },
     lw: { n: 96, ok: 79, topics: [['CAPM', 31], ['자본배분', 26], ['APT', 21], ['지수모형', 18]], prevN: 75, prevAcc: 78 },
     streak: { label: '최장 연속', from: null, to: 9, prev: 6 },
@@ -297,13 +297,13 @@
     const done = C.filter((c) => c.st === 'done');
     const cur = done.length;
     return `<div class="box hero pre" id="hero">
-      <div class="hrow"><div class="big"><b id="bn">0</b><span>/${M.of}일</span>${M.prevDays !== null ? dl(cur - M.prevDays) : ''}</div>
+      <div class="hrow"><div class="big"><b id="bn">0</b><span class="of">/${M.of}일</span>${M.prevDays !== null ? dl(cur - M.prevDays) : ''}</div>
         <div class="xs"><span class="lb">더 푼 문제</span><b id="bx" class="num">0</b></div></div>
       <div class="wd">${M.labels.map((x) => `<span>${x}</span>`).join('')}</div>
       <div class="grid" id="grid" style="height:${rows * M.CH}px"></div>
       ${M.prevDays !== null ? `<div class="cmp">
-        <div class="r"><span class="m">10월</span><span class="tk"><i style="width:${(M.prevDays / 30) * 100}%"></i></span><span class="c">${M.prevDays}</span></div>
-        <div class="r cur"><span class="m">11월</span><span class="tk"><i style="width:${(cur / 30) * 100}%"></i></span><span class="c">${cur}</span></div></div>` : ''}
+        <div class="r"><span class="m">10월</span><span class="tk"><i style="width:${(M.prevDays / 30) * 100}%"></i></span><span class="c" data-v="${M.prevDays}">0</span></div>
+        <div class="r cur"><span class="m">11월</span><span class="tk"><i style="width:${(cur / 30) * 100}%"></i></span><span class="c" data-v="${cur}">0</span></div></div>` : ''}
     </div>`;
   }
 
@@ -361,13 +361,13 @@
     const R = 22;
     const Cc = 2 * Math.PI * R;
     const meter = N.pub <= 14
-      ? `<div class="segs">${Array.from({ length: N.pub }, (_, i) => `<i data-on="${i < N.read ? 1 : 0}"></i>`).join('')}</div>`
+      ? `<div class="dots">${Array.from({ length: N.pub }, (_, i) => `<i data-on="${i < N.read ? 1 : 0}"></i>`).join('')}</div>`
       : `<div class="pb"><i style="width:${(N.read / N.pub) * 100}%"></i></div>`;
     return `<div class="box card" data-card="news">
       <div class="ch"><span class="ic" style="background:var(--blue-weak)">${ICON.news}</span><b>뉴스</b></div>
       <div class="two">
-        <div><span class="lb">읽은 기사</span><div class="v"><b data-count="${N.read}">0</b><small>/${N.pub}</small>${N.prevRead ? dl(N.read - N.prevRead) : ''}</div>${meter}</div>
-        <div class="rc"><div><span class="lb">퀴즈 정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small></div>${N.prevAcc ? `<div style="margin-top:4px">${dl(acc - N.prevAcc, '%p')}</div>` : ''}</div>
+        <div><span class="lb">읽은 기사</span><div class="v"><b data-count="${N.read}">0</b><small>/${N.pub}</small></div>${meter}${N.prevRead ? `<div class="dlr">${dl(N.read - N.prevRead)}</div>` : ''}</div>
+        <div class="rc"><div><span class="lb">퀴즈 정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small></div>${N.prevAcc ? `<div class="dlr">${dl(acc - N.prevAcc, '%p')}</div>` : ''}</div>
           <svg class="ring" viewBox="0 0 56 56" width="52" height="52" aria-hidden="true"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--grey100)" stroke-width="7"/><circle class="arc" cx="28" cy="28" r="${R}" fill="none" stroke="var(--blue500)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${Cc}" stroke-dashoffset="${Cc}" data-c="${Cc}" data-p="${N.qOk / N.qAll}"/></svg></div>
       </div>
       <div class="chips">${N.topics.map(([t, c], i) => `<span class="chip ${i === 0 ? 'top' : ''}">${t}<b>${c}</b></span>`).join('')}</div>
@@ -388,7 +388,7 @@
     return `<div class="box card" data-card="voc">
       <div class="ch"><span class="ic" style="background:var(--purple-weak)">${ICON.voc}</span><b>영단어</b></div>
       <div class="three">
-        <div><span class="lb">복습</span><div class="v"><b data-count="${total}">0</b></div>${V.prev ? dl(total - V.prev) : ''}</div>
+        <div><span class="lb">복습</span><div class="v"><b data-count="${total}">0</b></div>${V.prev ? `<div class="dlr">${dl(total - V.prev)}</div>` : ''}</div>
         <div><span class="lb">새 표현</span><div class="v"><b data-count="${V.newN}">0</b></div></div>
         <div><span class="lb">강화</span><div class="v"><b data-count="${V.strong}">0</b></div></div>
       </div>
@@ -404,8 +404,8 @@
     return `<div class="box card" data-card="lw">
       <div class="ch"><span class="ic" style="background:var(--green-weak);color:var(--green600)">${LW.mark(22, 'currentColor', 3)}</span><b>Latticework</b></div>
       <div class="two">
-        <div><span class="lb">푼 문제</span><div class="v"><b data-count="${L.n}">0</b>${L.prevN ? dl(L.n - L.prevN) : ''}</div></div>
-        <div><span class="lb">정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small>${L.prevAcc ? dl(acc - L.prevAcc, '%p') : ''}</div></div>
+        <div><span class="lb">푼 문제</span><div class="v"><b data-count="${L.n}">0</b></div>${L.prevN ? `<div class="dlr">${dl(L.n - L.prevN)}</div>` : ''}</div>
+        <div><span class="lb">정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small></div>${L.prevAcc ? `<div class="dlr">${dl(acc - L.prevAcc, '%p')}</div>` : ''}</div>
       </div>
       <div class="rows">${L.topics.map(([t, c]) => `<div class="r ${c === mx ? 'mx' : ''}"><span class="nm">${t}</span><span class="tk"><i style="width:${(c / mx) * 100}%"></i></span><span class="c">${c}</span></div>`).join('')}</div>
     </div>`;
@@ -414,11 +414,12 @@
   function xpModel() {
     const X = M.xp;
     const pts = [];
-    for (let d = X.from; d <= X.to; d++) pts.push({ d, xp: cum(d) });
-    const x = (d) => ((d - X.from) / X.slots) * W;
-    const lo0 = pts[0].xp;
+    for (let d = X.from + 1; d <= X.to; d++) pts.push({ d, xp: cum(d) });
+    const base = cum(X.from);
+    const x = (d) => ((d - X.from - 0.5) / X.slots) * W; // 그날이 끝난 값을 그날 칸 가운데에
+    const lo0 = base;
     const hi0 = pts[pts.length - 1].xp;
-    const lo = lo0 - (hi0 - lo0) * 0.06;
+    const lo = Math.min(lo0, pts[0].xp) - (hi0 - lo0) * 0.06;
     const hi = hi0 + (hi0 - lo0) * 0.1;
     const H = 96;
     const y = (v) => 10 + (1 - (v - lo) / (hi - lo)) * (H - 20);
@@ -442,7 +443,7 @@
     const s = M.streak;
     const line = X.pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
     const last = X.pts[X.pts.length - 1];
-    const area = `${line} L${last.x.toFixed(1)} ${X.H} L0 ${X.H} Z`;
+    const area = `${line} L${last.x.toFixed(1)} ${X.H} L${X.pts[0].x.toFixed(1)} ${X.H} Z`;
     const id = 'clip' + gen;
     const labels = M.key === 'week'
       ? M.labels.map((l, i) => `<span class="${M.days[i] > M.today ? 'fut' : ''}">${l}</span>`).join('')
@@ -453,7 +454,7 @@
       <div class="two">
         <div><span class="lb">${s.label}</span>${s.from !== null
           ? `<div class="ar"><span class="from">${s.from}</span>${arrow}<span class="to"><b class="hot" data-count="${s.to}" data-from="${s.from}">${s.from}</b><small>일</small></span></div>`
-          : `<div class="v"><b class="hot" style="color:var(--orange700)" data-count="${s.to}">0</b><small>일</small>${dl(s.to - s.prev)}</div>`}</div>
+          : `<div class="v"><b class="hot" style="color:var(--orange700)" data-count="${s.to}">0</b><small>일</small></div><div class="dlr">${dl(s.to - s.prev)}</div>`}</div>
         <div><span class="lb">레벨</span><div class="ar"><span class="from">Lv ${X.lv0}</span>${arrow}<span class="to"><b>Lv&nbsp;<span class="roll" id="lv">${X.lv0}</span></b></span></div></div>
       </div>
       <div class="xp">
@@ -478,7 +479,7 @@
         <div class="head pre" id="head"><h1>${M.title}</h1><p>${M.period}</p></div>
         <div class="stack">${heroHtml()}${newsHtml()}${vocHtml()}${lwHtml()}${streakHtml()}</div>
       </div>
-      <div class="foot pre" id="foot"><button class="tbtn" id="go">계속</button></div>
+      <div class="cta pre" id="foot"><button class="tbtn" id="go">계속</button></div>
     </div>`;
   }
 
@@ -534,8 +535,12 @@
       if (my !== gen) return;
       const bars = phone.querySelectorAll('.cmp .tk i');
       bars.forEach((b, i) => ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 560, delay: 60 + i * 260, easing: OUT }));
+      phone.querySelectorAll('.cmp .c').forEach((c, i) => {
+        ML.a(c, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 60 + i * 260, easing: 'ease' });
+        later(my, 60 + i * 260, () => ML.count(c, 0, +c.dataset.v, 560));
+      });
       const d = phone.querySelector('.hero .dl');
-      if (d) ML.a(d, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: 820, easing: ML.ease.spring });
+      if (d) ML.a(d, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: 700, easing: ML.ease.spring });
     });
 
     // 카드는 화면에 들어올 때 하나씩
@@ -550,7 +555,8 @@
         later(my, wait * ML.rate, () => reveal(my, e.target));
       });
     }, { root: view, threshold: 0.3, rootMargin: '0px 0px -84px 0px' });
-    later(my, 700, () => phone.querySelectorAll('.card').forEach((c) => io.observe(c)));
+    // 띠가 다 칠해진 뒤부터 카드를 받는다. 눈이 맨 위 숫자에서 카드로 차례로 내려오게.
+    later(my, 320 + dur - 80, () => phone.querySelectorAll('.card').forEach((c) => io.observe(c)));
 
     const nav = phone.querySelector('#nav');
     view.addEventListener('scroll', () => nav.classList.toggle('on', view.scrollTop > 56), { passive: true });
@@ -564,7 +570,7 @@
       const f = el.dataset.fmt === 'plus' ? (v) => '+' + fmt(v) : (v) => String(Math.round(v));
       later(my, 140, () => ML.count(el, from, to, from ? 520 : 820, f));
     });
-    card.querySelectorAll('.segs i[data-on="1"]').forEach((el, i) => ML.a(el, [{ background: 'var(--grey200)' }, { background: 'var(--blue500)' }], { duration: 200, delay: 200 + i * 55, easing: 'ease' }));
+    card.querySelectorAll('.dots i[data-on="1"]').forEach((el, i) => ML.a(el, [{ background: 'var(--grey200)' }, { background: 'var(--blue500)' }], { duration: 200, delay: 200 + i * 55, easing: 'ease' }));
     card.querySelectorAll('.pb i, .rows .tk i').forEach((el, i) => ML.a(el, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 700, delay: 200 + i * 70, easing: OUT }));
     const cols = card.querySelectorAll('.cols i');
     cols.forEach((el, i) => ML.a(el, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 560, delay: 200 + i * (cols.length > 7 ? 18 : 55), easing: OUT }));
@@ -579,7 +585,8 @@
       const fired = new Array(dots.length).fill(false);
       const lv = card.querySelector('#lv');
       tween(my, M.key === 'week' ? 1000 : 1500, easeInOut, (p) => {
-        const xx = p * X.pts[X.pts.length - 1].x;
+        const x0 = X.pts[0].x;
+        const xx = x0 + p * (X.pts[X.pts.length - 1].x - x0);
         cr.setAttribute('width', (xx + 3).toFixed(1));
         X.cross.forEach((c, i) => {
           if (fired[i] || xx < c.x) return;
