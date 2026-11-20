@@ -135,7 +135,7 @@
 
     <h3>화면 구성</h3>
     <table class="spec">
-      <tr><th>맨 위</th><td>마친 날 수(주간 N/7, 월간 N/30), 더 푼 문제 합계, 불꽃색 띠. 월간은 지난달과 막대 두 개로 비교하고 증감 칩을 붙임</td></tr>
+      <tr><th>맨 위</th><td>마친 날 수(주간 N/7, 월간 N/30), 추가 학습 합계, 불꽃색 띠. 월간은 지난달과 막대 두 개로 비교하고 증감 칩을 붙임</td></tr>
       <tr><th>뉴스</th><td>읽은 기사/발행 기사(주간은 기사 한 편이 한 칸, 월간은 막대), 저녁 퀴즈 정답률과 링, 많이 읽은 주제 순서. 1위는 파란 칩</td></tr>
       <tr><th>영단어</th><td>복습한 표현, 그중 새 표현, 강화된 표현. 날마다 복습한 양의 막대, 가장 많이 한 날만 진한 보라</td></tr>
       <tr><th>Latticework</th><td>푼 문제, 정답률, 주제별 문제 수 막대(CAPM, 자본배분, APT, 지수모형). 가장 많은 주제만 진한 초록</td></tr>
@@ -144,7 +144,7 @@
 
     <h3>움직임과 이유</h3>
     <table class="spec">
-      <tr><th>띠와 숫자</th><td>시작 화면이 걷히면 띠가 왼쪽에서 오른쪽으로 칠해지고, 마친 날을 지날 때마다 큰 숫자와 더 푼 문제 합계가 함께 오릅니다. 띠와 숫자가 같은 것을 센다는 걸 설명 없이 보여 주려는 움직임입니다. 주간 0.76초, 월간 1.4초</td></tr>
+      <tr><th>띠와 숫자</th><td>시작 화면이 걷히면 띠가 왼쪽에서 오른쪽으로 칠해지고, 마친 날을 지날 때마다 큰 숫자와 추가 학습 합계가 함께 오릅니다. 띠와 숫자가 같은 것을 센다는 걸 설명 없이 보여 주려는 움직임입니다. 주간 0.76초, 월간 1.4초</td></tr>
       <tr><th>오늘</th><td>띠가 오늘에 닿는 순간 주황 테두리가 튀어 오릅니다. 아직 끝나지 않은 날임을 알림</td></tr>
       <tr><th>지난달 비교</th><td>지난달 막대가 먼저, 이번 달 막대가 뒤따라 자라고, 다 자라면 증감 칩이 나타남</td></tr>
       <tr><th>카드</th><td>화면에 30% 이상 들어오면 28px 아래에서 올라오며(0.56초), 숫자가 세며 오르고 막대와 링이 차오릅니다. 빠르게 내려 여러 장이 한꺼번에 들어와도 0.12초 간격으로 줄 세워 순서가 보이게 함</td></tr>
@@ -209,7 +209,7 @@
   const ink = (x) => (Math.min(1, x / 30) < 0.22 ? 'rgba(0,12,30,.82)' : '#fff');
 
   // ---------- 2026년 11월 표본. 1일이 일요일.
-  const EX = { 3: 5, 4: 12, 9: 0, 12: 3, 13: 8, 14: 0, 15: 6, 16: 2, 17: 18, 18: 0, 19: 9, 20: 24, 26: 4, 27: 14, 28: 30, 29: 11 }; // 마친 날: 더 푼 문제
+  const EX = { 3: 5, 4: 12, 9: 0, 12: 3, 13: 8, 14: 0, 15: 6, 16: 2, 17: 18, 18: 0, 19: 9, 20: 24, 26: 4, 27: 14, 28: 30, 29: 11 }; // 마친 날: 추가 학습
   const PART = { 2: 40, 5: 60, 8: 30, 10: 50, 11: 20, 23: 30, 25: 40 }; // 마치지 못한 날에 얻은 XP
   const VOC = { 2: 3, 3: 5, 4: 7, 5: 4, 8: 2, 9: 4, 10: 3, 11: 2, 12: 6, 13: 5, 14: 4, 15: 6, 16: 6, 17: 9, 18: 4, 19: 7, 20: 8, 23: 2, 25: 3, 26: 6, 27: 7, 28: 9, 29: 8 };
   const xpOf = (n) => (EX[n] !== undefined ? 170 + EX[n] * 9 : PART[n] || 0);
@@ -221,7 +221,7 @@
   const sum = (arr, f) => arr.reduce((s, n) => s + f(n), 0);
 
   const WEEK = {
-    key: 'week', title: '이번 주', period: '11월 16일 ~ 22일',
+    key: 'week', title: '이번 주', period: '11월 16일 ~ 21일',
     days: range(16, 22), today: 21, cols: 7, offset: 0, CH: 44, S: 36,
     of: 7, prevDays: null,
     news: { read: 9, pub: 10, qOk: 7, qAll: 8, topics: [['M&A', 4], ['거시경제', 3], ['지배구조', 2]] },
@@ -298,7 +298,7 @@
     const cur = done.length;
     return `<div class="box hero pre" id="hero">
       <div class="hrow"><div class="big"><b id="bn">0</b><span class="of">/${M.of}일</span>${M.prevDays !== null ? dl(cur - M.prevDays) : ''}</div>
-        <div class="xs"><span class="lb">더 푼 문제</span><b id="bx" class="num">0</b></div></div>
+        <div class="xs"><span class="lb">추가 학습</span><b id="bx" class="num">0</b></div></div>
       <div class="wd">${M.labels.map((x) => `<span>${x}</span>`).join('')}</div>
       <div class="grid" id="grid" style="height:${rows * M.CH}px"></div>
       ${M.prevDays !== null ? `<div class="cmp">
@@ -366,7 +366,7 @@
     return `<div class="box card" data-card="news">
       <div class="ch"><span class="ic" style="background:var(--blue-weak)">${ICON.news}</span><b>뉴스</b></div>
       <div class="two">
-        <div><span class="lb">읽은 기사</span><div class="v"><b data-count="${N.read}">0</b><small>/${N.pub}</small></div>${meter}${N.prevRead ? `<div class="dlr">${dl(N.read - N.prevRead)}</div>` : ''}</div>
+        <div><span class="lb">읽은 기사</span><div class="v"><b data-count="${N.read}">0</b><small>/${N.pub}</small></div>${N.prevRead ? `<div class="dlr">${dl(N.read - N.prevRead)}</div>` : ''}${meter}</div>
         <div class="rc"><div><span class="lb">퀴즈 정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small></div>${N.prevAcc ? `<div class="dlr">${dl(acc - N.prevAcc, '%p')}</div>` : ''}</div>
           <svg class="ring" viewBox="0 0 56 56" width="52" height="52" aria-hidden="true"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--grey100)" stroke-width="7"/><circle class="arc" cx="28" cy="28" r="${R}" fill="none" stroke="var(--blue500)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${Cc}" stroke-dashoffset="${Cc}" data-c="${Cc}" data-p="${N.qOk / N.qAll}"/></svg></div>
       </div>

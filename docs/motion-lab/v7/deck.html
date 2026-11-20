@@ -46,7 +46,8 @@
   .sv small { font-size: 24px; font-weight: 700; color: var(--grey400); letter-spacing: -0.4px; margin-left: 3px; }
   .sv .chip { align-self: center; margin-left: 12px; letter-spacing: 0; }
   .chip { display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 10px; border-radius: 10px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .fl { flex: 1 1 0; min-height: 16px; }
+  .fl { flex: 1 1 0; min-height: 16px; max-height: 48px; }
+  .grow { flex: 1 1 0; }
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
   .two > div { background: var(--grey50); border-radius: 16px; padding: 14px 16px; }
   .two b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -87,6 +88,8 @@
   .br .tr i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; transform-origin: left; transform: scaleX(0); }
   .br .ct { text-align: right; font-size: 15px; font-weight: 700; color: var(--grey600); font-variant-numeric: tabular-nums; }
   .br.lead .nm, .br.lead .ct { color: var(--grey900); }
+  .br.wide { grid-template-columns: 76px 1fr 48px; }
+  .br .ct small { font-size: 13px; font-weight: 600; color: var(--grey400); margin-left: 1px; }
 
   /* 영단어 */
   .stk { position: relative; height: 14px; flex: none; }
@@ -96,9 +99,14 @@
   .lbls .k { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--grey600); white-space: nowrap; }
   .lbls .k i { width: 8px; height: 8px; border-radius: 3px; }
   .lbls b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .words { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
-  .words span { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 10px; background: var(--purple-weak); color: var(--purple600); font-size: 15px; font-weight: 600; opacity: 0; }
-  .words span.more { background: var(--grey100); color: var(--grey600); font-variant-numeric: tabular-nums; }
+  .wl { flex: none; }
+  .wl > div { display: flex; align-items: center; justify-content: space-between; height: 44px; border-top: 1px solid var(--grey100); opacity: 0; }
+  .wl b { font-size: 17px; font-weight: 700; color: var(--purple600); letter-spacing: -0.2px; }
+  .wl span { font-size: 15px; font-weight: 500; color: var(--grey600); }
+  .wl .more { justify-content: flex-end; height: 36px; }
+  .wl .more span { font-size: 15px; font-weight: 700; color: var(--grey500); }
+  .stk { height: 20px; }
+  .stk i { border-radius: 8px; }
 
   /* 레벨 */
   .lv { display: flex; align-items: baseline; font-size: 56px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
@@ -117,7 +125,7 @@
   .cr .v { font-size: 17px; font-weight: 700; margin-right: 10px; font-variant-numeric: tabular-nums; }
   .cr .d { min-width: 66px; height: 28px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .cr .d.up { background: var(--green-weak); color: var(--green600); }
-  .cr .d.dn { background: var(--red-weak); color: var(--red600); }
+  .cr .d.dn { background: var(--grey100); color: var(--grey600); }
 
   .notes ol { padding-left: 18px; margin: 0; }
   .notes li { margin: 4px 0; }
@@ -133,19 +141,19 @@
 
     <h3>장 구성과 움직임</h3>
     <table class="spec">
-      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 띠가 하루를 지날 때마다 큰 숫자가 하나씩 올라갑니다. 마치지 못한 날은 빈칸으로 남아 그 자체로 보입니다. 주간은 띠 아래에 날마다 더 푼 문제 수가 같이 떠서 색의 짙기를 설명 없이 읽게 합니다.</td></tr>
+      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 띠가 하루를 지날 때마다 큰 숫자가 하나씩 올라갑니다. 마치지 못한 날은 빈칸으로 남아 그 자체로 보입니다. 주간은 띠 아래에 날마다 추가 학습 문제 수가 같이 떠서 색의 짙기를 설명 없이 읽게 합니다.</td></tr>
       <tr><th>2</th><td>뉴스. 발행된 기사 수만큼 회색 칸이 놓이고 읽은 칸만 차례로 파랗게 찹니다. 저녁 퀴즈는 문제마다 한 칸, 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 주제 막대는 가장 많이 읽은 주제만 파랗고 나머지는 회색입니다.</td></tr>
-      <tr><th>3</th><td>영단어. 복습한 표현 하나의 막대가 새로 익힌 것(진한 보라), 강해진 것(연한 보라), 그대로인 것(회색)으로 나뉘며 자랍니다. 이름은 각 조각 바로 아래에 붙어 범례가 필요 없습니다. 새로 익힌 표현을 실제 낱말로 보여 줍니다.</td></tr>
-      <tr><th>4</th><td>Latticework. 문제 하나가 한 칸(한 달처럼 40문제가 넘으면 이어진 막대). 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 아래는 분야 이름과 주제별 막대입니다.</td></tr>
-      <tr><th>5</th><td>연속과 레벨. 불꽃이 아래에서 위로 켜지며 연속 일수가 지난 값에서 지금 값으로 셉니다. 경험치 막대가 끝까지 차는 순간 레벨 숫자가 튀어 오르며 바뀌고 막대가 비워진 뒤 새 레벨의 진행만큼 다시 찹니다. 폭죽은 쓰지 않았습니다.</td></tr>
-      <tr><th>6</th><td>월간만. 지난달 대비. 이번 달 값과 차이를 줄마다 놓고, 좋아진 것은 초록 위 삼각형, 나빠진 것은 빨강 아래 삼각형. 줄이 위에서부터 차례로 들어옵니다.</td></tr>
+      <tr><th>3</th><td>영단어. 복습한 표현 하나의 막대가 새로 익힌 것(진한 보라), 강해진 것(연한 보라), 그대로인 것(회색)으로 나뉘며 자랍니다. 이름과 숫자는 각 조각 바로 아래에 붙고, 숫자를 조각과 같은 보라로 칠해 범례가 필요 없습니다(검토에서 색 네모 표식을 뺌). 새로 익힌 표현을 실제 낱말로 보여 줍니다.</td></tr>
+      <tr><th>4</th><td>Latticework. 문제 하나가 한 칸(한 달처럼 40문제가 넘으면 이어진 막대). 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 아래는 분야 이름과 주제별 막대로, 막대 길이는 푼 수이고 같은 초록과 빨강으로 나뉘어 위의 칸에서 배운 색 규칙을 그대로 씁니다.</td></tr>
+      <tr><th>5</th><td>연속과 레벨. 불꽃이 아래에서 위로 켜지고, 최근 열흘의 띠가 지난 연속(주간은 12일부터 15일) 끝에서 하루씩 늘어날 때마다 숫자가 4에서 9로 하나씩 오릅니다. 오늘은 테두리 칸입니다. 경험치 막대가 끝까지 차는 순간 레벨 숫자가 튀어 오르며 바뀌고 막대가 비워진 뒤 새 레벨의 진행만큼 다시 찹니다. 폭죽은 쓰지 않았습니다.</td></tr>
+      <tr><th>6</th><td>월간만. 지난달 대비. 이번 달 값과 차이를 줄마다 놓고, 좋아진 것은 초록 위 삼각형, 줄어든 것은 회색 아래 삼각형(빨강은 꾸짖는 느낌이라 뺌, 다른 두 시안과 같은 규칙). 줄이 위에서부터 차례로 들어옵니다.</td></tr>
     </table>
 
     <h3>손맛</h3>
     <table class="spec">
       <tr><th>끌기</th><td>손가락과 카드가 1:1로 움직입니다. 카드는 아래쪽(85%)을 축으로 끈 거리만큼 최대 10도 기울어 손으로 집어 든 느낌을 줍니다. 누르는 순간 카드가 0.985배로 살짝 눌립니다.</td></tr>
       <tr><th>뒤 카드</th><td>바로 뒤 카드는 0.94배, 아래로 12px 비어져 나오고, 그 뒤 카드는 0.88배. 앞 카드를 끄는 만큼 뒤 카드가 크기와 자리를 이어서 따라와 앞으로 올라옵니다. 뒤 카드의 내용은 가려 두었다가 올라오면서 드러납니다.</td></tr>
-      <tr><th>놓기</th><td>놓을 때 손의 속도를 그대로 이어받는 스프링(강성 230, 감쇠비 0.86)으로 자리를 찾습니다. 넘길지는 놓은 자리에 속도×0.18초를 더한 예상 위치로 정하므로, 짧게 휙 던져도 넘어가고 천천히 끌다 놓으면 돌아옵니다. 한 번에 한 장만 넘어갑니다.</td></tr>
+      <tr><th>놓기</th><td>놓을 때 손의 속도를 그대로 이어받는 스프링(강성 210, 감쇠비 0.86)으로 자리를 찾습니다. 넘길지는 놓은 자리에 속도×0.18초를 더한 예상 위치로 정하므로, 짧게 휙 던져도 넘어가고 천천히 끌다 놓으면 돌아옵니다. 한 번에 한 장만 넘어갑니다.</td></tr>
       <tr><th>끝</th><td>첫 장에서 오른쪽, 마지막 장에서 왼쪽으로 끌면 고무줄처럼 점점 덜 따라옵니다(iOS 스크롤 끝과 같은 식).</td></tr>
       <tr><th>알려 주기</th><td>첫 장의 숫자가 다 그려진 뒤 손을 대지 않았으면 맨 위 카드가 한 번만 왼쪽으로 살짝 밀렸다 돌아오며 뒤 카드를 보여 줍니다. "넘겨 보세요" 같은 문장 대신 움직임으로 알려 줍니다.</td></tr>
       <tr><th>점</th><td>점은 카드 위치를 따라 연속으로 늘고 진해집니다. 끄는 도중에도 점이 반쯤 늘어나 있습니다. 점을 누르면 그 장으로 가며, 사이의 카드가 한 장씩 차례로 던져집니다.</td></tr>
@@ -175,7 +183,7 @@
       <li>카드 테두리와 여백 때문에 실제로 쓸 수 있는 면적이 스토리 전체 화면보다 작습니다. 월간 첫 장의 달력이 가장 빠듯합니다.</li>
       <li>모든 장을 넘겨야 "계속" 이 나옵니다. 바로 홈으로 가려면 닫기를 눌러야 합니다.</li>
       <li>좌우 끌기와 화면 세로 스크롤이 겹치는 곳에서는 처음 6px 동안 방향을 판단하므로 아주 짧은 순간 반응이 늦을 수 있습니다.</li>
-      <li>"지난달 대비" 의 초록 위, 빨강 아래는 한국 주식 화면의 빨강 상승, 파랑 하락과 반대입니다. 학습 지표라 좋아짐과 나빠짐으로 칠했습니다.</li>
+      <li>"지난달 대비" 의 초록 위는 한국 주식 화면의 빨강 상승과 반대입니다. 학습 지표라 좋아짐으로 칠했고, 줄어든 것은 회색으로 낮췄습니다.</li>
     </ul>
 
     <h3>언제 나오는가</h3>
@@ -231,18 +239,18 @@
   };
 
   // ---------- 예시 자료
-  // 2026년 11월. 1일이 일요일, 월요일 시작. 마친 날과 그날 더 푼 문제 수.
+  // 2026년 11월. 1일이 일요일, 월요일 시작. 마친 날과 그날 추가 학습 문제 수.
   const NOV = { 3: 4, 4: 0, 5: 11, 12: 6, 13: 3, 14: 22, 15: 0, 16: 2, 17: 18, 18: 0, 19: 9, 20: 6, 26: 30, 27: 12, 28: 5, 29: 14 };
   const LV_RANGE = { 2: 600, 3: 800, 4: 1000, 5: 1200 };
   const DATA = {
     week: {
-      chrome: '이번 주', title: '11월 16일 ~ 22일',
+      chrome: '이번 주', title: '11월 16일 ~ 21일',
       cal: { from: 16, to: 22, today: 21, col: (n) => n - 16, row: () => 0, rows: 1, wdToday: 5, ex: true },
       doneOf: 7, two: [['추가 문제', 35, ''], ['하루 최다', 18, '']],
       news: { read: 9, pub: 10, quiz: [7, 8], topics: [['지배구조', 4], ['M&A', 3], ['거시경제', 2]] },
-      voca: { rev: 34, neu: 12, up: 19, words: ['moat', 'accretive', 'headwind', 'dilution'], more: 8 },
-      lw: { n: 25, ok: 21, field: '투자론', topics: [['CAPM', 9], ['자본배분', 7], ['APT', 5], ['지수모형', 4]] },
-      streak: { from: 4, to: 9, chip: '+5', chipHot: true },
+      voca: { rev: 34, neu: 12, up: 19, words: [['moat', '해자'], ['accretive', '주당이익 증가'], ['headwind', '역풍'], ['dilution', '지분 희석']], more: 8 },
+      lw: { n: 25, ok: 21, field: '투자론', topics: [['CAPM', 9, 8], ['자본배분', 7, 6], ['APT', 5, 4], ['지수모형', 4, 3]] },
+      streak: { from: 4, to: 9, chip: '+5', chipHot: true, chain: [12, 21], run: [12, 20], today: 21 },
       xp: 640, lv: { from: [3, 576], to: [4, 416] },
     },
     month: {
@@ -250,9 +258,9 @@
       cal: { from: 1, to: 30, today: 30, col: (n) => (n + 5) % 7, row: (n) => Math.floor((n + 5) / 7), rows: 6, wdToday: -1, ex: false },
       doneOf: 30, two: [['최장 연속', 9, '일'], ['추가 문제', 142, '']],
       news: { read: 38, pub: 42, quiz: [31, 36], topics: [['지배구조', 14], ['M&A', 11], ['거시경제', 8], ['상장 규정', 5]] },
-      voca: { rev: 142, neu: 48, up: 71, words: ['moat', 'accretive', 'headwind', 'dilution', 'covenant'], more: 43 },
-      lw: { n: 104, ok: 84, field: '투자론', topics: [['CAPM', 31], ['자본배분', 27], ['APT', 24], ['지수모형', 22]] },
-      streak: { from: 0, to: 4, chip: '최장 9일', chipHot: false },
+      voca: { rev: 142, neu: 48, up: 71, words: [['covenant', '약정 조항'], ['moat', '해자'], ['accretive', '주당이익 증가'], ['headwind', '역풍']], more: 44 },
+      lw: { n: 104, ok: 84, field: '투자론', topics: [['CAPM', 31, 26], ['자본배분', 27, 22], ['APT', 24, 19], ['지수모형', 22, 17]] },
+      streak: { from: 0, to: 4, chip: '최장 9일', chipHot: false, chain: [21, 30], run: [26, 29], today: 30 },
       xp: 1980, lv: { from: [2, 210], to: [4, 790] },
       cmp: { title: '10월 대비', rows: [['완료한 날', '16일', '5일', 1], ['읽은 기사', '38', '6', 1], ['퀴즈 정답률', '86%', '2%p', 0], ['복습한 표현', '142', '38', 1], ['푼 문제', '104', '22', 1], ['문제 정답률', '81%', '4%p', 1], ['XP', '1,980', '340', 1]] },
     },
@@ -334,7 +342,8 @@
       <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x, i) => `<span class="${i === c.wdToday ? 'td' : ''}">${x}</span>`).join('')}</div>
       <div class="grid" style="height:${gridH}px">${bands.join('')}${loose.join('')}${exs.join('')}</div>
       <div class="fl"></div>
-      <div class="two">${d.two.map(([k, v, u]) => `<div><span class="sn">${k}</span><b><span data-to="${v}">0</span>${u ? `<small>${u}</small>` : ''}</b></div>`).join('')}</div>`;
+      <div class="two">${d.two.map(([k, v, u]) => `<div><span class="sn">${k}</span><b><span data-to="${v}">0</span>${u ? `<small>${u}</small>` : ''}</b></div>`).join('')}</div>
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const hero = el.querySelector('[data-hero]');
       const rs = [...el.querySelectorAll('.band')].map((b) => ({ b, w: +b.dataset.w, n: +b.dataset.n, a: +b.dataset.a }));
@@ -384,7 +393,8 @@
       <div class="sub"><div class="row"><span class="sn">저녁 퀴즈</span><b><span data-acc>0</span>%<small>${q[0]}/${q[1]}</small></b></div>
         <div class="segbar ${q[1] > 12 ? 'dense' : ''}">${Array.from({ length: q[1] }, (_, i) => `<i><b style="background:${i < q[0] ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div></div>
       <div class="fl"></div>
-      <div class="bars">${N.topics.map(([k, v], i) => `<div class="br ${i ? '' : 'lead'}"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:${i ? 'var(--grey300)' : 'var(--blue500)'}"></i></span><span class="ct">${v}</span></div>`).join('')}</div>`;
+      <div class="bars">${N.topics.map(([k, v], i) => `<div class="br ${i ? '' : 'lead'}"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:${i ? 'var(--grey300)' : 'var(--blue500)'}"></i></span><span class="ct">${v}</span></div>`).join('')}</div>
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const hero = el.querySelector('[data-hero]');
       const tiles = [...el.querySelectorAll('.tiles b')];
@@ -407,18 +417,19 @@
   function cardVoca(d, W) {
     const V = d.voca;
     const same = V.rev - V.neu - V.up;
-    const parts = [[V.neu, 'var(--purple500)', '새로 익힘'], [V.up, 'var(--purple200)', '강해짐'], [same, 'var(--grey200)', '']];
+    const parts = [[V.neu, 'var(--purple500)', '새로 익힘', 'var(--purple600)'], [V.up, 'var(--purple200)', '강해짐', 'var(--purple300)'], [same, 'var(--grey200)', '', '']];
     const G = 3;
     const usable = W - G * 2;
     let x = 0;
-    const segs = parts.map(([v, c, k]) => { const w = (v / V.rev) * usable; const s = { x, w, c, k, v }; x += w + G; return s; });
+    const segs = parts.map(([v, c, k, tc]) => { const w = (v / V.rev) * usable; const s = { x, w, c, k, v, tc }; x += w + G; return s; });
     const html = `<div class="hd"><span class="ic" style="background:var(--purple-weak)">${ICON.voca}</span><b>영단어</b></div>
       <div class="hero"><span class="sn">복습한 표현</span><span class="sv"><span data-hero>0</span></span></div>
       <div class="fl"></div>
       <div class="stk">${segs.map((s) => `<i style="left:${s.x}px;width:${s.w}px;background:${s.c}"></i>`).join('')}</div>
-      <div class="lbls">${segs.filter((s) => s.k).map((s) => `<div style="left:${s.x}px"><span class="k"><i style="background:${s.c}"></i>${s.k}</span><b data-to="${s.v}">0</b></div>`).join('')}</div>
+      <div class="lbls">${segs.filter((s) => s.k).map((s) => `<div style="left:${s.x}px"><span class="k">${s.k}</span><b data-to="${s.v}" style="color:${s.tc}">0</b></div>`).join('')}</div>
       <div class="fl"></div>
-      <div class="words">${V.words.map((w) => `<span>${w}</span>`).join('')}<span class="more">+${V.more}</span></div>`;
+      <div class="wl">${V.words.map(([e, k]) => `<div><b>${e}</b><span>${k}</span></div>`).join('')}<div class="more"><span class="num">+${V.more}</span></div></div>
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const hero = el.querySelector('[data-hero]');
       const is = [...el.querySelectorAll('.stk i')];
@@ -438,7 +449,7 @@
         setTimeout(() => ML.count(b, 0, +b.dataset.to, 520), (k * 90) / ML.rate);
       });
       if (!(await later(260, g))) return;
-      el.querySelectorAll('.words span').forEach((s, k) => K.spring(s, [{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'scale(1)' }], 'small', { delay: k * 50 }));
+      el.querySelectorAll('.wl > div').forEach((s, k) => ML.a(s, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: k * 60, easing: OUT }));
     };
     return { html, play, dur: 1600 };
   }
@@ -457,8 +468,8 @@
       <div style="margin-top:16px;flex:none">${bar}</div>
       <div class="fl"></div>
       <span class="sn" style="margin-bottom:12px;color:var(--grey800);font-weight:700">${L.field}</span>
-      <div class="bars">${L.topics.map(([k, v]) => `<div class="br"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:var(--green500)"></i></span><span class="ct">${v}</span></div>`).join('')}</div>
-      <div class="fl"></div>`;
+      <div class="bars">${L.topics.map(([k, v, o]) => `<div class="br wide"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:linear-gradient(90deg, var(--green500) 0 ${(o / v) * 100}%, var(--red300) ${(o / v) * 100}% 100%)"></i></span><span class="ct">${o}<small>/${v}</small></span></div>`).join('')}</div>
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const hero = el.querySelector('[data-hero]');
       const accEl = el.querySelector('[data-acc]');
@@ -495,14 +506,32 @@
     const s = d.streak;
     const [l0, x0] = d.lv.from;
     const [l1, x1] = d.lv.to;
+    // 연속 사슬: 열 칸. 이어진 날은 하나의 띠, 오늘은 테두리. 처음엔 지난번 연속만큼만 보이고 숫자를 세며 늘어난다.
+    const n0 = s.chain[0];
+    const cells = s.chain[1] - n0 + 1;
+    const CW = W / cells;
+    const S = Math.min(30, CW - 2);
+    const cx = (n) => (n - n0) * CW + CW / 2;
+    const [ra, rb] = s.run;
+    const bw = cx(rb) - cx(ra) + S;
+    const shown0 = s.from ? cx(ra + s.from - 1) - cx(ra) + S : 0;
+    const ns = [];
+    for (let n = ra; n <= rb; n++) ns.push(n);
+    const stops = ns.map((n) => `${heat(NOV[n])} ${(((cx(n) - cx(ra) + S / 2) / bw) * 100).toFixed(1)}%`);
+    const chain = `<div class="grid chain" style="height:${S}px;margin-top:18px">
+        <div class="band" data-w="${bw}" style="left:${cx(ra) - S / 2}px;top:0;width:${bw}px;height:${S}px;border-radius:${S / 2}px;${s.from ? '' : 'opacity:0;'}clip-path:inset(0 ${bw - Math.max(shown0, S)}px 0 0 round ${S / 2}px)">
+          <div class="layer" style="background:linear-gradient(90deg, ${stops.join(', ')})"></div><div class="layer" style="background:linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 55%)"></div>
+          ${ns.map((n) => `<span class="dn" style="left:${cx(n) - cx(ra) + S / 2 - CW / 2}px;width:${CW}px;height:${S}px;font-size:13px;color:${ink(NOV[n])}">${n}</span>`).join('')}</div>
+        ${Array.from({ length: cells }, (_, i) => n0 + i).filter((n) => n < ra || n > rb).map((n) => `${n === s.today ? `<span class="ring" style="left:${cx(n) - S / 2}px;top:0;width:${S}px;height:${S}px"></span>` : ''}<span class="dn" style="left:${cx(n) - CW / 2}px;top:0;width:${CW}px;height:${S}px;font-size:13px;${n === s.today ? 'color:var(--grey900);font-weight:700' : 'color:var(--grey400)'}">${n}</span>`).join('')}</div>`;
     const html = `<div class="hd"><span class="flw" id="fw">${K.flame(26, false)}</span><b>연속</b></div>
       <div class="hero" style="margin-top:12px"><span class="sv"><span data-st>${s.from}</span><small>일</small><span class="chip" data-chip style="opacity:0;${s.chipHot ? 'background:var(--orange-weak);color:var(--orange700)' : 'background:var(--grey100);color:var(--grey600)'}">${s.chip}</span></span></div>
+      ${chain}
       <div class="fl"></div>
       <div class="hd"><span class="ic" style="background:var(--yellow-weak)">${K.bolt(22, 'var(--yellow500)')}</span><b>레벨</b></div>
-      <div class="hero" style="margin-top:12px"><div class="lv"><small>Lv</small><span class="n roll" data-lv>${l0}</span><span class="chip" data-xpc style="opacity:0;background:var(--yellow-weak);color:var(--orange700)">+<span data-xp>0</span> XP</span></div>
+      <div class="hero" style="margin-top:12px"><div class="lv"><small>Lv</small><span class="n roll" data-lv>${l0}</span><span class="chip" data-xpc style="opacity:0;background:var(--yellow-weak);color:var(--orange700)"><span>+<span data-xp>0</span> XP</span></span></div>
         <div class="pbar" style="margin-top:14px"><i class="fill" data-fill style="transform:scaleX(${x0 / LV_RANGE[l0]})"></i></div>
         <div class="xpn"><span data-xpn>${fmt(x0)} / ${fmt(LV_RANGE[l0])}</span></div></div>
-      <div class="fl"></div>`;
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const fl = el.querySelector('.flame');
       const litw = fl.querySelector('.litw');
@@ -511,9 +540,22 @@
       ML.a(litw, [{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 420, delay: 140, easing: ML.ease.out });
       K.spring(fl, [{ transform: 'scale(.86)' }, { transform: 'scale(1)' }], 'bounce', { delay: 180 });
       const st = el.querySelector('[data-st]');
+      const band = el.querySelector('.chain .band');
       if (!(await later(220, g))) return;
-      await ML.count(st, s.from, s.to, 160 + (s.to - s.from) * 90);
+      // 띠가 하루씩 늘어날 때마다 숫자가 하나씩 오른다.
+      const w0 = Math.max(shown0, S);
+      const T = 200 + (s.to - s.from) * 120;
+      await tween(T, (ms) => {
+        const p = ms / T;
+        const e = inOutC(p);
+        const cw = w0 + (bw - w0) * e;
+        band.style.opacity = s.from ? 1 : clamp(p / 0.1);
+        band.style.clipPath = `inset(0 ${bw - cw}px 0 0 round ${S / 2}px)`;
+        const k = s.from ? s.from + Math.floor((cw - w0) / CW + 0.35) : 1 + Math.floor((cw - S) / CW + 0.35);
+        st.textContent = Math.min(s.to, k);
+      }, g);
       if (g !== gen) return;
+      st.textContent = s.to;
       const chip = el.querySelector('[data-chip]');
       K.spring(chip, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce');
       if (!(await later(260, g))) return;
@@ -562,7 +604,7 @@
     const html = `<div class="hd"><span class="ic" style="background:var(--blue-weak)">${ICON.cal}</span><b>${C.title}</b></div>
       <div class="fl" style="max-height:20px"></div>
       <div class="cmp">${C.rows.map(([k, v, dv, up]) => `<div class="cr" style="opacity:0"><span class="nm">${k}</span><span class="v">${v}</span><span class="d ${up ? 'up' : 'dn'}" style="opacity:0">${up ? ICON.up : ICON.dn}${dv}</span></div>`).join('')}</div>
-      <div class="fl"></div>`;
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       el.querySelectorAll('.cr').forEach((r, k) => {
         ML.a(r, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: k * 60, easing: OUT });
@@ -586,7 +628,7 @@
     const dotTop = 64 + CH + PEEK * 2 + 8;
     phone.innerHTML = `<div class="scr">
       <div class="top" id="top"><b>${d.chrome}</b><button class="x" id="x" aria-label="닫기">${K.close(24)}</button></div>
-      <div class="deck" id="deck">${CARDS.map((c, k) => `<div class="slot" style="height:${CH}px"><div class="card"><div class="in">${c.html}${k === N - 1 ? '<div class="fl" style="max-height:24px"></div><button class="tbtn" data-go>계속</button>' : ''}</div><div class="veil"></div></div></div>`).join('')}</div>
+      <div class="deck" id="deck">${CARDS.map((c, k) => `<div class="slot" style="height:${CH}px"><div class="card"><div class="in">${c.html}${k === N - 1 ? '<div class="grow" style="min-height:24px"></div><button class="tbtn" data-go>계속</button>' : ''}</div><div class="veil"></div></div></div>`).join('')}</div>
       <div class="dots" id="dots" style="top:${dotTop}px">${CARDS.map((_, k) => `<button aria-label="${k + 1}/${N}"><i><b></b></i></button>`).join('')}</div></div>`;
     deckEl = phone.querySelector('#deck');
     slots = [...deckEl.querySelectorAll('.slot')];
@@ -616,7 +658,7 @@
         sc = 1 - 0.06 * q;
         y = (CH / 2) * (1 - sc) + PEEK * q;
         if (r > 2) op = clamp(3 - r);
-        co = clamp(1 - r * 2.2);
+        co = clamp(1 - r * 1.5);
         veil = clamp(r) * 0.7;
       }
       s.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(4)})`;
@@ -635,8 +677,8 @@
     });
   }
 
-  /** 속도를 이어받는 스프링. 강성 230, 감쇠비 0.86. 단위는 카드 장 수. */
-  const KS = 230;
+  /** 속도를 이어받는 스프링. 강성 210, 감쇠비 0.86. 단위는 카드 장 수. */
+  const KS = 210;
   const KC = 2 * 0.86 * Math.sqrt(KS);
   let lastT = 0;
   function springTo(target, v) {
@@ -714,9 +756,12 @@
       deckEl.classList.remove('drag');
       if (g.card) K.spring(g.card, [{ transform: 'scale(.985)' }, { transform: 'scale(1)' }], 'bounce');
       if (g.axis !== 'x' || cancel) return springTo(g.from, 0);
-      const a = g.samples[0];
-      const b = g.samples[g.samples.length - 1];
-      const vpx = b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0; // px/ms
+      // 마지막 90ms 의 움직임으로 속도를 잰다. 손가락이 멈춘 채 놓으면 속도는 0.
+      const now = performance.now();
+      const pts = g.samples.filter((p) => now - p[0] <= 90);
+      const a = pts[0];
+      const b = pts[pts.length - 1];
+      const vpx = pts.length > 1 && now - b[0] < 50 && b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0; // px/ms
       const v = (-vpx * 1000) / TRAVEL; // 장/초
       const proj = D.pos + v * 0.18;
       const t = clamp(Math.round(proj), Math.max(0, g.from - 1), Math.min(slots.length - 1, g.from + 1));

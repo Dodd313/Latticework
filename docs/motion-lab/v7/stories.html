@@ -60,7 +60,7 @@
 
   /* 뉴스 */
   .tiles { position: relative; }
-  .tiles > i { position: absolute; background: var(--grey100); }
+  .tiles > i { position: absolute; background: var(--grey200); }
   .tiles > i b { position: absolute; inset: 0; border-radius: inherit; background: var(--blue500); }
   .tl { display: grid; margin-top: 8px; }
   .tl span { text-align: center; font-size: 13px; font-weight: 600; color: var(--grey500); }
@@ -70,7 +70,7 @@
   .row2 b small { font-size: 15px; font-weight: 600; color: var(--grey500); margin-left: 6px; }
   .segbar { display: flex; gap: 4px; height: 10px; }
   .segbar.dense { gap: 2px; }
-  .segbar i { position: relative; flex: 1; border-radius: 5px; background: var(--grey100); overflow: hidden; }
+  .segbar i { position: relative; flex: 1; border-radius: 5px; background: var(--grey200); overflow: hidden; }
   .segbar i b { position: absolute; inset: 0; background: var(--green500); transform-origin: left; transform: scaleX(0); }
   .bars { display: flex; flex-direction: column; gap: 10px; }
   .br { display: grid; grid-template-columns: 76px 1fr 44px; align-items: center; gap: 10px; }
@@ -115,7 +115,7 @@
   .cr .v b { font-size: 17px; font-weight: 700; min-width: 34px; text-align: right; }
   .cr .d { min-width: 54px; height: 26px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
   .cr .d.up { background: var(--green-weak); color: var(--green600); }
-  .cr .d.dn { background: var(--red-weak); color: var(--red600); }
+  .cr .d.dn { background: var(--grey100); color: var(--grey600); }
   .cr .tk { position: relative; height: 8px; border-radius: 4px; background: var(--grey100); }
   .cr .tk i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; transform-origin: left; }
   .cr .tk .old { background: var(--grey300); }
@@ -132,12 +132,12 @@
 
     <h3>장 구성</h3>
     <table class="spec">
-      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 왼쪽에서 오른쪽으로 그려지고, 처음엔 모두 노랑이었다가 더 푼 만큼 주황, 빨강으로 짙어집니다. "완료한 날" 숫자는 띠가 그려지는 동안, "더 푼 문제" 숫자는 색이 짙어지는 동안 셉니다.</td></tr>
+      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 왼쪽에서 오른쪽으로 그려지고, 처음엔 모두 노랑이었다가 추가 학습만큼 주황, 빨강으로 짙어집니다. "완료한 날" 숫자는 띠가 그려지는 동안, "추가 학습" 숫자는 색이 짙어지는 동안 셉니다.</td></tr>
       <tr><th>2</th><td>뉴스. 발행된 기사 칸이 회색으로 놓이고 읽은 기사만 파랗게 찹니다. 안 읽은 칸은 그대로 남아 스스로 드러납니다. 저녁 퀴즈는 맞힌 칸만 초록으로 차고, 많이 본 주제는 막대 세 개.</td></tr>
       <tr><th>3</th><td>영단어. 복습한 표현 수만큼 칸이 깔리고, "새로" 를 세는 동안 새로 배운 칸이 진한 보라로, "강화" 를 세는 동안 강화된 칸이 연한 보라로 바뀝니다. 숫자 색과 칸 색이 같아 범례가 필요 없습니다.</td></tr>
       <tr><th>4</th><td>Latticework. 주제별 막대가 푼 만큼 연하게 자라고, 그 안에서 맞힌 만큼 진하게 다시 찹니다. 막대 길이는 양, 진한 부분은 정답률입니다.</td></tr>
-      <tr><th>5</th><td>연속과 레벨. 지난주 끝의 띠 네 칸에서 시작해 이번 주 하루가 붙을 때마다 숫자가 한 칸씩 굴러 4에서 9가 됩니다. 경험치 막대가 끝까지 차는 순간 메달이 튀며 레벨 숫자가 바뀌고, 이때만 작은 폭죽이 납니다.</td></tr>
-      <tr><th>6</th><td>월간만. 10월 값이 회색 막대로 먼저 그려지고, 11월 막대가 그 위로 자랍니다. 회색 표시를 넘으면 늘어난 것, 못 미치면 줄어든 것. 차이 칩은 막대가 멈춘 뒤에 나타납니다.</td></tr>
+      <tr><th>5</th><td>연속과 레벨. 지난주 끝의 띠 네 칸에서 시작해 이번 주 하루가 붙을 때마다 숫자가 한 칸씩 굴러 4에서 9가 됩니다. 경험치 막대가 끝까지 차는 순간 메달이 눌렸다 튀며 레벨 숫자가 바뀝니다. 폭죽은 쓰지 않습니다(리뷰 검토에서 뺌: 숫자 위로 날아가 읽기를 가렸음).</td></tr>
+      <tr><th>6</th><td>월간만. 10월 값이 회색 막대로 먼저 그려지고, 11월 막대가 그 위로 자랍니다. 회색 표시를 넘으면 늘어난 것, 못 미치면 줄어든 것. 차이 칩은 막대가 멈춘 뒤에 나타납니다. 늘면 초록, 줄면 회색(빨강은 꾸짖는 느낌이라 쓰지 않음).</td></tr>
     </table>
 
     <h3>언제 뜨는가</h3>
@@ -302,7 +302,7 @@
         <div class="cal"><div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x, i) => `<span class="${week && i === d.cal.todayCol ? 'td' : ''}">${x}</span>`).join('')}</div>
           <div class="grid" style="height:${CH * d.cal.rows + exH}px"></div></div>
         <div class="pair"><div><span class="sl">완료한 날</span><b class="big"><span id="c1">0</span><small>/${d.of}</small></b></div>
-          <div><span class="sl">더 푼 문제</span><b class="big hot" id="c2">0</b></div></div>
+          <div><span class="sl">추가 학습</span><b class="big hot" id="c2">0</b></div></div>
       </div>`;
     const g = root.querySelector('.grid');
     const el = (cls, css, html = '') => { const e = document.createElement('div'); e.className = cls; Object.assign(e.style, css); e.innerHTML = html; g.append(e); return e; };
@@ -570,15 +570,10 @@
       if (k < lv.segs.length - 1) {
         level += 1;
         const L = level;
-        const last = k === lv.segs.length - 2;
         T.at(t, () => {
           ML.roll(ln, String(L), 1, 300);
           T.sp(medal, [{ transform: 'scale(1)' }, { transform: 'scale(.9)' }], 'rapid', { fill: 'none' });
           T.sp(medal, [{ transform: 'scale(.9)' }, { transform: 'scale(1)' }], 'bounce', { delay: 120, fill: 'none' });
-          if (last) {
-            const p = LW.pos(medal, root);
-            LW.confetti(root, p.cx, p.cy, 26, 0.7);
-          }
         });
         t += 260;
       }

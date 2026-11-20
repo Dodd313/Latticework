@@ -125,7 +125,7 @@
   .cr .v { font-size: 17px; font-weight: 700; margin-right: 10px; font-variant-numeric: tabular-nums; }
   .cr .d { min-width: 66px; height: 28px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .cr .d.up { background: var(--green-weak); color: var(--green600); }
-  .cr .d.dn { background: var(--red-weak); color: var(--red600); }
+  .cr .d.dn { background: var(--grey100); color: var(--grey600); }
 
   .notes ol { padding-left: 18px; margin: 0; }
   .notes li { margin: 4px 0; }
@@ -141,12 +141,12 @@
 
     <h3>장 구성과 움직임</h3>
     <table class="spec">
-      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 띠가 하루를 지날 때마다 큰 숫자가 하나씩 올라갑니다. 마치지 못한 날은 빈칸으로 남아 그 자체로 보입니다. 주간은 띠 아래에 날마다 더 푼 문제 수가 같이 떠서 색의 짙기를 설명 없이 읽게 합니다.</td></tr>
+      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 띠가 하루를 지날 때마다 큰 숫자가 하나씩 올라갑니다. 마치지 못한 날은 빈칸으로 남아 그 자체로 보입니다. 주간은 띠 아래에 날마다 추가 학습 문제 수가 같이 떠서 색의 짙기를 설명 없이 읽게 합니다.</td></tr>
       <tr><th>2</th><td>뉴스. 발행된 기사 수만큼 회색 칸이 놓이고 읽은 칸만 차례로 파랗게 찹니다. 저녁 퀴즈는 문제마다 한 칸, 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 주제 막대는 가장 많이 읽은 주제만 파랗고 나머지는 회색입니다.</td></tr>
-      <tr><th>3</th><td>영단어. 복습한 표현 하나의 막대가 새로 익힌 것(진한 보라), 강해진 것(연한 보라), 그대로인 것(회색)으로 나뉘며 자랍니다. 이름은 각 조각 바로 아래에 붙어 범례가 필요 없습니다. 새로 익힌 표현을 실제 낱말로 보여 줍니다.</td></tr>
+      <tr><th>3</th><td>영단어. 복습한 표현 하나의 막대가 새로 익힌 것(진한 보라), 강해진 것(연한 보라), 그대로인 것(회색)으로 나뉘며 자랍니다. 이름과 숫자는 각 조각 바로 아래에 붙고, 숫자를 조각과 같은 보라로 칠해 범례가 필요 없습니다(검토에서 색 네모 표식을 뺌). 새로 익힌 표현을 실제 낱말로 보여 줍니다.</td></tr>
       <tr><th>4</th><td>Latticework. 문제 하나가 한 칸(한 달처럼 40문제가 넘으면 이어진 막대). 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 아래는 분야 이름과 주제별 막대로, 막대 길이는 푼 수이고 같은 초록과 빨강으로 나뉘어 위의 칸에서 배운 색 규칙을 그대로 씁니다.</td></tr>
       <tr><th>5</th><td>연속과 레벨. 불꽃이 아래에서 위로 켜지고, 최근 열흘의 띠가 지난 연속(주간은 12일부터 15일) 끝에서 하루씩 늘어날 때마다 숫자가 4에서 9로 하나씩 오릅니다. 오늘은 테두리 칸입니다. 경험치 막대가 끝까지 차는 순간 레벨 숫자가 튀어 오르며 바뀌고 막대가 비워진 뒤 새 레벨의 진행만큼 다시 찹니다. 폭죽은 쓰지 않았습니다.</td></tr>
-      <tr><th>6</th><td>월간만. 지난달 대비. 이번 달 값과 차이를 줄마다 놓고, 좋아진 것은 초록 위 삼각형, 나빠진 것은 빨강 아래 삼각형. 줄이 위에서부터 차례로 들어옵니다.</td></tr>
+      <tr><th>6</th><td>월간만. 지난달 대비. 이번 달 값과 차이를 줄마다 놓고, 좋아진 것은 초록 위 삼각형, 줄어든 것은 회색 아래 삼각형(빨강은 꾸짖는 느낌이라 뺌, 다른 두 시안과 같은 규칙). 줄이 위에서부터 차례로 들어옵니다.</td></tr>
     </table>
 
     <h3>손맛</h3>
@@ -183,7 +183,7 @@
       <li>카드 테두리와 여백 때문에 실제로 쓸 수 있는 면적이 스토리 전체 화면보다 작습니다. 월간 첫 장의 달력이 가장 빠듯합니다.</li>
       <li>모든 장을 넘겨야 "계속" 이 나옵니다. 바로 홈으로 가려면 닫기를 눌러야 합니다.</li>
       <li>좌우 끌기와 화면 세로 스크롤이 겹치는 곳에서는 처음 6px 동안 방향을 판단하므로 아주 짧은 순간 반응이 늦을 수 있습니다.</li>
-      <li>"지난달 대비" 의 초록 위, 빨강 아래는 한국 주식 화면의 빨강 상승, 파랑 하락과 반대입니다. 학습 지표라 좋아짐과 나빠짐으로 칠했습니다.</li>
+      <li>"지난달 대비" 의 초록 위는 한국 주식 화면의 빨강 상승과 반대입니다. 학습 지표라 좋아짐으로 칠했고, 줄어든 것은 회색으로 낮췄습니다.</li>
     </ul>
 
     <h3>언제 나오는가</h3>
@@ -239,12 +239,12 @@
   };
 
   // ---------- 예시 자료
-  // 2026년 11월. 1일이 일요일, 월요일 시작. 마친 날과 그날 더 푼 문제 수.
+  // 2026년 11월. 1일이 일요일, 월요일 시작. 마친 날과 그날 추가 학습 문제 수.
   const NOV = { 3: 4, 4: 0, 5: 11, 12: 6, 13: 3, 14: 22, 15: 0, 16: 2, 17: 18, 18: 0, 19: 9, 20: 6, 26: 30, 27: 12, 28: 5, 29: 14 };
   const LV_RANGE = { 2: 600, 3: 800, 4: 1000, 5: 1200 };
   const DATA = {
     week: {
-      chrome: '이번 주', title: '11월 16일 ~ 22일',
+      chrome: '이번 주', title: '11월 16일 ~ 21일',
       cal: { from: 16, to: 22, today: 21, col: (n) => n - 16, row: () => 0, rows: 1, wdToday: 5, ex: true },
       doneOf: 7, two: [['추가 문제', 35, ''], ['하루 최다', 18, '']],
       news: { read: 9, pub: 10, quiz: [7, 8], topics: [['지배구조', 4], ['M&A', 3], ['거시경제', 2]] },
@@ -341,8 +341,9 @@
       <div class="fl"></div>
       <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x, i) => `<span class="${i === c.wdToday ? 'td' : ''}">${x}</span>`).join('')}</div>
       <div class="grid" style="height:${gridH}px">${bands.join('')}${loose.join('')}${exs.join('')}</div>
-      <div class="grow"></div>
-      <div class="two">${d.two.map(([k, v, u]) => `<div><span class="sn">${k}</span><b><span data-to="${v}">0</span>${u ? `<small>${u}</small>` : ''}</b></div>`).join('')}</div>`;
+      <div class="fl"></div>
+      <div class="two">${d.two.map(([k, v, u]) => `<div><span class="sn">${k}</span><b><span data-to="${v}">0</span>${u ? `<small>${u}</small>` : ''}</b></div>`).join('')}</div>
+      <div class="grow"></div>`;
     const play = async (el, g) => {
       const hero = el.querySelector('[data-hero]');
       const rs = [...el.querySelectorAll('.band')].map((b) => ({ b, w: +b.dataset.w, n: +b.dataset.n, a: +b.dataset.a }));
@@ -416,16 +417,16 @@
   function cardVoca(d, W) {
     const V = d.voca;
     const same = V.rev - V.neu - V.up;
-    const parts = [[V.neu, 'var(--purple500)', '새로 익힘'], [V.up, 'var(--purple200)', '강해짐'], [same, 'var(--grey200)', '']];
+    const parts = [[V.neu, 'var(--purple500)', '새로 익힘', 'var(--purple600)'], [V.up, 'var(--purple200)', '강해짐', 'var(--purple300)'], [same, 'var(--grey200)', '', '']];
     const G = 3;
     const usable = W - G * 2;
     let x = 0;
-    const segs = parts.map(([v, c, k]) => { const w = (v / V.rev) * usable; const s = { x, w, c, k, v }; x += w + G; return s; });
+    const segs = parts.map(([v, c, k, tc]) => { const w = (v / V.rev) * usable; const s = { x, w, c, k, v, tc }; x += w + G; return s; });
     const html = `<div class="hd"><span class="ic" style="background:var(--purple-weak)">${ICON.voca}</span><b>영단어</b></div>
       <div class="hero"><span class="sn">복습한 표현</span><span class="sv"><span data-hero>0</span></span></div>
       <div class="fl"></div>
       <div class="stk">${segs.map((s) => `<i style="left:${s.x}px;width:${s.w}px;background:${s.c}"></i>`).join('')}</div>
-      <div class="lbls">${segs.filter((s) => s.k).map((s) => `<div style="left:${s.x}px"><span class="k"><i style="background:${s.c}"></i>${s.k}</span><b data-to="${s.v}">0</b></div>`).join('')}</div>
+      <div class="lbls">${segs.filter((s) => s.k).map((s) => `<div style="left:${s.x}px"><span class="k">${s.k}</span><b data-to="${s.v}" style="color:${s.tc}">0</b></div>`).join('')}</div>
       <div class="fl"></div>
       <div class="wl">${V.words.map(([e, k]) => `<div><b>${e}</b><span>${k}</span></div>`).join('')}<div class="more"><span class="num">+${V.more}</span></div></div>
       <div class="grow"></div>`;
