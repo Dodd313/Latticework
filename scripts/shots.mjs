@@ -94,15 +94,20 @@ await tap('저녁 퀴즈 풀기');
 await snap('05c-day-quiz');
 await page.getByText('수입 물가를 더 자극할 수 있어서').click();
 await snap('05d-day-quiz-answered');
-await tap('오늘(으)로 돌아가기');
-await tap('오늘(으)로 돌아가기');
+await tap('홈(으)로 돌아가기');
+await tap('홈(으)로 돌아가기');
 await snap('05e-today-done');
 
 await tap('기록');
 await snap('06-archive');
+// 달력에서 오늘을 누르면 그날 기록이 아래에서 올라온다.
+await page.getByLabel(/^\d+월 \d+일 .요일$/).last().click();
+await snap('06b-archive-day');
+await tap('닫기');
+await page.waitForTimeout(400);
 await tap('리뷰');
 await snap('07-review');
-await tap('오늘');
+await tap('홈');
 await tap('설정');
 await snap('09-settings');
 await tap('기록 내보내기');

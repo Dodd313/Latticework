@@ -1,50 +1,83 @@
 import React, { useRef } from 'react';
 import { Animated, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
-import { Rise, usePop } from '../motion';
 import { monthDay } from '../dates';
-import { BOTTOM_PAD, BackBar, useNav } from '../nav';
+import { Rise, usePop } from '../motion';
+import { BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, ArticleLink } from '../types';
 import { ExtLink, Icon, T, Tap } from '../ui';
 
-const STANDALONE_PAD: any = BOTTOM_PAD === 8 ? 12 : 'calc(12px + env(safe-area-inset-bottom, 0px))';
+/** 11월 20일 */
+function shortDate(date: string): string {
+  const [, m, d] = date.split('-').map(Number);
+  return `${m}월 ${d}일`;
+}
 
-function LinkCard({ link }: { link: ArticleLink }) {
+/** 지난 기사로 이어지는 한 줄: 날짜, 제목, 이어지는 내용. 기사가 있으면 눌러서 연다. */
+function LinkRow({ link, first }: { link: ArticleLink; first: boolean }) {
   const t = useTheme();
   const nav = useNav();
+  const go = link.refArticleId;
   const body = (
-    <View style={{ gap: 8, paddingVertical: 16, borderTopWidth: 1, borderTopColor: t.line }}>
-      {link.refDate ? (
-        <T s={12.5} c={t.sub} mono>
-          {monthDay(link.refDate)}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderTopWidth: first ? 0 : 1, borderTopColor: t.hair }}>
+      <View style={{ flex: 1, gap: 2 }}>
+        {link.refDate ? (
+          <T type="t7" w="600" c={t.mute} mono>
+            {monthDay(link.refDate)}
+          </T>
+        ) : null}
+        {link.refTitle ? (
+          <T s={16} w="600" lh={1.5}>
+            {link.refTitle}
+          </T>
+        ) : null}
+        <T type="t6" c={t.sub}>
+          {link.text}
         </T>
-      ) : null}
-      {link.refTitle ? (
-        <T serif s={18} w="700" lh={1.45}>
-          {link.refTitle}
-        </T>
-      ) : null}
-      <T s={14.5} lh={1.65} c={t.deck}>
-        {link.text}
-      </T>
+      </View>
+      {go ? <Icon name="chev" size={14} color={t.faint} /> : null}
     </View>
   );
-  if (!link.refArticleId) return body;
+  if (!go) return body;
   return (
-    <Tap onPress={() => nav.push({ name: 'article', id: link.refArticleId! })} label={`${link.refTitle ?? '관련 기사'} 열기`}>
+    <Tap press="soft" onPress={() => nav.push({ name: 'article', id: go })} label={`${link.refTitle ?? '관련 기사'} 열기`}>
       {body}
     </Tap>
   );
 }
 
-function Body({ a }: { a: Article }) {
+/** 위쪽 줄 오른쪽의 읽음 단추. 읽으면 파랑 원 안에 흰 체크. */
+function ReadToggle({ read, onPress }: { read: boolean; onPress: () => void }) {
+  const t = useTheme();
+  const scale = usePop(read);
+  return (
+    <Tap onPress={onPress} label={read ? '읽음 해제' : '읽음 표시'} selected={read} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+      <Animated.View
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 13,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: read ? t.blue : 'transparent',
+          borderWidth: read ? 0 : 2,
+          borderColor: t.line,
+          transform: [{ scale }],
+        }}
+      >
+        <Icon name="check" size={16} color={read ? t.onColor : t.faint} sw={3} />
+      </Animated.View>
+    </Tap>
+  );
+}
+
+function Body({ a, pos }: { a: Article; pos: string | undefined }) {
   const t = useTheme();
   const { user, markRead } = useStore();
   const isRead = !!user.read[a.id];
   const progress = useRef(new Animated.Value(0)).current;
   const autoMarked = useRef(false);
-  const checkScale = usePop(isRead);
   // 스크롤에 맞춰 위쪽 진행선을 늘리고, 끝까지 읽으면 한 번만 읽음으로 표시한다.
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
@@ -58,48 +91,48 @@ function Body({ a }: { a: Article }) {
 
   const past = a.links.filter((l) => l.kind !== 'new');
   const body = a.body ?? [];
+  const kicker = a.threadName;
 
   return (
     <>
-      <View style={{ height: 2, marginTop: -1 }} aria-hidden>
-        <Animated.View style={{ height: 2, backgroundColor: t.rule, width: progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }} />
+      <BackBar label="뒤로" title={pos} right={<ReadToggle read={isRead} onPress={() => markRead(a.id, !isRead)} />} />
+      <View style={{ height: 2, zIndex: 2 }} aria-hidden>
+        <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 2, backgroundColor: t.blue, transformOrigin: 'left', transform: [{ scaleX: progress }] }} />
       </View>
-      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 26, paddingBottom: 36, gap: 28 }}>
-        <Rise delay={80} style={{ gap: 12 }}>
-          <T serif s={27} w="700" lh={1.38} role="heading" level={1}>
+      <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }}>
+        <Rise delay={60}>
+          {kicker ? (
+            <T type="t7" w="700" c={t.blue} style={{ marginBottom: 6 }}>
+              {kicker}
+            </T>
+          ) : null}
+          <T s={24} w="700" lh={33 / 24} role="heading" level={1} style={{ letterSpacing: -0.5, marginBottom: 8 }}>
             {a.title}
           </T>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: t.rule }}>
-            <T s={12.5} c={t.sub}>
-              {a.source}
-            </T>
-            <T s={12.5} c={t.sub} mono>
-              {a.date.replace(/-/g, '.')} · {a.minutes}분
-            </T>
-          </View>
+          <T type="t7" c={t.mute} mono>
+            {a.source} · {shortDate(a.date)} · {a.minutes}분
+          </T>
         </Rise>
 
         {a.summary.length > 0 ? (
-          <Rise delay={180} style={{ gap: 14, paddingVertical: 18, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
-            <View style={{ gap: 12 }}>
-              {a.summary.map((line, i) => (
-                <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
-                  <T serif s={15.5} w="700" c={t.blue} lh={1.62}>
-                    {i + 1}
-                  </T>
-                  <T s={15.5} w="500" lh={1.62} style={{ flex: 1 }}>
-                    {line}
-                  </T>
+          <Rise delay={140} style={{ marginTop: 20, padding: 16, borderRadius: 16, backgroundColor: t.layer, borderWidth: 1, borderColor: t.hair, gap: 8 }}>
+            {a.summary.map((line, i) => (
+              <View key={i} style={{ flexDirection: 'row' }}>
+                <View style={{ width: 18, height: 23, justifyContent: 'center' }} aria-hidden>
+                  <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: t.body, marginLeft: 3 }} />
                 </View>
-              ))}
-            </View>
+                <T s={15} lh={23 / 15} c={t.body} style={{ flex: 1 }}>
+                  {line}
+                </T>
+              </View>
+            ))}
           </Rise>
         ) : null}
 
         {body.length > 0 ? (
-          <Rise delay={280} style={{ gap: 20 }}>
+          <Rise delay={220} style={{ marginTop: 20, gap: 16 }}>
             {body.map((para, i) => (
-              <T key={i} serif s={17} lh={1.9} c={t.bodyInk}>
+              <T key={i} s={17} lh={28 / 17} c={t.body} style={{ letterSpacing: -0.2 }}>
                 {para}
               </T>
             ))}
@@ -107,32 +140,24 @@ function Body({ a }: { a: Article }) {
         ) : null}
 
         {past.length > 0 ? (
-          <View>
+          <View style={{ marginTop: 24, borderRadius: 16, borderWidth: 1, borderColor: t.hair, paddingHorizontal: 16 }}>
             {past.map((link, i) => (
-              <LinkCard key={i} link={link} />
+              <LinkRow key={i} link={link} first={i === 0} />
             ))}
-            <View style={{ borderTopWidth: 1, borderTopColor: t.line }} />
           </View>
         ) : null}
-      </ScrollView>
 
-      <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 22, paddingTop: 12, paddingBottom: STANDALONE_PAD, backgroundColor: t.ground, borderTopWidth: 1, borderTopColor: t.rule }}>
-        <Animated.View style={{ transform: [{ scale: checkScale }] }}>
-          <Tap
-            onPress={() => markRead(a.id, !isRead)}
-            label={isRead ? '읽음 해제' : '읽음 표시'}
-            style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.rule, backgroundColor: isRead ? t.inverse : t.ground }}
-          >
-            <Icon name="check" size={22} color={isRead ? t.onInverse : t.mute} bold />
-          </Tap>
-        </Animated.View>
-        <ExtLink url={a.url} label="기사 원문 보기" style={{ flex: 1, height: 52, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8 }}>
-          <T s={16} w="700" c={t.onInverse}>
-            기사 원문 보기
+        <ExtLink
+          url={a.url}
+          label="기사 원문 보기"
+          style={{ marginTop: 24, minHeight: 56, paddingHorizontal: 28, borderRadius: 16, backgroundColor: t.blueWeak, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+        >
+          <T s={17} w="600" lh={1.5} c={t.blueText}>
+            원문 보기
           </T>
-          <Icon name="external" size={18} color={t.onInverse} bold />
+          <Icon name="external" size={18} color={t.blueText} />
         </ExtLink>
-      </View>
+      </ScrollView>
     </>
   );
 }
@@ -141,17 +166,21 @@ export function ArticleScreen({ id }: { id: string }) {
   const t = useTheme();
   const { days } = useStore();
   const a = findArticle(days, id);
+  const day = a ? days.find((d) => d.articles.some((x) => x.id === a.id)) : undefined;
+  const pos = a && day && day.articles.length > 1 ? `${day.articles.findIndex((x) => x.id === a.id) + 1}/${day.articles.length}` : undefined;
   return (
-    <View style={{ flex: 1, backgroundColor: t.ground }}>
-      <BackBar label="뒤로" />
+    <View style={{ flex: 1, backgroundColor: t.card }}>
       {a ? (
-        <Body key={a.id} a={a} />
+        <Body key={a.id} a={a} pos={pos} />
       ) : (
-        <View style={{ padding: 22 }}>
-          <T s={15} c={t.sub}>
-            기사 없음
-          </T>
-        </View>
+        <>
+          <BackBar label="뒤로" />
+          <View style={{ padding: 20 }}>
+            <T type="t6" c={t.sub}>
+              기사 없음
+            </T>
+          </View>
+        </>
       )}
     </View>
   );

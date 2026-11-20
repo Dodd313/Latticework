@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
-import { EASE, NATIVE_DRIVER, motionOff } from './src/motion';
+import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { EASE, EASE_OUT, EASE_SHEET, NATIVE_DRIVER, motionOff } from './src/motion';
 import { Nav, NavCtx, Route, TabBar, TabName } from './src/nav';
 import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
@@ -10,9 +10,12 @@ import { StudyScreen } from './src/screens/Study';
 import { ReviewScreen } from './src/screens/Review';
 import { SettingsScreen } from './src/screens/Settings';
 import { TodayScreen } from './src/screens/Today';
-import { StoreProvider, useGoals } from './src/store';
-import { Icon, T, Tap } from './src/ui';
+import { StoreProvider } from './src/store';
+import { Splash } from './src/ui';
 import { ThemeProvider, useTheme } from './src/theme';
+
+/** 화면 기둥의 최대 폭 */
+const COLUMN = 560;
 
 /** 탭 화면 한 장. 보이게 될 때 살짝 떠오르며 나타난다. */
 function TabLayer({ active, children }: { active: boolean; children: React.ReactNode }) {
@@ -27,76 +30,28 @@ function TabLayer({ active, children }: { active: boolean; children: React.React
   return <Animated.View style={[styles.fill, { display: active ? 'flex' : 'none', opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}>{children}</Animated.View>;
 }
 
-/** 기사와 설정 같은 안쪽 화면 한 장. 오른쪽에서 밀려 들어오고, 닫힐 때 같은 길로 나간다. */
-function StackLayer({ closing, onClosed, bg, children }: { closing: boolean; onClosed: () => void; bg: string; children: React.ReactNode }) {
+/**
+ * 기사와 설정 같은 안쪽 화면 한 장. 오른쪽 끝에서 화면 폭만큼 밀려 들어오고(시트 곡선 420ms),
+ * 닫힐 때 같은 길로 나간다(320ms).
+ */
+function StackLayer({ id, closing, onClosed, bg, children }: { id: number; closing: boolean; onClosed: (id: number) => void; bg: string; children: React.ReactNode }) {
+  const { width } = useWindowDimensions();
+  const w = Math.min(width, COLUMN);
   const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
   useEffect(() => {
     if (motionOff()) return;
-    Animated.timing(v, { toValue: 1, duration: 360, easing: EASE, useNativeDriver: NATIVE_DRIVER }).start();
+    Animated.timing(v, { toValue: 1, duration: 420, easing: EASE_SHEET, useNativeDriver: NATIVE_DRIVER }).start();
   }, []);
   useEffect(() => {
     if (!closing) return;
     if (motionOff()) {
-      onClosed();
+      onClosed(id);
       return;
     }
-    Animated.timing(v, { toValue: 0, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: NATIVE_DRIVER }).start(() => onClosed());
+    Animated.timing(v, { toValue: 0, duration: 320, easing: EASE_OUT, useNativeDriver: NATIVE_DRIVER }).start(() => onClosed(id));
   }, [closing]);
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: bg, opacity: v, transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [36, 0] }) }] }]}>{children}</Animated.View>
-  );
-}
-
-/** 오늘 목표를 막 채웠을 때 한 번 뜨는 축하 화면. 눌러서 닫거나 잠시 뒤 저절로 닫힌다. */
-function GoalReached() {
-  const t = useTheme();
-  const goals = useGoals();
-  const status = goals.status;
-  const run = goals.streak;
-  const prev = useRef(status);
-  const [shown, setShown] = useState(false);
-  const v = useRef(new Animated.Value(0)).current;
-  const mark = useRef(new Animated.Value(0)).current;
-
-  const close = useCallback(() => {
-    Animated.timing(v, { toValue: 0, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: NATIVE_DRIVER }).start(() => setShown(false));
-  }, [v]);
-
-  useEffect(() => {
-    const was = prev.current;
-    prev.current = status;
-    if (status !== 'done' || was !== 'pending') return;
-    setShown(true);
-    v.setValue(motionOff() ? 1 : 0);
-    mark.setValue(motionOff() ? 1 : 0);
-    if (!motionOff()) {
-      Animated.timing(v, { toValue: 1, duration: 320, easing: EASE, useNativeDriver: NATIVE_DRIVER }).start();
-      Animated.spring(mark, { toValue: 1, friction: 5, tension: 160, delay: 180, useNativeDriver: NATIVE_DRIVER }).start();
-    }
-    const timer = setTimeout(close, 3200);
-    return () => clearTimeout(timer);
-  }, [status]);
-
-  if (!shown) return null;
-  return (
-    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.ground, opacity: v, alignItems: 'center', justifyContent: 'center', padding: 32 }]}>
-      <Tap onPress={close} label="닫기" style={{ alignItems: 'center', gap: 18, alignSelf: 'stretch' }}>
-        <Animated.View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: t.green, alignItems: 'center', justifyContent: 'center', transform: [{ scale: mark }] }}>
-          <Icon name="check" size={34} color="#FFFFFF" bold />
-        </Animated.View>
-        <View style={{ alignSelf: 'stretch', borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule, paddingVertical: 22, alignItems: 'center', gap: 6 }}>
-          <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
-            오늘 목표 달성
-          </T>
-          <T serif s={44} w="700" lh={1.2}>
-            연속 {run}일
-          </T>
-        </View>
-        <T s={14} c={t.sub} center>
-          오늘 할 일을 모두 마쳤습니다.
-        </T>
-      </Tap>
-    </Animated.View>
+    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: bg, pointerEvents: closing ? 'none' : 'auto', transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [w, 0] }) }] }]}>{children}</Animated.View>
   );
 }
 
@@ -104,25 +59,32 @@ function Shell() {
   const t = useTheme();
   const [tab, setTabState] = useState<TabName>('today');
   const [visited, setVisited] = useState<Record<TabName, boolean>>({ today: true, archive: false, review: false });
-  const [stack, setStack] = useState<Route[]>([]);
-  const [closing, setClosing] = useState(false);
+  // 쌓인 화면마다 고유 번호를 둔다. 닫히는 중인 화면 위로 새 화면이 올라와도 닫힘이 엉뚱한 화면으로 옮겨 가지 않는다.
+  const [stack, setStack] = useState<{ id: number; route: Route; closing: boolean }[]>([]);
+  const seq = useRef(0);
+  // 시작 화면은 앱을 열 때 한 번만. 움직임 줄이기가 켜져 있으면 건너뛴다.
+  const [splash, setSplash] = useState(() => !motionOff());
+  const endSplash = useCallback(() => setSplash(false), []);
 
   const setTab = useCallback((next: TabName) => {
     setStack([]);
-    setClosing(false);
     setTabState(next);
     setVisited((v) => (v[next] ? v : { ...v, [next]: true }));
   }, []);
 
-  const push = useCallback((route: Route) => setStack((s) => [...s, route]), []);
-  // 닫기는 두 단계다: 먼저 나가는 움직임을 재생하고, 끝나면 실제로 걷어 낸다.
-  const pop = useCallback(() => setClosing(true), []);
-  const finishPop = useCallback(() => {
-    setStack((s) => s.slice(0, -1));
-    setClosing(false);
-  }, []);
+  const push = useCallback((route: Route) => setStack((s) => [...s, { id: ++seq.current, route, closing: false }]), []);
+  // 닫기는 두 단계다: 먼저 맨 위의 열린 화면이 나가는 움직임을 재생하고, 끝나면 그 화면만 걷어 낸다.
+  const pop = useCallback(
+    () =>
+      setStack((s) => {
+        for (let i = s.length - 1; i >= 0; i--) if (!s[i].closing) return s.map((e, k) => (k === i ? { ...e, closing: true } : e));
+        return s;
+      }),
+    [],
+  );
+  const finishPop = useCallback((id: number) => setStack((s) => s.filter((e) => e.id !== id)), []);
   const nav = useMemo<Nav>(() => ({ tab, setTab, push, pop }), [tab, setTab, push, pop]);
-  const top = stack[stack.length - 1];
+  const top = stack[stack.length - 1]?.route;
 
   const layer = (name: TabName, node: React.ReactNode) =>
     visited[name] ? (
@@ -133,14 +95,14 @@ function Shell() {
 
   return (
     <NavCtx.Provider value={nav}>
-      <View style={[styles.root, { backgroundColor: t.ground }]}>
+      <View style={[styles.root, { backgroundColor: t.bg }]}>
         <View style={styles.column}>
           <View style={[styles.fill, { overflow: 'hidden' }]}>
             {layer('today', <TodayScreen />)}
             {layer('archive', <ArchiveScreen />)}
             {layer('review', <ReviewScreen />)}
-            {stack.map((route, i) => (
-              <StackLayer key={`${i}-${route.name}-${route.name === 'article' ? route.id : route.name === 'quiz' ? route.date : route.name === 'study' ? route.sect : ''}`} closing={closing && i === stack.length - 1} onClosed={finishPop} bg={t.ground}>
+            {stack.map(({ id, route, closing }) => (
+              <StackLayer key={id} id={id} closing={closing} onClosed={finishPop} bg={t.card}>
                 {route.name === 'article' ? (
                   <ArticleScreen id={route.id} />
                 ) : route.name === 'quiz' ? (
@@ -156,8 +118,8 @@ function Shell() {
             ))}
           </View>
           {top && top.name !== 'settings' ? null : <TabBar />}
-          <GoalReached />
         </View>
+        {splash ? <Splash onDone={endSplash} /> : null}
       </View>
     </NavCtx.Provider>
   );
@@ -175,6 +137,6 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center' },
-  column: { flex: 1, width: '100%', maxWidth: 560 },
+  column: { flex: 1, width: '100%', maxWidth: COLUMN },
   fill: { flex: 1 },
 });

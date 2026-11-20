@@ -37,12 +37,15 @@ const snap = async (name) => {
 const has = async (label) => (await page.getByLabel(label, { exact: true }).count()) > 0 && (await page.getByLabel(label, { exact: true }).first().isVisible());
 const tap = (label) => page.getByLabel(label, { exact: true }).last().click();
 
+// 마침 화면에는 정답률 고리가 있다.
+const done = async () => (await page.getByLabel(/^정답률 /).count()) > 0 || ((await has('더 풀기')) && !(await has('확인')));
+
 // 한 세션을 끝까지 푼다. 객관식은 첫 번째 보기를 고르고, 떠올리기는 "알았다"를 누른다.
 async function solve(prefix) {
   let shot = 0;
   for (let step = 0; step < 80; step++) {
     await page.waitForTimeout(350);
-    if (await has('더 풀기')) break;
+    if (await done()) break;
     if (await has('답 보기')) {
       if (shot++ < 1) await snap(`${prefix}-think`);
       await tap('답 보기');
@@ -50,9 +53,9 @@ async function solve(prefix) {
       await tap('알았다');
       continue;
     }
-    if ((await has('다음')) || (await has('마치기'))) {
+    if ((await has('계속')) || (await has('마치기'))) {
       if (shot++ < 3) await snap(`${prefix}-settled-${shot}`);
-      await tap((await has('다음')) ? '다음' : '마치기');
+      await tap((await has('계속')) ? '계속' : '마치기');
       continue;
     }
     if (await has('확인')) {
@@ -64,7 +67,13 @@ async function solve(prefix) {
       continue;
     }
   }
+  await page.waitForTimeout(1600);
   await snap(`${prefix}-summary`);
+  // 레벨이 오르면 메달 화면이 덮는다. 닫고 나서 다음 단계로 간다.
+  if (await has('확인')) {
+    await tap('확인');
+    await page.waitForTimeout(400);
+  }
 }
 
 await page.goto(`${base}/index.html`);
@@ -77,13 +86,13 @@ await tap('더 풀기');
 await solve('02b-lat-more');
 await tap('더 풀기');
 await solve('02c-lat-more');
-await tap('오늘로 돌아가기');
+await tap('계속');
 await snap('03-home-after-lat');
 await tap('영단어 열기');
 await solve('04-voc');
 await tap('더 풀기');
 await solve('04b-voc-more');
-await tap('오늘로 돌아가기');
+await tap('계속');
 await snap('05-home-after-voc');
 await tap('기록');
 await snap('06-record');

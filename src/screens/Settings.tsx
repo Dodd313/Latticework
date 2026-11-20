@@ -1,134 +1,196 @@
-import React, { useState } from 'react';
-import { Platform, ScrollView, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, Easing, Platform, ScrollView, TextInput, View } from 'react-native';
+import { motionOff, NATIVE_DRIVER } from '../motion';
 import { BackBar } from '../nav';
 import { STANDALONE, useStore } from '../store';
-import { FONT_MONO, useTheme } from '../theme';
+import { FONT_SANS, useTheme } from '../theme';
 import { Market } from '../types';
-import { Card, Divider, T, Tap } from '../ui';
+import { Box, Divider, Icon, PrimaryButton, T, Tap } from '../ui';
 
 export const APP_VERSION = '0.1.0';
 
 const MARKETS: { id: Market; label: string }[] = [
-  { id: 'kr', label: '한국 중심' },
+  { id: 'kr', label: '한국' },
   { id: 'both', label: '한국 · 미국' },
-  { id: 'us', label: '미국 중심' },
+  { id: 'us', label: '미국' },
 ];
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+/** 카드 안 한 줄: 왼쪽 이름, 오른쪽 값. */
+function Row({ label, value, dot }: { label: string; value: string; dot?: string }) {
   const t = useTheme();
   return (
-    <View style={{ gap: 6 }}>
-      <T s={13} w="600" c={t.sub} style={{ paddingHorizontal: 0 }} role="heading" level={2}>
-        {title}
+    <View accessible accessibilityLabel={`${label} ${value}`} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 52 }}>
+      <T s={16} w="500" c={t.body}>
+        {label}
       </T>
-      {children}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+        {dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dot }} /> : null}
+        <T s={16} w="500" c={t.mute} mono lines={1}>
+          {value}
+        </T>
+      </View>
     </View>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** 시장 비중 고르기: 회색 홈 안에서 고른 칸만 흰 바탕으로 떠오른다. */
+function Segment({ value, onChange }: { value: Market; onChange: (m: Market) => void }) {
   const t = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 52 }}>
-      <T s={16}>{label}</T>
-      <T s={15} c={t.sub} mono>
-        {value}
-      </T>
+    <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', padding: 3, borderRadius: 12, backgroundColor: t.hair }}>
+      {MARKETS.map((m) => {
+        const on = value === m.id;
+        return (
+          <Tap
+            key={m.id}
+            onPress={() => onChange(m.id)}
+            selected={on}
+            label={m.label}
+            press="dim"
+            style={[
+              { flex: 1, height: 40, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? t.card : 'transparent' },
+              on ? (Platform.OS === 'web' ? ({ boxShadow: '0 1px 3px rgba(0,0,0,0.08)' } as any) : { elevation: 1 }) : null,
+            ]}
+          >
+            <T s={15} w={on ? '700' : '500'} c={on ? t.ink : t.sub}>
+              {m.label}
+            </T>
+          </Tap>
+        );
+      })}
     </View>
   );
 }
+
+type Result = '' | 'copied' | 'imported' | 'bad';
 
 export function SettingsScreen() {
   const t = useTheme();
   const { user, setMarket, exportData, importData, canSave, status, days } = useStore();
   const [box, setBox] = useState('');
-  const [note, setNote] = useState('');
+  const [result, setResult] = useState<Result>('');
+  const shake = useRef(new Animated.Value(0)).current;
+
+  // 결과 표시는 잠시 머물렀다 사라진다.
+  useEffect(() => {
+    if (!result) return;
+    const id = setTimeout(() => setResult(''), 2200);
+    return () => clearTimeout(id);
+  }, [result]);
+
+  const say = (msg: string) => {
+    try {
+      AccessibilityInfo.announceForAccessibility(msg);
+    } catch {
+      // 알릴 수 없으면 넘어간다.
+    }
+  };
 
   const doExport = async () => {
     const json = exportData();
     setBox(json);
     try {
       if (Platform.OS === 'web') await (globalThis as any).navigator.clipboard.writeText(json);
-      setNote('복사됨');
+      setResult('copied');
+      say('복사됨');
     } catch {
-      setNote('');
+      setResult('');
     }
   };
 
   const doImport = () => {
     if (box.trim() === '') return;
-    setNote(importData(box) ? '가져옴' : '형식 오류');
+    if (importData(box)) {
+      setResult('imported');
+      say('가져옴');
+      return;
+    }
+    setResult('bad');
+    say('형식 오류');
+    if (!motionOff()) {
+      shake.setValue(0);
+      Animated.timing(shake, { toValue: 1, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: NATIVE_DRIVER }).start();
+    }
   };
 
   const readCount = Object.keys(user.read).length;
+  const total = days.reduce((n, d) => n + d.articles.length, 0);
+  const conn = status === 'live' ? ['연결됨', t.green] : status === 'loading' ? ['연결 중', t.orange] : ['오프라인', t.p.grey400];
+  const shift = shake.interpolate({ inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1], outputRange: [0, -6, 6, -4, 4, 0] });
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.ground }}>
-      <BackBar label="오늘" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 20, paddingBottom: 32, gap: 24 }}>
-        <T serif s={26} w="700" role="heading" level={1}>
-          설정
-        </T>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <BackBar label="홈" bg={t.bg} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
+        <View style={{ paddingTop: 8, paddingBottom: 12, paddingHorizontal: 20 }}>
+          <T s={26} w="700" lh={1.35} role="heading" level={1}>
+            설정
+          </T>
+        </View>
 
-        {STANDALONE ? null : (
-        <Group title="편집 기준 · 시장 비중">
-          <View style={{ flexDirection: 'row', gap: 4, padding: 3, borderRadius: 0, backgroundColor: t.field }}>
-            {MARKETS.map((m) => {
-              const on = user.settings.market === m.id;
-              return (
-                <Tap key={m.id} onPress={() => setMarket(m.id)} selected={on} label={m.label} style={{ flex: 1, height: 44, borderRadius: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? t.card : 'transparent' }}>
-                  <T s={14} w={on ? '700' : '500'}>
-                    {m.label}
-                  </T>
-                </Tap>
-              );
-            })}
-          </View>
-        </Group>
-        )}
+        <View style={{ paddingHorizontal: 12, gap: 12 }}>
+          {STANDALONE ? null : (
+            <Box title="시장 비중">
+              <View style={{ marginTop: 6 }}>
+                <Segment value={user.settings.market} onChange={setMarket} />
+              </View>
+            </Box>
+          )}
 
-        <Group title="열람 기록">
-          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
+          <Box title="기록" style={{ paddingBottom: 20 }}>
             <Row label="읽은 기사" value={`${readCount}건`} />
             <Divider />
-            <Row label="저장 위치" value={canSave ? '계정에 저장됨' : '이 기기에 저장됨'} />
-          </Card>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Tap onPress={() => void doExport()} label="기록 내보내기" style={{ flex: 1, height: 48, borderRadius: 0, backgroundColor: t.inverse, alignItems: 'center', justifyContent: 'center' }}>
-              <T s={15} w="600" c={t.onInverse}>
-                내보내기
-              </T>
-            </Tap>
-            <Tap onPress={doImport} disabled={box.trim() === ''} label="기록 가져오기" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
-              <T s={15} w="600">
-                가져오기
-              </T>
-            </Tap>
-          </View>
-          {note ? (
-            <T s={13} c={t.blue} style={{ paddingHorizontal: 0 }}>
-              {note}
-            </T>
-          ) : null}
-          <TextInput
-            nativeID="records-box"
-            accessibilityLabel="기록 내보내기와 가져오기 상자"
-            value={box}
-            onChangeText={setBox}
-            multiline
-            style={{ minHeight: 96, maxHeight: 180, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 0, padding: 12, fontFamily: FONT_MONO, fontSize: 12, lineHeight: 18, color: t.ink, textAlignVertical: 'top' }}
-          />
-        </Group>
+            <Row label="저장 위치" value={canSave ? '계정' : '이 기기'} />
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+              <View style={{ flex: 1 }}>
+                <PrimaryButton label="내보내기" a11yLabel="기록 내보내기" icon={result === 'copied' ? 'check' : undefined} onPress={() => void doExport()} style={{ paddingHorizontal: 12 }} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <PrimaryButton label="가져오기" a11yLabel="기록 가져오기" weak icon={result === 'imported' ? 'check' : undefined} disabled={box.trim() === ''} onPress={doImport} style={{ paddingHorizontal: 12 }} />
+              </View>
+            </View>
+            <Animated.View style={{ marginTop: 12, transform: [{ translateX: shift }] }}>
+              <TextInput
+                nativeID="records-box"
+                accessibilityLabel="기록 내보내기와 가져오기 상자"
+                value={box}
+                onChangeText={(v) => {
+                  setBox(v);
+                  if (result === 'bad') setResult('');
+                }}
+                multiline
+                style={{
+                  minHeight: 96,
+                  maxHeight: 180,
+                  backgroundColor: t.layer,
+                  borderWidth: 1,
+                  borderColor: result === 'bad' ? t.red : t.hair,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontFamily: FONT_SANS,
+                  fontSize: 13,
+                  lineHeight: 19.5,
+                  color: t.ink,
+                  textAlignVertical: 'top',
+                }}
+              />
+              {result === 'bad' ? (
+                <View aria-hidden style={{ position: 'absolute', top: 10, right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: t.red, alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name="x" size={12} color={t.onColor} />
+                </View>
+              ) : null}
+            </Animated.View>
+          </Box>
 
-        <Group title="정보">
-          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
+          <Box title="정보" style={{ paddingBottom: 8 }}>
             <Row label="버전" value={APP_VERSION} />
             <Divider />
-            <Row label="연결 상태" value={status === 'live' ? '연결됨' : status === 'loading' ? '연결 중' : '오프라인'} />
+            <Row label="연결 상태" value={conn[0]} dot={conn[1]} />
             <Divider />
-            <Row label="누적 기사" value={`${days.reduce((n, d) => n + d.articles.length, 0)}건`} />
-          </Card>
-        </Group>
+            <Row label="누적 기사" value={`${total}건`} />
+          </Box>
+        </View>
       </ScrollView>
     </View>
   );

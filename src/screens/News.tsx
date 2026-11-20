@@ -1,39 +1,46 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
-import { korean, todayKST } from '../dates';
+import { todayKST } from '../dates';
 import { Rise } from '../motion';
 import { BackBar, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, Day } from '../types';
-import { EmptyState, Icon, ReadMark, T, Tap } from '../ui';
+import { Box, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 import { QUIZ_OPEN_HOUR, dayQuiz, quizOpen } from './DayQuiz';
 
-function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) {
+/** 11월 20일 */
+function shortDate(date: string): string {
+  const [, m, d] = date.split('-').map(Number);
+  return `${m}월 ${d}일`;
+}
+
+/** 머리기사 한 줄: 왼쪽 읽음 점, 제목, 요지, 출처와 분량. */
+function Story({ a, read }: { a: Article; read: boolean }) {
   const t = useTheme();
   const nav = useNav();
   return (
-    <Tap onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
-      <View style={{ gap: 10, paddingVertical: 22, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <T serif s={lead ? 26 : 22} w="700" lh={lead ? 1.36 : 1.4} c={read ? t.sub : t.ink} role="heading" level={2}>
-          {a.title}
-        </T>
-        <T s={15} lh={1.65} c={t.deck}>
-          {a.gist}
-        </T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} c={t.sub}>
+    <Tap press="soft" onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 읽기`}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12 }}>
+        <ReadMark read={read} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <T s={17} lh={1.5} w="600" c={read ? t.sub : t.ink} role="heading" level={2}>
+            {a.title}
+          </T>
+          <T type="t6" c={t.sub}>
+            {a.gist}
+          </T>
+          <T type="t7" c={t.mute} mono>
             {a.source} · {a.minutes}분
           </T>
-          <ReadMark read={read} />
         </View>
       </View>
     </Tap>
   );
 }
 
-/** 저녁 퀴즈로 가는 줄. 저녁 6시 전에는 잠겨 있고, 풀고 나면 정답 수를 보여 준다. */
-function QuizRow({ day }: { day: Day }) {
+/** 저녁 퀴즈 카드. 열리기 전에는 시각과 자물쇠, 기사를 다 읽기 전에는 자물쇠, 푼 뒤에는 정답 수. */
+function QuizCard({ day }: { day: Day }) {
   const t = useTheme();
   const nav = useNav();
   const { user } = useStore();
@@ -47,64 +54,73 @@ function QuizRow({ day }: { day: Day }) {
   const open = quizOpen(day.date);
   const done = answered === total;
   const ready = open && unread === 0;
-  const line = done
-    ? `정답 ${correct}/${total}`
-    : !open
-      ? `${QUIZ_OPEN_HOUR}:00`
-      : unread > 0
-        ? `${day.articles.length - unread}/${day.articles.length}`
-        : `${answered}/${total}`;
+  const locked = !ready && !done;
   return (
-    <Tap onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={!ready && !done} label="저녁 퀴즈 풀기">
-      <View style={{ gap: 8, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: t.line }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} w="700" c={t.blue} style={{ letterSpacing: 0.3 }}>
+    <Box style={{ paddingVertical: 16 }}>
+      <Tap press="soft" onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={locked} label="저녁 퀴즈 풀기">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: done ? t.greenWeak : t.blueWeak, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="note" size={22} color={done ? t.greenText : t.blueText} />
+          </View>
+          <T s={16} w="600" style={{ flex: 1 }} lines={1}>
             저녁 퀴즈
           </T>
-          {done ? <ReadMark read /> : ready ? <ReadMark read={false} /> : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            {done ? (
+              <T s={15} w="700" c={t.greenText} mono>
+                {correct}/{total}
+              </T>
+            ) : !open ? (
+              <T s={15} w="600" c={t.mute} mono>
+                {QUIZ_OPEN_HOUR}:00
+              </T>
+            ) : ready ? (
+              <T s={15} w="600" c={t.mute} mono>
+                {answered}/{total}
+              </T>
+            ) : null}
+            {locked ? <Icon name="lock" size={18} color={t.faint} /> : <Icon name="chev" size={14} color={t.faint} />}
+          </View>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <T s={15} w="500" lh={1.55} style={{ flex: 1 }}>
-            {line}
-          </T>
-          {ready || done ? <Icon name="next" size={18} color={t.ink} bold /> : null}
-        </View>
-      </View>
-    </Tap>
+      </Tap>
+    </Box>
   );
 }
 
 export function NewsScreen() {
   const t = useTheme();
   const { days, user } = useStore();
-  const today = todayKST();
   const day = days[0];
   return (
-    <View style={{ flex: 1, backgroundColor: t.ground }}>
-      <BackBar label="오늘" />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 22, paddingBottom: 32 }}>
-        <View style={{ gap: 6, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: t.rule }}>
-          <T s={12.5} w="700" c={t.sub} style={{ letterSpacing: 0.3 }}>
-            {day ? korean(day.date) : korean(today)}
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <BackBar label="홈" bg={t.bg} />
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+        <View style={{ minHeight: 55, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, paddingBottom: 12, paddingHorizontal: 20, gap: 12 }}>
+          <T s={26} w="700" lh={1.35} role="heading" level={1} style={{ flexShrink: 1 }}>
+            오늘의 뉴스
           </T>
-          <T serif s={26} w="700" lh={1.35} role="heading" level={1}>
-            오늘의 주요 뉴스
+          <T s={15} w="600" c={t.mute} mono>
+            {shortDate(day ? day.date : todayKST())}
           </T>
         </View>
-        {!day ? (
-          <EmptyState title="기사 없음" />
-        ) : (
-          <>
-            {day.articles.map((a, i) => (
-              <Rise key={a.id} delay={80 + i * 110}>
-                <Story a={a} read={!!user.read[a.id]} lead={i === 0} />
+        <View style={{ paddingHorizontal: 12, gap: 12 }}>
+          {!day ? (
+            <EmptyState title="기사 없음" />
+          ) : (
+            <>
+              <Rise delay={60}>
+                <Box style={{ paddingVertical: 8 }}>
+                  {day.articles.map((a) => (
+                    <Story key={a.id} a={a} read={!!user.read[a.id]} />
+                  ))}
+                </Box>
               </Rise>
-            ))}
-            <Rise delay={80 + day.articles.length * 110}>
-              <QuizRow day={day} />
-            </Rise>
-          </>
-        )}
+              <Rise delay={140}>
+                <QuizCard day={day} />
+              </Rise>
+            </>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
