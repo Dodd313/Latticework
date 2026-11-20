@@ -110,9 +110,10 @@
       <tr><th>모양</th><th>뜻</th></tr>
       <tr><td>색상</td><td>영역. 뉴스 blue500, 영단어 purple500, Latticework 개념 green500. 위 세 숫자의 점과 같은 색</td></tr>
       <tr><td>칸 면적</td><td>첫 화면: 묶음(단어장, 주제, 기사 주차)의 항목 수. 묶음 안: 항목의 반복 횟수. 많이 돌린 것이 크다</td></tr>
-      <tr><td>칸 진하기</td><td>기억 정도(FSRS 식 R = (1 + 경과일 / (9 × 유지일))⁻¹). 묶음은 평균. 기억이 옅으면 연해진다. 70%에서 100 단계, 100%에서 600 단계</td></tr>
+      <tr><td>칸 진하기</td><td>기억 정도(FSRS 식 R = (1 + 경과일 / (9 × 유지일))⁻¹). 기억이 옅으면 연해진다. 묶음은 평균 R 60% 이하 100 단계 ~ 95% 이상 600 단계. 항목은 88% 이하 100 단계 ~ 100% 500 단계(가장 진한 단계를 빼서 화면이 무거워지지 않게)</td></tr>
       <tr><td>칸 아래 얇은 막대</td><td>묶음에서 "굳은" 항목의 비율. 기억 유지일이 7일을 넘은 항목</td></tr>
-      <tr><td>오른쪽 위 ↻ 숫자</td><td>기억이 90% 아래로 내려가 복습할 항목 수</td></tr>
+      <tr><td>수 옆 흰 알약 ↻ 숫자</td><td>기억이 90% 아래로 내려가 복습할 항목 수. 뉴스는 복습 대상이 아니라 붙지 않는다</td></tr>
+      <tr><td>글자 색</td><td>칸 색과 대비(WCAG)가 더 큰 쪽을 고른다. 흰색 또는 같은 색의 가장 진한 단계</td></tr>
       <tr><td>속이 연한 칸 (테두리만)</td><td>묶음 안에서 복습할 항목. 채워야 할 빈 칸으로 보이게 했다</td></tr>
       <tr><td>위 그래프</td><td>세 영역의 누적 항목 수를 쌓은 면 그래프. 오른쪽 끝 높이가 곧 위 세 숫자다</td></tr>
     </table>
@@ -122,6 +123,7 @@
       <li><b>그래프 훑기</b>: 그래프를 누르고 좌우로 끌면 그날까지의 누적값이 위 숫자에 바로 나온다. 손을 떼면 오늘 값으로 돌아간다.</li>
       <li><b>묶음 열기</b>: 칸을 누르면 그 칸이 지도 전체로 커지고(FLIP 확대, 480ms, 시트 곡선), 다른 칸은 같은 비율로 밖으로 밀려난다. 안의 항목들은 눌렀던 칸 자리에서 펼쳐진다. 위쪽 칩 줄에 묶음 이름이 붙는다. "전체" 칩을 누르면 같은 길을 거꾸로 돌아간다.</li>
       <li><b>모두 / 복습</b>: 복습을 고르면 면적의 기준이 "복습할 항목 수"로 바뀐다. 복습이 없는 묶음(뉴스 전부 포함)이 먼저 줄며 사라지고(200ms), 남은 칸이 새 자리로 옮긴다(440ms). 두 움직임을 겹치지 않게 나눠, 칸이 서로 엇갈려 지나가는 어지러움을 줄였다. 어디에 복습이 몰렸는지가 면적으로 보인다.</li>
+      <li><b>실험 막대</b>: "토익 열기", "CAPM 항목"(묶음을 열고 복습할 개념 카드까지), "복습 보기", "전체로", "다시 재생"(들어올 때 움직임). "느리게"로 확대 전환을 4배 느리게 볼 수 있다.</li>
       <li><b>항목 누르기</b>: 아래에서 카드가 올라와 반복 횟수, 기억, 다음 복습일을 보여 준다. 기억 막대의 흰 눈금이 90% 선이다.</li>
     </ul>
     <h3>빌려 온 것</h3>
@@ -136,14 +138,15 @@
     <ul>
       <li>"어디에 지식이 쌓였고, 어디가 옅어지는지"를 한 화면에서 비율로 읽는다. 토익이 절반을 차지하고 개념은 아직 작다는 사실이 바로 보인다.</li>
       <li>항목이 천 개가 넘어도 첫 화면 모양은 같다. 묶음 단위로만 나뉘기 때문이다. 그래프 뷰처럼 점이 뭉개지지 않는다.</li>
-      <li>칸이 커서 손가락으로 누르기 쉽다. 가장 작은 묶음도 40px를 넘는다.</li>
+      <li>첫 화면의 칸이 커서 손가락으로 누르기 쉽다. 가장 작은 묶음도 70×35px다.</li>
       <li>그래프와 숫자와 지도가 같은 날짜로 묶여 있어, 들어올 때 한 번 보는 것만으로 "60일 동안 이만큼 쌓였다"가 전해진다.</li>
     </ul>
     <h3>약점 (솔직하게)</h3>
     <ul>
       <li>연결(기사에 나온 개념, 개념의 용어인 단어)이 보이지 않는다. 사용자가 말한 "옵시디언식"의 엮이는 느낌은 이 시안에서 가장 약하다.</li>
       <li>트리맵은 정확한 비교에 약하다. 비슷한 크기의 칸 둘 중 어느 쪽이 큰지는 숫자를 봐야 안다.</li>
-      <li>항목이 늘면 칸 배치가 바뀐다(정렬 기준이 크기라서). 날마다 같은 자리에 같은 묶음이 있지 않을 수 있다. 실제 앱에서는 순서를 고정한 배치(ordered treemap)로 바꾸는 게 낫다.</li>
+      <li>항목이 늘면 칸 배치가 바뀐다(놓는 순서가 크기라서). 날마다 같은 자리에 같은 묶음이 있지 않을 수 있다. 복습 보기는 이미 모두 보기의 순서를 그대로 쓰지만, 실제 앱에서는 순서를 아예 고정한 배치(ordered treemap)가 낫다.</li>
+      <li>칸 이름이 길면 줄인다("최적 포트폴…"). 이름이 데이터의 핵심인데 잘린다.</li>
       <li>"진하기 = 기억"은 처음에 읽히지 않는다. 연한 칸을 눌러 복습하면 진해지는 경험을 몇 번 해야 배운다.</li>
       <li>단어 69개가 한 칸에 들어간 토익 안쪽은 칸이 작아 이름이 다 보이지 않는다. 눌러야 이름이 나온다.</li>
       <li>뉴스는 앱에 복습 기록이 없다. 이 시안은 "한 번 읽은 기사 4일, 두 번 읽은 기사 12일 기억"으로 가정해 칠했다.</li>
@@ -260,7 +263,8 @@
     const total = list.reduce((s, d) => s + d.v, 0);
     if (!total) return;
     const k = (w * h) / total;
-    const rest = list.filter((d) => d.v > 0).sort((a, b) => b.v - a.v).map((d) => ((d.a = d.v * k), d));
+    // 놓는 순서는 o(없으면 v) 가 큰 것부터. 복습 보기에서도 모두 보기와 같은 순서를 지켜 칸이 덜 엇갈린다.
+    const rest = list.filter((d) => d.v > 0).sort((a, b) => (b.o ?? b.v) - (a.o ?? a.v)).map((d) => ((d.a = d.v * k), d));
     const worst = (row, side) => {
       const s = row.reduce((t, d) => t + d.a, 0);
       let mx = 0, mn = Infinity;
@@ -289,18 +293,18 @@
   // 첫 화면: 영역 → 묶음 두 단계. 값이 0 인 묶음은 null.
   function layoutRoot(W, H, mode) {
     const val = (g) => (mode === 'due' ? g.due : g.n);
-    const kinds = TREE.map((t) => ({ t, v: t.groups.reduce((s, g) => s + val(g), 0) }));
+    const kinds = TREE.map((t) => ({ t, v: t.groups.reduce((s, g) => s + val(g), 0), o: t.groups.reduce((s, g) => s + g.n, 0) }));
     squarify(kinds, -GAP / 2, -GAP / 2, W + GAP, H + GAP);
     const out = new Map();
     kinds.forEach((k) => {
-      const gs = k.t.groups.map((g) => ({ g, v: val(g) }));
+      const gs = k.t.groups.map((g) => ({ g, v: val(g), o: g.n }));
       if (k.r) squarify(gs, k.r.x, k.r.y, k.r.w, k.r.h);
       gs.forEach((d) => out.set(d.g.id, k.r ? inset(d.r) : null));
     });
     return out;
   }
   function layoutGroup(g, W, H, mode) {
-    const list = g.items.map((n) => ({ n, v: mode === 'due' && !n.weak ? 0 : n.reps }));
+    const list = g.items.map((n) => ({ n, v: mode === 'due' && !n.weak ? 0 : n.reps, o: n.reps + n.R / 10 }));
     squarify(list, -GAP / 2, -GAP / 2, W + GAP, H + GAP);
     const out = new Map();
     list.forEach((d) => out.set(d.n.id, inset(d.r)));
@@ -640,8 +644,8 @@
     const verb = n.kind === 'news' ? '다시 읽기' : n.kind === 'concept' ? '문제 풀기' : '복습하기';
     const html = `<div class="top"><i style="background:${KIND[n.kind].c}"></i><span class="path">${KIND[n.kind].nm} · ${esc(g.name)}</span><button class="x" aria-label="닫기">${ICON.x}</button></div>
       <h3>${esc(n.label)}</h3>${n.en ? `<div class="en">${esc(n.en)}</div>` : ''}
-      <div class="mem"><i style="background:${n.weak ? STEPS[n.kind][2] : KIND[n.kind].c};transform:scaleX(${n.R.toFixed(3)})"></i><u style="left:90%"></u></div>
-      <div class="st"><div><span>기억</span><b>${Math.round(n.R * 100)}%</b></div><div><span>반복</span><b>${n.reps}회</b></div><div><span>다음 복습</span><b>${nextTxt}</b></div></div>
+      <div class="mem"><i style="background:${n.weak ? 'var(--orange400)' : KIND[n.kind].c};transform:scaleX(${n.R.toFixed(3)})"></i><u style="left:90%"></u></div>
+      <div class="st"><div><span>기억</span><b${n.weak ? ' style="color:var(--orange700)"' : ''}>${Math.round(n.R * 100)}%</b></div><div><span>반복</span><b>${n.reps}회</b></div><div><span>다음 복습</span><b${n.weak ? ' style="color:var(--orange700)"' : ''}>${nextTxt}</b></div></div>
       ${n.weak ? `<button class="tbtn" style="--tc:${KIND[n.kind].c}">${verb}</button>` : ''}`;
     const fresh = !sheet;
     if (fresh) {

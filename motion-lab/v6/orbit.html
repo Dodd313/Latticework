@@ -50,8 +50,8 @@
   .fc { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin: 10px 20px 16px; padding-top: 14px; border-top: 1px solid var(--grey100); }
   .fc .col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .fc em { display: block; height: 14px; font-style: normal; font-size: 12px; line-height: 14px; font-weight: 600; color: var(--orange700); font-variant-numeric: tabular-nums; }
-  .fc .bw { height: 36px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-  .fc i { display: block; width: 18px; height: 36px; border-radius: 5px; background: var(--orange200); transform-origin: 50% 100%; transform: scaleY(0); }
+  .fc .bw { height: 54px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+  .fc i { display: block; flex: none; width: 18px; height: 0; border-radius: 5px; background: var(--orange200); }
   .fc span { font-size: 12px; line-height: 14px; font-weight: 600; color: var(--grey500); }
   .fc .col.z em { color: var(--grey300); }
   .tbtn[aria-disabled='true'] { background: var(--grey100); color: var(--grey400); }
@@ -114,7 +114,8 @@
     <h3>움직임</h3>
     <ul>
       <li>들어올 때: 궤도선이 맨 위에서 시계 방향으로 그려지고, 점이 가운데에서 자기 자리로 퍼져 나갑니다. 또렷한 것부터 나가므로 바깥 띠는 마지막에 채워지고, 그다음 띠가 주황으로 물들며 숫자가 올라갑니다. 막대는 띠가 물든 뒤 왼쪽부터 자랍니다. 1.7초.</li>
-      <li>평소: 궤도마다 함께 천천히 돕니다. 빠르기는 그 궤도 점들의 안정도 중앙값에서 나옵니다. 바깥 띠가 가장 빠르고, 가장 안쪽은 거의 멈춰 있습니다. 같은 궤도의 점은 간격을 유지하므로 겹쳐 지나가지 않습니다.</li>
+      <li>회전: 들어온 직후 6초와 복습 직후 4초 동안만 궤도마다 함께 돌고, 그 뒤 천천히 멈춥니다. 빠르기는 그 궤도 점들의 안정도 중앙값에서 나옵니다. 바깥 띠가 가장 빠르고, 가장 안쪽은 거의 멈춰 있습니다. 쉬지 않고 돌면 장식처럼 보이고 점을 누르기도 어려워 멈추게 했습니다(리뷰 반영).</li>
+      <li>뉴스는 복습 일정이 없어 주황 띠와 복습 수(46)에서 뺐습니다. 기억이 바래면 가장 바깥 궤도에 머물며 옅어집니다.</li>
       <li>점을 누르면 테두리가 생기고 위에 이름, 횟수, 유지율이 붙습니다. 점이 돌면 설명도 따라갑니다.</li>
       <li>복습하기: 띠 위의 점이 가장 흐린 것부터 차례로 가장 안쪽 궤도로 튕겨 돌아오고, 그 궤도의 점들이 새 간격으로 다시 줄을 섭니다. 빈 고리가 다시 채워지고, 띠의 주황이 빠지고, 띠 위 숫자가 초록 체크로 바뀝니다.</li>
       <li>세 칸을 누르면 그 종류만 남고 나머지는 옅어집니다. 가운데와 띠 위 숫자도 그 종류 기준으로 바뀝니다.</li>
@@ -179,7 +180,7 @@
   const CUT = [0.985, 0.96, 0.93, 0.9];
   const ringOf = (R) => { for (let i = 0; i < CUT.length; i++) if (R >= CUT[i]) return i; return 4; };
   const dotR = (n) => 2.2 + 0.42 * Math.min(n.reps, 10);
-  const weak = (n) => n.R < 0.9;
+  const weak = (n) => n.kind !== 'news' && n.R < 0.9; // 뉴스는 복습 일정이 없다. 띠에 넣지 않고 바깥 궤도에서 옅어지기만 한다
   // 밝기: 안쪽 궤도는 0.55 ~ 1, 띠 위 고리는 0.5 ~ 0.95
   const bright = (n) => (weak(n) ? 0.5 + 0.45 * clamp((n.R - 0.55) / 0.35, 0, 1) : 0.55 + 0.45 * Math.pow(clamp((n.R - 0.9) / 0.1, 0, 1), 0.7));
 
@@ -210,7 +211,7 @@
   // 각 궤도 안에서 종류를 고르게 섞어 같은 간격으로 놓는다. 붐비면 두세 줄로 선다.
   function layout(animateFrom) {
     const rings = [[], [], [], [], []];
-    N.forEach((n) => { n.ring = ringOf(n.R); rings[n.ring].push(n); });
+    N.forEach((n) => { n.ring = n.kind === 'news' ? Math.min(3, ringOf(n.R)) : ringOf(n.R); rings[n.ring].push(n); });
     rings.forEach((list, ri) => {
       // 종류를 섞는다: 많은 종류부터 비율대로 끼워 넣는다.
       const groups = KINDS.map(([k]) => list.filter((n) => n.kind === k).sort((a, b) => b.reps - a.reps));
@@ -278,9 +279,9 @@
     return Math.pow(1 + el / (9 * n.stability), -1);
   }
   function forecast() {
-    return FDAYS.map((_, i) => N.filter((n) => visible(n) && Rat(n, i) >= 0.9 && Rat(n, i + 1) < 0.9).length);
+    return FDAYS.map((_, i) => N.filter((n) => visible(n) && n.kind !== 'news' && Rat(n, i) >= 0.9 && Rat(n, i + 1) < 0.9).length);
   }
-  const FMAX = 36; // 막대 높이 기준. 넘으면 꽉 찬다
+  const FMAX = 20; // 막대 높이 기준(36px). 넘으면 꽉 찬다. 숫자는 막대 바로 위에 붙어 함께 오르내린다
   function drawForecast(delay = 0) {
     const f = forecast();
     phone.querySelectorAll('#fc .col').forEach((col, i) => {
@@ -289,7 +290,8 @@
       const to = f[i] ? Math.max(0.12, Math.min(1, f[i] / FMAX)) : 0;
       bar._v = to;
       col.classList.toggle('z', !f[i]);
-      K.spring(bar, [{ transform: `scaleY(${from})` }, { transform: `scaleY(${to})` }], 'medium', { delay: delay + i * 40 });
+      bar.style.height = (to * 36).toFixed(1) + 'px';
+      K.spring(bar, [{ height: (from * 36).toFixed(1) + 'px' }, { height: (to * 36).toFixed(1) + 'px' }], 'medium', { delay: delay + i * 40 });
       const cur = +em.textContent || 0;
       if (cur !== f[i] || em.textContent === '') setTimeout(() => ML.count(em, cur, f[i], 420), (delay + i * 40) / ML.rate);
     });
@@ -340,7 +342,7 @@
             <button class="pill" id="pill" aria-label="복습할 항목"><span class="num" id="pillN">0</span>${ICON.chev}${ICON.check}</button>
             <div class="tip" id="tip"></div>
           </div>
-          <div class="fc" id="fc">${FDAYS.map((d) => `<div class="col"><em class="num"></em><div class="bw"><i></i></div><span>${d}</span></div>`).join('')}</div>
+          <div class="fc" id="fc">${FDAYS.map((d) => `<div class="col"><div class="bw"><em class="num"></em><i></i></div><span>${d}</span></div>`).join('')}</div>
           <div class="act"><button class="tbtn" id="go">복습하기</button></div>
         </div>
       </div>
@@ -427,7 +429,7 @@
     }
   }
 
-  let last = 0, raf = 0;
+  let last = 0, raf = 0, spinK = 1, spinUntil = 0;
   function frame(now) {
     raf = requestAnimationFrame(frame);
     let dt = last ? (now - last) / 1000 : 0;
@@ -436,7 +438,9 @@
     if (dt <= 0) return;
     const sub = 2;
     for (let k = 0; k < sub; k++) N.forEach((n) => step(n, dt / sub));
-    if (!ML.reduce) N.forEach((n) => { n.a += n.w * dt; });
+    // 궤도는 들어올 때와 복습 직후에만 돈다. 바깥일수록 빨라 잊는 속도를 보여 주고, 6초 뒤 천천히 멈춘다.
+    spinK += ((now < spinUntil ? 1 : 0) - spinK) * (1 - Math.exp(-dt * 1.1));
+    if (!ML.reduce && spinK > 0.002) N.forEach((n) => { n.a += n.w * dt * spinK; });
     N.forEach(draw);
     trackTip();
   }
@@ -457,6 +461,7 @@
   function enter() {
     ML.clear(phone);
     S.done = false;
+    spinUntil = performance.now() + 6000 / ML.rate;
     phone.querySelectorAll('.c').forEach((c, i) => ML.count(c, 0, +c.dataset.to, 700 + i * 120));
     // 궤도선: 맨 위에서 시계 방향으로 그린다. 안쪽부터.
     const rings = phone.querySelectorAll('.ring');
@@ -639,6 +644,7 @@
     due.forEach((n) => { n.oldR = n.R; n.R = 1; n.reps += 1; n.stability *= 2.5; n.last = D.today; });
     relayRing(0, due);
     ringSpeeds();
+    spinUntil = performance.now() + 4000 / ML.rate;
     due.forEach((n, i) => {
       n.wait = i * 0.014;
       n.sp = SPR.back;

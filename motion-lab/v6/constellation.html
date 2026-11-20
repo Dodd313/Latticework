@@ -261,7 +261,7 @@
   const cross = D.edges.filter((e) => byId[e.s].cl !== byId[e.t].cl);
   const inner = D.edges.filter((e) => byId[e.s].cl === byId[e.t].cl);
   CL.forEach((c) => (c.deg = cross.filter((e) => byId[e.s].cl === c || byId[e.t].cl === c).length || 1));
-  const weak = (n) => n.R < 0.9;
+  const weak = (n) => n.kind !== 'news' && n.R < 0.9; // 뉴스는 복습 일정이 없어 복습 대상에서 뺀다(다른 시안과 같은 46개)
   const bright = (n) => 0.3 + 0.7 * clamp((n.R - 0.55) / 0.4, 0, 1);
   const share = (c) => c.items.filter((n) => !weak(n)).length / c.items.length;
 
@@ -294,7 +294,7 @@
       <div class="stack">
         <div class="three" id="three">${[['news', '뉴스'], ['word', '단어'], ['concept', '개념']].map(([k, l]) => `<button data-k="${k}" style="--kc:${TXT[k]}"><span><i style="background:${COL[k]}"></i>${l}</span><b class="num"><em class="c" data-to="${cnt(k)}">0</em><small>개</small></b></button>`).join('')}</div>
         <div class="box sky" id="sky">
-          <svg id="svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="분야별 지식 지도"><g id="world"></g></svg>
+          <svg id="svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="분야별 지식 지도"><g id="world"><defs><radialGradient id="fadeG" gradientUnits="userSpaceOnUse" cx="183" cy="183" r="200"><stop offset="0.5" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient><mask id="fadeM" maskUnits="userSpaceOnUse" x="-2000" y="-2000" width="4000" height="4000"><rect x="-2000" y="-2000" width="4000" height="4000" fill="url(#fadeG)"/></mask></defs></g></svg>
           <div class="zt" id="zt"><b></b><span></span></div>
           <button class="x" id="x" aria-label="전체 보기">${ICON.x}</button>
           <div class="tip" id="tip"></div>
@@ -371,7 +371,8 @@
     return K.spring(w, [{ transform: from === 'none' ? 'none' : from }, { transform: tf(to) }], name, { fill: 'none' });
   }
   const camFor = (c) => {
-    const s = Math.min(3.6, 128 / (c.r + 6));
+    // 이웃 무리가 가장자리에 걸쳐 보일 만큼만 당긴다. 연결선이 어딘가에 닿아 보이게.
+    const s = Math.min(2.8, 100 / (c.r + 6));
     return { s, x: W / 2 - s * c.x, y: H / 2 + 8 - s * c.y };
   };
   const toScreen = (x, y) => [S.cam.x + S.cam.s * x, S.cam.y + S.cam.s * y];
@@ -480,7 +481,12 @@
   function zoomTo(c) {
     S.zoom = c; S.star = null; S.more = false; S.due = false;
     hideTip();
-    const an = camera(camFor(c));
+    const cf = camFor(c);
+    const an = camera(cf);
+    // 확대 중에는 연결선이 카드 가장자리로 갈수록 사라진다. 잘린 선 다발이 남지 않게.
+    const g = phone.querySelector('#fadeG');
+    g.setAttribute('cx', c.x); g.setAttribute('cy', c.y); g.setAttribute('r', (176 / cf.s).toFixed(1));
+    phone.querySelector('#edges').setAttribute('mask', 'url(#fadeM)');
     focus();
     ML.a(phone.querySelector('#inner'), [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 200 });
     const zt = phone.querySelector('#zt');
@@ -498,6 +504,7 @@
     if (!S.zoom) return;
     S.zoom = null; S.star = null;
     hideTip();
+    phone.querySelector('#edges').removeAttribute('mask');
     camera({ s: 1, x: 0, y: 0 });
     focus();
     ML.a(phone.querySelector('#inner'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
