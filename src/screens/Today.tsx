@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { cheerHome, seedOf } from '../cheer';
 import { addDays, weekdaysOf } from '../dates';
 import { EASE_OUT, NATIVE_DRIVER, Pulse, Rise, motionOff } from '../motion';
 import { TabScreen, useNav } from '../nav';
-import { QUOTES, quoteIndexFor } from '../quotes';
+import { quotesFor } from '../quotes';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
@@ -51,15 +51,16 @@ const ease = (v: Animated.Value, toValue: number, duration: number, delay = 0) =
 /** 투자자의 문장. 누르면 지금 문장이 왼쪽으로 사라지고 다음 문장이 오른쪽에서 들어온다. */
 function QuoteBlock({ today }: { today: string }) {
   const t = useTheme();
-  const [i, setI] = useState(() => quoteIndexFor(today));
+  const list = useMemo(() => quotesFor(today), [today]);
+  const [i, setI] = useState(0);
   const text = useSlide();
   const by = useSlide();
   const busy = useRef(false);
-  const q = QUOTES[i];
+  const q = list[i % list.length];
 
   const next = () => {
     if (busy.current) return;
-    const step = () => setI((n) => (n + 1) % QUOTES.length);
+    const step = () => setI((n) => (n + 1) % list.length);
     if (motionOff()) {
       step();
       return;
@@ -91,7 +92,7 @@ function QuoteBlock({ today }: { today: string }) {
         </T>
       </Animated.View>
       <View aria-hidden style={{ position: 'absolute', right: 24, bottom: 24, flexDirection: 'row', gap: 4 }}>
-        {QUOTES.map((_, k) => (
+        {list.map((_, k) => (
           <View key={k} style={[DOT_EASE, { width: k === i ? 12 : 5, height: 5, borderRadius: 3, backgroundColor: k === i ? t.sub : t.p.grey300 }]} />
         ))}
       </View>

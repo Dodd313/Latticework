@@ -1,18 +1,42 @@
-/** 홈 맨 위 투자자의 문장. 문장과 말한 사람의 영문 이름만 보여 준다. */
+/** 홈 맨 위 투자자의 문장. 화면에는 우리말 문장과 말한 사람의 영문 이름만 보여 준다. */
+import { QUOTE_BANK } from './quoteBank';
+
 export type Quote = { text: string; by: string };
 
-export const QUOTES: Quote[] = [
-  { text: '사실들이 이론의 격자 위에 엮여 있지 않으면, 쓸 수 있는 형태로 가진 것이 아니다.', by: 'Charlie Munger' },
-  { text: '남들이 탐욕스러울 때 두려워하고, 남들이 두려워할 때만 탐욕스러워지려 한다.', by: 'Warren Buffett' },
-  { text: '가격은 내는 것이고, 가치는 얻는 것이다.', by: 'Warren Buffett' },
-  { text: '무엇을 가졌는지, 왜 가졌는지 알라.', by: 'Peter Lynch' },
-  { text: '앞면이 나오면 이기고, 뒷면이 나와도 크게 잃지 않는다.', by: 'Mohnish Pabrai' },
-  { text: '투자는 지적 정직함의 문제다. 아는 것을 알고, 무엇보다 모르는 것을 알아야 한다.', by: 'Li Lu' },
-];
+export const QUOTES: Quote[] = QUOTE_BANK.map((q) => ({ text: q.ko, by: q.by }));
 
-/** 그해의 몇 번째 날인지로 첫 문장을 고른다. date 는 'YYYY-MM-DD'. */
-export function quoteIndexFor(date: string): number {
+/** 하루에 보여 주는 문장 수. 누르면 이 안에서 다음 문장으로 넘어간다. */
+export const QUOTES_PER_DAY = 3;
+
+/** 문자열에서 고정된 32비트 수를 만든다(FNV-1a). */
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+let order: number[] | null = null;
+
+/** 문장 묶음을 한 번 섞어 둔 순서. 원문 기준이라 문장이 늘어도 기존 문장끼리의 앞뒤는 그대로다. */
+function shuffled(): number[] {
+  if (!order) {
+    order = QUOTE_BANK.map((q, i) => [hash(q.en + '|' + q.by), i] as const)
+      .sort((a, b) => a[0] - b[0])
+      .map((x) => x[1]);
+  }
+  return order;
+}
+
+/** 그날의 문장들. 날마다 다음 몇 개로 넘어가서 전체를 다 돌기 전에는 같은 문장이 다시 나오지 않는다. date 는 'YYYY-MM-DD'. */
+export function quotesFor(date: string): Quote[] {
   const [y, m, d] = date.split('-').map(Number);
-  const day = Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000);
-  return ((day % QUOTES.length) + QUOTES.length) % QUOTES.length;
+  const day = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+  const ord = shuffled();
+  const n = ord.length;
+  const k = Math.min(QUOTES_PER_DAY, n);
+  const start = (((day * k) % n) + n) % n;
+  return Array.from({ length: k }, (_, j) => QUOTES[ord[(start + j) % n]]);
 }
