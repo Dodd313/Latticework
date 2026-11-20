@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>리포트 한 장 · Motion Lab 7차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root { --purple50: #f9f0fc; --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple400: #b44bd7; --purple500: #a234c7; --purple600: #9128b4; --purple-weak: #f7edfa; }
+  .scr { background: var(--grey100) !important; }
+  .view { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+  .view::-webkit-scrollbar { display: none; }
+  .num, .big b, .v b, .xs b { font-variant-numeric: tabular-nums; }
+
+  /* 위 막대: 제목이 화면 밖으로 나가면 나타난다 */
+  .nav { position: absolute; top: 0; left: 0; right: 0; height: 52px; z-index: 6; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; letter-spacing: -0.3px; background: rgba(242, 244, 246, 0.9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05); opacity: 0; transform: translateY(-4px); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
+  .nav.on { opacity: 1; transform: none; }
+
+  .head { padding: 32px 20px 16px; }
+  .head h1 { margin: 0; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .head p { margin: 2px 0 0; font-size: 15px; line-height: 22.5px; font-weight: 500; color: var(--grey500); }
+  .stack { padding: 0 12px 124px; display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border-radius: 20px; padding: 20px; }
+  .pre { opacity: 0; }
+  .card { opacity: 0; }
+
+  /* 맨 위 카드 */
+  .hrow { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
+  .big { display: flex; align-items: baseline; }
+  .big b { font-size: 56px; line-height: 60px; font-weight: 800; letter-spacing: -2px; }
+  .big span { font-size: 24px; line-height: 30px; font-weight: 700; color: var(--grey400); letter-spacing: -0.5px; margin-left: 2px; }
+  .big .dl { align-self: center; margin-left: 10px; }
+  .xs { text-align: right; padding-bottom: 6px; }
+  .xs b { display: block; font-size: 22px; line-height: 28px; font-weight: 700; color: var(--orange700); }
+  .lb { display: block; font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); }
+  .wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 4px; }
+  .wd span { text-align: center; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .grid { position: relative; }
+  .grid > * { position: absolute; }
+  .layer { position: absolute; inset: 0; border-radius: inherit; }
+  .n { display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--grey700); transition: color 0.18s ease; pointer-events: none; z-index: 3; font-variant-numeric: tabular-nums; }
+  .n.fut { color: var(--grey300); }
+  .tdr { border-radius: 50%; box-shadow: inset 0 0 0 2px var(--orange500); z-index: 2; opacity: 0; }
+  .cmp { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--grey100); display: flex; flex-direction: column; gap: 10px; }
+  .cmp .r { display: flex; align-items: center; gap: 12px; }
+  .cmp .m { width: 30px; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .cmp .r.cur .m { color: var(--grey900); font-weight: 700; }
+  .cmp .tk { flex: 1; height: 10px; }
+  .cmp .tk i { display: block; height: 100%; border-radius: 5px; background: var(--grey300); transform-origin: left; transform: scaleX(0); }
+  .cmp .r.cur .tk i { background: linear-gradient(90deg, #ffc342, #fe9800 55%, #ed6700); }
+  .cmp .c { width: 24px; text-align: right; font-size: 15px; font-weight: 700; color: var(--grey600); font-variant-numeric: tabular-nums; }
+  .cmp .r.cur .c { color: var(--grey900); }
+
+  /* 증감 */
+  .dl { display: inline-flex; align-items: center; gap: 3px; height: 24px; padding: 0 8px 0 7px; border-radius: 12px; font-size: 13px; font-weight: 700; background: var(--green-weak); color: var(--green600); white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0; }
+  .dl.dn { background: var(--grey100); color: var(--grey600); }
+
+  /* 카드 */
+  .ch { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .ch .ic { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .ch b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .v { display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 2px; }
+  .v b { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.6px; }
+  .v small { font-size: 17px; line-height: 22px; font-weight: 600; color: var(--grey400); margin-left: 1px; }
+  .v .dl { margin-left: 6px; align-self: center; }
+  .three .v b { font-size: 24px; line-height: 32px; }
+  .segs { display: flex; gap: 3px; margin-top: 10px; }
+  .segs i { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); }
+  .pb { height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; margin-top: 10px; }
+  .pb i { display: block; height: 100%; border-radius: 4px; background: var(--blue500); transform-origin: left; transform: scaleX(0); }
+  .rc { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .ring { flex: none; margin-top: 4px; transform: rotate(-90deg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--grey100); }
+  .chip { height: 34px; padding: 0 13px; border-radius: 17px; background: var(--grey100); color: var(--grey700); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; opacity: 0; }
+  .chip b { font-weight: 700; color: var(--grey900); font-variant-numeric: tabular-nums; }
+  .chip.top { background: var(--blue500); color: rgba(255, 255, 255, 0.86); }
+  .chip.top b { color: #fff; }
+  .cols { display: grid; align-items: end; height: 80px; margin-top: 20px; }
+  .cols i { display: block; border-radius: 6px 6px 3px 3px; background: var(--purple200); transform-origin: bottom; transform: scaleY(0); min-height: 4px; }
+  .cols i.mx { background: var(--purple500); }
+  .cols i.z { background: var(--grey200); }
+  .cl { display: grid; margin-top: 6px; }
+  .cl span { text-align: center; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .cl span.fut { color: var(--grey300); }
+  .rows { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--grey100); }
+  .rows .r { display: flex; align-items: center; gap: 12px; height: 36px; }
+  .rows .nm { width: 64px; font-size: 15px; font-weight: 600; color: var(--grey700); }
+  .rows .tk { flex: 1; height: 12px; }
+  .rows .tk i { display: block; height: 100%; border-radius: 6px; background: var(--green200); transform-origin: left; transform: scaleX(0); }
+  .rows .r.mx .tk i { background: var(--green500); }
+  .rows .r.mx .nm { color: var(--grey900); }
+  .rows .c { width: 28px; text-align: right; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ar { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .ar .from { font-size: 17px; font-weight: 600; color: var(--grey400); font-variant-numeric: tabular-nums; }
+  .ar .to { display: flex; align-items: baseline; }
+  .ar .to b { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+  .ar .to small { font-size: 17px; font-weight: 600; color: var(--grey400); margin-left: 1px; }
+  .ar .to b.hot { color: var(--orange700); }
+  .xp { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--grey100); }
+  .xp .top { display: flex; align-items: baseline; justify-content: space-between; }
+  .xp .top b { font-size: 22px; line-height: 31px; font-weight: 700; color: var(--grey900); font-variant-numeric: tabular-nums; }
+  .spark { display: block; margin-top: 8px; overflow: visible; }
+  .spark .dot { transform-box: fill-box; transform-origin: center; opacity: 0; }
+
+  /* 계속 */
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; padding: 28px 20px 20px; background: linear-gradient(180deg, rgba(242, 244, 246, 0) 0%, var(--grey100) 34%); }
+
+  /* 시작 화면: 앱(5차)과 같다 */
+  .splash { position: absolute; inset: 0; z-index: 50; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .splash .icon { width: 88px; height: 88px; border-radius: 24px; background: var(--blue500); display: grid; grid-template-columns: repeat(3, 20px); gap: 5px; align-content: center; justify-content: center; }
+  .splash .icon i { width: 20px; height: 20px; border-radius: 6px; background: #fff; }
+  .splash b { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>리포트 한 장</h2>
+    <p>한 주나 한 달이 끝나면 시작 화면 바로 다음, 홈보다 먼저 한 장짜리 리포트가 나옵니다. 맨 위에 마친 날 수와 불꽃색 띠, 그 아래로 뉴스, 영단어, Latticework, 연속과 레벨 카드가 이어집니다. 아래로 내리며 읽고, 바닥에 늘 붙어 있는 "계속" 을 누르면 홈으로 갑니다. 처음부터 "계속" 이 눌리므로 언제든 건너뛸 수 있습니다.</p>
+    <p class="tip">위쪽 "주간" 과 "월간" 으로 바꿔 보세요. "다시 재생" 은 시작 화면부터 다시 보여 줍니다. 휴대폰 안을 끌거나 휠로 내리면 카드가 하나씩 들어옵니다.</p>
+
+    <h3>레퍼런스</h3>
+    <ul>
+      <li>Apple Fitness 월간 요약: 큰 숫자 하나로 시작하고, 아래로 내리며 항목별 카드를 읽는 구조.</li>
+      <li>Toss 월간 소비 리포트: 흰 카드, 지난달 대비 증감을 작은 칩 하나로 붙이는 방식.</li>
+      <li>Spotify Wrapped: 숫자가 보이는 순간 세며 올라가는 손맛. 다만 한 장씩 넘기는 대신 한 화면에 모았습니다.</li>
+      <li>듀오링고 주간 리포트와 5차 달력 D안: 이어서 마친 날이 하나의 띠로 붙는 모양.</li>
+    </ul>
+
+    <h3>화면 구성</h3>
+    <table class="spec">
+      <tr><th>맨 위</th><td>마친 날 수(주간 N/7, 월간 N/30), 더 푼 문제 합계, 불꽃색 띠. 월간은 지난달과 막대 두 개로 비교하고 증감 칩을 붙임</td></tr>
+      <tr><th>뉴스</th><td>읽은 기사/발행 기사(주간은 기사 한 편이 한 칸, 월간은 막대), 저녁 퀴즈 정답률과 링, 많이 읽은 주제 순서. 1위는 파란 칩</td></tr>
+      <tr><th>영단어</th><td>복습한 표현, 그중 새 표현, 강화된 표현. 날마다 복습한 양의 막대, 가장 많이 한 날만 진한 보라</td></tr>
+      <tr><th>Latticework</th><td>푼 문제, 정답률, 주제별 문제 수 막대(CAPM, 자본배분, APT, 지수모형). 가장 많은 주제만 진한 초록</td></tr>
+      <tr><th>연속 · 레벨</th><td>연속 기록 시작과 끝, 레벨 시작과 끝, 얻은 XP. 누적 XP 선과 레벨 경계 점선</td></tr>
+    </table>
+
+    <h3>움직임과 이유</h3>
+    <table class="spec">
+      <tr><th>띠와 숫자</th><td>시작 화면이 걷히면 띠가 왼쪽에서 오른쪽으로 칠해지고, 마친 날을 지날 때마다 큰 숫자와 더 푼 문제 합계가 함께 오릅니다. 띠와 숫자가 같은 것을 센다는 걸 설명 없이 보여 주려는 움직임입니다. 주간 0.76초, 월간 1.4초</td></tr>
+      <tr><th>오늘</th><td>띠가 오늘에 닿는 순간 주황 테두리가 튀어 오릅니다. 아직 끝나지 않은 날임을 알림</td></tr>
+      <tr><th>지난달 비교</th><td>지난달 막대가 먼저, 이번 달 막대가 뒤따라 자라고, 다 자라면 증감 칩이 나타남</td></tr>
+      <tr><th>카드</th><td>화면에 30% 이상 들어오면 28px 아래에서 올라오며(0.56초), 숫자가 세며 오르고 막대와 링이 차오릅니다. 빠르게 내려 여러 장이 한꺼번에 들어와도 0.12초 간격으로 줄 세워 순서가 보이게 함</td></tr>
+      <tr><th>레벨</th><td>누적 XP 선이 왼쪽부터 그려지다 레벨 점선을 넘는 지점에 점이 찍히고, 그 순간 레벨 숫자가 바뀝니다. 언제 레벨이 올랐는지가 선 위에 남음. 폭죽은 쓰지 않음</td></tr>
+      <tr><th>위 막대</th><td>제목이 화면 밖으로 나가면 위에 작은 제목이 나타나 지금 보는 기간을 놓치지 않게 함</td></tr>
+      <tr><th>계속</th><td>리포트가 시작될 때 아래에서 올라와 늘 바닥에 붙어 있음. 누르면 0.2초 흐려진 뒤 홈</td></tr>
+    </table>
+
+    <h3>좋은 점</h3>
+    <ul>
+      <li>한 화면이라 길을 잃지 않습니다. 몇 장 남았는지 셀 필요가 없고, 원하는 만큼만 읽고 나갈 수 있습니다.</li>
+      <li>앱의 흰 카드, 글자 크기, 색을 그대로 써서 홈과 같은 앱으로 보입니다. 띠는 기록 탭 달력과 같은 규칙입니다.</li>
+      <li>스크롤에 맞춰 카드가 들어오므로 읽는 속도와 움직임의 속도가 같습니다.</li>
+      <li>주간과 월간이 같은 틀이라 하나만 익히면 됩니다. 월간에는 증감 칩만 더해집니다.</li>
+    </ul>
+
+    <h3>아쉬운 점</h3>
+    <ul>
+      <li>첫 화면에는 맨 위 카드와 뉴스 일부만 보입니다. "계속" 이 늘 보이니 아래 카드를 보지 않고 지나치는 사람이 많을 수 있습니다.</li>
+      <li>Wrapped처럼 감정이 치솟는 한 순간이 없습니다. 레벨 업도 카드 안의 작은 점과 숫자 하나라 조용합니다.</li>
+      <li>숫자가 많습니다. 월간에는 증감 칩이 여섯 개라 칩끼리 눈길을 다툽니다.</li>
+      <li>월간 영단어 막대는 서른 개라 하나하나는 작아서, 어느 날인지 읽기 어렵습니다.</li>
+    </ul>
+
+    <h3>언제 나오나</h3>
+    <table class="spec">
+      <tr><th>공통</th><td>시작 화면이 끝난 뒤, 홈보다 먼저. 날짜와 시간은 기기 시간대 기준. 리포트가 화면에 그려지면 그 기간은 본 것으로 저장(기간 키 예: week-2026-11-16, month-2026-11). "계속" 을 누르지 않고 앱을 닫아도 다시 나오지 않음. "계속" 과 뒤로 가기 모두 홈으로</td></tr>
+      <tr><th>주간</th><td>한 주는 월요일 0시부터 일요일 24시. 그 주 토요일 0시 이후 처음 앱을 열 때 한 번. 범위는 그 주 월요일부터 연 날까지. 띠는 일곱 칸을 다 그리고, 연 날은 오늘 테두리, 그 뒤 날은 흐린 숫자</td></tr>
+      <tr><th>주간을 놓친 경우</th><td>토요일과 일요일에 열지 않았으면, 다음 주 월요일부터 금요일 사이 첫 실행에 지난주 리포트(월요일부터 일요일까지)를 보여 줌. 다음 토요일이 되면 새 주 리포트로 바뀌고 지난 것은 버림. 두 주 이상 쌓아 보여 주지 않음</td></tr>
+      <tr><th>월간</th><td>그 달 마지막 날 0시 이후 처음 앱을 열 때 한 번. 마지막 날에 열지 않았으면 다음 달 첫 실행에. 범위는 1일부터 말일까지. 마지막 날에 열면 그날은 오늘 테두리로 둠. 다음 달 말일이 되면 새 달 리포트로 바뀜</td></tr>
+      <tr><th>둘 다 해당</th><td>같은 실행에서 주간과 월간이 모두 해당하면 월간만 보여 주고, 그 주간 리포트도 본 것으로 저장. 그 주의 날들은 월간 달력의 마지막 줄에 들어 있음</td></tr>
+      <tr><th>보여 주지 않음</th><td>그 기간에 마친 날, 읽은 기사, 복습, 푼 문제가 모두 0이면 띄우지 않음. 가입한 주나 달은 가입한 날부터 범위로 잡고, 그 전 날은 흐린 숫자</td></tr>
+    </table>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const q = new URLSearchParams(location.search);
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+
+  // ---------- 불꽃색: src/heat.ts 와 같은 네 점(yellow500, orange500, orange800, red600)
+  const STOPS = [[0, [255, 195, 66]], [0.33, [254, 152, 0]], [0.66, [237, 103, 0]], [1, [228, 41, 57]]];
+  const TOPS = [[0, [255, 230, 155]], [0.5, [255, 205, 128]], [1, [255, 169, 39]]];
+  const mix = (S, x) => {
+    const t = Math.min(1, Math.max(0, x / 30));
+    for (let i = 1; i < S.length; i++) {
+      if (t <= S[i][0]) {
+        const k = (t - S[i - 1][0]) / (S[i][0] - S[i - 1][0]);
+        return S[i - 1][1].map((v, j) => Math.round(v + (S[i][1][j] - v) * k));
+      }
+    }
+    return S[S.length - 1][1];
+  };
+  const rgb = (a) => `rgb(${a.join(',')})`;
+  const heat = (x) => rgb(mix(STOPS, x));
+  const top = (x) => rgb(mix(TOPS, x));
+  const ink = (x) => (Math.min(1, x / 30) < 0.22 ? 'rgba(0,12,30,.82)' : '#fff');
+
+  // ---------- 2026년 11월 표본. 1일이 일요일.
+  const EX = { 3: 5, 4: 12, 9: 0, 12: 3, 13: 8, 14: 0, 15: 6, 16: 2, 17: 18, 18: 0, 19: 9, 20: 24, 26: 4, 27: 14, 28: 30, 29: 11 }; // 마친 날: 더 푼 문제
+  const PART = { 2: 40, 5: 60, 8: 30, 10: 50, 11: 20, 23: 30, 25: 40 }; // 마치지 못한 날에 얻은 XP
+  const VOC = { 2: 3, 3: 5, 4: 7, 5: 4, 8: 2, 9: 4, 10: 3, 11: 2, 12: 6, 13: 5, 14: 4, 15: 6, 16: 6, 17: 9, 18: 4, 19: 7, 20: 8, 23: 2, 25: 3, 26: 6, 27: 7, 28: 9, 29: 8 };
+  const xpOf = (n) => (EX[n] !== undefined ? 170 + EX[n] * 9 : PART[n] || 0);
+  const LV = [0, 600, 1500, 3000, 6000]; // Lv1, Lv2, Lv3, Lv4, Lv5 시작 XP
+  const lvOf = (xp) => LV.filter((t) => xp >= t).length;
+  const XP0 = 900; // 11월 1일 시작 XP
+  const cum = (d) => XP0 + Array.from({ length: d }, (_, i) => xpOf(i + 1)).reduce((a, b) => a + b, 0);
+  const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+  const sum = (arr, f) => arr.reduce((s, n) => s + f(n), 0);
+
+  const WEEK = {
+    key: 'week', title: '이번 주', period: '11월 16일 ~ 22일',
+    days: range(16, 22), today: 21, cols: 7, offset: 0, CH: 44, S: 36,
+    of: 7, prevDays: null,
+    news: { read: 9, pub: 10, qOk: 7, qAll: 8, topics: [['M&A', 4], ['거시경제', 3], ['지배구조', 2]] },
+    voc: { days: range(16, 22), labels: ['월', '화', '수', '목', '금', '토', '일'], newN: 12, strong: 18 },
+    lw: { n: 25, ok: 21, topics: [['CAPM', 9], ['자본배분', 7], ['APT', 5], ['지수모형', 4]] },
+    streak: { label: '연속', from: 4, to: 9 },
+    xp: { from: 15, to: 20, slots: 7 }, // 15일 끝 ~ 20일 끝. 가로는 월~일 일곱 칸
+    labels: ['월', '화', '수', '목', '금', '토', '일'],
+  };
+  const MONTH = {
+    key: 'month', title: '11월', period: '2026년 11월 1일 ~ 30일',
+    days: range(1, 30), today: 30, cols: 7, offset: 6, CH: 42, S: 34,
+    of: 30, prevDays: 11,
+    news: { read: 38, pub: 42, qOk: 31, qAll: 36, topics: [['M&A', 11], ['거시경제', 9], ['지배구조', 7], ['반도체', 6]], prevRead: 29, prevAcc: 88 },
+    voc: { days: range(1, 30), labels: null, newN: 41, strong: 60, prev: 96 },
+    lw: { n: 96, ok: 79, topics: [['CAPM', 31], ['자본배분', 26], ['APT', 21], ['지수모형', 18]], prevN: 75, prevAcc: 78 },
+    streak: { label: '최장 연속', from: null, to: 9, prev: 6 },
+    xp: { from: 0, to: 29, slots: 30, prev: 3100 },
+    labels: ['월', '화', '수', '목', '금', '토', '일'],
+  };
+  let M = q.get('m') === 'month' ? MONTH : WEEK;
+  let gen = 0;
+  let io = null;
+
+  // ---------- 작은 도구
+  const fmt = (v) => Math.round(v).toLocaleString('en-US');
+  const tri = (up) => `<svg viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="${up ? 'M5 1.5L9.2 8.5H.8z' : 'M5 8.5L.8 1.5h8.4z'}" fill="currentColor"/></svg>`;
+  const dl = (v, unit = '') => (v === 0 ? '' : `<span class="dl ${v < 0 ? 'dn' : ''}">${tri(v > 0)}${fmt(Math.abs(v))}${unit}</span>`);
+  const arrow = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" fill="none" stroke="var(--grey400)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const easeOut = (t) => 1 - Math.pow(1 - t, 4);
+  /** 프레임마다 값을 넘기는 움직임. "느리게" 와 "다시 재생" 을 따른다. */
+  const tween = (my, dur, ease, fn, delay = 0) =>
+    new Promise((res) => {
+      if (ML.reduce) { fn(1); return res(); }
+      let t0 = null;
+      let el = 0;
+      const step = (now) => {
+        if (my !== gen) return res();
+        if (t0 === null) t0 = now;
+        el += (now - t0) * ML.rate;
+        t0 = now;
+        const p = Math.min(1, Math.max(0, (el - delay) / dur));
+        fn(ease(p));
+        if (p < 1) requestAnimationFrame(step);
+        else res();
+      };
+      requestAnimationFrame(step);
+    });
+  const later = (my, ms, fn) => ML.wait(ms).then(() => my === gen && fn());
+
+  const ICON = {
+    news: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 4.5h12.5v15H6.5A2.5 2.5 0 0 1 4 17zM18 8h2v9.5a2 2 0 0 1-4 0V8zM7 8h6.5v2H7zm0 4h6.5v1.6H7zm0 3.4h4.5V17H7z" fill="var(--blue600)" fill-rule="evenodd"/></svg>',
+    voc: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4.5 3.5V17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="var(--purple500)"/></svg>',
+  };
+
+  // ---------- 그리기
+  function cells() {
+    return M.days.map((n, k) => {
+      const i = M.key === 'week' ? k : n + M.offset - 1;
+      const col = i % 7;
+      const row = Math.floor(i / 7);
+      const st = n === M.today ? 'today' : n > M.today ? 'fut' : EX[n] !== undefined ? 'done' : 'miss';
+      return { n, k, col, row, st, ex: EX[n] || 0 };
+    });
+  }
+  const W = 326;
+  const CW = W / 7;
+
+  function heroHtml() {
+    const C = cells();
+    const rows = Math.max(...C.map((c) => c.row)) + 1;
+    const done = C.filter((c) => c.st === 'done');
+    const cur = done.length;
+    return `<div class="box hero pre" id="hero">
+      <div class="hrow"><div class="big"><b id="bn">0</b><span>/${M.of}일</span>${M.prevDays !== null ? dl(cur - M.prevDays) : ''}</div>
+        <div class="xs"><span class="lb">더 푼 문제</span><b id="bx" class="num">0</b></div></div>
+      <div class="wd">${M.labels.map((x) => `<span>${x}</span>`).join('')}</div>
+      <div class="grid" id="grid" style="height:${rows * M.CH}px"></div>
+      ${M.prevDays !== null ? `<div class="cmp">
+        <div class="r"><span class="m">10월</span><span class="tk"><i style="width:${(M.prevDays / 30) * 100}%"></i></span><span class="c">${M.prevDays}</span></div>
+        <div class="r cur"><span class="m">11월</span><span class="tk"><i style="width:${(cur / 30) * 100}%"></i></span><span class="c">${cur}</span></div></div>` : ''}
+    </div>`;
+  }
+
+  function drawGrid() {
+    const g = phone.querySelector('#grid');
+    const C = cells();
+    const S = M.S;
+    const pos = (c) => ({ cx: c.col * CW + CW / 2, cy: c.row * M.CH + M.CH / 2 });
+    // 이어서 마친 날을 한 줄 안에서 띠로 묶는다(달력 D안)
+    const runs = [];
+    let r = null;
+    C.forEach((c) => {
+      if (c.st === 'done' && r && r.row === c.row && r.b.k === c.k - 1) r.b = c;
+      else if (c.st === 'done') runs.push((r = { row: c.row, a: c, b: c }));
+      else r = null;
+    });
+    const bands = runs.map((run) => {
+      const A = pos(run.a);
+      const B = pos(run.b);
+      const w = B.cx - A.cx + S;
+      const span = C.filter((c) => c.k >= run.a.k && c.k <= run.b.k);
+      const at = (c) => (((pos(c).cx - A.cx + S / 2) / w) * 100).toFixed(1) + '%';
+      const fill = span.length > 1 ? `linear-gradient(90deg, ${span.map((c) => `${heat(c.ex)} ${at(c)}`).join(', ')})` : heat(run.a.ex);
+      const el = document.createElement('div');
+      el.className = 'band';
+      Object.assign(el.style, { left: A.cx - S / 2 + 'px', top: A.cy - S / 2 + 'px', width: w + 'px', height: S + 'px', borderRadius: S / 2 + 'px', overflow: 'hidden', zIndex: 1, boxShadow: `0 2px 8px ${heat(run.b.ex)}40`, clipPath: `inset(0 ${w}px 0 0 round ${S / 2}px)` });
+      el.innerHTML = `<div class="layer" style="background:${fill}"></div><div class="layer" style="background:linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 55%)"></div>`;
+      g.append(el);
+      return { el, w, ka: run.a.k, kb: run.b.k };
+    });
+    const nums = C.map((c) => {
+      const p = pos(c);
+      const el = document.createElement('div');
+      el.className = 'n' + (c.st === 'fut' ? ' fut' : '');
+      Object.assign(el.style, { left: p.cx - CW / 2 + 'px', top: p.cy - M.CH / 2 + 'px', width: CW + 'px', height: M.CH + 'px', fontSize: M.key === 'week' ? '15px' : '14px' });
+      el.textContent = c.n;
+      g.append(el);
+      return el;
+    });
+    let ring = null;
+    const tc = C.find((c) => c.st === 'today');
+    if (tc) {
+      const p = pos(tc);
+      ring = document.createElement('div');
+      ring.className = 'tdr';
+      Object.assign(ring.style, { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px' });
+      g.append(ring);
+    }
+    return { C, bands, nums, ring, tk: tc ? tc.k : -1 };
+  }
+
+  function newsHtml() {
+    const N = M.news;
+    const acc = Math.round((N.qOk / N.qAll) * 100);
+    const R = 22;
+    const Cc = 2 * Math.PI * R;
+    const meter = N.pub <= 14
+      ? `<div class="segs">${Array.from({ length: N.pub }, (_, i) => `<i data-on="${i < N.read ? 1 : 0}"></i>`).join('')}</div>`
+      : `<div class="pb"><i style="width:${(N.read / N.pub) * 100}%"></i></div>`;
+    return `<div class="box card" data-card="news">
+      <div class="ch"><span class="ic" style="background:var(--blue-weak)">${ICON.news}</span><b>뉴스</b></div>
+      <div class="two">
+        <div><span class="lb">읽은 기사</span><div class="v"><b data-count="${N.read}">0</b><small>/${N.pub}</small>${N.prevRead ? dl(N.read - N.prevRead) : ''}</div>${meter}</div>
+        <div class="rc"><div><span class="lb">퀴즈 정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small></div>${N.prevAcc ? `<div style="margin-top:4px">${dl(acc - N.prevAcc, '%p')}</div>` : ''}</div>
+          <svg class="ring" viewBox="0 0 56 56" width="52" height="52" aria-hidden="true"><circle cx="28" cy="28" r="${R}" fill="none" stroke="var(--grey100)" stroke-width="7"/><circle class="arc" cx="28" cy="28" r="${R}" fill="none" stroke="var(--blue500)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${Cc}" stroke-dashoffset="${Cc}" data-c="${Cc}" data-p="${N.qOk / N.qAll}"/></svg></div>
+      </div>
+      <div class="chips">${N.topics.map(([t, c], i) => `<span class="chip ${i === 0 ? 'top' : ''}">${t}<b>${c}</b></span>`).join('')}</div>
+    </div>`;
+  }
+
+  function vocHtml() {
+    const V = M.voc;
+    const vals = V.days.map((d) => (d > M.today ? null : VOC[d] || 0));
+    const total = vals.reduce((a, b) => a + (b || 0), 0);
+    const mx = Math.max(...vals.map((v) => v || 0));
+    const n = V.days.length;
+    const gap = n > 7 ? 3 : 10;
+    const tmpl = `grid-template-columns:repeat(${n}, minmax(0, 1fr));column-gap:${gap}px`;
+    const labels = V.labels
+      ? V.labels.map((l, i) => `<span class="${V.days[i] > M.today ? 'fut' : ''}">${l}</span>`).join('')
+      : V.days.map((d) => `<span style="${[1, 30].includes(d) ? '' : 'visibility:hidden'}">${d}</span>`).join('');
+    return `<div class="box card" data-card="voc">
+      <div class="ch"><span class="ic" style="background:var(--purple-weak)">${ICON.voc}</span><b>영단어</b></div>
+      <div class="three">
+        <div><span class="lb">복습</span><div class="v"><b data-count="${total}">0</b></div>${V.prev ? dl(total - V.prev) : ''}</div>
+        <div><span class="lb">새 표현</span><div class="v"><b data-count="${V.newN}">0</b></div></div>
+        <div><span class="lb">강화</span><div class="v"><b data-count="${V.strong}">0</b></div></div>
+      </div>
+      <div class="cols" style="${tmpl}">${vals.map((v) => (v === null ? '<span></span>' : `<i class="${v === mx ? 'mx' : v === 0 ? 'z' : ''}" style="height:${v ? Math.max(8, (v / mx) * 100) : 5}%;border-radius:${n > 7 ? '3px 3px 2px 2px' : ''}"></i>`)).join('')}</div>
+      <div class="cl" style="${tmpl}">${labels}</div>
+    </div>`;
+  }
+
+  function lwHtml() {
+    const L = M.lw;
+    const acc = Math.round((L.ok / L.n) * 100);
+    const mx = Math.max(...L.topics.map((t) => t[1]));
+    return `<div class="box card" data-card="lw">
+      <div class="ch"><span class="ic" style="background:var(--green-weak);color:var(--green600)">${LW.mark(22, 'currentColor', 3)}</span><b>Latticework</b></div>
+      <div class="two">
+        <div><span class="lb">푼 문제</span><div class="v"><b data-count="${L.n}">0</b>${L.prevN ? dl(L.n - L.prevN) : ''}</div></div>
+        <div><span class="lb">정답률</span><div class="v"><b data-count="${acc}">0</b><small>%</small>${L.prevAcc ? dl(acc - L.prevAcc, '%p') : ''}</div></div>
+      </div>
+      <div class="rows">${L.topics.map(([t, c]) => `<div class="r ${c === mx ? 'mx' : ''}"><span class="nm">${t}</span><span class="tk"><i style="width:${(c / mx) * 100}%"></i></span><span class="c">${c}</span></div>`).join('')}</div>
+    </div>`;
+  }
+
+  function xpModel() {
+    const X = M.xp;
+    const pts = [];
+    for (let d = X.from; d <= X.to; d++) pts.push({ d, xp: cum(d) });
+    const x = (d) => ((d - X.from) / X.slots) * W;
+    const lo0 = pts[0].xp;
+    const hi0 = pts[pts.length - 1].xp;
+    const lo = lo0 - (hi0 - lo0) * 0.06;
+    const hi = hi0 + (hi0 - lo0) * 0.1;
+    const H = 96;
+    const y = (v) => 10 + (1 - (v - lo) / (hi - lo)) * (H - 20);
+    const cross = [];
+    LV.forEach((T, li) => {
+      if (T <= lo0 || T > hi0) return;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1];
+        const b = pts[i];
+        if (a.xp < T && b.xp >= T) {
+          const f = (T - a.xp) / (b.xp - a.xp);
+          cross.push({ T, lv: li + 1, x: x(a.d) + f * (x(b.d) - x(a.d)), y: y(T) });
+        }
+      }
+    });
+    return { pts: pts.map((p) => ({ x: x(p.d), y: y(p.xp) })), cross, H, gained: hi0 - lo0, lv0: lvOf(lo0), lv1: lvOf(hi0) };
+  }
+
+  function streakHtml() {
+    const X = xpModel();
+    const s = M.streak;
+    const line = X.pts.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+    const last = X.pts[X.pts.length - 1];
+    const area = `${line} L${last.x.toFixed(1)} ${X.H} L0 ${X.H} Z`;
+    const id = 'clip' + gen;
+    const labels = M.key === 'week'
+      ? M.labels.map((l, i) => `<span class="${M.days[i] > M.today ? 'fut' : ''}">${l}</span>`).join('')
+      : range(1, 30).map((d) => `<span style="${[1, 30].includes(d) ? '' : 'visibility:hidden'}">${d}</span>`).join('');
+    const lcols = `grid-template-columns:repeat(${M.key === 'week' ? 7 : 30}, minmax(0, 1fr))`;
+    return `<div class="box card" data-card="streak">
+      <div class="ch"><span class="ic" style="background:var(--orange-weak)">${K.smallFlame(20)}</span><b>연속 · 레벨</b></div>
+      <div class="two">
+        <div><span class="lb">${s.label}</span>${s.from !== null
+          ? `<div class="ar"><span class="from">${s.from}</span>${arrow}<span class="to"><b class="hot" data-count="${s.to}" data-from="${s.from}">${s.from}</b><small>일</small></span></div>`
+          : `<div class="v"><b class="hot" style="color:var(--orange700)" data-count="${s.to}">0</b><small>일</small>${dl(s.to - s.prev)}</div>`}</div>
+        <div><span class="lb">레벨</span><div class="ar"><span class="from">Lv ${X.lv0}</span>${arrow}<span class="to"><b>Lv&nbsp;<span class="roll" id="lv">${X.lv0}</span></b></span></div></div>
+      </div>
+      <div class="xp">
+        <div class="top"><span class="lb">XP</span><span style="display:flex;align-items:center;gap:6px">${M.xp.prev ? dl(X.gained - M.xp.prev) : ''}<b data-count="${X.gained}" data-fmt="plus">+0</b></span></div>
+        <svg class="spark" viewBox="0 0 ${W} ${X.H}" width="${W}" height="${X.H}" aria-hidden="true">
+          <defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fe9800" stop-opacity=".22"/><stop offset="1" stop-color="#fe9800" stop-opacity="0"/></linearGradient>
+          <clipPath id="${id}"><rect class="cr" x="0" y="-10" width="0" height="${X.H + 20}"/></clipPath></defs>
+          ${X.cross.map((c) => `<line x1="0" x2="${W}" y1="${c.y.toFixed(1)}" y2="${c.y.toFixed(1)}" stroke="var(--grey300)" stroke-width="1.2" stroke-dasharray="3 4"/><text x="${W}" y="${(c.y - 6).toFixed(1)}" text-anchor="end" font-size="12" font-weight="700" fill="var(--grey500)" font-family="inherit">Lv ${c.lv}</text>`).join('')}
+          <g clip-path="url(#${id})"><path d="${area}" fill="url(#g${id})"/><path d="${line}" fill="none" stroke="var(--orange500)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
+          ${X.cross.map((c, i) => `<circle class="dot" data-i="${i}" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="5.5" fill="var(--orange500)" stroke="#fff" stroke-width="2.5"/>`).join('')}
+          <circle class="dot end" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="4" fill="var(--orange500)"/>
+        </svg>
+        <div class="cl" style="${lcols}">${labels}</div>
+      </div>
+    </div>`;
+  }
+
+  function shell() {
+    phone.innerHTML = `<div class="scr">
+      <div class="nav" id="nav">${M.title}</div>
+      <div class="view" id="view">
+        <div class="head pre" id="head"><h1>${M.title}</h1><p>${M.period}</p></div>
+        <div class="stack">${heroHtml()}${newsHtml()}${vocHtml()}${lwHtml()}${streakHtml()}</div>
+      </div>
+      <div class="foot pre" id="foot"><button class="tbtn" id="go">계속</button></div>
+    </div>`;
+  }
+
+  // ---------- 움직임
+  async function splash(my) {
+    const sp = document.createElement('div');
+    sp.className = 'splash';
+    sp.innerHTML = `<div class="icon">${'<i></i>'.repeat(9)}</div><b>Latticework</b>`;
+    phone.querySelector('.scr').append(sp);
+    ML.a(sp.querySelector('.icon'), [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, easing: OUT });
+    ML.a(sp.querySelector('b'), [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80, easing: OUT });
+    await ML.wait(820);
+    if (my !== gen) return;
+    const out = ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: 'ease' });
+    ML.done(out).then(() => sp.remove());
+  }
+
+  function intro(my, G) {
+    const up = (el, delay, dist = 12, dur = 420) => ML.a(el, [{ opacity: 0, transform: `translateY(${dist}px)` }, { opacity: 1, transform: 'translateY(0)' }], { duration: dur, delay, easing: ML.ease.out });
+    up(phone.querySelector('#head'), 0, 10);
+    up(phone.querySelector('#hero'), 70, 16, 480);
+    const foot = phone.querySelector('#foot');
+    ML.a(foot, [{ opacity: 0, transform: 'translateY(100%)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 520, delay: 260, easing: ML.ease.sheet });
+
+    // 띠가 칠해지며 숫자가 따라 오른다
+    const bn = phone.querySelector('#bn');
+    const bx = phone.querySelector('#bx');
+    const N = G.C.length;
+    const lit = new Array(N).fill(false);
+    let days = 0;
+    let extra = 0;
+    const dur = M.key === 'week' ? 760 : 1400;
+    tween(my, dur, easeInOut, (p) => {
+      const c = -0.5 + p * N;
+      G.bands.forEach((b) => {
+        const f = Math.min(1, Math.max(0, (c - (b.ka - 0.5)) / (b.kb - b.ka + 1)));
+        b.el.style.clipPath = `inset(0 ${(b.w * (1 - f)).toFixed(1)}px 0 0 round ${M.S / 2}px)`;
+      });
+      G.C.forEach((cell, k) => {
+        if (lit[k] || c < k) return;
+        lit[k] = true;
+        if (cell.st === 'done') {
+          G.nums[k].style.color = ink(cell.ex);
+          G.nums[k].style.fontWeight = 700;
+          days++;
+          extra += cell.ex;
+          bn.textContent = days;
+          bx.textContent = extra;
+        }
+        if (k === G.tk && G.ring) ML.a(G.ring, [{ opacity: 0, transform: 'scale(.5)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, easing: ML.ease.spring });
+      });
+    }, 320).then(() => {
+      if (my !== gen) return;
+      const bars = phone.querySelectorAll('.cmp .tk i');
+      bars.forEach((b, i) => ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 560, delay: 60 + i * 260, easing: OUT }));
+      const d = phone.querySelector('.hero .dl');
+      if (d) ML.a(d, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: 820, easing: ML.ease.spring });
+    });
+
+    // 카드는 화면에 들어올 때 하나씩
+    const view = phone.querySelector('#view');
+    let next = 0;
+    io = new IntersectionObserver((ents) => {
+      ents.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top).forEach((e) => {
+        io.unobserve(e.target);
+        const now = performance.now();
+        const wait = Math.max(0, next - now);
+        next = Math.max(now, next) + 120 / ML.rate;
+        later(my, wait * ML.rate, () => reveal(my, e.target));
+      });
+    }, { root: view, threshold: 0.3, rootMargin: '0px 0px -84px 0px' });
+    later(my, 700, () => phone.querySelectorAll('.card').forEach((c) => io.observe(c)));
+
+    const nav = phone.querySelector('#nav');
+    view.addEventListener('scroll', () => nav.classList.toggle('on', view.scrollTop > 56), { passive: true });
+  }
+
+  function reveal(my, card) {
+    ML.a(card, [{ opacity: 0, transform: 'translateY(28px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 560, easing: ML.ease.out });
+    card.querySelectorAll('[data-count]').forEach((el) => {
+      const to = +el.dataset.count;
+      const from = +(el.dataset.from || 0);
+      const f = el.dataset.fmt === 'plus' ? (v) => '+' + fmt(v) : (v) => String(Math.round(v));
+      later(my, 140, () => ML.count(el, from, to, from ? 520 : 820, f));
+    });
+    card.querySelectorAll('.segs i[data-on="1"]').forEach((el, i) => ML.a(el, [{ background: 'var(--grey200)' }, { background: 'var(--blue500)' }], { duration: 200, delay: 200 + i * 55, easing: 'ease' }));
+    card.querySelectorAll('.pb i, .rows .tk i').forEach((el, i) => ML.a(el, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 700, delay: 200 + i * 70, easing: OUT }));
+    const cols = card.querySelectorAll('.cols i');
+    cols.forEach((el, i) => ML.a(el, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 560, delay: 200 + i * (cols.length > 7 ? 18 : 55), easing: OUT }));
+    card.querySelectorAll('.arc').forEach((el) => ML.a(el, [{ strokeDashoffset: +el.dataset.c }, { strokeDashoffset: +el.dataset.c * (1 - +el.dataset.p) }], { duration: 900, delay: 220, easing: OUT }));
+    card.querySelectorAll('.chip').forEach((el, i) => ML.a(el, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: 360 + i * 60, easing: OUT }));
+    card.querySelectorAll('.dl').forEach((el) => ML.a(el, [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 420, delay: 980, easing: ML.ease.spring }));
+    const sp = card.querySelector('.spark');
+    if (sp) {
+      const X = xpModel();
+      const cr = sp.querySelector('.cr');
+      const dots = [...sp.querySelectorAll('.dot[data-i]')];
+      const fired = new Array(dots.length).fill(false);
+      const lv = card.querySelector('#lv');
+      tween(my, M.key === 'week' ? 1000 : 1500, easeInOut, (p) => {
+        const xx = p * X.pts[X.pts.length - 1].x;
+        cr.setAttribute('width', (xx + 3).toFixed(1));
+        X.cross.forEach((c, i) => {
+          if (fired[i] || xx < c.x) return;
+          fired[i] = true;
+          ML.a(dots[i], [{ opacity: 0, transform: 'scale(.3)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 520, easing: ML.ease.spring });
+          ML.roll(lv, String(c.lv), 1, 320);
+        });
+      }, 320).then(() => my === gen && ML.a(sp.querySelector('.dot.end'), [{ opacity: 0, transform: 'scale(.4)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 360, easing: OUT }));
+    }
+  }
+
+  function render() {
+    gen++;
+    const my = gen;
+    if (io) io.disconnect();
+    ML.clear(phone);
+    shell();
+    const G = drawGrid();
+    const go = phone.querySelector('#go');
+    K.press(go);
+    go.addEventListener('click', () => {
+      ML.done(ML.a(phone.querySelector('.scr'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' })).then(() => (location.href = '../v5/app.html?nosplash=1'));
+    });
+    splash(my);
+    later(my, 900, () => intro(my, G));
+  }
+
+  const setMode = (m) => {
+    M = m;
+    document.querySelectorAll('.lab-bar button').forEach((b) => {
+      if (b.textContent === '주간') b.setAttribute('aria-pressed', String(m === WEEK));
+      if (b.textContent === '월간') b.setAttribute('aria-pressed', String(m === MONTH));
+    });
+    render();
+  };
+  ML.bar({ title: '리포트 한 장', replay: () => render(), home: '../index.html', extra: [['주간', () => setMode(WEEK)], ['월간', () => setMode(MONTH)]] });
+  setMode(M);
+})();
+</script>
+</body>
+</html>

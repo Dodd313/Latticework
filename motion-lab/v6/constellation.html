@@ -364,7 +364,7 @@
     return K.spring(w, [{ transform: from === 'none' ? 'none' : from }, { transform: tf(to) }], name, { fill: 'none' });
   }
   const camFor = (c) => {
-    const s = Math.min(3.2, 124 / (c.r + 6));
+    const s = Math.min(3.6, 128 / (c.r + 6));
     return { s, x: W / 2 - s * c.x, y: H / 2 + 8 - s * c.y };
   };
   const toScreen = (x, y) => [S.cam.x + S.cam.s * x, S.cam.y + S.cam.s * y];

@@ -568,7 +568,7 @@
   // 시간 막대 끌기
   const trk = $('#trk');
   trk.addEventListener('pointerdown', (ev) => {
-    trk.setPointerCapture(ev.pointerId);
+    try { trk.setPointerCapture(ev.pointerId); } catch (e) {}
     setPlaying(false); closeSheet(true);
     const set = (e2) => {
       const r = trk.getBoundingClientRect();
@@ -640,7 +640,7 @@
   }
   let vel = { x: 0, y: 0 }, lastMv = 0;
   cv.addEventListener('pointerdown', (ev) => {
-    cv.setPointerCapture(ev.pointerId);
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
     const p = local(ev);
     ptrs.set(ev.pointerId, p);
     st.coast = false;
