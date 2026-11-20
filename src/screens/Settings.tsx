@@ -54,18 +54,18 @@ export function SettingsScreen() {
     setBox(json);
     try {
       if (Platform.OS === 'web') await (globalThis as any).navigator.clipboard.writeText(json);
-      setNote('기록을 복사했습니다. 아래 상자에서도 직접 복사할 수 있습니다.');
+      setNote('복사됨');
     } catch {
-      setNote('아래 상자의 내용을 길게 눌러 복사해 주세요.');
+      setNote('길게 눌러 복사');
     }
   };
 
   const doImport = () => {
     if (box.trim() === '') {
-      setNote('가져올 기록을 아래 상자에 붙여 넣어 주세요.');
+      setNote('붙여 넣을 내용 없음');
       return;
     }
-    setNote(importData(box) ? '기록을 가져와 지금 기록과 합쳤습니다.' : '형식이 맞지 않아 가져오지 못했습니다. 내보낸 내용을 그대로 붙여 넣어 주세요.');
+    setNote(importData(box) ? '가져옴' : '형식 오류');
   };
 
   const readCount = Object.keys(user.read).length;
@@ -79,7 +79,7 @@ export function SettingsScreen() {
         </T>
 
         {STANDALONE ? null : (
-        <Group title="편집 기준 · 시장 비중" foot="다음 발행분부터 적용됩니다.">
+        <Group title="편집 기준 · 시장 비중">
           <View style={{ flexDirection: 'row', gap: 4, padding: 3, borderRadius: 0, backgroundColor: t.field }}>
             {MARKETS.map((m) => {
               const on = user.settings.market === m.id;
@@ -95,7 +95,7 @@ export function SettingsScreen() {
         </Group>
         )}
 
-        <Group title="알림" foot="발행이 끝나면 Claude 앱으로 알림을 보냅니다.">
+        <Group title="알림">
           <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
             <Row label="발행 알림" value="평일 오전 7:15 전후" />
             <Divider />

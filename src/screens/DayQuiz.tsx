@@ -46,11 +46,8 @@ export function DayQuizScreen({ date }: { date: string }) {
           <T serif s={26} w="700" lh={1.35} role="heading" level={1}>
             저녁 퀴즈
           </T>
-          <T s={14} lh={1.6} c={t.sub}>
-            아침에 읽은 기사에서 기사마다 두 문항을 냅니다.
-          </T>
         </View>
-        {review ? <Quiz key={review.id} review={review} /> : <T s={14} c={t.sub}>이 날짜에는 퀴즈가 없습니다.</T>}
+        {review ? <Quiz key={review.id} review={review} /> : <T s={14} c={t.sub}>퀴즈 없음</T>}
       </ScrollView>
     </View>
   );

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>학습 완료 · Motion Lab 5차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .wrap { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 56px 16px 0; gap: 22px; }
+  .ring { position: relative; width: 148px; height: 148px; }
+  .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .mid b { font-size: 36px; line-height: 40px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .ring .mid > span { font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .ttl { text-align: center; }
+  .ttl h1 { margin: 0; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .ttl p { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--grey500); }
+  .stats { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .stat.st { background: var(--blue500); } .stat.st .v { color: var(--blue600); }
+  .lv { width: 100%; padding: 16px; border-radius: 16px; background: var(--grey100); display: flex; flex-direction: column; gap: 10px; }
+  .lv .r { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: var(--grey600); }
+  .lv .r b { color: var(--grey900); }
+  .lv .pbar { height: 12px; }
+  .lv .pbar .fill { background: var(--yellow500); }
+  .lv .pbar .fill::after { top: 3px; height: 3px; }
+  .wk { width: 100%; padding: 16px; border-radius: 16px; background: var(--grey100); }
+  .wk .r { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: var(--grey600); margin-bottom: 12px; }
+  .wk .r b { color: var(--grey900); }
+  .wk .g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 6px; }
+  .wk .g .l { text-align: center; font-size: 12px; font-weight: 600; color: var(--grey500); }
+  .wk .g .c { display: flex; justify-content: center; }
+  .wk .g .c span { width: 30px; height: 30px; border-radius: 15px; background: #fff; display: flex; align-items: center; justify-content: center; }
+  .wk .g .c.on span { background: var(--blue500); }
+  .foot { flex: none; padding: 12px 16px 28px; }
+  .lvup { position: absolute; inset: 0; z-index: 30; background: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 0 24px; }
+  .medal { width: 128px; height: 128px; border-radius: 36px; background: linear-gradient(145deg, #4593fc, #3182f6 50%, #1b64da); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; box-shadow: 0 6px 0 var(--blue-lip); }
+  .medal small { font-size: 12px; font-weight: 700; letter-spacing: 1px; opacity: 0.85; }
+  .medal b { font-size: 56px; line-height: 60px; font-weight: 800; }
+  .lvup h2 { margin: 0; font-size: 26px; font-weight: 700; }
+  .lvup .lv { max-width: 300px; }
+  .lvup .lbtn { position: absolute; left: 16px; right: 16px; bottom: 28px; width: auto; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>학습 완료</h2>
+    <p>2차의 세션 완료 구조를 그대로 쓰고, 색과 글자와 단추만 Toss 규격으로 바꿨습니다. 문장 없이 숫자와 막대만 둡니다.</p>
+    <p class="tip">"보통 날", "레벨 업", "7일 연속" 을 눌러 보세요.</p>
+    <table class="spec">
+      <tr><th>날</th><th>장면</th></tr>
+      <tr><td>보통 날</td><td>정답률 링이 그려지고 숫자가 셈. 카드 셋이 차례로 올라오고 경험치 막대가 참</td></tr>
+      <tr><td>레벨 업</td><td>막대가 끝까지 차면 레벨 화면으로 넘어가 숫자가 3에서 4로 바뀌고 폭죽</td></tr>
+      <tr><td>7일 연속</td><td>이번 주 일곱 칸이 모두 채워지고 작은 폭죽</td></tr>
+    </table>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let scene = 'normal';
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+
+  async function render() {
+    ML.clear(phone);
+    const st = scene === 'streak' ? 7 : 5;
+    const C = 2 * Math.PI * 64;
+    phone.innerHTML = `<div class="scr">
+      <div class="wrap">
+        <div class="ring"><svg viewBox="0 0 148 148" width="148" height="148"><circle cx="74" cy="74" r="64" stroke="var(--grey100)" stroke-width="12" fill="none"/><circle id="arc" cx="74" cy="74" r="64" stroke="var(--green500)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
+          <div class="mid"><b><span id="acc">0</span>%</b><span>정답률</span></div></div>
+        <div class="ttl"><h1>학습 완료</h1><p>Latticework · 5문제</p></div>
+        <div class="stats">
+          <div class="stat xp"><div class="h">경험치</div><div class="v">${K.bolt(18)}+<span id="v1">0</span></div></div>
+          <div class="stat acc"><div class="h">정답</div><div class="v"><span id="v2">0</span>/5</div></div>
+          <div class="stat st"><div class="h">연속</div><div class="v"><span class="roll" id="v3">${st - 1}</span>일</div></div>
+        </div>
+        ${scene === 'streak'
+          ? `<div class="wk" id="box"><div class="r"><span>이번 주</span><b class="num" id="wn">6/7</b></div><div class="g">${DAYS.map((d) => `<span class="l">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 6 ? 'on' : ''}" data-i="${i}"><span>${i < 6 ? K.check(14, '#fff', 3.2) : ''}</span></span>`).join('')}</div></div>`
+          : `<div class="lv" id="box"><div class="r"><span>레벨 <b id="lvn">3</b></span><span class="num" id="xpn">${scene === 'level' ? 220 : 140} / 240</span></div><div class="pbar"><span class="fill" id="bar" style="transform:scaleX(${scene === 'level' ? 220 / 240 : 140 / 240})"></span></div></div>`}
+      </div>
+      <div class="foot"><button class="lbtn" id="go"><span class="lbl">계속</span></button></div>
+      <div class="lvup" id="lvup"><div class="medal" id="medal"><small>LEVEL</small><b class="roll" id="ml">3</b></div><h2>레벨 4</h2>
+        <div class="lv"><div class="r"><span>다음 레벨</span><span class="num">0 / 300</span></div><div class="pbar"><span class="fill"></span></div></div>
+        <button class="lbtn" id="ok"><span class="lbl">확인</span></button></div></div>`;
+    K.press(phone.querySelector('#go'));
+    K.press(phone.querySelector('#ok'));
+    phone.querySelector('#go').addEventListener('click', () => (location.href = 'app.html?done=1&nosplash=1'));
+    phone.querySelector('#ok').addEventListener('click', () => {
+      const l = phone.querySelector('#lvup');
+      ML.done(ML.a(l, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' })).then(() => (l.style.display = 'none'));
+    });
+    const parts = ['.ring', '.ttl', '.stats', '#box'].map((s) => phone.querySelector(s));
+    parts.forEach((p) => (p.style.opacity = 0));
+    await ML.wait(60);
+    parts.forEach((p) => (p.style.opacity = ''));
+    ML.a(parts[0], [{ opacity: 0, transform: 'scale(.94)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 400, easing: OUT });
+    ML.a(phone.querySelector('#arc'), [{ strokeDashoffset: C }, { strokeDashoffset: C * 0.2 }], { duration: 900, delay: 100, easing: OUT });
+    ML.count(phone.querySelector('#acc'), 0, 80, 900);
+    ML.a(parts[1], [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 120, easing: OUT });
+    phone.querySelectorAll('.stat').forEach((c, k) => ML.a(c, [{ opacity: 0, transform: 'translateY(14px) scale(.96)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 420, delay: 260 + k * 60, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }));
+    ML.a(parts[3], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 440, easing: OUT });
+    await ML.wait(420);
+    ML.count(phone.querySelector('#v1'), 0, 50, 600);
+    ML.count(phone.querySelector('#v2'), 0, 4, 500);
+    await ML.wait(260);
+    ML.roll(phone.querySelector('#v3'), String(st), 1, 320);
+    await ML.wait(260);
+    if (scene === 'streak') {
+      const c = phone.querySelector('.wk .c[data-i="6"]');
+      c.classList.add('on');
+      c.querySelector('span').innerHTML = K.check(14, '#fff', 3.2);
+      ML.a(c.querySelector('span'), [{ transform: 'scale(.7)' }, { transform: 'scale(1)' }], { duration: 360, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+      ML.roll(phone.querySelector('#wn'), '7/7', 1, 280);
+      const p = LW.pos(c, phone);
+      LW.confetti(phone.querySelector('.scr'), p.cx, p.cy, 36, 0.8);
+      return;
+    }
+    const bar = phone.querySelector('#bar');
+    if (scene === 'normal') {
+      ML.count(phone.querySelector('#xpn'), 140, 190, 600, (v) => `${Math.round(v)} / 240`);
+      K.spring(bar, [{ transform: `scaleX(${140 / 240})` }, { transform: `scaleX(${190 / 240})` }], 'medium');
+      return;
+    }
+    ML.count(phone.querySelector('#xpn'), 220, 240, 360, (v) => `${Math.round(v)} / 240`);
+    await ML.done(ML.a(bar, [{ transform: `scaleX(${220 / 240})` }, { transform: 'scaleX(1)' }], { duration: 360, easing: OUT }));
+    await ML.wait(200);
+    const l = phone.querySelector('#lvup');
+    l.style.display = 'flex';
+    ML.a(l, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease' });
+    const medal = phone.querySelector('#medal');
+    K.spring(medal, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce', { delay: 100 });
+    ML.stagger(l.querySelectorAll('h2, .lv'), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 300, easing: OUT }, 60);
+    await ML.wait(520);
+    ML.roll(phone.querySelector('#ml'), '4', 1, 360);
+    const p = LW.pos(medal, phone);
+    LW.confetti(phone.querySelector('.scr'), p.cx, p.cy, 56);
+  }
+
+  const pick = (s) => () => {
+    scene = s;
+    render();
+  };
+  ML.bar({ title: '학습 완료', replay: render, home: '../index.html', extra: [['보통 날', pick('normal')], ['레벨 업', pick('level')], ['7일 연속', pick('streak')]] });
+  render();
+})();
+</script>
+</body>
+</html>

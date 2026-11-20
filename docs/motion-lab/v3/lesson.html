@@ -106,9 +106,9 @@
     xp = 120;
     done = 0;
     phone.innerHTML = `<div class="scr">
-      <div class="hdr"><button class="x" aria-label="닫기">${K.close()}</button><span class="combo" id="combo">${K.smallFlame(14)}<span id="cn">3</span>연속 정답</span><div class="pbar"><span class="fill" id="fill"></span></div><span class="xp" id="xp">${K.bolt(18)}<span class="num" id="xpn">${xp}</span></span></div>
+      <div class="hdr"><a class="x" aria-label="닫기" href="../v5/app.html?nosplash=1">${K.close()}</a><span class="combo" id="combo">${K.smallFlame(14)}<span id="cn">3</span>연속 정답</span><div class="pbar"><span class="fill" id="fill"></span></div><span class="xp" id="xp">${K.bolt(18)}<span class="num" id="xpn">${xp}</span></span></div>
       <div class="stage" id="stage"></div>
-      <div class="foot" id="foot"><span class="tip" id="tip">답을 먼저 골라 주세요</span><button class="lbtn off" id="btn"><span class="lbl">확인</span></button></div>
+      <div class="foot" id="foot"><button class="lbtn off" id="btn"><span class="lbl">확인</span></button></div>
     </div>`;
     const btn = phone.querySelector('#btn');
     K.press(btn);
@@ -159,9 +159,6 @@
     const btn = phone.querySelector('#btn');
     if (btn.classList.contains('off')) {
       ML.a(btn, [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }], { duration: 300, easing: 'ease-out' });
-      const tip = phone.querySelector('#tip');
-      tip.getAnimations().forEach((a) => a.cancel());
-      ML.a(tip, [{ opacity: 0, transform: 'translate(-50%,6px)' }, { opacity: 1, transform: 'translate(-50%,0)', offset: 0.14 }, { opacity: 1, offset: 0.8 }, { opacity: 0 }], { duration: 1500, easing: 'linear' });
       return;
     }
     if (!settled) return check();
@@ -266,7 +263,7 @@
     if (lbl === '마치기') {
       try { sessionStorage.setItem('lw3', JSON.stringify({ best })); } catch (e) {}
       const scr = phone.querySelector('.scr');
-      ML.done(ML.a(scr, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 })).then(() => (location.href = 'complete.html'));
+      ML.done(ML.a(scr, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 })).then(() => (location.href = '../v5/complete.html'));
       return;
     }
     const panel = phone.querySelector('.panel');

@@ -254,16 +254,18 @@ export function Divider() {
   return <View style={{ height: 1, backgroundColor: t.lineSoft }} />;
 }
 
-export function EmptyState({ title, body }: { title: string; body: string }) {
+export function EmptyState({ title, body }: { title: string; body?: string }) {
   const t = useTheme();
   return (
     <Card style={{ gap: 8, paddingVertical: 24 }}>
       <T serif s={19} w="700" lh={1.4}>
         {title}
       </T>
-      <T s={14} c={t.sub}>
-        {body}
-      </T>
+      {body ? (
+        <T s={14} c={t.sub}>
+          {body}
+        </T>
+      ) : null}
     </Card>
   );
 }

@@ -48,14 +48,12 @@ function QuizRow({ day }: { day: Day }) {
   const done = answered === total;
   const ready = open && unread === 0;
   const line = done
-    ? `${total}문항 가운데 ${correct}문항을 맞혔습니다.`
+    ? `정답 ${correct}/${total}`
     : !open
-      ? `오후 ${QUIZ_OPEN_HOUR - 12}시에 열립니다. 아침에 읽은 내용을 저녁에 확인합니다.`
+      ? `${QUIZ_OPEN_HOUR}:00`
       : unread > 0
-        ? '기사를 모두 읽으면 풀 수 있습니다.'
-        : answered > 0
-          ? `${total - answered}문항 남았습니다.`
-          : `기사마다 두 문항, 모두 ${total}문항입니다.`;
+        ? `읽은 기사 ${day.articles.length - unread}/${day.articles.length}`
+        : `${answered}/${total}`;
   return (
     <Tap onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={!ready && !done} label="저녁 퀴즈 풀기">
       <View style={{ gap: 8, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: t.line }}>
@@ -95,12 +93,12 @@ export function NewsScreen() {
           </T>
           {stale ? (
             <T s={13} c={t.sub}>
-              {isWeekend(today) ? '주말에는 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다.'} 아래는 지난 발행분입니다.
+              {isWeekend(today) ? '주말 휴간' : '발행 전'} · 지난 발행분
             </T>
           ) : null}
         </View>
         {!day ? (
-          <EmptyState title="발행된 기사가 없습니다" body="평일 오전 7시 20분 전후에 주요 뉴스 2건을 발행합니다." />
+          <EmptyState title="기사 없음" />
         ) : (
           <>
             {day.articles.map((a, i) => (

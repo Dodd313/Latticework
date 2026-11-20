@@ -150,11 +150,11 @@ export function StudyScreen({ sect }: { sect: Section }) {
                 {SECT_NAME[sect]}
               </T>
               <T serif s={28} w="700" lh={1.35}>
-                {exhausted ? '오늘 낼 수 있는 문제를 모두 풀었습니다' : tally.total > 0 ? (extra ? '더 풀기를 마쳤습니다' : '오늘 분량을 마쳤습니다') : '오늘 분량은 이미 마쳤습니다'}
+                {exhausted ? '남은 문제 없음' : extra ? '더 풀기 완료' : '학습 완료'}
               </T>
               {tally.total > 0 ? (
                 <T s={15} lh={1.6} c={t.deck}>
-                  {tally.total}문제 가운데 {tally.right}문제를 한 번에 맞혔습니다. 경험치 {tally.xp}점을 얻었습니다.
+                  정답 {tally.right}/{tally.total} · 경험치 +{tally.xp}
                 </T>
               ) : null}
               <T s={13} c={t.sub}>
@@ -240,7 +240,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
             {settled ? (
               <Rise y={8} style={{ gap: 6 }}>
                 <T s={12.5} w="700" c={phase === 'right' ? t.green : t.orange} style={{ letterSpacing: 0.3 }}>
-                  {phase === 'right' ? (attempts === 1 ? '정답' : '두 번째에 정답') : '오답 · 끝에 다시 나옵니다'}
+                  {phase === 'right' ? (attempts === 1 ? '정답' : '두 번째에 정답') : '오답'}
                 </T>
                 {q.explain ? (
                   <Rich s={15} lh={1.7} c={t.deck}>

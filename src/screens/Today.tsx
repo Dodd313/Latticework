@@ -21,11 +21,10 @@ function TodayPanel() {
   const left = parts.filter((p) => !p.complete).map((p) => PART_NAME[p.key]);
   const monday = weekdaysOf(today)[0];
 
-  let line: string;
-  if (parts.length === 0) line = isWeekend(today) ? '주말에는 뉴스를 발행하지 않습니다.' : '오늘 자 기사는 발행 전입니다. 발행되면 자동으로 올라옵니다.';
-  else if (status === 'done') line = '오늘 할 일을 모두 마쳤습니다.';
-  else if (left.length === parts.length) line = `오늘 할 일은 ${left.join(', ')}입니다. 모두 마치면 연속 ${streak + 1}일이 됩니다.`;
-  else line = `${left.join('와 ')}가 남았습니다. 마치면 연속 ${streak + 1}일이 됩니다.`;
+  // 설명 문장 없이, 쉬는 날만 짧은 표지를 둔다.
+  const line = parts.length === 0 ? (isWeekend(today) ? '주말 휴간' : '발행 전') : '';
+  void left;
+  void streak;
 
   return (
     <View style={{ gap: 12, paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: t.rule }}>
@@ -48,9 +47,11 @@ function TodayPanel() {
           })}
         </View>
       </View>
-      <T s={14} w="500" lh={1.5}>
-        {line}
-      </T>
+      {line ? (
+        <T s={14} w="500" lh={1.5} c={t.sub}>
+          {line}
+        </T>
+      ) : null}
     </View>
   );
 }
@@ -157,15 +158,15 @@ export function TodayScreen() {
   let newsTitle = '오늘의 주요 뉴스 2건';
   let newsMeta = '';
   if (!todayDay) {
-    newsTitle = day ? '지난 발행분 보기' : '첫 발행을 준비 중입니다';
-    newsMeta = isWeekend(today) ? '주말에는 발행하지 않습니다' : '오늘 자 기사는 발행 전입니다';
+    newsTitle = day ? '지난 발행분' : '발행 전';
+    newsMeta = isWeekend(today) ? '주말 휴간' : '발행 전';
   } else if (unread) {
     newsTitle = unread.title;
     newsMeta = `${unread.source} · 읽는 시간 ${unread.minutes}분`;
   } else if (quiz && quizLeft > 0) {
-    newsMeta = quizOpen(today) ? `저녁 퀴즈 ${quizLeft}문항이 남았습니다` : '모두 읽음 · 저녁 6시에 퀴즈가 열립니다';
+    newsMeta = quizOpen(today) ? `모두 읽음 · 퀴즈 ${quiz.questions.length - quizLeft}/${quiz.questions.length}` : '모두 읽음 · 퀴즈 18:00';
   } else {
-    newsMeta = quiz ? '모두 읽음 · 저녁 퀴즈 완료' : '모두 읽음';
+    newsMeta = quiz ? '모두 읽음 · 퀴즈 완료' : '모두 읽음';
   }
 
   const rec = study.days[today];
@@ -196,8 +197,8 @@ export function TodayScreen() {
               <Rise delay={260}>
                 <SectionRow
                   kicker="영단어"
-                  title={vocPart ? (vocPart.complete ? '오늘 분량을 마쳤습니다' : `오늘의 표현 ${vocPart.total}개`) : '오늘은 복습할 표현이 없습니다'}
-                  meta={vocPart && !vocPart.complete ? `토익 어휘 · 일반회화 · 금융영어 · 아직 안 본 표현 ${newCount}개` : '더 풀기로 약한 표현을 다시 볼 수 있습니다'}
+                  title={vocPart ? (vocPart.complete ? '완료' : `오늘의 표현 ${vocPart.total}개`) : '복습 없음'}
+                  meta={vocPart && !vocPart.complete ? `토익 어휘 · 일반회화 · 금융영어 · 새 표현 ${newCount}개` : '더 풀기'}
                   part={vocPart}
                   onPress={() => nav.push({ name: 'study', sect: 'voc' })}
                 />
@@ -205,8 +206,8 @@ export function TodayScreen() {
               <Rise delay={360}>
                 <SectionRow
                   kicker="Latticework"
-                  title={latPart?.complete ? '오늘의 5문제를 마쳤습니다' : `오늘의 ${rec?.latGoal ?? 5}문제`}
-                  meta={latPart?.complete ? '더 풀기로 약한 개념을 다시 볼 수 있습니다' : `${fields} · 개념 ${studyData.concepts.length}개`}
+                  title={latPart?.complete ? '완료' : `오늘의 ${rec?.latGoal ?? 5}문제`}
+                  meta={latPart?.complete ? '더 풀기' : `${fields} · 개념 ${studyData.concepts.length}개`}
                   part={latPart}
                   onPress={() => nav.push({ name: 'study', sect: 'lat' })}
                 />

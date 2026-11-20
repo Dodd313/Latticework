@@ -112,9 +112,9 @@ export function ArchiveScreen() {
     .filter((g) => g.articles.length > 0);
 
   return (
-    <TabScreen title="기록" subtitle="그날 할 일을 그날 안에 모두 마치면 달성입니다.">
+    <TabScreen title="기록">
       {days.length === 0 ? (
-        <EmptyState title="기록이 없습니다" body="기사를 읽으면 날짜별 달성 여부가 달력에 남습니다." />
+        <EmptyState title="기록 없음" />
       ) : (
         <>
           <View style={{ flexDirection: 'row', gap: 12, paddingTop: 6, paddingBottom: 4 }}>
@@ -137,7 +137,7 @@ export function ArchiveScreen() {
           </View>
           {groups.length === 0 ? (
             <T s={14} c={t.sub} style={{ paddingTop: 4 }}>
-              {filtering ? '검색 결과가 없습니다.' : '이 달에 발행된 기사가 없습니다.'}
+              {filtering ? '결과 없음' : '기사 없음'}
             </T>
           ) : (
             groups.map((g, gi) => (

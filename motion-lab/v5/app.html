@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>앱 전체 · Motion Lab 5차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .scr { background: var(--grey100) !important; }
+  .view { position: absolute; inset: 0 0 64px 0; overflow-y: auto; overflow-x: hidden; }
+  .view.full { bottom: 0; background: #fff; z-index: 10; }
+  .hd { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .hd b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .pill { height: 32px; padding: 0 12px; border-radius: 16px; background: #fff; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--grey500); }
+  .pill b { font-size: 15px; font-weight: 700; color: var(--grey700); }
+  .pill.on b { color: var(--blue600); }
+  .stack { padding: 0 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border-radius: 20px; padding: 20px; }
+  .bh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .bh b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .bh span { font-size: 15px; font-weight: 600; color: var(--grey500); display: inline-flex; align-items: center; gap: 2px; }
+  .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .task .ic { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; font-size: 16px; font-weight: 700; }
+  .task .nm { width: 92px; font-size: 16px; font-weight: 600; }
+  .task .tr { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; position: relative; }
+  .task .tr i { position: absolute; inset: 0; border-radius: 4px; transform-origin: left; }
+  .task .ct { width: 34px; text-align: right; font-size: 14px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .task.ok .ct { color: var(--green600); }
+  .box .tbtn { margin-top: 10px; }
+  .hl { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; }
+  .hl .d { width: 8px; height: 8px; border-radius: 4px; background: var(--blue500); margin-top: 9px; flex: none; }
+  .hl.read .d { background: var(--grey300); }
+  .hl .t b { display: block; font-size: 17px; line-height: 25.5px; font-weight: 600; }
+  .hl.read .t b { color: var(--grey600); }
+  .hl .t span { font-size: 13px; color: var(--grey500); }
+  .wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 6px; margin-top: 6px; }
+  .wk .l { text-align: center; font-size: 12px; font-weight: 600; color: var(--grey500); }
+  .wk .l.td { color: var(--grey900); font-weight: 700; }
+  .wk .c { display: flex; justify-content: center; }
+  .wk .c span { width: 30px; height: 30px; border-radius: 15px; background: var(--grey100); display: flex; align-items: center; justify-content: center; }
+  .wk .c.on span { background: var(--blue500); }
+  .wk .c.td span { box-shadow: inset 0 0 0 2px var(--blue500); background: #fff; }
+  .wk .c.td.on span { background: var(--blue500); box-shadow: none; }
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 5; }
+  .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs button.on { color: var(--grey900); }
+  .qt { position: relative; padding: 6px 24px 18px; cursor: pointer; }
+  .qt .mk { display: block; height: 30px; font-family: Georgia, 'Times New Roman', serif; font-size: 56px; line-height: 56px; font-weight: 700; color: var(--blue200); }
+  .qt p { margin: 0; font-size: 19px; line-height: 29px; font-weight: 600; letter-spacing: -0.4px; color: var(--grey800); }
+  .qt .by { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .qt .av { width: 28px; height: 28px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--grey600); }
+  .qt .by b { font-size: 14px; font-weight: 600; color: var(--grey700); }
+  .qt .by span { font-size: 13px; color: var(--grey400); }
+  .qt .pg { position: absolute; right: 24px; bottom: 24px; display: flex; gap: 4px; }
+  .qt .pg i { width: 5px; height: 5px; border-radius: 3px; background: var(--grey300); transition: background-color .2s, width .2s; }
+  .qt .pg i.on { width: 12px; background: var(--grey600); }
+  /* 기록 */
+  .ttl1 { padding: 8px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .three div { background: #fff; border-radius: 16px; padding: 14px 16px; }
+  .three span { display: block; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .three b { font-size: 22px; line-height: 31px; font-weight: 700; }
+  .three b small { font-size: 15px; font-weight: 600; margin-left: 1px; }
+  .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .mh b { font-size: 17px; font-weight: 700; }
+  .mh .nav { display: flex; gap: 4px; }
+  .mh .nav button { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--grey600); }
+  .cal { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 6px; }
+  .cal .l { text-align: center; font-size: 12px; font-weight: 600; color: var(--grey500); padding-bottom: 6px; }
+  .cal .c { position: relative; z-index: 1; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .cal .c button { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 18px; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--grey700); font-variant-numeric: tabular-nums; }
+  .cal .c.on button { background: var(--blue500); color: #fff; font-weight: 700; }
+  .cal .c.part button { background: var(--blue50); color: var(--blue600); }
+  .cal .c.td button { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue500); }
+  .cal .c.fut button { color: var(--grey300); }
+  .cal .c.sel button { transform: scale(1.08); }
+  .cal .bd { position: absolute; z-index: 0; height: 36px; border-radius: 18px; background: var(--blue100); transform-origin: left; }
+  .leg { display: flex; gap: 14px; margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--grey500); }
+  .leg span { display: inline-flex; align-items: center; gap: 5px; }
+  .leg i { width: 10px; height: 10px; border-radius: 5px; }
+  .wrow { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .wrow .wn { width: 64px; font-size: 15px; font-weight: 600; }
+  .wrow .ds { flex: 1; display: flex; gap: 4px; }
+  .wrow .ds i { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); }
+  .wrow .ds i.on { background: var(--blue500); }
+  .wrow .ds i.part { background: var(--blue200); }
+  .wrow .wc { width: 34px; text-align: right; font-size: 14px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  /* 날짜 시트 */
+  .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.2); z-index: 30; opacity: 0; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; background: #fff; border-radius: 20px 20px 0 0; padding: 12px 20px 28px; }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--grey300); margin: 0 auto 16px; }
+  .sheet h3 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+  /* 뉴스 */
+  .bar { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; position: sticky; top: 0; background: #fff; z-index: 2; }
+  .bar button { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--grey900); }
+  .rp { position: sticky; top: 52px; height: 2px; background: transparent; z-index: 2; }
+  .rp i { position: absolute; inset: 0; background: var(--blue500); transform-origin: left; transform: scaleX(0); }
+  .art { padding: 12px 20px 32px; }
+  .art .k { font-size: 13px; font-weight: 700; color: var(--blue500); }
+  .art h1 { margin: 6px 0 8px; font-size: 24px; line-height: 33px; font-weight: 700; letter-spacing: -0.5px; }
+  .art .m { font-size: 13px; color: var(--grey500); }
+  .sum { margin: 20px 0; padding: 16px; border-radius: 16px; background: var(--grey50); border: 1px solid var(--grey100); }
+  .sum b { display: block; font-size: 13px; font-weight: 700; color: var(--grey600); margin-bottom: 6px; }
+  .sum li { font-size: 15px; line-height: 23px; color: var(--grey800); margin: 4px 0; }
+  .sum ul { margin: 0; padding-left: 18px; }
+  .art p { font-size: 17px; line-height: 28px; color: var(--grey800); margin: 0 0 16px; letter-spacing: -0.2px; }
+  /* 시작 화면 */
+  .splash { position: absolute; inset: 0; z-index: 50; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .icon { width: 88px; height: 88px; border-radius: 24px; background: var(--blue500); display: grid; grid-template-columns: repeat(3, 20px); gap: 5px; align-content: center; justify-content: center; }
+  .icon i { width: 20px; height: 20px; border-radius: 6px; background: #fff; }
+  .splash b { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>앱 전체 · 5차</h2>
+    <p>시작 화면, 홈, 뉴스, 기록, 리뷰를 하나로 이었습니다. 직접 눌러 다니며 보세요. "이어서 하기" 를 누르면 문제 풀이로, 마치면 완료 화면을 거쳐 홈으로 돌아옵니다.</p>
+    <h3>이번에 바꾼 것</h3>
+    <ul>
+      <li>지면 톤을 없앴습니다. 뉴스도 같은 흰 카드와 같은 글꼴입니다.</li>
+      <li>설명 문장을 모두 뺐습니다. "오늘 1/3", "연속 4일" 처럼 이름과 숫자만 두고, 진행은 막대와 점으로 보이게 했습니다.</li>
+      <li>불꽃은 쓰지 않습니다. 연속 기록은 숫자와 이번 주 점 일곱 개로 보입니다.</li>
+      <li>시작 화면을 다시 넣었습니다. 아이콘과 이름만 0.3초 동안 나타나고 0.5초 머문 뒤 홈으로 넘어갑니다.</li>
+      <li>기록 탭에 달력을 넣었습니다. 날짜를 누르면 그날 기록이 아래에서 올라옵니다.</li>
+      <li>홈 맨 위에 투자자의 문장을 둡니다. 제목 없이 따옴표와 이름, 출처만으로 인용임을 알 수 있게 했습니다. 누르면 다음 문장으로 넘어가고, 오른쪽 아래 점이 몇 번째인지 보여 줍니다.</li>
+    </ul>
+    <h3>달력 표시</h3>
+    <table class="spec">
+      <tr><th>모양</th><th>뜻</th></tr>
+      <tr><td>파란 원</td><td>그날 할 일 셋을 모두 마침</td></tr>
+      <tr><td>연한 파란 원</td><td>일부만 마침</td></tr>
+      <tr><td>원 사이 연한 막대</td><td>연속으로 마친 날</td></tr>
+      <tr><td>테두리 원</td><td>오늘</td></tr>
+    </table>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const q = new URLSearchParams(location.search);
+  const S = {
+    done: q.get('done') === '1',
+    read: q.get('done') === '1' ? [true, true] : [false, false],
+    tab: q.get('tab') || 'home',
+  };
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+  const NEWS = [
+    { k: '공정거래 · 지배구조', t: '공정위, 쿠팡·김범석 의장 검찰 고발 의견', s: '연합뉴스', sum: ['공정위 심사관이 동일인 지정 자료 허위 제출 혐의로 고발 의견을 냈다.', '동일인으로 지정되면 친족 회사와의 거래가 공시 대상이 된다.', '전원회의 판단이 외국계 지배 기업의 기준이 된다.'] },
+    { k: '상장 규정', t: '엔비디아, CEO 승계 계획 공백 논란', s: 'Reuters', sum: ['NYSE 는 상장사에 승계 계획을 요구하지만 나스닥은 요구하지 않는다.', '엔비디아는 나스닥 상장사로 승계 계획을 공개하지 않았다.', '기관투자자들이 공시를 요구하고 있다.'] },
+  ];
+  // 출처를 확인한 문장만 쓴다. 리루의 문장은 널리 인용되지만 1차 출처를 찾지 못했다.
+  const QUOTES = [
+    { t: '사실들이 이론의 격자 위에 엮여 있지 않으면, 쓸 수 있는 형태로 가진 것이 아니다.', n: '찰리 멍거', a: 'CM', s: '1994 USC 강연' },
+    { t: '남들이 탐욕스러울 때 두려워하고, 남들이 두려워할 때만 탐욕스러워지려 한다.', n: '워런 버핏', a: 'WB', s: '1986 주주서한' },
+    { t: '가격은 내는 것이고, 가치는 얻는 것이다.', n: '워런 버핏', a: 'WB', s: '2008 주주서한' },
+    { t: '무엇을 가졌는지, 왜 가졌는지 알라.', n: '피터 린치', a: 'PL', s: '전설로 떠나는 월가의 영웅' },
+    { t: '앞면이 나오면 이기고, 뒷면이 나와도 크게 잃지 않는다.', n: '모니시 파브라이', a: 'MP', s: '단도 투자' },
+    { t: '투자는 지적 정직함의 문제다. 아는 것을 알고, 무엇보다 모르는 것을 알아야 한다.', n: '리루', a: 'LL', s: '' },
+  ];
+  let qi = 0;
+  const quoteHtml = () => { const x = QUOTES[qi]; return `<div class="qt" id="qt"><span class="mk">“</span><p>${x.t}</p><div class="by"><span class="av">${x.a}</span><b>${x.n}</b>${x.s ? `<span>${x.s}</span>` : ''}</div><span class="pg">${QUOTES.map((_, i) => `<i class="${i === qi ? 'on' : ''}"></i>`).join('')}</span></div>`; };
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    rev: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M8.3 12.2l2.6 2.6 4.8-5.2" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    news: (c) => `<svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 4.5h12.5v15H6.5A2.5 2.5 0 0 1 4 17zM18 8h2v9.5a2 2 0 0 1-4 0V8zM7 8h6.5v2H7zm0 4h6.5v1.6H7zm0 3.4h4.5V17H7z" fill="${c}" fill-rule="evenodd"/></svg>`,
+    left: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    right: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M9.5 5.5L16 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+  const today = () => {
+    const n = S.read.filter(Boolean).length;
+    return [
+      { nm: '뉴스', c: n, of: 2, col: 'var(--blue500)', bg: 'var(--blue-weak)', ic: ICON.news('var(--blue600)') },
+      { nm: '영단어', c: S.done ? 6 : 3, of: 6, col: 'var(--purple500, #a234c7)', bg: '#f7edfa', ic: '<span style="color:#a234c7">A</span>' },
+      { nm: 'Latticework', c: S.done ? 5 : 0, of: 5, col: 'var(--green500)', bg: 'var(--green-weak)', ic: `<span style="color:var(--green600);display:flex">${LW.mark(22, 'currentColor', 3)}</span>` },
+    ];
+  };
+  const doneCount = () => today().filter((t) => t.c >= t.of).length;
+  const streak = () => (doneCount() === 3 ? 5 : 4);
+
+  function shell() {
+    phone.innerHTML = `<div class="scr"><div id="views"></div>
+      <nav class="tabs" id="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['rev', ICON.rev, '리뷰']].map(([k, i, l]) => `<button data-k="${k}" class="${S.tab === k ? 'on' : ''}">${i}${l}</button>`).join('')}</nav></div>`;
+    phone.querySelectorAll('#tabs button').forEach((b) => b.addEventListener('click', () => go(b.dataset.k)));
+  }
+
+  function go(tab) {
+    S.tab = tab;
+    phone.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.k === tab));
+    const v = phone.querySelector('#views');
+    const old = v.querySelector('.view:not(.full)');
+    const nv = document.createElement('div');
+    nv.className = 'view';
+    nv.innerHTML = tab === 'home' ? homeHtml() : tab === 'cal' ? calHtml() : revHtml();
+    v.append(nv);
+    if (old) {
+      old.remove();
+      ML.a(nv, [{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease' });
+    }
+    if (tab === 'home') bindHome(nv);
+    if (tab === 'cal') bindCal(nv);
+    if (tab === 'rev') nv.querySelectorAll('.hl').forEach((h) => h.addEventListener('click', () => openArticle(+h.dataset.i)));
+  }
+
+  function homeHtml() {
+    const T = today();
+    const n = doneCount();
+    return `<div class="hd"><b>Latticework</b><span class="pill ${n === 3 ? 'on' : ''}">연속 <b class="num">${streak()}일</b></span></div>
+      ${quoteHtml()}
+      <div class="stack">
+        <div class="box"><div class="bh"><b>오늘</b><span class="num">${n}/3</span></div>
+          ${T.map((t, k) => `<div class="task ${t.c >= t.of ? 'ok' : ''}" data-k="${k}"><span class="ic" style="background:${t.bg}">${t.ic}</span><span class="nm">${t.nm}</span><span class="tr"><i style="background:${t.col};transform:scaleX(${t.c / t.of})"></i></span><span class="ct">${t.c >= t.of ? K.check(18, 'var(--green500)', 3) : `${t.c}/${t.of}`}</span></div>`).join('')}
+          ${n < 3 ? '<button class="tbtn" id="next">이어서 하기</button>' : ''}</div>
+        <div class="box"><div class="bh"><b>오늘의 뉴스</b><span>11월 20일</span></div>
+          ${NEWS.map((x, i) => `<div class="hl ${S.read[i] ? 'read' : ''}" data-i="${i}"><span class="d"></span><div class="t"><b>${x.t}</b><span>${x.k} · ${x.s}</span></div></div>`).join('')}</div>
+        <div class="box" id="wkbox"><div class="bh"><b>이번 주</b><span class="num">${n === 3 ? 5 : 4}/7 ${K.chev(14)}</span></div>
+          <div class="wk">${DAYS.map((d, i) => `<span class="l ${i === 4 ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 4 || (i === 4 && n === 3) ? 'on' : ''} ${i === 4 ? 'td' : ''}"><span>${i < 4 || (i === 4 && n === 3) ? K.check(14, '#fff', 3.2) : ''}</span></span>`).join('')}</div></div>
+      </div>`;
+  }
+
+  function bindQuote(v) {
+    const el = v.querySelector('#qt');
+    el.addEventListener('click', async () => {
+      const inner = [el.querySelector('p'), el.querySelector('.by')];
+      await Promise.all(inner.map((x) => ML.done(ML.a(x, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: 'translateX(-12px)' }], { duration: 140, easing: 'cubic-bezier(0.23,1,0.32,1)' }))));
+      qi = (qi + 1) % QUOTES.length;
+      const tmp = document.createElement('div');
+      tmp.innerHTML = quoteHtml();
+      el.replaceWith(tmp.firstElementChild);
+      const ne = v.querySelector('#qt');
+      [ne.querySelector('p'), ne.querySelector('.by')].forEach((x, k) => ML.a(x, [{ opacity: 0, transform: 'translateX(12px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 260, delay: k * 40, easing: 'cubic-bezier(0.23,1,0.32,1)' }));
+      bindQuote(v);
+    });
+  }
+
+  function bindHome(v) {
+    bindQuote(v);
+    v.querySelectorAll('.hl').forEach((h) => {
+      K.press(h);
+      h.addEventListener('click', () => openArticle(+h.dataset.i));
+    });
+    const nx = v.querySelector('#next');
+    if (nx) {
+      K.press(nx);
+      nx.addEventListener('click', () => {
+        const i = S.read.indexOf(false);
+        if (i >= 0) openArticle(i);
+        else location.href = '../v3/lesson.html';
+      });
+    }
+    v.querySelector('#wkbox').addEventListener('click', () => go('cal'));
+  }
+
+  /** 기사: 아래 탭 위로 화면 한 장이 오른쪽에서 들어온다. */
+  function openArticle(i) {
+    const x = NEWS[i];
+    const v = document.createElement('div');
+    v.className = 'view full';
+    v.innerHTML = `<div class="bar"><button id="bk" aria-label="뒤로">${ICON.left}</button><span style="font-size:15px;font-weight:600;color:var(--grey500)">${i + 1}/2</span><span style="width:40px"></span></div><div class="rp"><i id="rp"></i></div>
+      <article class="art"><div class="k">${x.k}</div><h1>${x.t}</h1><div class="m">${x.s} · 11월 20일</div>
+        <div class="sum"><b>요약</b><ul>${x.sum.map((s) => `<li>${s}</li>`).join('')}</ul></div>
+        ${Array.from({ length: 6 }, () => `<p>${x.sum.join(' ')} 시장에서는 이번 판단이 앞으로의 공시 기준을 바꿀 수 있다고 본다.</p>`).join('')}
+        <button class="tbtn weak">원문 보기</button></article>`;
+    phone.querySelector('#views').append(v);
+    const under = phone.querySelector('.view:not(.full)');
+    ML.a(v, [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }], { duration: 420, easing: 'cubic-bezier(0.32,0.72,0,1)' });
+    ML.a(under, [{ transform: 'translateX(0)' }, { transform: 'translateX(-30%)' }], { duration: 420, easing: 'cubic-bezier(0.32,0.72,0,1)' });
+    v.addEventListener('scroll', () => {
+      const p = Math.min(1, v.scrollTop / (v.scrollHeight - v.clientHeight));
+      v.querySelector('#rp').style.transform = `scaleX(${p})`;
+      if (p > 0.97) S.read[i] = true;
+    }, { passive: true });
+    v.querySelector('#bk').addEventListener('click', async () => {
+      ML.a(under, [{ transform: 'translateX(-30%)' }, { transform: 'translateX(0)' }], { duration: 320, easing: OUT });
+      await ML.done(ML.a(v, [{ transform: 'translateX(0)' }, { transform: 'translateX(100%)' }], { duration: 320, easing: OUT }));
+      v.remove();
+      if (S.tab === 'home') {
+        under.innerHTML = homeHtml();
+        bindHome(under);
+      }
+    });
+  }
+
+  // 기록: 2026년 11월. 1일이 일요일.
+  const DONE = new Set([2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 16, 17, 18, 19]);
+  const PART = new Set([9, 14]);
+  function calHtml() {
+    const d = new Set(DONE);
+    if (doneCount() === 3) d.add(20);
+    const cells = Array(6).fill(null).concat(Array.from({ length: 30 }, (_, i) => i + 1));
+    const weeks = [[2, 8], [9, 15], [16, 22]];
+    return `<div class="ttl1">기록</div><div class="stack">
+      <div class="three"><div><span>연속</span><b class="num">${streak()}<small>일</small></b></div><div><span>최장</span><b class="num">23<small>일</small></b></div><div><span>이번 달</span><b class="num">${d.size}<small>일</small></b></div></div>
+      <div class="box"><div class="mh"><b>2026년 11월</b><span class="nav"><button aria-label="이전 달">${ICON.left}</button><button aria-label="다음 달">${ICON.right}</button></span></div>
+        <div class="cal" id="cal">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span class="l">${x}</span>`).join('')}${cells.map((n) => (n ? `<span class="c ${d.has(n) ? 'on' : PART.has(n) ? 'part' : ''} ${n === 20 ? 'td' : ''} ${n > 20 ? 'fut' : ''}" data-d="${n}"><button>${n}</button></span>` : '<span class="c"></span>')).join('')}</div>
+        <div class="leg"><span><i style="background:var(--blue500)"></i>3/3</span><span><i style="background:var(--blue50);box-shadow:inset 0 0 0 1px var(--blue200)"></i>1~2/3</span><span><i style="background:#fff;box-shadow:inset 0 0 0 2px var(--blue500)"></i>오늘</span></div></div>
+      <div class="box"><div class="bh"><b>주별</b></div>
+        ${weeks.map(([a, b], k) => { const ds = Array.from({ length: 7 }, (_, j) => a + j); const c = ds.filter((x) => d.has(x)).length; return `<div class="wrow"><span class="wn">11월 ${k + 1}주</span><span class="ds">${ds.map((x) => `<i class="${d.has(x) ? 'on' : PART.has(x) ? 'part' : ''}"></i>`).join('')}</span><span class="wc">${c}/7</span></div>`; }).join('')}</div>
+    </div>`;
+  }
+
+  function bindCal(v) {
+    const cal = v.querySelector('#cal');
+    const cr = cal.getBoundingClientRect();
+    const on = (n) => cal.querySelector(`.c[data-d="${n}"]`)?.classList.contains('on');
+    // 연속으로 마친 날은 같은 줄 안에서 막대로 잇는다.
+    const cells = [...cal.querySelectorAll('.c[data-d]')];
+    let run = null;
+    const runs = [];
+    cells.forEach((c) => {
+      const n = +c.dataset.d;
+      const row = Math.floor((n + 5) / 7);
+      if (on(n) && run && run.row === row && run.b === n - 1) run.b = n;
+      else if (on(n)) runs.push((run = { row, a: n, b: n }));
+      else run = null;
+    });
+    runs.filter((r) => r.b > r.a).forEach((r) => {
+      const A = cal.querySelector(`.c[data-d="${r.a}"] button`).getBoundingClientRect();
+      const B = cal.querySelector(`.c[data-d="${r.b}"] button`).getBoundingClientRect();
+      const bd = document.createElement('i');
+      bd.className = 'bd';
+      Object.assign(bd.style, { left: A.left - cr.left + 'px', top: A.top - cr.top + 'px', width: B.right - A.left + 'px' });
+      cal.prepend(bd);
+    });
+    cells.forEach((c) => c.querySelector('button').addEventListener('click', () => daySheet(+c.dataset.d)));
+  }
+
+  function daySheet(n) {
+    const d = new Set(DONE);
+    if (doneCount() === 3) d.add(20);
+    if (n > 20) return;
+    const full = d.has(n);
+    const part = PART.has(n);
+    const rows = [['뉴스', 2, full || part ? 2 : n === 20 ? S.read.filter(Boolean).length : 0], ['영단어', 6, full ? 6 : part ? 6 : n === 20 ? 3 : 0], ['Latticework', 5, full ? 5 : part ? 2 : 0]];
+    const dow = ['일', '월', '화', '수', '목', '금', '토'][n % 7];
+    const scr = phone.querySelector('.scr');
+    scr.insertAdjacentHTML('beforeend', `<div class="dim" id="dim"></div><div class="sheet" id="sh"><div class="grab"></div><h3>11월 ${n}일 ${dow}요일</h3>
+      ${rows.map(([nm, of, c]) => `<div class="task ${c >= of ? 'ok' : ''}"><span class="nm" style="width:auto;flex:1">${nm}</span><span class="tr" style="flex:none;width:120px"><i style="background:var(--blue500);transform:scaleX(${c / of})"></i></span><span class="ct">${c >= of ? K.check(18, 'var(--green500)', 3) : `${c}/${of}`}</span></div>`).join('')}
+      ${n === 20 || full ? `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--grey100)">${NEWS.map((x, i) => `<div class="hl read" data-i="${i}"><span class="d"></span><div class="t"><b style="font-size:15px">${x.t}</b><span>${x.s}</span></div></div>`).join('')}</div>` : ''}</div>`);
+    const dim = scr.querySelector('#dim');
+    const sh = scr.querySelector('#sh');
+    ML.a(dim, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: 'ease' });
+    ML.a(sh, [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 380, easing: 'cubic-bezier(0.32,0.72,0,1)' });
+    dim.addEventListener('click', async () => {
+      ML.a(dim, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+      await ML.done(ML.a(sh, [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: 240, easing: OUT }));
+      dim.remove();
+      sh.remove();
+    });
+  }
+
+  function revHtml() {
+    return `<div class="ttl1">리뷰</div><div class="stack">
+      <div class="box"><div class="bh"><b>11월 3주</b><span class="num">5/7</span></div>
+        ${[...NEWS, { t: 'IMF, 한국 성장률 3.9%로 상향', k: '거시경제', s: 'Bloomberg' }, { t: '롯데렌탈 매각, 어피니티 우선협상', k: 'M&A', s: '한국경제' }].map((x, i) => `<div class="hl read" data-i="${i % 2}"><span class="d"></span><div class="t"><b>${x.t}</b><span>${x.k} · ${x.s}</span></div></div>`).join('')}</div>
+      <div class="box"><div class="bh"><b>퀴즈</b><span class="num">7/8</span></div><div class="task"><span class="nm" style="flex:1;width:auto">이번 주 정답률</span><span class="tr" style="flex:none;width:120px"><i style="background:var(--green500);transform:scaleX(.875)"></i></span><span class="ct">88%</span></div></div>
+    </div>`;
+  }
+
+  /** 시작 화면: 아이콘과 이름이 나타나고 잠시 머문 뒤 홈으로. 홈은 그 아래 이미 그려져 있다. */
+  async function splash() {
+    const sp = document.createElement('div');
+    sp.className = 'splash';
+    sp.innerHTML = `<div class="icon">${'<i></i>'.repeat(9)}</div><b>Latticework</b>`;
+    phone.querySelector('.scr').append(sp);
+    const ic = sp.querySelector('.icon');
+    const wm = sp.querySelector('b');
+    ML.a(ic, [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, easing: OUT });
+    ML.a(wm, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80, easing: OUT });
+    await ML.wait(820);
+    await ML.done(ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' }));
+    sp.remove();
+  }
+
+  function render(withSplash = true) {
+    ML.clear(phone);
+    shell();
+    go(S.tab);
+    if (withSplash && !q.get('nosplash')) splash();
+  }
+
+  ML.bar({ title: '앱 전체', replay: () => render(true), home: '../index.html', extra: [['아침', () => { S.done = false; S.read = [false, false]; S.tab = 'home'; render(false); }], ['다 마친 뒤', () => { S.done = true; S.read = [true, true]; S.tab = 'home'; render(false); }], ['기록', () => { S.tab = 'cal'; render(false); }]] });
+  render(true);
+})();
+</script>
+</body>
+</html>
