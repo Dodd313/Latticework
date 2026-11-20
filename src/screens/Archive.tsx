@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, TextInput, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { addDays, korean, monthGrid, monthKey, monthTitle, shiftMonth, todayKST, weekTitle, weekdaysOf } from '../dates';
@@ -229,8 +229,9 @@ const Calendar = memo(function Calendar({ month, statusOf, extraOf, onPrev, onNe
         style={{ gap: 6 }}
         onLayout={(e) => {
           // 탭이 가려질 때 폭이 0 으로 보고되므로 무시한다. 그래야 띠가 사라졌다 다시 그어지지 않는다.
+          // 폭이 처음 정해지면 띠를 그리는 일은 끊어 가며 한다(탭이 떠오르는 움직임을 막지 않게). 띠는 60ms 뒤에 그어지기 시작한다.
           const w = e.nativeEvent.layout.width;
-          if (w > 0) setWidth(w);
+          if (w > 0) startTransition(() => setWidth(w));
         }}
       >
         {weeks.map((week, wi) => (
@@ -412,8 +413,9 @@ export function ArchiveScreen() {
         .filter((g) => g.articles.length > 0),
     [days, filtering, shown, needle],
   );
-  const onPrev = useCallback(() => setMonth(shiftMonth(shown, -1)), [shown]);
-  const onNext = useCallback(() => setMonth(shiftMonth(shown, 1)), [shown]);
+  // 달을 바꿀 때 새 달력은 끊어 가며 그린다(누른 순간 한 번에 그리면 다른 움직임이 그동안 멈춘다). 그리는 동안은 지금 달이 그대로 보인다.
+  const onPrev = useCallback(() => startTransition(() => setMonth(shiftMonth(shown, -1))), [shown]);
+  const onNext = useCallback(() => startTransition(() => setMonth(shiftMonth(shown, 1))), [shown]);
   const onClose = useCallback(() => setPicked(null), []);
 
   return (

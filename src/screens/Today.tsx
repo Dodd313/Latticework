@@ -86,6 +86,8 @@ function QuoteBlock({ today }: { today: string }) {
       step();
       return;
     }
+    // 웹: 문장이 하나뿐이면 바뀌지 않으므로(들어오기가 걸리지 않아 사라진 채 남는다) 움직이지 않는다.
+    if (WEB && list.length < 2) return;
     busy.current = true;
     if (WEB) {
       const frame = (v: number) => ({ opacity: 1 - v, transform: `translateX(${-12 * v}px)` });
