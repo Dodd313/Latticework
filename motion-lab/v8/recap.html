@@ -187,7 +187,7 @@
       <li>각 카드 맨 위에 작은 Latti(30px)가 있고, 카드가 맨 위에 자리를 잡는 순간 한 번 깜빡이며 말풍선이 나옵니다. 뒤에 깔린 카드에서는 말하지 않습니다. 한 장에 한 마디입니다.</li>
       <li>말풍선 자리는 미리 잡아 두어(보이지 않는 같은 크기의 풍선) 말이 나올 때 아래 내용이 밀리지 않습니다.</li>
       <li>상황 키: 1장 <code>recap.streak</code>, 2장 <code>recap.lat</code>, 3장 <code>recap.voc</code>, 4장 <code>recap.news</code>, 5장 <code>recap.close</code>. 월간은 <code>mrecap.*</code>. 빈칸에는 이번 주 실제 값(완료한 날, 연속, 새 개념 수, 학문 수, 개념끼리 이어진 수, 가장 최근 개념, 새 표현 수, 기사 수, 경험치, 레벨)을 넣습니다.</li>
-      <li><code>recap.close</code> 와 <code>mrecap.*</code> 는 문구 파일에 아직 없어서 이 페이지가 <code>Latti.lines.use</code> 로 25줄을 덧붙입니다. 모두 <code>Latti.lines.lint</code> 를 통과하고 22자 이하입니다. <code>recap.streak.03</code>("다음 주에도 만나요")은 첫 장보다 마지막 장에 맞아 <code>recap.close</code> 로 옮겨 씁니다.</li>
+      <li>주간 마지막 장 <code>recap.close</code> 와 월간 <code>mrecap.*</code> 도 latti-lines.json 에 있습니다. 모두 <code>Latti.lines.lint</code> 를 통과하고 22자 이하입니다. "다음 주에도 만나요"는 첫 장보다 마지막 장에 맞아 <code>recap.close</code> 로 옮겼습니다.</li>
       <li>아침 작업이 쓴 오늘 문구 가운데 리뷰 카드용 줄은, 첫 낱말(조사를 떼고)이 그 기간의 실제 개념 이름, 헤드라인, 표현 가운데 하나에 있을 때만 씁니다. 예시 파일의 "엔비디아 주간", "쿠팡부터 앤트로픽까지" 는 data.js 의 이번 주 헤드라인에 없어 빠지고, "파마-프렌치까지 왔어요" 는 이번 주 새 개념이라 남습니다.</li>
       <li>문구 파일의 <code>recap.voc</code> 는 영단어 전체를 "단어" 라고 부릅니다. 이 카드가 단어와 구문을 나누므로 <code>{weekWords}</code> 에는 단어 종류의 수(13)를 넣고, 누계를 "단어" 로 부르는 두 줄(<code>recap.voc.03</code>, <code>.06</code>)은 쓰지 않습니다.</li>
       <li>레벨이 오른 주에는 마지막 장의 말이 레벨 줄(2단계)로 기울고 표정이 cheer 입니다.</li>
@@ -236,7 +236,7 @@
       <li>노드의 <code>createdAt</code>: 작은 별을 붙이려면 필요합니다.</li>
       <li>리뷰를 본 기록: Firestore 사용자 문서에 <code>recaps: { "2026-W47": 시각 }</code>. 해금과 같은 곳에 둡니다.</li>
       <li>레벨 식: 지금 앱의 <code>levelOf(xp) = floor(sqrt(xp / 60)) + 1</code> 을 그대로 썼습니다. 이번 주 경험치 1,209 로 17에서 18이 됩니다.</li>
-      <li>Latti 문구: <code>recap.close</code> 와 월간 <code>mrecap.*</code> 를 문구 파일에 넣고, 아침 작업이 리뷰용 오늘 문구를 쓸 때는 data 의 실제 이름만 쓰게 지시해야 합니다.</li>
+      <li>Latti 문구: 아침 작업이 리뷰용 오늘 문구를 쓸 때는 data 의 실제 이름만 쓰게 지시해야 합니다.</li>
     </ul>
   </section>
 </div>
@@ -321,36 +321,7 @@
     };
   }
 
-  // ---------- Latti 문구
-  // 리뷰 마지막 장과 월간 리뷰는 문구 파일에 상황 키가 없어 여기서 덧붙인다. 모두 Latti.lines.lint 통과, 22자 이하.
-  const EXTRA = [
-    ['recap.close', '{solved}문제 풀고 {words}개를 익혔어요', 0],
-    ['recap.close', '이번 주 경험치가 {xpS} 늘었어요', 0],
-    ['recap.close', '{days}일 동안 {solved}문제를 풀었어요', 0],
-    ['recap.close', '기사 {read}건까지, 알찬 한 주였어요', 0],
-    ['recap.close', '새 개념 {newConcepts}개, 다음 주도 기대돼요', 0, { newConcepts: '>=1' }],
-    ['recap.close', '{newField|이} 열린 한 주였어요', 1, { hasNewField: true }],
-    ['recap.close', '레벨 {level}, 한 주 만에 올랐어요', 2, { levelUp: true }],
-    ['recap.close', '이번 주에 레벨 {level|이} 됐어요', 2, { levelUp: true }],
-    ['mrecap.period', '{month}엔 {doneDays}일을 채웠어요', 0],
-    ['mrecap.period', '{month} 한 달, {doneDays}일 함께했어요', 0],
-    ['mrecap.period', '연속 {streak}일째로 달을 넘겨요', 1, { streak: '>=7' }],
-    ['mrecap.lat', '{month}에 개념 {newConcepts}개를 익혔어요', 0],
-    ['mrecap.lat', '{newest}까지 왔어요', 0],
-    ['mrecap.lat', '한 달에 {solved}문제, 단단해요', 0],
-    ['mrecap.lat', '{fields}개 학문을 오갔어요', 1, { fields: '>=2' }],
-    ['mrecap.voc', '{month}에 {words}개를 새로 만났어요', 0],
-    ['mrecap.voc', '모은 영단어가 {vocTotal}개예요', 0],
-    ['mrecap.voc', '{word}, 이제 익숙하죠?', 0],
-    ['mrecap.news', '한 달 동안 기사 {read}건 읽었어요', 0],
-    ['mrecap.news', '한 달 경제 흐름을 따라왔어요', 0],
-    ['mrecap.news', '종합 퀴즈 {wq}번 모두 풀었어요', 1, { wq: '>=1' }],
-    ['mrecap.close', '{month}에 경험치 {xpS|을} 모았어요', 0],
-    ['mrecap.close', '{solved}문제로 채운 한 달이었어요', 0],
-    ['mrecap.close', '다음 달에도 만나요', 0],
-    ['mrecap.close', '한 달 새 레벨 {level|이} 됐어요', 2, { levelUp: true }],
-  ].map(([s, t, p, when], i) => Object.assign({ id: `recap.x.${String(i + 1).padStart(2, '0')}`, s, t, p }, when ? { when } : {}));
-
+  // ---------- Latti 문구: 주간(recap.*)과 월간(mrecap.*) 모두 latti-lines.json 에 있다.
   let RAW = null;
   try { RAW = await fetch('latti-lines.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)); } catch (e) { RAW = null; }
 
@@ -364,11 +335,9 @@
     };
     const j = RAW ? JSON.parse(JSON.stringify(RAW)) : { bank: [] };
     if (j.today && j.today.lines) j.today.lines = j.today.lines.filter((l) => !String(l.s).startsWith('recap.') || grounded(l.t));
-    // "다음 주에도 만나요" 는 첫 장보다 마지막 장의 말이다.
-    (j.bank || []).forEach((l) => { if (l.id === 'recap.streak.03') l.s = 'recap.close'; });
     // 화면이 단어와 구문을 나누므로, 영단어 전체를 "단어" 라고 부르는 누계 줄은 쓰지 않는다. 주간 수는 단어 종류 수를 넣는다(ctxOf).
     j.bank = (j.bank || []).filter((l) => !(l.s === 'recap.voc' && /\{wordsTotal/.test(l.t)));
-    Latti.lines.use(j, { bank: EXTRA });
+    Latti.lines.use(j);
   }
 
   function ctxOf(M) {

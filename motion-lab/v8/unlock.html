@@ -130,9 +130,9 @@
       <li>두 번째 문장은 Latti 가 지도 한가운데에서 흰 말풍선으로 말합니다. <code>Latti.lines.choose('unlock', ctx, { rng: seedOf(event.id) })</code> 로 고르고 <code>ctx.rank</code>(discipline, branch)로 학문 줄과 분과 줄을 가릅니다. 같은 해금은 다시 열어도 같은 말, 해금마다 다른 말입니다. 한 번 연 사이에 앞 카드와 같은 줄이 나오면 씨앗을 바꿔 다시 고릅니다(이것도 늘 같은 결과).</li>
       <li>말풍선 자리는 위, 아래, 오른쪽, 왼쪽 네 곳과 카메라를 조금씩 옮긴 구도를 함께 따져, 새 노드와 그 선, 이름표, 다른 노드를 가장 덜 가리는 것을 고릅니다. 이름표는 그다음에 말풍선과 Latti 자리를 피해서 달립니다.</li>
       <li>이름표는 지식 탭처럼 화면에서 늘 같은 크기입니다(넓게 볼 때 글자가 작아지지 않음). 아래, 위, 오른쪽, 왼쪽 순서로 빈자리를 찾고, 없으면 낮은 계급부터 숨습니다. 학문 이름은 끝까지 자리를 찾되 Latti 와 말풍선 위에는 올라가지 않습니다.</li>
-      <li>latti-lines.json 의 <code>unlock.04</code>("{field}의 첫 개념이에요")와 <code>unlock.05</code>("{parent}에 {field|이} 생겼어요")는 화면의 흐린 목록과 제목을 말로 되풀이하는 줄이라 이 화면에서는 고르지 않습니다. 뱅크에서 빼거나 다른 상황으로 옮기는 것이 맞습니다.</li>
+      <li>제목과 흐린 목록을 말로 되풀이하는 줄("{field|이} 새로 열렸어요!", "벌써 학문이 {n}개예요!", "{field}의 첫 개념이에요", "{parent}에 {field|이} 생겼어요")은 문구 파일에서 뺐습니다. 한 번 연 사이에는 같은 틀(숫자만 다른 같은 문장)도 두 번 쓰지 않습니다.</li>
       <li>쓸 수 있는 빈칸: <code>{field}</code> 학문 이름, <code>{n}</code> 몇 번째, <code>{first}</code> 첫 개념, <code>{gap}</code> 지난 학문 뒤 며칠, <code>{parent}</code> 분과의 학문.</li>
-      <li>이 페이지가 뱅크에 보탠 줄은 아래 표에 있습니다. latti-lines.json 의 <code>unlock</code> 줄(위 두 줄 제외)과 함께 씁니다. 소유자 예문과 거의 같은 줄이 셋이던 것을 하나("세상의 모든 지식을 배울 건가요?!")로 줄였고, 흐린 목록을 되풀이하던 "{first}에서 시작됐어요" 류는 뺐습니다. 소유자 예문처럼 "?!" 로 끝나는 줄은 taxonomy.json 이 해금 문구에만 허용한 예외라 lint 의 해요체 검사에 걸립니다. 옮길 때 lint 에 예외를 하나 더해야 합니다.</li>
+      <li>해금 문구는 모두 latti-lines.json 한 곳에 있습니다(<code>unlock</code>, <code>unlock.missed</code>, <code>unlock.more</code>). 아래 표는 그 파일에서 읽은 것입니다. 소유자 예문과 거의 같은 줄은 "세상의 모든 지식을 배울 건가요?!" 하나만 남겼고, 흐린 목록을 되풀이하던 "{first}에서 시작됐어요" 류는 뺐습니다. "?!" 끝맺음은 lint 가 허용합니다.</li>
     </ul>
     <div id="ltable"></div>
 
@@ -192,28 +192,10 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const R = (v) => Math.round(v * 10) / 10;
 
-  /* ───────── 해금 문구: 뱅크에 보태는 줄 ───────── */
-  // 학문과 분과는 latti-lines.json 의 unlock 다섯 줄과 한 뭉치로 고른다(rank 로 가름). 놓친 해금과 외 N개는 따로.
-  const EXTRA = [
-    { id: 'ul.major.01', s: 'unlock', t: '세상의 모든 지식을 배울 건가요?!', when: { rank: 'discipline' } },
-    { id: 'ul.major.03', s: 'unlock', t: '벌써 학문이 {n}개예요!', when: { rank: 'discipline', n: '>=3' } },
-    { id: 'ul.major.05', s: 'unlock', t: '지도가 한 뼘 넓어졌어요', when: { rank: 'discipline' } },
-    { id: 'ul.major.06', s: 'unlock', t: '{gap}일 만의 새 학문이에요', when: { rank: 'discipline', gap: '>=2' } },
-    { id: 'ul.major.08', s: 'unlock', t: '다음 학문은 뭘까요?', when: { rank: 'discipline' } },
-    { id: 'ul.major.09', s: 'unlock', t: '{field}, 반가워요!', when: { rank: 'discipline' } },
-    { id: 'ul.minor.01', s: 'unlock', t: '{parent|이} 한 갈래 더 자랐어요', when: { rank: 'branch' } },
-    { id: 'ul.minor.02', s: 'unlock', t: '{parent} 지도가 넓어졌어요', when: { rank: 'branch' } },
-    { id: 'ul.minor.04', s: 'unlock', t: '{parent} 안에 길이 하나 더 났어요', when: { rank: 'branch' } },
-    { id: 'ul.missed.01', s: 'unlock.missed', t: '그새 지도가 꽤 자랐어요' },
-    { id: 'ul.missed.02', s: 'unlock.missed', t: '다시 만나서 반가워요!' },
-    { id: 'ul.missed.03', s: 'unlock.missed', t: '모아 두었어요, 천천히 봐요' },
-    { id: 'ul.missed.04', s: 'unlock.missed', t: '{n}곳이 새로 열렸어요', when: { n: '>=2' } },
-    { id: 'ul.more.01', s: 'unlock.more', t: '오늘은 해금 잔치예요!' },
-    { id: 'ul.more.02', s: 'unlock.more', t: '지도가 부쩍 커졌어요' },
-    { id: 'ul.more.03', s: 'unlock.more', t: '{n}곳이 더 열렸어요' },
-  ];
+  /* ───────── 해금 문구: latti-lines.json 의 unlock, unlock.missed, unlock.more ───────── */
+  // 학문과 분과는 unlock 한 뭉치에서 고르고 rank 로 가른다. 놓친 해금과 외 N개는 따로.
   await Latti.lines.load('latti-lines.json');
-  Latti.lines.add({ bank: EXTRA });
+  const EXTRA = Latti.lines.bank.filter((l) => String(l.s).startsWith('unlock'));
 
   // 같은 해금은 같은 말: 해금 id 로 씨앗을 만든다.
   const seedOf = (s) => {
@@ -228,17 +210,17 @@
     };
   };
   let NOW = '2026-11-20T08:02:00+09:00';
-  // 화면에 이미 보이는 것을 되풀이하는 줄(목록, 제목)은 해금 화면에서 고르지 않는다. 뱅크에서 빼는 것이 맞다(설명 칸 참고).
-  const AVOID = new Set(['unlock.04', 'unlock.05']);
   let used = new Set();
   const lineFor = (sit, id, c) => {
     const ctx = Object.assign({ date: NOW.slice(0, 10), hour: 8 }, c);
-    // 같은 해금은 늘 같은 줄. 앞 카드와 겹치거나 피할 줄이면 씨앗을 바꿔 다시 고른다(이것도 늘 같은 결과).
+    // 같은 해금은 늘 같은 줄. 앞 카드와 겹치면 씨앗을 바꿔 다시 고른다(이것도 늘 같은 결과).
     for (let k = 0; k < 12; k++) {
       const r = Latti.lines.choose(sit, ctx, { rng: seedOf(k ? id + '#' + k : id), dry: true });
       if (!r) return null;
-      if (AVOID.has(r.id) || used.has(r.text)) continue;
+      // 같은 틀(같은 id)도 한 번 연 사이에 두 번 쓰지 않는다. 숫자만 바뀐 같은 문장은 정해진 문구처럼 읽힌다.
+      if (used.has(r.text) || used.has(r.id)) continue;
       used.add(r.text);
+      used.add(r.id);
       return r.text;
     }
     return null;
@@ -1304,11 +1286,11 @@
     ],
   });
 
-  /* 설명 칸: 이 페이지가 보탠 문구 */
+  /* 설명 칸: 문구 파일의 해금 줄 */
   document.getElementById('ltable').innerHTML = `<table class="spec"><tr><th>상황</th><th>문구</th><th>검사</th></tr>${EXTRA.map((l) => {
     const issues = Latti.lines.lint(l.t);
     const cond = Object.entries(l.when || {}).filter(([k]) => k !== 'rank');
-    return `<tr><td>${l.when && l.when.rank ? (l.when.rank === 'discipline' ? '학문' : '분과') : l.s === 'unlock.missed' ? '놓친 해금' : '외 N개'}</td><td>${esc(l.t)}${cond.length ? ` <span style="color:var(--mute)">(${esc(cond.map(([k, v]) => k + ' ' + v).join(', '))})</span>` : ''}</td><td>${issues.length ? esc(issues.join(', ')) : '통과'}</td></tr>`;
+    return `<tr><td>${l.when && l.when.rank ? (l.when.rank === 'discipline' ? '학문' : '분과') : l.s === 'unlock' ? '학문, 분과' : l.s === 'unlock.missed' ? '놓친 해금' : '외 N개'}</td><td>${esc(l.t)}${cond.length ? ` <span style="color:var(--mute)">(${esc(cond.map(([k, v]) => k + ' ' + v).join(', '))})</span>` : ''}</td><td>${issues.length ? esc(issues.join(', ')) : '통과'}</td></tr>`;
   }).join('')}</table>`;
 
   go('both');

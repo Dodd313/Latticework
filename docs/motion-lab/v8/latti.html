@@ -216,6 +216,7 @@
 <script src="../v2/kit.js"></script>
 <script src="../v3/springs.js"></script>
 <script src="../v3/kit.js"></script>
+<script src="data.js"></script>
 <script src="latti.js"></script>
 <script>
 (async function () {
@@ -224,23 +225,37 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   await Latti.lines.load('latti-lines.json');
 
-  /* 앱 데이터(시드). v6/data.js 와 같은 값에서 셌다. */
+  /* 앱 데이터: 다른 8차 시안과 같은 data.js(window.V8)에서 센다. */
+  const V = window.V8;
+  const WK = V.week.this;
+  const inWk = (d) => d >= WK.start && d <= WK.end;
+  const wkVoc = V.vocab.filter((v) => inWk(v.first));
+  const wkSet = new Set(WK.newConceptIds);
+  const studied = V.tree.concepts.filter((c) => c.studied).sort((a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : 0));
+  const cnt = (id) => V.tree.nodes.find((n) => n.id === id).conceptCount;
   const D = {
-    date: '2026-11-20', hour: 8,
-    streakBefore: 7, streakAfter: 8,
-    concepts: 42, fields: 4, links: 32, wordsTotal: 95,
+    date: V.today, hour: 8,
+    streakBefore: V.totals.streak, streakAfter: V.totals.streak + 1,
+    concepts: V.totals.concepts, fields: V.tree.nodes.filter((n) => n.rank === 'discipline').length, links: V.tree.links.length, vocTotal: V.totals.vocab,
+    newestStudied: studied.length ? studied[studied.length - 1].name : null,
     week: {
-      concepts: ['차익거래 논리와 균형 논리', '파마-프렌치 다요인 모형', 'EBITDA', '분산투자의 혜택'],
-      byField: [['재무학', 4]],
-      words: ['merger', 'patent', 'tariff', 'invoice', 'inventory', 'expenditure', 'applicant', 'renew', 'assemble', 'resolve', 'expire', 'confidential', 'promptly', 'exclusively', "What's the plan?"],
-      news: ['앤트로픽 상장, 공모 투자자 몫은 유통 6%', '대기업 매출 35%가 내부거래', '공정위, 쿠팡·김범석 고발 의견', '엔비디아, CEO 승계 계획 공백', 'IMF, 한국 성장률 3.9%로 상향', '엔비디아 분기 매출 사상 최대', '한은, 기준금리 동결', '롯데렌탈 매각, 어피니티 우선협상', '상법 개정안 통과'],
-      days: 5,
+      range: `${+WK.start.slice(5, 7)}월 ${+WK.start.slice(8)}일 ~ ${+WK.end.slice(8)}일`,
+      concepts: WK.newConceptNames,
+      byField: WK.perDiscipline.filter((x) => x.newConcepts > 0).map((x) => [x.ko, x.newConcepts]),
+      active: WK.perDiscipline.filter((x) => x.solved > 0 || x.newConcepts > 0).length,
+      top: WK.perDiscipline.slice().sort((a, b) => b.solved - a.solved)[0],
+      links: V.tree.links.filter((l) => wkSet.has(l.a) || wkSet.has(l.b)).length,
+      words: wkVoc.filter((v) => v.type === '단어').concat(wkVoc.filter((v) => v.type === '구문')),
+      word: (wkVoc.filter((v) => v.type === '단어' && v.term.length <= 10).pop() || {}).term,
+      news: WK.news.headlines,
+      quizRight: WK.weeklyQuiz ? WK.weeklyQuiz.correct : 0,
+      days: WK.doneDays,
     },
     fieldsAll: [
-      { name: '재무학', n: 39, col: 'var(--blue500)', weak: 'var(--blue50)', ink: 'var(--blue700)', ang: -122, dist: 150 },
-      { name: '통계학', n: 1, col: 'var(--green500)', weak: 'var(--green-weak)', ink: 'var(--green700)', ang: -42, dist: 128 },
-      { name: '논리학', n: 1, col: 'var(--purple500)', weak: 'var(--purple-weak)', ink: 'var(--purple600)', ang: 14, dist: 132 },
-      { name: '소프트웨어', n: 1, col: 'var(--orange500)', weak: 'var(--orange-weak)', ink: 'var(--orange700)', ang: 172, dist: 136 },
+      { name: '재무학', n: cnt('n:fin'), col: 'var(--blue500)', weak: 'var(--blue50)', ink: 'var(--blue700)', ang: -122, dist: 150 },
+      { name: '통계학', n: cnt('n:stat'), col: 'var(--green500)', weak: 'var(--green-weak)', ink: 'var(--green700)', ang: -42, dist: 128 },
+      { name: '논리학', n: cnt('n:logic'), col: 'var(--purple500)', weak: 'var(--purple-weak)', ink: 'var(--purple600)', ang: 14, dist: 132 },
+      { name: '소프트웨어', n: cnt('n:cs'), col: 'var(--orange500)', weak: 'var(--orange-weak)', ink: 'var(--orange700)', ang: 172, dist: 136 },
     ],
   };
   const base = { date: D.date, hour: D.hour };
@@ -304,9 +319,9 @@
   async function sHome() {
     const g = ++gen;
     const T = [
-      { nm: '뉴스', c: 2, of: 2, col: 'var(--blue500)', bg: 'var(--blue-weak)', ic: ICON.news },
-      { nm: '영단어', c: 6, of: 6, col: 'var(--purple500)', bg: 'var(--purple-weak)', ic: ICON.voc },
-      { nm: 'Latticework', c: 0, of: 5, col: 'var(--green500)', bg: 'var(--green-weak)', ic: ICON.lat },
+      { nm: '뉴스', c: V.rules.quota.news, of: V.rules.quota.news, col: 'var(--blue500)', bg: 'var(--blue-weak)', ic: ICON.news },
+      { nm: '영단어', c: V.rules.quota.voc, of: V.rules.quota.voc, col: 'var(--purple500)', bg: 'var(--purple-weak)', ic: ICON.voc },
+      { nm: 'Latticework', c: 6, of: V.rules.quota.lat, col: 'var(--green500)', bg: 'var(--green-weak)', ic: ICON.lat },
     ];
     const done = T.filter((t) => t.c >= t.of).length;
     const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
@@ -316,11 +331,10 @@
           <div class="say-row"><span id="hl"></span></div>
           ${T.map((t) => `<div class="task"><span class="ic" style="background:${t.bg}">${t.ic}</span><span class="nm">${t.nm}</span><span class="tr"><i style="background:${t.col};transform:scaleX(${t.c / t.of})"></i></span><span class="ct">${t.c >= t.of ? K.check(18, 'var(--green500)', 3) : `${t.c}/${t.of}`}</span></div>`).join('')}
           <button class="tbtn">이어서 하기</button></div>
-        <div class="box"><div class="bh"><b>오늘의 뉴스</b><span>11월 20일</span></div>
-          <div class="hl"><span class="d"></span><b>대기업 매출 35%가 내부거래…상표권료는 총수 일가 회사로</b></div>
-          <div class="hl"><span class="d"></span><b>앤트로픽 상장, 공모 투자자 몫은 유통 6%·의결권 49.9%</b></div></div>
-        <div class="box"><div class="bh"><b>이번 주</b><span class="num">4/7</span></div>
-          <div class="wk">${DAYS.map((d, i) => `<span class="l ${i === 4 ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 4 ? 'on' : ''} ${i === 4 ? 'td' : ''}"><span>${i < 4 ? K.check(14, '#fff', 3.2) : ''}</span></span>`).join('')}</div></div>
+        <div class="box"><div class="bh"><b>오늘의 뉴스</b><span>${+V.today.slice(5, 7)}월 ${+V.today.slice(8)}일</span></div>
+          ${V.newsToday.map((x) => `<div class="hl"><span class="d"></span><b>${esc(x.headline)}</b></div>`).join('')}</div>
+        <div class="box"><div class="bh"><b>이번 주</b><span class="num">${D.week.days}/7</span></div>
+          <div class="wk">${DAYS.map((d, i) => `<span class="l ${i === 4 ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < D.week.days ? 'on' : ''} ${i === 4 ? 'td' : ''}"><span>${i < D.week.days ? K.check(14, '#fff', 3.2) : ''}</span></span>`).join('')}</div></div>
       </div></div>${tabs('home')}`);
     const host = el.querySelector('#hl');
     Latti.mount(host, { size: 28 });
@@ -405,16 +419,16 @@
   const RECAP = [
     { sit: 'recap.lat', ic: ICON.lat, bg: 'var(--green-weak)', title: 'Latticework', sn: '새 개념', v: W.concepts.length, u: '개',
       body: `<div class="rows">${W.byField.map(([f, n]) => `<div class="r"><span>${f}</span><span class="bar"><i style="width:${(n / W.concepts.length) * 100}%;background:var(--green500)"></i></span><em>${n}</em></div>`).join('')}</div><div class="faint">${W.concepts.map((x) => `<span>${esc(x)}</span>`).join('')}</div>`,
-      ctx: { weekConcepts: 4, weekFields: 1, topField: '재무학', topFieldN: 4, newest: '분산투자의 혜택' } },
-    { sit: 'recap.voc', ic: ICON.voc, bg: 'var(--purple-weak)', title: '영단어', sn: '새 단어', v: W.words.length, u: '개',
-      body: `<div class="rows"><div class="r" style="grid-template-columns:64px 1fr 28px"><span>모은 단어</span><span></span><em>${D.wordsTotal}</em></div></div><div class="faint wrap">${W.words.map((x) => `<span>${esc(x)}</span>`).join('')}</div>`,
-      ctx: { weekWords: 15, wordsTotal: D.wordsTotal, word: 'tariff' } },
+      ctx: { weekConcepts: W.concepts.length, weekFields: W.active, topField: W.top.ko, topFieldN: W.top.newConcepts, weekLinks: W.links, newest: W.concepts[W.concepts.length - 1] } },
+    { sit: 'recap.voc', ic: ICON.voc, bg: 'var(--purple-weak)', title: '영단어', sn: '새로 익힘', v: W.words.length, u: '개',
+      body: `<div class="rows">${['단어', '구문'].map((k) => `<div class="r"><span>${k}</span><span class="bar"><i style="width:${(W.words.filter((x) => x.type === k).length / W.words.length) * 100}%;background:var(--purple500)"></i></span><em>${W.words.filter((x) => x.type === k).length}</em></div>`).join('')}<div class="r" style="grid-template-columns:1fr auto"><span>모은 영단어</span><em>${D.vocTotal}</em></div></div><div class="faint wrap">${W.words.map((x) => `<span>${esc(x.term)}</span>`).join('')}</div>`,
+      ctx: { weekWords: W.words.filter((x) => x.type === '단어').length, word: W.word } },
     { sit: 'recap.news', ic: ICON.news, bg: 'var(--blue-weak)', title: '뉴스', sn: '읽은 기사', v: W.news.length, u: '건',
       body: `<div class="faint" style="margin-top:22px">${W.news.slice(0, 7).map((x) => `<span>${esc(x)}</span>`).join('')}</div>`,
-      ctx: { weekRead: 9, newsKey: '엔비디아' } },
-    { sit: 'recap.streak', ic: ICON.day, bg: 'var(--orange-weak)', title: '연속', sn: '연속', v: D.streakAfter, u: '일',
+      ctx: { weekRead: W.news.length, quizRight: W.quizRight } },
+    { sit: 'recap.streak', ic: ICON.day, bg: 'var(--orange-weak)', title: '연속', sn: '연속', v: D.streakBefore, u: '일',
       body: `<div class="wdots">${['월', '화', '수', '목', '금', '토', '일'].map((d) => `<span class="l">${d}</span>`).join('')}${[0, 1, 2, 3, 4, 5, 6].map((i) => `<span class="c ${i < W.days ? 'on' : ''}"><i></i></span>`).join('')}</div>`,
-      ctx: { weekDays: W.days, streak: D.streakAfter } },
+      ctx: { weekDays: W.days, streak: D.streakBefore } },
   ];
   const cardHtml = (r, i) => `<div class="card" data-i="${i}"><div class="ch"><span class="ic" style="background:${r.bg}">${r.ic}</span><b>${r.title}</b></div>
     <span class="sn">${r.sn}</span><span class="sv num">${r.v}<small>${r.u}</small></span>${r.body}<span class="grow"></span><div class="say-row"><span class="lh"></span></div></div>`;
@@ -434,7 +448,7 @@
     const g = ++gen;
     let el = phone.querySelector('.scene.recap');
     if (k === 0 || !el) {
-      el = stage('recap', `<div class="rtop"><b>이번 주</b><span>11월 14일부터 20일까지</span></div><div class="deck">${RECAP.map(cardHtml).join('')}</div><div class="dots">${RECAP.map(() => '<i></i>').join('')}</div>`);
+      el = stage('recap', `<div class="rtop"><b>이번 주</b><span>${W.range}</span></div><div class="deck">${RECAP.map(cardHtml).join('')}</div><div class="dots">${RECAP.map(() => '<i></i>').join('')}</div>`);
       placeCards(el, 0, false);
       ML.a(el.querySelector('.deck'), [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 420, easing: OUT });
     } else {
@@ -514,7 +528,7 @@
     const host = el.querySelector('#gc');
     const go = () => {
       K.spring(host.firstChild, [{ transform: 'scale(.92)' }, { transform: 'scale(1)' }], 'bounce');
-      speak(host, 'graph', ctx({ concepts: D.concepts, fields: D.fields, links: D.links, newest: '분산투자의 혜택', topField: '재무학' }), { float: true, side: 'bottom', tone: 'white', mood: 'happy', ms: 3200 });
+      speak(host, 'graph', ctx({ concepts: D.concepts, fields: D.fields, links: D.links, newest: D.newestStudied, topField: '재무학' }), { float: true, side: 'bottom', tone: 'white', mood: 'happy', ms: 3200 });
     };
     cur = { name: 'graph', step: k, reroll: go };
     if (k === 1) go();

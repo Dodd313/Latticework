@@ -384,7 +384,8 @@
       if (/[→←⇒⇐↑↓➜]|->|=>/.test(t)) out.push('화살표');
       if ((t.match(/!/g) || []).length > 1) out.push('느낌표 둘 이상');
       if (/\p{Extended_Pictographic}/u.test(t)) out.push('이모지');
-      if (!/(요|죠|까요|나요)[.!?]?$/.test(t.trim())) out.push('해요체 끝맺음 아님');
+      // "?!" 는 소유자 예문("배울 생각인가요?!")의 끝맺음이라 허용한다. 느낌표 수 검사는 위에서 따로 한다.
+      if (!/(요|죠|까요|나요)([.!?]|\?!)?$/.test(t.trim())) out.push('해요체 끝맺음 아님');
       if (/누르|눌러|탭하|스와이프|화면|버튼|아래쪽|위쪽|표시돼|의미해요|뜻해요/.test(plain)) out.push('화면 설명');
       if (/왜 안|안 왔|놓쳤|게을|실망/.test(plain)) out.push('죄책감');
       if (!o.allowLatin && /[A-Za-z]/.test(plain.replace(/Latticework|Latti/g, ''))) out.push('영어');

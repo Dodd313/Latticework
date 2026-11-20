@@ -94,9 +94,17 @@
   "recap.voc": "주간 돌아보기 영단어 카드. weekWords, wordsTotal, word",
   "recap.news": "주간 돌아보기 뉴스 카드. weekRead, newsKey, quizRight",
   "recap.streak": "주간 돌아보기 연속 카드. weekDays, streak",
+  "recap.close": "주간 돌아보기 마지막 장. solved, words, days, read, xpS, newConcepts, newField, hasNewField, level, levelUp",
   "graph": "지식 그래프 가운데를 눌렀을 때. concepts, fields, links, newest, topField",
   "return": "오랜만에 돌아왔을 때. away(쉰 날), concept",
-  "unlock": "새 분류 해금 화면. field, parent, rank"
+  "unlock": "새 학문(rank discipline) 또는 분과(rank branch) 해금. field, parent, n(몇 번째 학문), gap(지난 학문 뒤 며칠). 화면에 이미 있는 제목과 흐린 목록을 되풀이하지 않는다",
+  "mrecap.period": "월간 돌아보기 첫 장. month, doneDays, streak",
+  "mrecap.lat": "월간 돌아보기 Latticework 카드. month, newConcepts, newest, solved, fields",
+  "mrecap.voc": "월간 돌아보기 영단어 카드. month, words, vocTotal, word",
+  "mrecap.news": "월간 돌아보기 뉴스 카드. read, wq(주간 종합 퀴즈 횟수)",
+  "mrecap.close": "월간 돌아보기 마지막 장. month, xpS, solved, level, levelUp",
+  "unlock.missed": "14일 넘게 못 본 해금을 묶은 한 장. n",
+  "unlock.more": "학문 카드 3장 뒤 \"외 N개\" 한 장. n"
  },
  "slots": "{key} 는 ctx 값, {key|을} 은 값 뒤에 맞는 조사(을/를, 이/가, 은/는, 과/와, 으로/로, 이에요/예요). part, day, weekend, acc, left 는 저절로 계산한다.",
  "today": {
@@ -1904,8 +1912,8 @@
    "t": "{weekDays}일이나 만났네요"
   },
   {
-   "id": "recap.streak.03",
-   "s": "recap.streak",
+   "id": "recap.close.01",
+   "s": "recap.close",
    "t": "다음 주에도 만나요"
   },
   {
@@ -2030,35 +2038,268 @@
    "p": 1
   },
   {
-   "id": "unlock.01",
-   "s": "unlock",
-   "t": "{field|이} 새로 열렸어요!"
-  },
-  {
    "id": "unlock.02",
    "s": "unlock",
    "t": "{field}까지 오다니요!"
   },
   {
-   "id": "unlock.03",
+   "id": "ul.major.01",
    "s": "unlock",
-   "t": "세상 지식을 다 배울 건가요?"
-  },
-  {
-   "id": "unlock.04",
-   "s": "unlock",
-   "t": "{field}의 첫 개념이에요",
+   "t": "세상의 모든 지식을 배울 건가요?!",
    "when": {
     "rank": "discipline"
    }
   },
   {
-   "id": "unlock.05",
+   "id": "ul.major.05",
    "s": "unlock",
-   "t": "{parent}에 {field|이} 생겼어요",
+   "t": "지도가 한 뼘 넓어졌어요",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "ul.major.06",
+   "s": "unlock",
+   "t": "{gap}일 만의 새 학문이에요",
+   "when": {
+    "rank": "discipline",
+    "gap": ">=2"
+   }
+  },
+  {
+   "id": "ul.major.08",
+   "s": "unlock",
+   "t": "다음 학문은 뭘까요?",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "ul.major.09",
+   "s": "unlock",
+   "t": "{field}, 반가워요!",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "ul.minor.01",
+   "s": "unlock",
+   "t": "{parent|이} 한 갈래 더 자랐어요",
    "when": {
     "rank": "branch"
    }
+  },
+  {
+   "id": "ul.minor.02",
+   "s": "unlock",
+   "t": "{parent} 지도가 넓어졌어요",
+   "when": {
+    "rank": "branch"
+   }
+  },
+  {
+   "id": "ul.minor.04",
+   "s": "unlock",
+   "t": "{parent} 안에 길이 하나 더 났어요",
+   "when": {
+    "rank": "branch"
+   }
+  },
+  {
+   "id": "ul.missed.01",
+   "s": "unlock.missed",
+   "t": "그새 지도가 꽤 자랐어요"
+  },
+  {
+   "id": "ul.missed.02",
+   "s": "unlock.missed",
+   "t": "다시 만나서 반가워요!"
+  },
+  {
+   "id": "ul.missed.03",
+   "s": "unlock.missed",
+   "t": "모아 두었어요, 천천히 봐요"
+  },
+  {
+   "id": "ul.missed.04",
+   "s": "unlock.missed",
+   "t": "{n}곳이 새로 열렸어요",
+   "when": {
+    "n": ">=2"
+   }
+  },
+  {
+   "id": "ul.more.01",
+   "s": "unlock.more",
+   "t": "오늘은 해금 잔치예요!"
+  },
+  {
+   "id": "ul.more.02",
+   "s": "unlock.more",
+   "t": "지도가 부쩍 커졌어요"
+  },
+  {
+   "id": "ul.more.03",
+   "s": "unlock.more",
+   "t": "{n}곳이 더 열렸어요"
+  },
+  {
+   "id": "recap.close.02",
+   "s": "recap.close",
+   "t": "{solved}문제 풀고 {words}개를 익혔어요"
+  },
+  {
+   "id": "recap.close.03",
+   "s": "recap.close",
+   "t": "이번 주 경험치가 {xpS} 늘었어요"
+  },
+  {
+   "id": "recap.close.04",
+   "s": "recap.close",
+   "t": "{days}일 동안 {solved}문제를 풀었어요"
+  },
+  {
+   "id": "recap.close.05",
+   "s": "recap.close",
+   "t": "기사 {read}건까지, 알찬 한 주였어요"
+  },
+  {
+   "id": "recap.close.06",
+   "s": "recap.close",
+   "t": "새 개념 {newConcepts}개, 다음 주도 기대돼요",
+   "when": {
+    "newConcepts": ">=1"
+   }
+  },
+  {
+   "id": "recap.close.07",
+   "s": "recap.close",
+   "t": "{newField|이} 열린 한 주였어요",
+   "when": {
+    "hasNewField": true
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.close.08",
+   "s": "recap.close",
+   "t": "레벨 {level}, 한 주 만에 올랐어요",
+   "when": {
+    "levelUp": true
+   },
+   "p": 2
+  },
+  {
+   "id": "recap.close.09",
+   "s": "recap.close",
+   "t": "이번 주에 레벨 {level|이} 됐어요",
+   "when": {
+    "levelUp": true
+   },
+   "p": 2
+  },
+  {
+   "id": "mrecap.period.01",
+   "s": "mrecap.period",
+   "t": "{month}엔 {doneDays}일을 채웠어요"
+  },
+  {
+   "id": "mrecap.period.02",
+   "s": "mrecap.period",
+   "t": "{month} 한 달, {doneDays}일 함께했어요"
+  },
+  {
+   "id": "mrecap.period.03",
+   "s": "mrecap.period",
+   "t": "연속 {streak}일째로 달을 넘겨요",
+   "when": {
+    "streak": ">=7"
+   },
+   "p": 1
+  },
+  {
+   "id": "mrecap.lat.01",
+   "s": "mrecap.lat",
+   "t": "{month}에 개념 {newConcepts}개를 익혔어요"
+  },
+  {
+   "id": "mrecap.lat.02",
+   "s": "mrecap.lat",
+   "t": "{newest}까지 왔어요"
+  },
+  {
+   "id": "mrecap.lat.03",
+   "s": "mrecap.lat",
+   "t": "한 달에 {solved}문제, 단단해요"
+  },
+  {
+   "id": "mrecap.lat.04",
+   "s": "mrecap.lat",
+   "t": "{fields}개 학문을 오갔어요",
+   "when": {
+    "fields": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "mrecap.voc.01",
+   "s": "mrecap.voc",
+   "t": "{month}에 {words}개를 새로 만났어요"
+  },
+  {
+   "id": "mrecap.voc.02",
+   "s": "mrecap.voc",
+   "t": "모은 영단어가 {vocTotal}개예요"
+  },
+  {
+   "id": "mrecap.voc.03",
+   "s": "mrecap.voc",
+   "t": "{word}, 이제 익숙하죠?"
+  },
+  {
+   "id": "mrecap.news.01",
+   "s": "mrecap.news",
+   "t": "한 달 동안 기사 {read}건 읽었어요"
+  },
+  {
+   "id": "mrecap.news.02",
+   "s": "mrecap.news",
+   "t": "한 달 경제 흐름을 따라왔어요"
+  },
+  {
+   "id": "mrecap.news.03",
+   "s": "mrecap.news",
+   "t": "종합 퀴즈 {wq}번 모두 풀었어요",
+   "when": {
+    "wq": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "mrecap.close.01",
+   "s": "mrecap.close",
+   "t": "{month}에 경험치 {xpS|을} 모았어요"
+  },
+  {
+   "id": "mrecap.close.02",
+   "s": "mrecap.close",
+   "t": "{solved}문제로 채운 한 달이었어요"
+  },
+  {
+   "id": "mrecap.close.03",
+   "s": "mrecap.close",
+   "t": "다음 달에도 만나요"
+  },
+  {
+   "id": "mrecap.close.04",
+   "s": "mrecap.close",
+   "t": "한 달 새 레벨 {level|이} 됐어요",
+   "when": {
+    "levelUp": true
+   },
+   "p": 2
   }
  ]
 }
