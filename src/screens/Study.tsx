@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { cheerCorrect, cheerFinish, cheerLevel, cheerWrong, seedOf } from '../cheer';
 import { todayKST } from '../dates';
 import { EASE_OUT, NATIVE_DRIVER, Rise, motionOff, spring, useCount } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
@@ -15,7 +16,7 @@ const PANEL_PAD: any = typeof BOTTOM_PAD === 'number' ? 104 : 'calc(104px + env(
 const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 type Phase = 'answer' | 'hint' | 'right' | 'wrong' | 'think' | 'grade';
-type Fb = { ok: boolean; title?: string; body?: string };
+type Fb = { ok: boolean; title?: string; cheer?: string; body?: string };
 
 /** 레벨 안에서의 경험치: [현재, 다음 레벨까지 필요한 양] */
 function within(xp: number, lv: number): [number, number] {
@@ -252,7 +253,7 @@ function Panel({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void 
       }}
     >
       <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} bounces={false}>
-        <View style={{ flexDirection: 'row', alignItems: ok ? 'flex-start' : 'center', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Animated.View
             accessible
             accessibilityLabel={ok ? '정답' : '오답'}
@@ -260,27 +261,36 @@ function Panel({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void 
           >
             {ok ? <Icon name="check" size={20} color={t.green} sw={3.4} /> : <Icon name="x" size={18} color={t.red} sw={3.4} />}
           </Animated.View>
-          {ok ? (
-            shown.body ? (
-              <Animated.View style={{ flex: 1, paddingTop: 5, opacity: tx }}>
-                <Rich type="t6" w="600" c={ink}>
-                  {shown.body}
+          <Animated.View style={{ flex: 1, opacity: tx, transform: [{ translateX: tx.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }}>
+            {ok ? (
+              <T type="t3" w="700" c={ink}>
+                {shown.cheer ?? ''}
+              </T>
+            ) : (
+              <>
+                <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
+                  {shown.title ?? ''}
                 </Rich>
-              </Animated.View>
-            ) : null
-          ) : (
-            <Animated.View style={{ flex: 1, opacity: tx, transform: [{ translateX: tx.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }}>
-              <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
-                {shown.title ?? ''}
-              </Rich>
-            </Animated.View>
-          )}
+                {shown.cheer ? (
+                  <T type="t6" w="600" c={ink} style={{ marginTop: 2 }}>
+                    {shown.cheer}
+                  </T>
+                ) : null}
+              </>
+            )}
+          </Animated.View>
         </View>
-        {!ok && shown.body ? (
+        {shown.body ? (
           <Animated.View style={{ marginTop: 8, opacity: tx }}>
-            <Rich type="t6" c={t.deck}>
-              {shown.body}
-            </Rich>
+            {ok ? (
+              <Rich type="t6" w="600" c={ink}>
+                {shown.body}
+              </Rich>
+            ) : (
+              <Rich type="t6" c={t.deck}>
+                {shown.body}
+              </Rich>
+            )}
           </Animated.View>
         ) : null}
       </ScrollView>
@@ -302,6 +312,8 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const goal = sect === 'lat' ? (rec?.latGoal ?? LAT_GOAL) : (rec?.vocGoal ?? 0);
   const doneAtOpen = useRef(sect === 'lat' ? (rec?.lat ?? 0) : (rec?.voc ?? 0)).current;
   const streakAtOpen = useRef(goals.streak).current;
+  // 오늘 추가 학습 수는 구역을 나누지 않고 센다. 이 화면을 연 뒤 늘어난 만큼이 이 구역의 추가 학습이다.
+  const extraAtOpen = useRef(rec?.extra ?? 0).current;
   const xpAtRound = useRef(study.xp);
 
   // 세션은 화면을 열 때 한 번 짠다. 오늘 목표가 남았으면 남은 만큼, 다 했으면 "추가 학습"으로 연다.
@@ -396,7 +408,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
       const grade = tries === 1 ? 3 : 2;
       settle(grade, true, tries);
       setPhase('right');
-      setFb({ ok: true, body: q.explain });
+      setFb({ ok: true, cheer: cheerCorrect({ combo: combo + 1, idx: at, firstTry: tries === 1, seed: seedOf(today, sect, round, at, q.key, 'right') }), body: q.explain });
       setFx((f) => ({ i: picked, kind: 'pop', n: f.n + 1 }));
       if (!q.retry) {
         flying.current = true;
@@ -413,7 +425,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
       setPhase('wrong');
       setFx((f) => ({ i: picked, kind: 'shake', n: f.n + 1 }));
       later(() => setAnsShown(true), 240);
-      setFb({ ok: false, title: q.options?.[q.answer] ?? '', body: q.explain });
+      setFb({ ok: false, title: q.options?.[q.answer] ?? '', cheer: cheerWrong({ seed: seedOf(today, sect, round, at, q.key, 'wrong') }), body: q.explain });
     }
   };
 
@@ -466,6 +478,27 @@ export function StudyScreen({ sect }: { sect: Section }) {
   }
 
   if (finished) {
+    const recNow = study.days[today];
+    const doneNow = sect === 'lat' ? (recNow?.lat ?? 0) : (recNow?.voc ?? 0);
+    const goalNow = sect === 'lat' ? (recNow?.latGoal ?? goal) : (recNow?.vocGoal ?? goal);
+    const extraNow = recNow?.extra ?? 0;
+    const name = sect === 'lat' ? 'Latticework' : '영단어';
+    // 푼 문제가 없을 때는 오늘 분량을 정말 마친 경우에만 한 줄을 건넨다.
+    const headline =
+      tally.total === 0 && doneNow < goalNow
+        ? null
+        : cheerFinish({
+            sect,
+            extra,
+            total: tally.total,
+            right: tally.right,
+            solvedToday: doneNow + Math.max(0, extraNow - extraAtOpen),
+            extraToday: extraNow,
+            streakDays: goals.streak,
+            streakUp: goals.streak > streakAtOpen,
+            levelUp: levelOf(study.xp) > levelOf(xpAtRound.current),
+            seed: seedOf(today, sect, round, 'finish'),
+          }).headline;
     return (
       <Finish
         key={round}
@@ -475,7 +508,8 @@ export function StudyScreen({ sect }: { sect: Section }) {
         streakFrom={streakAtOpen}
         streakTo={goals.streak}
         exhausted={exhausted}
-        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${tally.total === 0 ? '오늘 분량 완료' : extra ? '추가 학습 완료' : '학습 완료'}`}
+        label={extra ? `${name} 추가 학습` : name}
+        headline={headline}
         onMore={more}
         onDone={nav.pop}
       />
@@ -620,12 +654,14 @@ function Finish({
   streakFrom,
   streakTo,
   exhausted,
-  title,
+  label,
+  headline,
   onMore,
   onDone,
 }: {
   tally: { right: number; total: number; xp: number };
-  title: string;
+  label: string;
+  headline: string | null;
   xpFrom: number;
   xpTo: number;
   streakFrom: number;
@@ -668,6 +704,17 @@ function Finish({
     }
     return () => ids.forEach(clearTimeout);
   }, []);
+  // 구역 이름은 작게, 응원 한 줄을 크게.
+  const heading = headline ? (
+    <Enter delay={any ? 140 : 0} duration={320} y={8} style={{ alignSelf: 'stretch', alignItems: 'center', gap: 4 }}>
+      <T type="t6" w="600" c={t.sub} center>
+        {label}
+      </T>
+      <T type="t2" w="700" center role="heading" level={1}>
+        {headline}
+      </T>
+    </Enter>
+  ) : null;
   const [boxCur, boxNeed] = lvShown === lvTo && up ? [curTo, needTo] : [Math.round(barN), up ? needFrom : needTo];
 
   return (
@@ -685,11 +732,7 @@ function Finish({
                 </T>
               </Ring>
             </Enter>
-            <Enter delay={140} duration={320} y={8} style={{ alignItems: 'center' }}>
-              <T type="t2" w="700" center>
-                {title}
-              </T>
-            </Enter>
+            {heading}
             <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: 10 }}>
               <Enter delay={260} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
                 <StatCard tone="yellow" icon="bolt" label="경험치" value={`+${Math.round(xpN)}`} a11yLabel={`경험치 ${tally.xp}`} />
@@ -702,7 +745,9 @@ function Finish({
               </Enter>
             </View>
           </>
-        ) : null}
+        ) : (
+          heading
+        )}
         <Enter delay={any ? 440 : 0} duration={320} y={10} style={{ alignSelf: 'stretch' }}>
           <LevelBox lv={lvShown} cur={boxCur} need={boxNeed} value={bar} />
         </Enter>
@@ -746,6 +791,7 @@ function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; c
   const medal = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
   const roll = useRef(new Animated.Value(1)).current;
   const [n, setN] = useState(motionOff() ? to : from);
+  const line = useMemo(() => cheerLevel({ level: to, seed: seedOf(todayKST(), 'level', to) }), [to]);
   useEffect(() => {
     if (motionOff()) return;
     Animated.timing(fade, { toValue: 1, duration: 220, easing: Easing.ease, useNativeDriver: NATIVE_DRIVER }).start();
@@ -795,6 +841,11 @@ function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; c
             </Animated.View>
           </View>
         </Animated.View>
+        <Enter delay={640} duration={320} y={8} style={{ alignSelf: 'stretch', alignItems: 'center' }}>
+          <T type="t3" w="700" center>
+            {line}
+          </T>
+        </Enter>
         <Enter delay={300} duration={300} y={8} style={{ alignSelf: 'stretch', alignItems: 'center' }}>
           <View style={{ width: '100%', maxWidth: 300 }}>
             <LevelBox lv={to} cur={cur} need={need} value={cur / need} hideLv />

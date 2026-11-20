@@ -8,6 +8,7 @@ import { useTheme } from '../theme';
 import { Article, Day } from '../types';
 import { Box, EmptyState, Icon, ReadMark, T, Tap } from '../ui';
 import { QUIZ_OPEN_HOUR, dayQuiz, quizOpen } from './DayQuiz';
+import { quizCheer } from './Review';
 
 /** 11월 20일 */
 function shortDate(date: string): string {
@@ -62,9 +63,16 @@ function QuizCard({ day }: { day: Day }) {
           <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: done ? t.greenWeak : t.blueWeak, alignItems: 'center', justifyContent: 'center' }}>
             <Icon name="note" size={22} color={done ? t.greenText : t.blueText} />
           </View>
-          <T s={16} w="600" style={{ flex: 1 }} lines={1}>
-            저녁 퀴즈
-          </T>
+          <View style={{ flex: 1 }}>
+            <T s={16} w="600" lines={1}>
+              저녁 퀴즈
+            </T>
+            {done ? (
+              <T type="t7" w="600" c={t.greenText} lines={1}>
+                {quizCheer(review, correct, total)}
+              </T>
+            ) : null}
+          </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             {done ? (
               <T s={15} w="700" c={t.greenText} mono>

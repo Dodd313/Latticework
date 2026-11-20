@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>카드 넘기기 · Motion Lab 7차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root { --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple500: #a234c7; --purple600: #9128b4; --purple-weak: #f7edfa; --yellow-weak: #fff9e7; }
+  .scr { background: var(--grey100) !important; overflow: hidden; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* 시작 화면: v5 앱과 같은 것 */
+  .splash { position: absolute; inset: 0; z-index: 50; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .icon { width: 88px; height: 88px; border-radius: 24px; background: var(--blue500); display: grid; grid-template-columns: repeat(3, 20px); gap: 5px; align-content: center; justify-content: center; }
+  .icon i { width: 20px; height: 20px; border-radius: 6px; background: #fff; }
+  .splash b { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+  /* 위쪽 */
+  .top { position: absolute; top: 0; left: 0; right: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 24px; z-index: 30; }
+  .top b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .x { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--grey500); transition: background-color 0.1s; }
+  .x.down { background: var(--dim-press); }
+
+  /* 카드 더미 */
+  .deck { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab; }
+  .deck.drag { cursor: grabbing; }
+  .slot { position: absolute; left: 24px; right: 24px; top: 0; transform-origin: 50% 85%; will-change: transform; }
+  .card { position: absolute; inset: 0; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 23, 51, 0.03), 0 6px 22px rgba(0, 23, 51, 0.07); overflow: hidden; }
+  .veil { position: absolute; inset: 0; background: var(--grey50); pointer-events: none; z-index: 6; opacity: 0; }
+  .in { position: absolute; inset: 0; padding: 24px; display: flex; flex-direction: column; }
+  .dots { position: absolute; left: 0; right: 0; display: flex; justify-content: center; z-index: 30; }
+  .dots button { width: 20px; height: 44px; display: flex; align-items: center; justify-content: center; }
+  .dots i { position: relative; width: 6px; height: 6px; border-radius: 3px; background: var(--grey300); overflow: hidden; }
+  .dots i b { position: absolute; inset: 0; background: var(--grey700); opacity: 0; }
+
+  /* 카드 안 공통 */
+  .hd { display: flex; align-items: center; gap: 10px; height: 40px; flex: none; }
+  .hd .ic { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .hd b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .hero { margin-top: 24px; flex: none; }
+  .sn { display: block; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--grey600); }
+  .sv { display: flex; align-items: baseline; margin-top: 2px; font-size: 56px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .sv small { font-size: 24px; font-weight: 700; color: var(--grey400); letter-spacing: -0.4px; margin-left: 3px; }
+  .sv .chip { align-self: center; margin-left: 12px; letter-spacing: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 10px; border-radius: 10px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .fl { flex: 1 1 0; min-height: 16px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
+  .two > div { background: var(--grey50); border-radius: 16px; padding: 14px 16px; }
+  .two b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .two b small { font-size: 15px; font-weight: 600; color: var(--grey500); margin-left: 1px; }
+  .sub { flex: none; }
+  .sub .row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .sub .row b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sub .row b small { font-size: 15px; font-weight: 600; color: var(--grey500); margin-left: 6px; }
+
+  /* 띠 달력: 5차 달력 D 시안 */
+  .wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 6px; flex: none; }
+  .wd span { text-align: center; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .wd span.td { color: var(--grey900); font-weight: 700; }
+  .grid { position: relative; flex: none; }
+  .grid > * { position: absolute; }
+  .band { overflow: hidden; z-index: 1; }
+  .band .layer { position: absolute; inset: 0; }
+  .dn { display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--grey700); font-variant-numeric: tabular-nums; z-index: 3; }
+  .band .dn { position: absolute; top: 0; font-weight: 700; }
+  .dn.fut { color: var(--grey300); }
+  .ring { border-radius: 50%; z-index: 2; box-shadow: inset 0 0 0 2px #fe9800; }
+  .ex { z-index: 3; text-align: center; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--grey500); font-variant-numeric: tabular-nums; opacity: 0; }
+
+  /* 뉴스 */
+  .tiles { display: grid; flex: none; }
+  .tiles i { position: relative; aspect-ratio: 1; border-radius: 6px; background: var(--grey100); overflow: hidden; }
+  .tiles i b { position: absolute; inset: 0; border-radius: inherit; background: var(--blue500); transform: scale(0); }
+  .segbar { display: flex; gap: 4px; height: 10px; }
+  .segbar.dense { gap: 2px; }
+  .segbar i { position: relative; flex: 1; border-radius: 5px; background: var(--grey100); overflow: hidden; }
+  .segbar i b { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); }
+  .cbar { position: relative; height: 10px; border-radius: 5px; background: var(--grey100); overflow: hidden; }
+  .cbar i { position: absolute; top: 0; bottom: 0; }
+  .bars { display: flex; flex-direction: column; gap: 10px; flex: none; }
+  .br { display: grid; grid-template-columns: 76px 1fr 36px; align-items: center; gap: 10px; }
+  .br .nm { font-size: 15px; font-weight: 600; color: var(--grey700); white-space: nowrap; }
+  .br .tr { position: relative; height: 12px; }
+  .br .tr i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; transform-origin: left; transform: scaleX(0); }
+  .br .ct { text-align: right; font-size: 15px; font-weight: 700; color: var(--grey600); font-variant-numeric: tabular-nums; }
+  .br.lead .nm, .br.lead .ct { color: var(--grey900); }
+
+  /* 영단어 */
+  .stk { position: relative; height: 14px; flex: none; }
+  .stk i { position: absolute; top: 0; bottom: 0; border-radius: 7px; transform-origin: left; transform: scaleX(0); }
+  .lbls { position: relative; height: 54px; margin-top: 10px; flex: none; }
+  .lbls > div { position: absolute; top: 0; opacity: 0; }
+  .lbls .k { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--grey600); white-space: nowrap; }
+  .lbls .k i { width: 8px; height: 8px; border-radius: 3px; }
+  .lbls b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .words { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+  .words span { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 10px; background: var(--purple-weak); color: var(--purple600); font-size: 15px; font-weight: 600; opacity: 0; }
+  .words span.more { background: var(--grey100); color: var(--grey600); font-variant-numeric: tabular-nums; }
+
+  /* 레벨 */
+  .lv { display: flex; align-items: baseline; font-size: 56px; line-height: 64px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .lv small { font-size: 24px; font-weight: 700; color: var(--grey400); letter-spacing: -0.4px; margin-right: 6px; }
+  .lv .n { display: inline-block; transform-origin: 50% 80%; }
+  .lv .chip { align-self: center; margin-left: 12px; letter-spacing: 0; }
+  .xpn { display: flex; justify-content: flex-end; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .pbar .fill { transition: none; }
+  .flw { width: 40px; height: 40px; border-radius: 12px; background: var(--orange-weak); display: flex; align-items: center; justify-content: center; flex: none; }
+
+  /* 지난달 대비 */
+  .cmp { flex: none; }
+  .cr { display: flex; align-items: center; height: 50px; border-bottom: 1px solid var(--grey100); }
+  .cr:last-child { border-bottom: 0; }
+  .cr .nm { flex: 1; font-size: 16px; font-weight: 600; color: var(--grey700); }
+  .cr .v { font-size: 17px; font-weight: 700; margin-right: 10px; font-variant-numeric: tabular-nums; }
+  .cr .d { min-width: 66px; height: 28px; padding: 0 8px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cr .d.up { background: var(--green-weak); color: var(--green600); }
+  .cr .d.dn { background: var(--red-weak); color: var(--red600); }
+
+  .notes ol { padding-left: 18px; margin: 0; }
+  .notes li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>카드 넘기기</h2>
+    <p>시작 화면이 사라지면 홈 대신 카드 한 더미가 놓입니다. 카드 한 장이 한 가지 이야기(기간과 달성, 뉴스, 영단어, Latticework, 연속과 레벨, 월간이면 지난달 대비)이고, 손가락으로 왼쪽으로 던지면 다음 장, 오른쪽으로 끌면 던진 카드가 다시 돌아옵니다. 마지막 장의 "계속" 이나 오른쪽 위 닫기를 누르면 홈으로 갑니다.</p>
+    <p class="tip">위쪽 "주간" 과 "월간" 으로 두 리뷰를 바꿔 보세요. 마우스로 카드를 끌어 던지거나, 아래 점을 누르거나, 키보드 좌우 화살표로도 넘어갑니다. "느리게" 를 켜면 스프링과 숫자 세기가 모두 4배 느려집니다.</p>
+
+    <h3>장 구성과 움직임</h3>
+    <table class="spec">
+      <tr><th>1</th><td>기간과 완료한 날. 5차 달력 D 시안의 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 띠가 하루를 지날 때마다 큰 숫자가 하나씩 올라갑니다. 마치지 못한 날은 빈칸으로 남아 그 자체로 보입니다. 주간은 띠 아래에 날마다 더 푼 문제 수가 같이 떠서 색의 짙기를 설명 없이 읽게 합니다.</td></tr>
+      <tr><th>2</th><td>뉴스. 발행된 기사 수만큼 회색 칸이 놓이고 읽은 칸만 차례로 파랗게 찹니다. 저녁 퀴즈는 문제마다 한 칸, 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 주제 막대는 가장 많이 읽은 주제만 파랗고 나머지는 회색입니다.</td></tr>
+      <tr><th>3</th><td>영단어. 복습한 표현 하나의 막대가 새로 익힌 것(진한 보라), 강해진 것(연한 보라), 그대로인 것(회색)으로 나뉘며 자랍니다. 이름은 각 조각 바로 아래에 붙어 범례가 필요 없습니다. 새로 익힌 표현을 실제 낱말로 보여 줍니다.</td></tr>
+      <tr><th>4</th><td>Latticework. 문제 하나가 한 칸(한 달처럼 40문제가 넘으면 이어진 막대). 맞힌 칸은 초록, 틀린 칸은 연한 빨강. 아래는 분야 이름과 주제별 막대입니다.</td></tr>
+      <tr><th>5</th><td>연속과 레벨. 불꽃이 아래에서 위로 켜지며 연속 일수가 지난 값에서 지금 값으로 셉니다. 경험치 막대가 끝까지 차는 순간 레벨 숫자가 튀어 오르며 바뀌고 막대가 비워진 뒤 새 레벨의 진행만큼 다시 찹니다. 폭죽은 쓰지 않았습니다.</td></tr>
+      <tr><th>6</th><td>월간만. 지난달 대비. 이번 달 값과 차이를 줄마다 놓고, 좋아진 것은 초록 위 삼각형, 나빠진 것은 빨강 아래 삼각형. 줄이 위에서부터 차례로 들어옵니다.</td></tr>
+    </table>
+
+    <h3>손맛</h3>
+    <table class="spec">
+      <tr><th>끌기</th><td>손가락과 카드가 1:1로 움직입니다. 카드는 아래쪽(85%)을 축으로 끈 거리만큼 최대 10도 기울어 손으로 집어 든 느낌을 줍니다. 누르는 순간 카드가 0.985배로 살짝 눌립니다.</td></tr>
+      <tr><th>뒤 카드</th><td>바로 뒤 카드는 0.94배, 아래로 12px 비어져 나오고, 그 뒤 카드는 0.88배. 앞 카드를 끄는 만큼 뒤 카드가 크기와 자리를 이어서 따라와 앞으로 올라옵니다. 뒤 카드의 내용은 가려 두었다가 올라오면서 드러납니다.</td></tr>
+      <tr><th>놓기</th><td>놓을 때 손의 속도를 그대로 이어받는 스프링(강성 230, 감쇠비 0.86)으로 자리를 찾습니다. 넘길지는 놓은 자리에 속도×0.18초를 더한 예상 위치로 정하므로, 짧게 휙 던져도 넘어가고 천천히 끌다 놓으면 돌아옵니다. 한 번에 한 장만 넘어갑니다.</td></tr>
+      <tr><th>끝</th><td>첫 장에서 오른쪽, 마지막 장에서 왼쪽으로 끌면 고무줄처럼 점점 덜 따라옵니다(iOS 스크롤 끝과 같은 식).</td></tr>
+      <tr><th>알려 주기</th><td>첫 장의 숫자가 다 그려진 뒤 손을 대지 않았으면 맨 위 카드가 한 번만 왼쪽으로 살짝 밀렸다 돌아오며 뒤 카드를 보여 줍니다. "넘겨 보세요" 같은 문장 대신 움직임으로 알려 줍니다.</td></tr>
+      <tr><th>점</th><td>점은 카드 위치를 따라 연속으로 늘고 진해집니다. 끄는 도중에도 점이 반쯤 늘어나 있습니다. 점을 누르면 그 장으로 가며, 사이의 카드가 한 장씩 차례로 던져집니다.</td></tr>
+      <tr><th>나가기</th><td>"계속" 이나 닫기를 누르면 더미가 0.96배로 줄며 사라지고 홈(회색 바탕)으로 이어집니다.</td></tr>
+    </table>
+
+    <h3>레퍼런스</h3>
+    <ul>
+      <li>Tinder와 Bumble의 카드 더미: 1:1 끌기, 기울기, 던지기, 뒤 카드가 따라 올라오는 구조</li>
+      <li>iOS 위젯 Smart Stack과 Apple Wallet 카드 겹침: 뒤 카드가 줄어든 채 아래로 비어져 나와 "더 있다" 를 보여 줌</li>
+      <li>Apple Fitness 월간 요약, 토스 월간 리포트: 한 장에 숫자 하나를 크게, 아래에 근거 시각화</li>
+      <li>Spotify Wrapped: 한 장에 한 이야기, 숫자가 드러나는 순간을 연출</li>
+      <li>5차 달력 D 시안(이어진 띠)과 src/heat.ts의 불꽃색</li>
+    </ul>
+
+    <h3>좋은 점</h3>
+    <ul>
+      <li>손으로 만지는 맛이 가장 큽니다. 속도를 이어받는 스프링이라 던진 힘이 그대로 느껴집니다.</li>
+      <li>사용자가 속도를 정합니다. 자동으로 넘어가지 않아 숫자를 오래 볼 수 있고, 뒤로 돌아가기도 자연스럽습니다.</li>
+      <li>뒤 카드가 보여서 "몇 장 남았는지" 와 "넘길 수 있다" 가 문장 없이 전달됩니다.</li>
+      <li>각 카드가 홈의 흰 상자와 같은 모양이라 리뷰가 끝나고 홈으로 갈 때 이질감이 적습니다.</li>
+    </ul>
+
+    <h3>아쉬운 점</h3>
+    <ul>
+      <li>던지는 몸짓을 모르는 사람이 있습니다. 첫 장의 한 번 밀리는 움직임과 점으로 보완했지만, 스토리처럼 화면을 눌러 넘기는 방식보다는 발견이 느립니다. 그래서 카드 자체를 누르는 것으로는 넘어가지 않습니다(읽다가 실수로 넘기지 않게).</li>
+      <li>카드 테두리와 여백 때문에 실제로 쓸 수 있는 면적이 스토리 전체 화면보다 작습니다. 월간 첫 장의 달력이 가장 빠듯합니다.</li>
+      <li>모든 장을 넘겨야 "계속" 이 나옵니다. 바로 홈으로 가려면 닫기를 눌러야 합니다.</li>
+      <li>좌우 끌기와 화면 세로 스크롤이 겹치는 곳에서는 처음 6px 동안 방향을 판단하므로 아주 짧은 순간 반응이 늦을 수 있습니다.</li>
+      <li>"지난달 대비" 의 초록 위, 빨강 아래는 한국 주식 화면의 빨강 상승, 파랑 하락과 반대입니다. 학습 지표라 좋아짐과 나빠짐으로 칠했습니다.</li>
+    </ul>
+
+    <h3>언제 나오는가</h3>
+    <ol>
+      <li>앱을 열 때마다 시작 화면(0.3초 나타남, 0.5초 머묾)이 사라지기 직전에 확인합니다. 보여 줄 리뷰가 있으면 홈 대신 이 화면이 열립니다. 하루의 경계는 기기 시간 자정입니다.</li>
+      <li><b>주간</b>: 그 주(월요일 시작)의 토요일 0시 이후 처음 열 때. 범위는 그 주 월요일부터 여는 날까지이고, 여는 날은 아직 끝나지 않았으므로 오늘 테두리로 표시합니다. 그 주 안에 열지 않고 다음 주에 처음 열면, 지난주 월요일부터 일요일까지 전체를 보여 줍니다(이번 주 것은 이번 주 토요일에 따로 나옴).</li>
+      <li><b>월간</b>: 그 달의 마지막 날 0시 이후 처음 열 때. 마지막 날에 열면 1일부터 마지막 날까지(오늘은 테두리), 다음 달에 처음 열면 지난달 전체입니다. 지난달 대비 카드가 하나 더 붙습니다.</li>
+      <li><b>둘 다 해당</b>(예: 마지막 날이 토요일이거나, 주말과 월말을 지나 처음 연 날): 월간만 보여 주고, 그 주의 주간 리뷰는 본 것으로 처리합니다. 대신 월간 첫 장 달력에서 그 주 줄을 함께 두고, 둘째 줄 숫자 칸에 "이번 주 n/7" 을 더합니다.</li>
+      <li>한 기간에 한 번만 나옵니다. 첫 장이 화면에 그려지면 본 것으로 기록합니다(중간에 앱을 꺼도 다시 나오지 않음). 닫기나 "계속" 모두 홈으로 갑니다.</li>
+      <li>그 기간에 마친 날이 0일이고 읽은 기사도 0개면 나오지 않습니다. 빈 리뷰는 보여 주지 않습니다.</li>
+      <li>설치한 주(달)에는 설치한 날부터 셉니다. 설치하고 3일이 안 됐으면 그 기간은 건너뜁니다.</li>
+      <li>예시 자료: 주간은 2026년 11월 21일 토요일 아침에 연 경우(16일부터 22일, 21일이 오늘), 월간은 11월 30일 월요일 아침에 연 경우입니다.</li>
+    </ol>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const outC = (p) => 1 - Math.pow(1 - p, 3);
+  const inOutC = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+  const fmt = (v) => Math.round(v).toLocaleString('ko-KR');
+
+  // 불꽃색: src/heat.ts 와 같은 식. Toss yellow500, orange500, orange800, red600 사이를 잇는다.
+  const STOPS = [[0, [255, 195, 66]], [0.33, [254, 152, 0]], [0.66, [237, 103, 0]], [1, [228, 41, 57]]];
+  const mix = (x) => {
+    const t = clamp(x / 30);
+    for (let i = 1; i < STOPS.length; i++) {
+      if (t <= STOPS[i][0]) {
+        const k = (t - STOPS[i - 1][0]) / (STOPS[i][0] - STOPS[i - 1][0]);
+        return STOPS[i - 1][1].map((v, j) => Math.round(v + (STOPS[i][1][j] - v) * k));
+      }
+    }
+    return STOPS[STOPS.length - 1][1];
+  };
+  const heat = (x) => `rgb(${mix(x).join(',')})`;
+  const lum = (c) => { const l = c.map((v) => { const x = v / 255; return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+  const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  const ink = (x) => { const f = mix(x); const d = f.map((v, j) => v * 0.18 + [0, 12, 30][j] * 0.82); const lf = lum(f); return ratio(lf, 1) > ratio(lf, lum(d)) ? '#fff' : 'rgba(0,12,30,.82)'; };
+
+  const ICON = {
+    news: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 4.5h12.5v15H6.5A2.5 2.5 0 0 1 4 17zM18 8h2v9.5a2 2 0 0 1-4 0V8zM7 8h6.5v2H7zm0 4h6.5v1.6H7zm0 3.4h4.5V17H7z" fill="#2272eb" fill-rule="evenodd"/></svg>',
+    voca: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4.5 3.5V17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#a234c7"/></svg>',
+    lw: `<span style="color:var(--green600);display:flex">${LW.mark(22, 'currentColor', 3)}</span>`,
+    cal: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="#2272eb"/></svg>',
+    up: '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 2.2l4.2 6.6H1.8z" fill="currentColor"/></svg>',
+    dn: '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 9.8L1.8 3.2h8.4z" fill="currentColor"/></svg>',
+  };
+
+  // ---------- 예시 자료
+  // 2026년 11월. 1일이 일요일, 월요일 시작. 마친 날과 그날 더 푼 문제 수.
+  const NOV = { 3: 4, 4: 0, 5: 11, 12: 6, 13: 3, 14: 22, 15: 0, 16: 2, 17: 18, 18: 0, 19: 9, 20: 6, 26: 30, 27: 12, 28: 5, 29: 14 };
+  const LV_RANGE = { 2: 600, 3: 800, 4: 1000, 5: 1200 };
+  const DATA = {
+    week: {
+      chrome: '이번 주', title: '11월 16일 ~ 22일',
+      cal: { from: 16, to: 22, today: 21, col: (n) => n - 16, row: () => 0, rows: 1, wdToday: 5, ex: true },
+      doneOf: 7, two: [['추가 문제', 35, ''], ['하루 최다', 18, '']],
+      news: { read: 9, pub: 10, quiz: [7, 8], topics: [['지배구조', 4], ['M&A', 3], ['거시경제', 2]] },
+      voca: { rev: 34, neu: 12, up: 19, words: ['moat', 'accretive', 'headwind', 'dilution'], more: 8 },
+      lw: { n: 25, ok: 21, field: '투자론', topics: [['CAPM', 9], ['자본배분', 7], ['APT', 5], ['지수모형', 4]] },
+      streak: { from: 4, to: 9, chip: '+5', chipHot: true },
+      xp: 640, lv: { from: [3, 576], to: [4, 416] },
+    },
+    month: {
+      chrome: '11월', title: '2026년 11월',
+      cal: { from: 1, to: 30, today: 30, col: (n) => (n + 5) % 7, row: (n) => Math.floor((n + 5) / 7), rows: 6, wdToday: -1, ex: false },
+      doneOf: 30, two: [['최장 연속', 9, '일'], ['추가 문제', 142, '']],
+      news: { read: 38, pub: 42, quiz: [31, 36], topics: [['지배구조', 14], ['M&A', 11], ['거시경제', 8], ['상장 규정', 5]] },
+      voca: { rev: 142, neu: 48, up: 71, words: ['moat', 'accretive', 'headwind', 'dilution', 'covenant'], more: 43 },
+      lw: { n: 104, ok: 84, field: '투자론', topics: [['CAPM', 31], ['자본배분', 27], ['APT', 24], ['지수모형', 22]] },
+      streak: { from: 0, to: 4, chip: '최장 9일', chipHot: false },
+      xp: 1980, lv: { from: [2, 210], to: [4, 790] },
+      cmp: { title: '10월 대비', rows: [['완료한 날', '16일', '5일', 1], ['읽은 기사', '38', '6', 1], ['퀴즈 정답률', '86%', '2%p', 0], ['복습한 표현', '142', '38', 1], ['푼 문제', '104', '22', 1], ['문제 정답률', '81%', '4%p', 1], ['XP', '1,980', '340', 1]] },
+    },
+  };
+
+  let MODE = 'week';
+  let gen = 0;
+  let CARDS = [];
+  let slots = [];
+  let dots = [];
+  let played = new Set();
+  let touched = false;
+  let exiting = false;
+  let deckEl;
+  let CH = 600;
+  let SW = 342;
+  let TRAVEL = 430;
+  const PEEK = 12;
+  const D = { pos: 0, vel: 0, target: 0, raf: 0, spread: 0, drag: null };
+
+  /** 경과 시간을 넘겨 주는 움직임. "느리게" 단추를 매 장면 반영한다. */
+  const tween = (dur, fn, g) => new Promise((res) => {
+    if (ML.reduce) { fn(dur); return res(); }
+    let last = null;
+    let el = 0;
+    const step = (now) => {
+      if (g !== gen) return res();
+      if (last === null) last = now;
+      el += (now - last) * ML.rate;
+      last = now;
+      if (el >= dur) { fn(dur); return res(); }
+      fn(el);
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  const later = async (ms, g) => { await ML.wait(ms); return g === gen; };
+
+  // ---------- 1장: 기간과 완료한 날
+  function cardPeriod(d, W) {
+    const c = d.cal;
+    const CW = W / 7;
+    const S = c.rows === 1 ? 40 : CH >= 590 ? 34 : 30;
+    const RH = c.rows === 1 ? S : S + 6;
+    const at = (n) => ({ cx: c.col(n) * CW + CW / 2, cy: c.row(n) * RH + RH / 2 });
+    const done = (n) => n in NOV && n >= c.from && n <= c.to;
+    const runs = [];
+    let r = null;
+    for (let n = c.from; n <= c.to; n++) {
+      if (done(n) && r && c.row(n) === c.row(r.b) && r.b === n - 1) r.b = n;
+      else if (done(n)) runs.push((r = { a: n, b: n }));
+      else r = null;
+    }
+    const bands = runs.map((r) => {
+      const A = at(r.a);
+      const B = at(r.b);
+      const w = B.cx - A.cx + S;
+      const ns = [];
+      for (let n = r.a; n <= r.b; n++) ns.push(n);
+      const stops = ns.map((n) => `${heat(NOV[n])} ${(((at(n).cx - A.cx + S / 2) / w) * 100).toFixed(1)}%`);
+      const bg = ns.length > 1 ? `linear-gradient(90deg, ${stops.join(', ')})` : heat(NOV[r.a]);
+      return `<div class="band" data-w="${w}" data-n="${ns.length}" data-a="${r.a}" style="left:${A.cx - S / 2}px;top:${A.cy - S / 2}px;width:${w}px;height:${S}px;border-radius:${S / 2}px;opacity:0;clip-path:inset(0 ${w - S}px 0 0 round ${S / 2}px)">
+        <div class="layer" style="background:${bg}"></div><div class="layer" style="background:linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 55%)"></div>
+        ${ns.map((n) => `<span class="dn" style="left:${at(n).cx - A.cx + S / 2 - CW / 2}px;width:${CW}px;height:${S}px;color:${ink(NOV[n])}">${n}</span>`).join('')}</div>`;
+    });
+    const loose = [];
+    for (let n = c.from; n <= c.to; n++) {
+      if (done(n)) continue;
+      const p = at(n);
+      if (n === c.today) loose.push(`<span class="ring" style="left:${p.cx - S / 2}px;top:${p.cy - S / 2}px;width:${S}px;height:${S}px"></span>`);
+      loose.push(`<span class="dn ${n > c.today ? 'fut' : ''}" style="left:${p.cx - CW / 2}px;top:${p.cy - RH / 2}px;width:${CW}px;height:${RH}px;${n === c.today ? 'color:var(--grey900);font-weight:700' : ''}">${n}</span>`);
+    }
+    const exs = c.ex ? Object.keys(NOV).map(Number).filter(done).map((n) => `<span class="ex" data-n="${n}" style="left:${at(n).cx - CW / 2}px;top:${S + 8}px;width:${CW}px;${NOV[n] ? `color:${NOV[n] >= 8 ? heat(NOV[n]) : 'var(--orange700)'}` : ''}">${NOV[n] ? '+' + NOV[n] : '0'}</span>`) : [];
+    const gridH = c.rows * RH + (c.ex ? 30 : 0);
+    const doneN = Object.keys(NOV).map(Number).filter(done).length;
+    const html = `<div class="hd"><b>${d.title}</b></div>
+      <div class="hero"><span class="sn">완료한 날</span><span class="sv"><span data-hero>0</span><small>/${d.doneOf}</small></span></div>
+      <div class="fl"></div>
+      <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x, i) => `<span class="${i === c.wdToday ? 'td' : ''}">${x}</span>`).join('')}</div>
+      <div class="grid" style="height:${gridH}px">${bands.join('')}${loose.join('')}${exs.join('')}</div>
+      <div class="fl"></div>
+      <div class="two">${d.two.map(([k, v, u]) => `<div><span class="sn">${k}</span><b><span data-to="${v}">0</span>${u ? `<small>${u}</small>` : ''}</b></div>`).join('')}</div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const rs = [...el.querySelectorAll('.band')].map((b) => ({ b, w: +b.dataset.w, n: +b.dataset.n, a: +b.dataset.a }));
+      let t = 0;
+      rs.forEach((r) => { r.t0 = t; r.dur = 240 + (r.n - 1) * 90; t += r.dur * 0.62; });
+      const T = rs.length ? rs[rs.length - 1].t0 + rs[rs.length - 1].dur : 0;
+      const shown = new Set();
+      await tween(T, (ms) => {
+        let cnt = 0;
+        rs.forEach((r) => {
+          const p = clamp((ms - r.t0) / r.dur);
+          if (p <= 0) return;
+          const e = inOutC(p);
+          const cw = S + (r.w - S) * e;
+          r.b.style.opacity = clamp(p / 0.1);
+          r.b.style.clipPath = `inset(0 ${r.w - cw}px 0 0 round ${S / 2}px)`;
+          const k = Math.min(r.n, 1 + Math.floor((cw - S) / CW + 0.35));
+          cnt += k;
+          for (let j = 0; j < k; j++) {
+            const n = r.a + j;
+            if (shown.has(n)) continue;
+            shown.add(n);
+            const ex = el.querySelector(`.ex[data-n="${n}"]`);
+            if (ex) ML.a(ex, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 260, easing: OUT });
+          }
+        });
+        hero.textContent = cnt;
+      }, g);
+      if (g !== gen) return;
+      hero.textContent = doneN;
+      el.querySelectorAll('.two [data-to]').forEach((x, k) => ML.count(x, 0, +x.dataset.to, 620 + k * 80, fmt));
+    };
+    return { html, play, dur: 1200 + runs.length * 200 };
+  }
+
+  // ---------- 2장: 뉴스
+  function cardNews(d, W) {
+    const N = d.news;
+    const cols = N.pub <= 10 ? N.pub : 14;
+    const gap = N.pub <= 10 ? 6 : 4;
+    const q = N.quiz;
+    const max = N.topics[0][1];
+    const html = `<div class="hd"><span class="ic" style="background:var(--blue-weak)">${ICON.news}</span><b>뉴스</b></div>
+      <div class="hero"><span class="sn">읽은 기사</span><span class="sv"><span data-hero>0</span><small>/${N.pub}</small></span></div>
+      <div class="tiles" style="grid-template-columns:repeat(${cols}, minmax(0,1fr));gap:${gap}px;margin-top:16px">${Array.from({ length: N.pub }, (_, i) => `<i>${i < N.read ? '<b></b>' : ''}</i>`).join('')}</div>
+      <div class="fl"></div>
+      <div class="sub"><div class="row"><span class="sn">저녁 퀴즈</span><b><span data-acc>0</span>%<small>${q[0]}/${q[1]}</small></b></div>
+        <div class="segbar ${q[1] > 12 ? 'dense' : ''}">${Array.from({ length: q[1] }, (_, i) => `<i><b style="background:${i < q[0] ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div></div>
+      <div class="fl"></div>
+      <div class="bars">${N.topics.map(([k, v], i) => `<div class="br ${i ? '' : 'lead'}"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:${i ? 'var(--grey300)' : 'var(--blue500)'}"></i></span><span class="ct">${v}</span></div>`).join('')}</div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const tiles = [...el.querySelectorAll('.tiles b')];
+      const step = N.read > 12 ? 26 : 60;
+      tiles.forEach((b, k) => K.spring(b, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 'rapid', { delay: k * step }));
+      await tween(tiles.length * step, (ms) => (hero.textContent = Math.min(N.read, Math.floor(ms / step) + 1)), g);
+      if (g !== gen) return;
+      hero.textContent = N.read;
+      const segs = [...el.querySelectorAll('.segbar b')];
+      const s2 = q[1] > 12 ? 18 : 50;
+      segs.forEach((b, k) => ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 260, delay: k * s2, easing: OUT }));
+      ML.count(el.querySelector('[data-acc]'), 0, Math.round((q[0] / q[1]) * 100), segs.length * s2 + 200);
+      if (!(await later(160, g))) return;
+      el.querySelectorAll('.br .tr i').forEach((i, k) => ML.a(i, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 620, delay: k * 70, easing: OUT }));
+    };
+    return { html, play, dur: 1400 };
+  }
+
+  // ---------- 3장: 영단어
+  function cardVoca(d, W) {
+    const V = d.voca;
+    const same = V.rev - V.neu - V.up;
+    const parts = [[V.neu, 'var(--purple500)', '새로 익힘'], [V.up, 'var(--purple200)', '강해짐'], [same, 'var(--grey200)', '']];
+    const G = 3;
+    const usable = W - G * 2;
+    let x = 0;
+    const segs = parts.map(([v, c, k]) => { const w = (v / V.rev) * usable; const s = { x, w, c, k, v }; x += w + G; return s; });
+    const html = `<div class="hd"><span class="ic" style="background:var(--purple-weak)">${ICON.voca}</span><b>영단어</b></div>
+      <div class="hero"><span class="sn">복습한 표현</span><span class="sv"><span data-hero>0</span></span></div>
+      <div class="fl"></div>
+      <div class="stk">${segs.map((s) => `<i style="left:${s.x}px;width:${s.w}px;background:${s.c}"></i>`).join('')}</div>
+      <div class="lbls">${segs.filter((s) => s.k).map((s) => `<div style="left:${s.x}px"><span class="k"><i style="background:${s.c}"></i>${s.k}</span><b data-to="${s.v}">0</b></div>`).join('')}</div>
+      <div class="fl"></div>
+      <div class="words">${V.words.map((w) => `<span>${w}</span>`).join('')}<span class="more">+${V.more}</span></div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const is = [...el.querySelectorAll('.stk i')];
+      const T = 900;
+      // 막대 전체가 왼쪽부터 자라며, 각 조각은 자기 자리에 닿을 때 자란다.
+      await tween(T, (ms) => {
+        const e = outC(ms / T);
+        const head = e * W;
+        is.forEach((i, k) => { const s = segs[k]; i.style.transform = `scaleX(${clamp((head - s.x) / s.w)})`; });
+        hero.textContent = fmt(e * V.rev);
+      }, g);
+      if (g !== gen) return;
+      hero.textContent = fmt(V.rev);
+      el.querySelectorAll('.lbls > div').forEach((x, k) => {
+        ML.a(x, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: k * 90, easing: OUT });
+        const b = x.querySelector('b');
+        setTimeout(() => ML.count(b, 0, +b.dataset.to, 520), (k * 90) / ML.rate);
+      });
+      if (!(await later(260, g))) return;
+      el.querySelectorAll('.words span').forEach((s, k) => K.spring(s, [{ opacity: 0, transform: 'scale(.86)' }, { opacity: 1, transform: 'scale(1)' }], 'small', { delay: k * 50 }));
+    };
+    return { html, play, dur: 1600 };
+  }
+
+  // ---------- 4장: Latticework
+  function cardLw(d, W) {
+    const L = d.lw;
+    const max = L.topics[0][1];
+    const acc = Math.round((L.ok / L.n) * 100);
+    const segd = L.n <= 40;
+    const bar = segd
+      ? `<div class="segbar dense">${Array.from({ length: L.n }, (_, i) => `<i><b style="background:${i < L.ok ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div>`
+      : `<div class="cbar"><i class="okb" style="left:0;width:0;background:var(--green500);border-radius:5px 0 0 5px"></i><i class="nob" style="left:${(L.ok / L.n) * 100}%;width:0;background:var(--red300)"></i></div>`;
+    const html = `<div class="hd"><span class="ic" style="background:var(--green-weak)">${ICON.lw}</span><b>Latticework</b></div>
+      <div class="hero two" style="background:none;gap:0"><div style="background:none;padding:0"><span class="sn">푼 문제</span><span class="sv"><span data-hero>0</span></span></div><div style="background:none;padding:0"><span class="sn">정답률</span><span class="sv"><span data-acc>0</span><small>%</small></span></div></div>
+      <div style="margin-top:16px;flex:none">${bar}</div>
+      <div class="fl"></div>
+      <span class="sn" style="margin-bottom:12px;color:var(--grey800);font-weight:700">${L.field}</span>
+      <div class="bars">${L.topics.map(([k, v]) => `<div class="br"><span class="nm">${k}</span><span class="tr"><i style="width:${(v / max) * 100}%;background:var(--green500)"></i></span><span class="ct">${v}</span></div>`).join('')}</div>
+      <div class="fl"></div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const accEl = el.querySelector('[data-acc]');
+      if (segd) {
+        const segs = [...el.querySelectorAll('.segbar b')];
+        const step = 32;
+        segs.forEach((b, k) => ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 220, delay: k * step, easing: OUT }));
+        await tween(segs.length * step, (ms) => {
+          const k = Math.min(L.n, Math.floor(ms / step) + 1);
+          hero.textContent = k;
+        }, g);
+      } else {
+        const ok = el.querySelector('.okb');
+        const no = el.querySelector('.nob');
+        const T = 900;
+        const f = L.ok / L.n;
+        await tween(T, (ms) => {
+          const e = outC(ms / T);
+          ok.style.width = Math.min(e, f) * 100 + '%';
+          no.style.width = Math.max(0, e - f) * 100 + '%';
+          hero.textContent = fmt(e * L.n);
+        }, g);
+      }
+      if (g !== gen) return;
+      hero.textContent = fmt(L.n);
+      ML.count(accEl, 0, acc, 620);
+      el.querySelectorAll('.br .tr i').forEach((i, k) => ML.a(i, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 620, delay: 120 + k * 70, easing: OUT }));
+    };
+    return { html, play, dur: 1700 };
+  }
+
+  // ---------- 5장: 연속과 레벨
+  function cardStreak(d, W) {
+    const s = d.streak;
+    const [l0, x0] = d.lv.from;
+    const [l1, x1] = d.lv.to;
+    const html = `<div class="hd"><span class="flw" id="fw">${K.flame(26, false)}</span><b>연속</b></div>
+      <div class="hero" style="margin-top:12px"><span class="sv"><span data-st>${s.from}</span><small>일</small><span class="chip" data-chip style="opacity:0;${s.chipHot ? 'background:var(--orange-weak);color:var(--orange700)' : 'background:var(--grey100);color:var(--grey600)'}">${s.chip}</span></span></div>
+      <div class="fl"></div>
+      <div class="hd"><span class="ic" style="background:var(--yellow-weak)">${K.bolt(22, 'var(--yellow500)')}</span><b>레벨</b></div>
+      <div class="hero" style="margin-top:12px"><div class="lv"><small>Lv</small><span class="n roll" data-lv>${l0}</span><span class="chip" data-xpc style="opacity:0;background:var(--yellow-weak);color:var(--orange700)">+<span data-xp>0</span> XP</span></div>
+        <div class="pbar" style="margin-top:14px"><i class="fill" data-fill style="transform:scaleX(${x0 / LV_RANGE[l0]})"></i></div>
+        <div class="xpn"><span data-xpn>${fmt(x0)} / ${fmt(LV_RANGE[l0])}</span></div></div>
+      <div class="fl"></div>`;
+    const play = async (el, g) => {
+      const fl = el.querySelector('.flame');
+      const litw = fl.querySelector('.litw');
+      // 불이 아래에서 위로 켜진다. 연속이 이어지고 있다는 뜻.
+      K.spring(fl, [{ transform: 'scale(1)' }, { transform: 'scale(.86)' }], 'quick');
+      ML.a(litw, [{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 420, delay: 140, easing: ML.ease.out });
+      K.spring(fl, [{ transform: 'scale(.86)' }, { transform: 'scale(1)' }], 'bounce', { delay: 180 });
+      const st = el.querySelector('[data-st]');
+      if (!(await later(220, g))) return;
+      await ML.count(st, s.from, s.to, 160 + (s.to - s.from) * 90);
+      if (g !== gen) return;
+      const chip = el.querySelector('[data-chip]');
+      K.spring(chip, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce');
+      if (!(await later(260, g))) return;
+      // 레벨: 막대가 끝까지 차면 숫자가 튀며 바뀌고, 비운 뒤 새 레벨만큼 다시 찬다.
+      const xpc = el.querySelector('[data-xpc]');
+      K.spring(xpc, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce');
+      const xpEl = el.querySelector('[data-xp]');
+      const fill = el.querySelector('[data-fill]');
+      const lvEl = el.querySelector('[data-lv]');
+      const xpn = el.querySelector('[data-xpn]');
+      const legs = [];
+      for (let l = l0; l < l1; l++) legs.push({ l, a: l === l0 ? x0 / LV_RANGE[l] : 0, b: 1 });
+      legs.push({ l: l1, a: 0, b: x1 / LV_RANGE[l1] });
+      const total = legs.reduce((t, x) => t + (x.b - x.a), 0);
+      const ms = (x) => 220 + x * 620;
+      let gained = 0;
+      for (const leg of legs) {
+        const dur = ms(leg.b - leg.a);
+        const base = gained;
+        await tween(dur, (t) => {
+          const e = leg.l === l1 ? outC(t / dur) : inOutC(t / dur);
+          const f = leg.a + (leg.b - leg.a) * e;
+          fill.style.transform = `scaleX(${f})`;
+          xpn.textContent = `${fmt(f * LV_RANGE[leg.l])} / ${fmt(LV_RANGE[leg.l])}`;
+          xpEl.textContent = fmt(((base + (leg.b - leg.a) * e) / total) * d.xp);
+        }, g);
+        if (g !== gen) return;
+        gained += leg.b - leg.a;
+        if (leg.l < l1) {
+          ML.roll(lvEl, String(leg.l + 1), 1, 300);
+          K.spring(lvEl, [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], 'bounce');
+          ML.a(fill, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease', fill: 'none' });
+          if (!(await later(180, g))) return;
+          fill.style.transform = 'scaleX(0)';
+        }
+      }
+      xpEl.textContent = fmt(d.xp);
+      xpn.textContent = `${fmt(x1)} / ${fmt(LV_RANGE[l1])}`;
+    };
+    return { html, play, dur: 2600 };
+  }
+
+  // ---------- 6장: 지난달 대비 (월간만)
+  function cardCmp(d) {
+    const C = d.cmp;
+    const html = `<div class="hd"><span class="ic" style="background:var(--blue-weak)">${ICON.cal}</span><b>${C.title}</b></div>
+      <div class="fl" style="max-height:20px"></div>
+      <div class="cmp">${C.rows.map(([k, v, dv, up]) => `<div class="cr" style="opacity:0"><span class="nm">${k}</span><span class="v">${v}</span><span class="d ${up ? 'up' : 'dn'}" style="opacity:0">${up ? ICON.up : ICON.dn}${dv}</span></div>`).join('')}</div>
+      <div class="fl"></div>`;
+    const play = async (el, g) => {
+      el.querySelectorAll('.cr').forEach((r, k) => {
+        ML.a(r, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: k * 60, easing: OUT });
+        K.spring(r.querySelector('.d'), [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce', { delay: 200 + k * 60 });
+      });
+    };
+    return { html, play, dur: 900 };
+  }
+
+  // ---------- 더미
+  function build() {
+    const d = DATA[MODE];
+    const H = phone.clientHeight;
+    SW = phone.clientWidth - 48;
+    CH = Math.max(420, H - 196);
+    TRAVEL = SW + 90;
+    const W = SW - 48;
+    CARDS = [cardPeriod(d, W), cardNews(d, W), cardVoca(d, W), cardLw(d, W), cardStreak(d, W)];
+    if (MODE === 'month') CARDS.push(cardCmp(d));
+    const N = CARDS.length;
+    const dotTop = 64 + CH + PEEK * 2 + 8;
+    phone.innerHTML = `<div class="scr">
+      <div class="top" id="top"><b>${d.chrome}</b><button class="x" id="x" aria-label="닫기">${K.close(24)}</button></div>
+      <div class="deck" id="deck">${CARDS.map((c, k) => `<div class="slot" style="height:${CH}px"><div class="card"><div class="in">${c.html}${k === N - 1 ? '<div class="fl" style="max-height:24px"></div><button class="tbtn" data-go>계속</button>' : ''}</div><div class="veil"></div></div></div>`).join('')}</div>
+      <div class="dots" id="dots" style="top:${dotTop}px">${CARDS.map((_, k) => `<button aria-label="${k + 1}/${N}"><i><b></b></i></button>`).join('')}</div></div>`;
+    deckEl = phone.querySelector('#deck');
+    slots = [...deckEl.querySelectorAll('.slot')];
+    dots = [...phone.querySelectorAll('#dots button')];
+    dots.forEach((b, k) => b.addEventListener('click', () => { touched = true; go(k); }));
+    const x = phone.querySelector('#x');
+    K.press(x);
+    x.addEventListener('click', exit);
+    const cont = phone.querySelector('[data-go]');
+    K.press(cont);
+    cont.addEventListener('click', exit);
+    bindDrag();
+  }
+
+  /** 자리 하나(pos)에서 모든 카드와 점의 모습을 정한다. pos 는 소수(끄는 도중). */
+  function apply() {
+    const N = slots.length;
+    slots.forEach((s, k) => {
+      const r = k - D.pos;
+      let x = 0, y = 0, sc = 1, rot = 0, op = 1, co = 1, veil = 0;
+      if (r < 0) {
+        const t = Math.max(r, -1.3);
+        x = t * TRAVEL;
+        rot = t * 10;
+      } else {
+        const q = Math.min(r, 2) * D.spread;
+        sc = 1 - 0.06 * q;
+        y = (CH / 2) * (1 - sc) + PEEK * q;
+        if (r > 2) op = clamp(3 - r);
+        co = clamp(1 - r * 2.2);
+        veil = clamp(r) * 0.7;
+      }
+      s.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(4)})`;
+      s.style.visibility = r <= -1.25 || r >= 3 ? 'hidden' : 'visible';
+      s.style.opacity = op;
+      s.style.zIndex = 100 - k;
+      s.querySelector('.in').style.opacity = co;
+      s.querySelector('.veil').style.opacity = veil;
+      s.setAttribute('aria-hidden', String(Math.round(D.pos) !== k));
+    });
+    dots.forEach((b, k) => {
+      const c = clamp(1 - Math.abs(k - D.pos));
+      const i = b.firstChild;
+      i.style.width = 6 + 12 * c + 'px';
+      i.firstChild.style.opacity = c;
+    });
+  }
+
+  /** 속도를 이어받는 스프링. 강성 230, 감쇠비 0.86. 단위는 카드 장 수. */
+  const KS = 230;
+  const KC = 2 * 0.86 * Math.sqrt(KS);
+  let lastT = 0;
+  function springTo(target, v) {
+    D.target = target;
+    if (v !== undefined) D.vel = v;
+    if (ML.reduce) { D.pos = target; D.vel = 0; apply(); return; }
+    if (!D.raf) { lastT = performance.now(); D.raf = requestAnimationFrame(tick); }
+  }
+  function tick(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000) * ML.rate;
+    lastT = now;
+    const n = Math.max(1, Math.ceil(dt / 0.004));
+    const h = dt / n;
+    for (let i = 0; i < n; i++) {
+      const a = -KS * (D.pos - D.target) - KC * D.vel;
+      D.vel += a * h;
+      D.pos += D.vel * h;
+    }
+    if (Math.abs(D.pos - D.target) < 0.0006 && Math.abs(D.vel) < 0.01) {
+      D.pos = D.target;
+      D.vel = 0;
+      D.raf = 0;
+      apply();
+      return;
+    }
+    apply();
+    D.raf = requestAnimationFrame(tick);
+  }
+  function stopSpring() { if (D.raf) cancelAnimationFrame(D.raf); D.raf = 0; }
+
+  function play(k) {
+    if (played.has(k)) return;
+    played.add(k);
+    CARDS[k].play(slots[k].querySelector('.in'), gen);
+  }
+  function go(k) {
+    k = clamp(k, 0, slots.length - 1);
+    play(k);
+    springTo(k);
+  }
+
+  // 끝에서는 고무줄처럼. 카드 장 수 단위.
+  const rubber = (over) => (1 - 1 / ((over * 0.55) / 0.5 + 1)) * 0.5;
+  function bindDrag() {
+    deckEl.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || exiting || e.target.closest('button')) return;
+      touched = true;
+      stopSpring();
+      D.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, p0: D.pos, from: Math.round(D.target), axis: null, samples: [[performance.now(), e.clientX]] };
+      const card = slots[Math.round(D.pos)]?.querySelector('.card');
+      if (card) { D.drag.card = card; K.spring(card, [{ transform: 'scale(1)' }, { transform: 'scale(.985)' }], 'quick'); }
+    });
+    deckEl.addEventListener('pointermove', (e) => {
+      const g = D.drag;
+      if (!g || e.pointerId !== g.id) return;
+      const dx = e.clientX - g.x0;
+      const dy = e.clientY - g.y0;
+      if (!g.axis) {
+        if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) { g.axis = 'x'; deckEl.setPointerCapture(e.pointerId); deckEl.classList.add('drag'); }
+        else if (Math.abs(dy) > 10) { g.axis = 'y'; return release(e, true); }
+        else return;
+      }
+      const raw = g.p0 - dx / TRAVEL;
+      const last = slots.length - 1;
+      D.pos = raw < 0 ? -rubber(-raw) : raw > last ? last + rubber(raw - last) : raw;
+      const now = performance.now();
+      g.samples.push([now, e.clientX]);
+      while (g.samples.length > 2 && now - g.samples[0][0] > 90) g.samples.shift();
+      apply();
+    });
+    const release = (e, cancel) => {
+      const g = D.drag;
+      if (!g || e.pointerId !== g.id) return;
+      D.drag = null;
+      deckEl.classList.remove('drag');
+      if (g.card) K.spring(g.card, [{ transform: 'scale(.985)' }, { transform: 'scale(1)' }], 'bounce');
+      if (g.axis !== 'x' || cancel) return springTo(g.from, 0);
+      const a = g.samples[0];
+      const b = g.samples[g.samples.length - 1];
+      const vpx = b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0; // px/ms
+      const v = (-vpx * 1000) / TRAVEL; // 장/초
+      const proj = D.pos + v * 0.18;
+      const t = clamp(Math.round(proj), Math.max(0, g.from - 1), Math.min(slots.length - 1, g.from + 1));
+      if (t !== g.from) play(t);
+      springTo(t, v);
+    };
+    deckEl.addEventListener('pointerup', (e) => release(e, false));
+    deckEl.addEventListener('pointercancel', (e) => release(e, true));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { touched = true; go(Math.round(D.target) + 1); }
+    if (e.key === 'ArrowLeft') { touched = true; go(Math.round(D.target) - 1); }
+  });
+
+  async function exit() {
+    if (exiting) return;
+    exiting = true;
+    const g = gen;
+    ML.a(deckEl, [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.96)' }], { duration: 260, easing: ML.ease.in });
+    ML.a(phone.querySelector('#dots'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+    ML.a(phone.querySelector('#top'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+    await ML.wait(280);
+    if (g === gen) location.href = '../v5/app.html?nosplash=1';
+  }
+
+  /** 시작 화면: v5 앱과 같다. 아이콘과 이름이 0.3초 동안 나타나고 0.5초 머문다. */
+  async function splash(g) {
+    const sp = document.createElement('div');
+    sp.className = 'splash';
+    sp.innerHTML = `<div class="icon">${'<i></i>'.repeat(9)}</div><b>Latticework</b>`;
+    phone.querySelector('.scr').append(sp);
+    ML.a(sp.querySelector('.icon'), [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, easing: OUT });
+    ML.a(sp.querySelector('b'), [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80, easing: OUT });
+    await ML.wait(820);
+    if (g !== gen) return;
+    await ML.done(ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' }));
+    sp.remove();
+  }
+
+  /** 스프링 곡선(닫힌 식). 뒤 카드가 펼쳐질 때 쓴다. */
+  const springE = (w = 13, z = 0.72) => (t) => { const wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + ((z * w) / wd) * Math.sin(wd * t)); };
+
+  async function start(withSplash) {
+    gen++;
+    const g = gen;
+    stopSpring();
+    ML.clear(phone);
+    exiting = false;
+    touched = false;
+    played = new Set();
+    Object.assign(D, { pos: 0, vel: 0, target: 0, spread: 0, drag: null });
+    build();
+    apply();
+    const top = phone.querySelector('#top');
+    const dotsEl = phone.querySelector('#dots');
+    [deckEl, top, dotsEl].forEach((x) => (x.style.opacity = 0));
+    if (withSplash) await splash(g);
+    if (g !== gen) return;
+    [deckEl, top, dotsEl].forEach((x) => (x.style.opacity = ''));
+    // 더미가 아래에서 올라오고, 겹쳐 있던 뒤 카드가 펼쳐지며 아래로 비어져 나온다.
+    ML.a(deckEl, [{ opacity: 0, transform: 'translateY(28px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 460, easing: OUT });
+    ML.a(top, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease' });
+    ML.a(dotsEl, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 200, easing: 'ease' });
+    const se = springE(13, 0.7);
+    tween(700, (ms) => { D.spread = se(ms / 1000); apply(); }, g).then(() => { D.spread = 1; apply(); });
+    if (!(await later(260, g))) return;
+    play(0);
+    // 첫 장의 숫자가 다 그려진 뒤, 손을 대지 않았으면 한 번만 살짝 밀어 뒤 카드를 보여 준다.
+    if (!(await later(CARDS[0].dur + 500, g))) return;
+    if (touched || D.drag || Math.round(D.target) !== 0) return;
+    springTo(0.16, 0);
+    if (!(await later(240, g))) return;
+    if (touched || D.drag) return;
+    springTo(0);
+  }
+
+  ML.bar({
+    title: '카드 넘기기',
+    replay: () => start(true),
+    home: '../index.html',
+    extra: [['주간', () => { MODE = 'week'; mark(); start(true); }], ['월간', () => { MODE = 'month'; mark(); start(true); }]],
+  });
+  const modeBtns = [...document.querySelectorAll('.lab-bar button')].slice(0, 2);
+  const mark = () => { modeBtns[0].setAttribute('aria-pressed', String(MODE === 'week')); modeBtns[1].setAttribute('aria-pressed', String(MODE === 'month')); };
+  mark();
+  start(true);
+})();
+</script>
+</body>
+</html>

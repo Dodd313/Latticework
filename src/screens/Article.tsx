@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
-import { Animated, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
-import { monthDay } from '../dates';
-import { Rise, usePop } from '../motion';
-import { BackBar, useNav } from '../nav';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
+import { cheerRead, seedOf } from '../cheer';
+import { monthDay, todayKST } from '../dates';
+import { NATIVE_DRIVER, Rise, motionOff, spring, usePop } from '../motion';
+import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, ArticleLink } from '../types';
@@ -72,12 +73,72 @@ function ReadToggle({ read, onPress }: { read: boolean; onPress: () => void }) {
   );
 }
 
+/** 끝까지 읽었을 때 아래에서 올라와 2초쯤 머물다 사라지는 응원 한 줄. 화면 위에 떠서 자리를 밀지 않는다. */
+function ReadToast({ text, onDone }: { text: string; onDone: () => void }) {
+  const t = useTheme();
+  const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
+  useEffect(() => {
+    let out: Animated.CompositeAnimation | null = null;
+    const enter = spring(v, 1, 'quick');
+    enter.start();
+    const id = setTimeout(() => {
+      if (motionOff()) return onDone();
+      out = Animated.timing(v, { toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: NATIVE_DRIVER });
+      out.start(({ finished }) => finished && onDone());
+    }, 2200);
+    return () => {
+      clearTimeout(id);
+      enter.stop();
+      out?.stop();
+    };
+  }, []);
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 3, alignItems: 'center', paddingHorizontal: 16, paddingBottom: 20 }}>
+      <Animated.View
+        accessibilityLiveRegion="polite"
+        accessibilityRole="alert"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          maxWidth: 360,
+          paddingVertical: 12,
+          paddingLeft: 12,
+          paddingRight: 18,
+          borderRadius: 16,
+          backgroundColor: t.blue,
+          opacity: v,
+          transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+        }}
+      >
+        <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: t.onColor, alignItems: 'center', justifyContent: 'center' }} aria-hidden>
+          <Icon name="check" size={14} color={t.blue} sw={3.4} />
+        </View>
+        <T type="t6" w="600" c={t.onColor} lines={1} style={{ flexShrink: 1 }}>
+          {text}
+        </T>
+      </Animated.View>
+      <View style={{ height: BOTTOM_PAD }} />
+    </View>
+  );
+}
+
 function Body({ a, pos }: { a: Article; pos: string | undefined }) {
   const t = useTheme();
-  const { user, markRead } = useStore();
+  const { days, user, markRead } = useStore();
   const isRead = !!user.read[a.id];
   const progress = useRef(new Animated.Value(0)).current;
   const autoMarked = useRef(false);
+  const [toast, setToast] = useState<string | null>(null);
+  // 끝까지 읽어 새로 읽음이 되면 응원 한 줄. 숫자는 오늘 기사 중 읽은 수(이번 기사 포함)와 오늘 기사 수.
+  const cheer = () => {
+    const today = todayKST();
+    const todayDay = days[0] && days[0].date === today ? days[0] : undefined;
+    const isToday = !!todayDay && todayDay.articles.some((x) => x.id === a.id);
+    const readToday = isToday ? todayDay!.articles.filter((x) => x.id === a.id || !!user.read[x.id]).length : 0;
+    const totalToday = isToday ? todayDay!.articles.length : 0;
+    return cheerRead({ readToday, totalToday, seed: seedOf(today, 'read', a.id) });
+  };
   // 스크롤에 맞춰 위쪽 진행선을 늘리고, 끝까지 읽으면 한 번만 읽음으로 표시한다.
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
@@ -85,6 +146,7 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
     progress.setValue(Math.max(0, Math.min(1, contentOffset.y / room)));
     if (!autoMarked.current && contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) {
       autoMarked.current = true;
+      if (!isRead) setToast(cheer());
       markRead(a.id, true);
     }
   };
@@ -158,6 +220,7 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
           <Icon name="external" size={18} color={t.blueText} />
         </ExtLink>
       </ScrollView>
+      {toast ? <ReadToast text={toast} onDone={() => setToast(null)} /> : null}
     </>
   );
 }

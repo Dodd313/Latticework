@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, View } from 'react-native';
 import { korean } from '../dates';
-import { NATIVE_DRIVER, motionOff, spring } from '../motion';
+import { NATIVE_DRIVER, Rise, motionOff, spring } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
 import { Day, Review } from '../types';
-import { Chip, Icon, ProgressBar, T, Tap } from '../ui';
-import { QuizFeedback, QuizNav, QuizQuestion, QuizState, useQuiz } from './Review';
+import { Chip, Icon, LipButton, ProgressBar, Ring, T, Tap } from '../ui';
+import { QuizFeedback, QuizNav, QuizQuestion, QuizState, quizCheer, useQuiz } from './Review';
 
 /** 저녁 퀴즈의 저장 키. 주간 퀴즈와 같은 저장 칸(user.quiz)을 쓴다. */
 export function dayQuizId(date: string): string {
@@ -98,11 +98,51 @@ function EmptyHeader() {
   );
 }
 
+/** 다 푼 뒤의 결과: 응원 한 줄 아래에 맞힌 수/문항 수. */
+function DayQuizDone({ s, onReview, onClose }: { s: QuizState; onReview: () => void; onClose: () => void }) {
+  const t = useTheme();
+  const acc = s.total ? s.correct / s.total : 0;
+  return (
+    <View style={{ flex: 1, backgroundColor: t.card }}>
+      <EmptyHeader />
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingTop: 32, paddingHorizontal: 16, paddingBottom: 24, gap: 28 }}>
+        <Rise y={8} style={{ alignSelf: 'stretch', alignItems: 'center', gap: 4 }}>
+          <T type="t6" w="600" c={t.sub} center>
+            {s.review.title}
+          </T>
+          <T type="t2" w="700" center role="heading" level={1}>
+            {quizCheer(s.review, s.correct, s.total)}
+          </T>
+        </Rise>
+        <Rise y={10} delay={120}>
+          <Ring value={acc} color={t.green} a11yLabel={`정답 ${s.correct}/${s.total}`}>
+            <T s={36} w="800" mono lh={40 / 36} style={{ letterSpacing: -1 }}>
+              {`${s.correct}/${s.total}`}
+            </T>
+            <T s={13} w="600" c={t.mute} lh={1.4}>
+              정답
+            </T>
+          </Ring>
+        </Rise>
+      </ScrollView>
+      <View style={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: 22 }}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <LipButton label="문항 보기" tone="ghost" onPress={onReview} style={{ flex: 1 }} />
+          <LipButton label="닫기" onPress={onClose} style={{ flex: 1 }} />
+        </View>
+        <View style={{ height: BOTTOM_PAD }} />
+      </View>
+    </View>
+  );
+}
+
 function DayQuizBody({ review }: { review: Review }) {
   const t = useTheme();
   const nav = useNav();
   const s = useQuiz(review);
   const r = s.resultOf(s.at);
+  // 이미 다 푼 퀴즈를 다시 열면 결과부터 보여 준다.
+  const [showDone, setShowDone] = useState(s.allDone);
   const [footH, setFootH] = useState(96);
   const [panelH, setPanelH] = useState(0);
   const scroll = useRef<any>(null);
@@ -122,6 +162,18 @@ function DayQuizBody({ review }: { review: Review }) {
   }, [s.at, !!r]);
 
   const cover = r ? Math.max(0, panelH - footH) : 0;
+  if (showDone && s.allDone) {
+    return (
+      <DayQuizDone
+        s={s}
+        onReview={() => {
+          s.setAt(0);
+          setShowDone(false);
+        }}
+        onClose={nav.pop}
+      />
+    );
+  }
   return (
     <View style={{ flex: 1, backgroundColor: t.card, overflow: 'hidden' }}>
       <QuizHeader s={s} />
@@ -151,7 +203,7 @@ function DayQuizBody({ review }: { review: Review }) {
       ) : null}
 
       <View onLayout={(e) => setFootH(e.nativeEvent.layout.height)} style={{ zIndex: 2, paddingTop: 12, paddingHorizontal: 16, paddingBottom: 22 }}>
-        <QuizNav s={s} onEnd={nav.pop} />
+        <QuizNav s={s} onEnd={() => setShowDone(true)} endLabel="결과 보기" />
         <View style={{ height: BOTTOM_PAD }} />
       </View>
     </View>

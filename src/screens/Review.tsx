@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
+import { cheerQuiz, seedOf } from '../cheer';
 import { addDays, isWeekend, todayKST, weekTitle, weekdaysOf } from '../dates';
 import { NATIVE_DRIVER, Rise, motionOff, spring } from '../motion';
 import { TabScreen, useNav } from '../nav';
@@ -70,6 +71,11 @@ export function useQuiz(review: Review): QuizState {
     resultOf,
     pick: (choice) => answerQuiz(review.id, at, choice),
   };
+}
+
+/** 다 푼 퀴즈의 응원 한 줄. 숫자는 맞힌 수와 문항 수. seed 가 퀴즈와 결과에 묶여 있어 어느 화면에서 봐도 같은 줄이다. */
+export function quizCheer(review: Review, right: number, total: number): string {
+  return cheerQuiz({ right, total, seed: seedOf(review.id, 'quiz', right, total) });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -168,7 +174,7 @@ export function QuizFeedback({ s, big }: { s: QuizState; big?: boolean }) {
 }
 
 /** 이전(네모 고스트)과 다음(입체 단추). 답하면 다음 단추가 결과 색으로 바뀐다. */
-export function QuizNav({ s, onEnd }: { s: QuizState; onEnd?: () => void }) {
+export function QuizNav({ s, onEnd, endLabel = '닫기' }: { s: QuizState; onEnd?: () => void; endLabel?: string }) {
   const t = useTheme();
   const last = s.at === s.total - 1;
   const r = s.resultOf(s.at);
@@ -181,8 +187,8 @@ export function QuizNav({ s, onEnd }: { s: QuizState; onEnd?: () => void }) {
       </LipButton>
       <LipButton
         tone={nextOff ? 'off' : r === 'right' ? 'green' : r === 'wrong' ? 'red' : 'blue'}
-        label={endable ? '닫기' : '다음'}
-        a11yLabel={endable ? '닫기' : '다음 문항'}
+        label={endable ? endLabel : '다음'}
+        a11yLabel={endable ? endLabel : '다음 문항'}
         disabled={nextOff}
         onPress={() => (endable ? onEnd!() : s.setAt(s.at + 1))}
         style={{ flex: 1 }}
@@ -225,6 +231,16 @@ export function Quiz({ review, title = '퀴즈' }: { review: Review; title?: str
           </Rise>
         ) : null}
         <QuizNav s={s} />
+        {s.allDone ? (
+          <Rise y={8} style={{ borderRadius: 16, paddingVertical: 16, paddingHorizontal: 16, backgroundColor: t.greenWeak, alignItems: 'center', gap: 2 }}>
+            <T type="t5" w="700" c={t.greenText} center>
+              {quizCheer(review, s.correct, s.total)}
+            </T>
+            <T s={26} w="800" c={t.greenText} mono center lh={34 / 26} style={{ letterSpacing: -0.5 }}>
+              {`${s.correct}/${s.total}`}
+            </T>
+          </Rise>
+        ) : null}
       </View>
     </Box>
   );

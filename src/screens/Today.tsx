@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { cheerHome, seedOf } from '../cheer';
 import { addDays, weekdaysOf } from '../dates';
 import { EASE_OUT, NATIVE_DRIVER, Pulse, Rise, motionOff } from '../motion';
 import { TabScreen, useNav } from '../nav';
@@ -158,7 +159,7 @@ const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
 export function TodayScreen() {
   const t = useTheme();
   const nav = useNav();
-  const { days, user, status, studyData } = useStore();
+  const { days, user, status, studyData, study } = useStore();
   const goals = useGoals();
   const { today, parts, streak } = goals;
   const day = days[0];
@@ -198,6 +199,16 @@ export function TodayScreen() {
   const allRead = !!todayDay && todayDay.articles.every((a) => !!user.read[a.id]);
   const showQuiz = !!quiz && (quizDone || (quizOpen(today) && allRead));
 
+  // 오늘 카드 머리 아래의 응원 한 줄. 숫자는 모두 오늘 기록에서 온다.
+  const rec = study.days[today];
+  const solvedToday = rec ? rec.lat + rec.voc + (rec.extra ?? 0) : 0;
+  const readToday = todayDay ? todayDay.articles.filter((a) => !!user.read[a.id]).length : 0;
+  const hourKST = new Date(Date.now() + 9 * 3600 * 1000).getUTCHours();
+  const cheer =
+    parts.length > 0
+      ? cheerHome({ doneParts: doneCount, totalParts: parts.length, solvedToday, readToday, streakDays: streak, allDone, hourKST, seed: seedOf(today, 'home', doneCount, allDone) })
+      : null;
+
   const monday = weekdaysOf(today)[0];
   const week = WEEK.map((label, i) => {
     const date = addDays(monday, i);
@@ -227,6 +238,11 @@ export function TodayScreen() {
           {parts.length > 0 ? (
             <Rise delay={40}>
               <Box title="오늘" aside={`${doneCount}/${parts.length}`}>
+                {cheer ? (
+                  <T s={15} w="600" lh={22.5 / 15} c={allDone ? t.blueText : t.deck} style={{ marginTop: -2, marginBottom: 6 }}>
+                    {cheer}
+                  </T>
+                ) : null}
                 {parts.map((p) => (
                   <TaskRow
                     key={p.key}
