@@ -16,7 +16,7 @@
   .hd b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
   .pill { height: 32px; padding: 0 12px; border-radius: 16px; background: #fff; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--grey500); }
   .pill b { font-size: 15px; font-weight: 700; color: var(--grey700); }
-  .pill.on b { color: var(--blue600); }
+  .pill.on b { color: var(--red600); }
   .stack { padding: 0 12px 20px; display: flex; flex-direction: column; gap: 12px; }
   .box { background: #fff; border-radius: 20px; padding: 20px; }
   .bh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -41,9 +41,9 @@
   .wk .l.td { color: var(--grey900); font-weight: 700; }
   .wk .c { display: flex; justify-content: center; }
   .wk .c span { width: 30px; height: 30px; border-radius: 15px; background: var(--grey100); display: flex; align-items: center; justify-content: center; }
-  .wk .c.on span { background: var(--blue500); }
-  .wk .c.td span { box-shadow: inset 0 0 0 2px var(--blue500); background: #fff; }
-  .wk .c.td.on span { background: var(--blue500); box-shadow: none; }
+  .wk .c.on span { background: rgb(246,101,112); }
+  .wk .c.td span { box-shadow: inset 0 0 0 2px var(--red400, #f66570); background: #fff; }
+  .wk .c.td.on span { box-shadow: none; }
   .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 5; }
   .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
   .tabs button.on { color: var(--grey900); }
@@ -61,7 +61,7 @@
   .ttl1 { padding: 8px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
   .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .three div { background: #fff; border-radius: 16px; padding: 14px 16px; }
-  .three span { display: block; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .three > div > span { display: block; font-size: 13px; font-weight: 600; color: var(--grey500); }
   .three b { font-size: 22px; line-height: 31px; font-weight: 700; }
   .three b small { font-size: 15px; font-weight: 600; margin-left: 1px; }
   .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -72,12 +72,17 @@
   .cal .l { text-align: center; font-size: 12px; font-weight: 600; color: var(--grey500); padding-bottom: 6px; }
   .cal .c { position: relative; z-index: 1; height: 40px; display: flex; align-items: center; justify-content: center; }
   .cal .c button { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 18px; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--grey700); font-variant-numeric: tabular-nums; }
-  .cal .c.on button { background: var(--blue500); color: #fff; font-weight: 700; }
-  .cal .c.part button { background: var(--blue50); color: var(--blue600); }
-  .cal .c.td button { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--blue500); }
+  .cal .c.on button { color: #fff; font-weight: 700; }
+    .cal .c.td button { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #f66570; }
   .cal .c.fut button { color: var(--grey300); }
   .cal .c.sel button { transform: scale(1.08); }
-  .cal .bd { position: absolute; z-index: 0; height: 36px; border-radius: 18px; background: var(--blue100); transform-origin: left; }
+  .cal .bd { position: absolute; z-index: 0; height: 36px; border-radius: 18px; background: var(--red100); transform-origin: left; }
+  .three b.red { color: var(--red500); }
+  .leg .grad { display: inline-flex; align-items: center; gap: 6px; }
+  .leg .grad b { font-weight: 600; }
+  .leg .grad i { width: 72px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgb(246,101,112), rgb(240,68,82) 33%, rgb(210,32,48) 66%, rgb(165,25,38)); }
+  .plus { position: absolute; z-index: 40; font-size: 14px; font-weight: 800; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .xtag { font-size: 14px; font-weight: 700; }
   .leg { display: flex; gap: 14px; margin-top: 14px; font-size: 12px; font-weight: 600; color: var(--grey500); }
   .leg span { display: inline-flex; align-items: center; gap: 5px; }
   .leg i { width: 10px; height: 10px; border-radius: 5px; }
@@ -85,9 +90,7 @@
   .wrow .wn { width: 64px; font-size: 15px; font-weight: 600; }
   .wrow .ds { flex: 1; display: flex; gap: 4px; }
   .wrow .ds i { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); }
-  .wrow .ds i.on { background: var(--blue500); }
-  .wrow .ds i.part { background: var(--blue200); }
-  .wrow .wc { width: 34px; text-align: right; font-size: 14px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+      .wrow .wc { width: 34px; text-align: right; font-size: 14px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
   /* 날짜 시트 */
   .dim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.2); z-index: 30; opacity: 0; }
   .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 31; background: #fff; border-radius: 20px 20px 0 0; padding: 12px 20px 28px; }
@@ -127,15 +130,16 @@
       <li>불꽃은 쓰지 않습니다. 연속 기록은 숫자와 이번 주 점 일곱 개로 보입니다.</li>
       <li>시작 화면을 다시 넣었습니다. 아이콘과 이름만 0.3초 동안 나타나고 0.5초 머문 뒤 홈으로 넘어갑니다.</li>
       <li>기록 탭에 달력을 넣었습니다. 날짜를 누르면 그날 기록이 아래에서 올라옵니다.</li>
+      <li>달력이 열리면 날짜 순서로 칠해집니다. 처음에는 모두 같은 빨강으로 칠해졌다가, 더 푼 만큼 진해집니다. "오늘 완료" 는 오늘 칸이 채워지는 순간을, "더 풀기 +5" 는 더 풀 때마다 오늘 칸이 진해지는 모습을 보여 줍니다.</li>
       <li>홈 맨 위에 투자자의 문장을 둡니다. 제목 없이 따옴표와 이름, 출처만으로 인용임을 알 수 있게 했습니다. 누르면 다음 문장으로 넘어가고, 오른쪽 아래 점이 몇 번째인지 보여 줍니다.</li>
     </ul>
     <h3>달력 표시</h3>
     <table class="spec">
       <tr><th>모양</th><th>뜻</th></tr>
-      <tr><td>파란 원</td><td>그날 할 일 셋을 모두 마침</td></tr>
-      <tr><td>연한 파란 원</td><td>일부만 마침</td></tr>
-      <tr><td>원 사이 연한 막대</td><td>연속으로 마친 날</td></tr>
-      <tr><td>테두리 원</td><td>오늘</td></tr>
+      <tr><td>빨간 원</td><td>그날 할당량을 마침. 일부만 한 날은 칠하지 않음</td></tr>
+      <tr><td>빨강의 진하기</td><td>할당량을 넘겨 더 푼 문제 수. 0문제 red400, 10문제 red500, 20문제 red700, 30문제 이상 red900. 그 사이는 이어지는 색</td></tr>
+      <tr><td>원 사이 연한 빨간 막대</td><td>연속으로 마친 날</td></tr>
+      <tr><td>빨간 테두리 원</td><td>오늘</td></tr>
     </table>
   </section>
 </div>
@@ -224,7 +228,7 @@
         <div class="box"><div class="bh"><b>오늘의 뉴스</b><span>11월 20일</span></div>
           ${NEWS.map((x, i) => `<div class="hl ${S.read[i] ? 'read' : ''}" data-i="${i}"><span class="d"></span><div class="t"><b>${x.t}</b><span>${x.k} · ${x.s}</span></div></div>`).join('')}</div>
         <div class="box" id="wkbox"><div class="bh"><b>이번 주</b><span class="num">${n === 3 ? 5 : 4}/7 ${K.chev(14)}</span></div>
-          <div class="wk">${DAYS.map((d, i) => `<span class="l ${i === 4 ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 4 || (i === 4 && n === 3) ? 'on' : ''} ${i === 4 ? 'td' : ''}"><span>${i < 4 || (i === 4 && n === 3) ? K.check(14, '#fff', 3.2) : ''}</span></span>`).join('')}</div></div>
+          <div class="wk">${DAYS.map((d, i) => `<span class="l ${i === 4 ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => { const on = i < 4 || (i === 4 && n === 3); return `<span class="c ${on ? 'on' : ''} ${i === 4 ? 'td' : ''}"><span style="${on ? `background:${heat(EXTRA[16 + i] || 0)}` : ''}">${on ? K.check(14, '#fff', 3.2) : ''}</span></span>`; }).join('')}</div></div>
       </div>`;
   }
 
@@ -292,65 +296,167 @@
   }
 
   // 기록: 2026년 11월. 1일이 일요일.
+  // 그날 할당량을 마쳤는지는 칠했는지 안 칠했는지로만 나눈다. 일부만 한 날은 안 칠한다.
+  // 할당량을 넘겨 더 푼 문제 수가 많을수록 빨강이 진해진다. 0문제는 red400, 30문제 이상은 red900.
   const DONE = new Set([2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 16, 17, 18, 19]);
-  const PART = new Set([9, 14]);
-  function calHtml() {
+  const EXTRA = { 2: 0, 3: 8, 4: 3, 5: 15, 6: 0, 7: 22, 8: 5, 10: 0, 11: 30, 12: 12, 13: 4, 16: 2, 17: 18, 18: 0, 19: 9, 20: 0 };
+  const HEAT = [[0, [246, 101, 112]], [0.33, [240, 68, 82]], [0.66, [210, 32, 48]], [1, [165, 25, 38]]]; // Toss red 400 · 500 · 700 · 900
+  const heat = (x) => {
+    const t = Math.min(1, x / 30);
+    for (let i = 1; i < HEAT.length; i++) {
+      const [t1, c1] = HEAT[i];
+      const [t0, c0] = HEAT[i - 1];
+      if (t <= t1) {
+        const k = (t - t0) / (t1 - t0);
+        return `rgb(${c0.map((v, j) => Math.round(v + (c1[j] - v) * k)).join(',')})`;
+      }
+    }
+    return 'rgb(165,25,38)';
+  };
+  const doneSet = () => {
     const d = new Set(DONE);
     if (doneCount() === 3) d.add(20);
+    return d;
+  };
+
+  function calHtml() {
+    const d = doneSet();
     const cells = Array(6).fill(null).concat(Array.from({ length: 30 }, (_, i) => i + 1));
     const weeks = [[2, 8], [9, 15], [16, 22]];
     return `<div class="ttl1">기록</div><div class="stack">
-      <div class="three"><div><span>연속</span><b class="num">${streak()}<small>일</small></b></div><div><span>최장</span><b class="num">23<small>일</small></b></div><div><span>이번 달</span><b class="num">${d.size}<small>일</small></b></div></div>
+      <div class="three"><div><span>연속</span><b class="num red">${streak()}<small>일</small></b></div><div><span>최장</span><b class="num">23<small>일</small></b></div><div><span>이번 달</span><b class="num">${d.size}<small>일</small></b></div></div>
       <div class="box"><div class="mh"><b>2026년 11월</b><span class="nav"><button aria-label="이전 달">${ICON.left}</button><button aria-label="다음 달">${ICON.right}</button></span></div>
-        <div class="cal" id="cal">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span class="l">${x}</span>`).join('')}${cells.map((n) => (n ? `<span class="c ${d.has(n) ? 'on' : PART.has(n) ? 'part' : ''} ${n === 20 ? 'td' : ''} ${n > 20 ? 'fut' : ''}" data-d="${n}"><button>${n}</button></span>` : '<span class="c"></span>')).join('')}</div>
-        <div class="leg"><span><i style="background:var(--blue500)"></i>3/3</span><span><i style="background:var(--blue50);box-shadow:inset 0 0 0 1px var(--blue200)"></i>1~2/3</span><span><i style="background:#fff;box-shadow:inset 0 0 0 2px var(--blue500)"></i>오늘</span></div></div>
+        <div class="cal" id="cal">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span class="l">${x}</span>`).join('')}${cells.map((n) => (n ? `<span class="c ${d.has(n) ? 'on' : ''} ${n === 20 ? 'td' : ''} ${n > 20 ? 'fut' : ''}" data-d="${n}"><button style="${d.has(n) ? `background:${heat(EXTRA[n] || 0)}` : ''}">${n}</button></span>` : '<span class="c"></span>')).join('')}</div>
+        <div class="leg"><span><i style="background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="grad"><b>완료</b><i></i><b>+30</b></span></div></div>
       <div class="box"><div class="bh"><b>주별</b></div>
-        ${weeks.map(([a, b], k) => { const ds = Array.from({ length: 7 }, (_, j) => a + j); const c = ds.filter((x) => d.has(x)).length; return `<div class="wrow"><span class="wn">11월 ${k + 1}주</span><span class="ds">${ds.map((x) => `<i class="${d.has(x) ? 'on' : PART.has(x) ? 'part' : ''}"></i>`).join('')}</span><span class="wc">${c}/7</span></div>`; }).join('')}</div>
+        ${weeks.map(([a, b], k) => { const ds = Array.from({ length: 7 }, (_, j) => a + j); const c = ds.filter((x) => d.has(x)).length; return `<div class="wrow"><span class="wn">11월 ${k + 1}주</span><span class="ds">${ds.map((x) => `<i style="${d.has(x) ? `background:${heat(EXTRA[x] || 0)}` : ''}"></i>`).join('')}</span><span class="wc">${c}/7</span></div>`; }).join('')}</div>
     </div>`;
   }
 
-  function bindCal(v) {
-    const cal = v.querySelector('#cal');
+  function placeBands(cal, animate) {
+    cal.querySelectorAll('.bd').forEach((b) => b.remove());
     const cr = cal.getBoundingClientRect();
     const on = (n) => cal.querySelector(`.c[data-d="${n}"]`)?.classList.contains('on');
-    // 연속으로 마친 날은 같은 줄 안에서 막대로 잇는다.
-    const cells = [...cal.querySelectorAll('.c[data-d]')];
-    let run = null;
     const runs = [];
-    cells.forEach((c) => {
-      const n = +c.dataset.d;
+    let run = null;
+    for (let n = 1; n <= 30; n++) {
       const row = Math.floor((n + 5) / 7);
       if (on(n) && run && run.row === row && run.b === n - 1) run.b = n;
       else if (on(n)) runs.push((run = { row, a: n, b: n }));
       else run = null;
-    });
-    runs.filter((r) => r.b > r.a).forEach((r) => {
+    }
+    runs.filter((r) => r.b > r.a).forEach((r, k) => {
       const A = cal.querySelector(`.c[data-d="${r.a}"] button`).getBoundingClientRect();
       const B = cal.querySelector(`.c[data-d="${r.b}"] button`).getBoundingClientRect();
       const bd = document.createElement('i');
       bd.className = 'bd';
       Object.assign(bd.style, { left: A.left - cr.left + 'px', top: A.top - cr.top + 'px', width: B.right - A.left + 'px' });
       cal.prepend(bd);
+      if (animate) ML.a(bd, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 420, delay: 520 + r.row * 70, easing: OUT });
     });
-    cells.forEach((c) => c.querySelector('button').addEventListener('click', () => daySheet(+c.dataset.d)));
+  }
+
+  /** 달력이 열릴 때: 날짜 순서로 칠해지고, 먼저 같은 빨강으로 칠한 뒤 더 푼 만큼 진해진다. */
+  function bindCal(v) {
+    const cal = v.querySelector('#cal');
+    const cells = [...cal.querySelectorAll('.c[data-d]')];
+    cells.forEach((c) => {
+      const n = +c.dataset.d;
+      const b = c.querySelector('button');
+      const delay = 40 + n * 14;
+      if (c.classList.contains('on')) {
+        ML.a(b, [{ transform: 'scale(.55)', opacity: 0 }, { transform: 'scale(1.08)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 380, delay, easing: OUT });
+        ML.a(b, [{ backgroundColor: heat(0) }, { backgroundColor: heat(0), offset: 0.35 }, { backgroundColor: heat(EXTRA[n] || 0) }], { duration: 900, delay, easing: 'ease-in-out' });
+      } else {
+        ML.a(b, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay, easing: OUT });
+      }
+      b.addEventListener('click', () => daySheet(n));
+    });
+    placeBands(cal, true);
+    v.querySelectorAll('.wrow .ds i').forEach((i, k) => ML.a(i, [{ transform: 'scaleX(.2)', opacity: 0 }, { transform: 'scaleX(1)', opacity: 1 }], { duration: 320, delay: 300 + k * 12, easing: OUT }));
+    if (S.fillToday) {
+      S.fillToday = false;
+      setTimeout(() => fillToday(v), 1100 / ML.rate);
+    }
+  }
+
+  /** 오늘 할당량을 마치는 순간: 빈 칸이 빨강으로 채워지고 어제와 막대로 이어진다. */
+  function fillToday(v) {
+    const c = v.querySelector('.c[data-d="20"]');
+    const b = c.querySelector('button');
+    c.classList.add('on');
+    b.style.background = heat(EXTRA[20]);
+    ML.a(b, [{ transform: 'scale(1)', backgroundColor: '#fff' }, { transform: 'scale(.82)', offset: 0.25 }, { transform: 'scale(1.14)', offset: 0.65 }, { transform: 'scale(1)', backgroundColor: heat(EXTRA[20]) }], { duration: 560, easing: OUT });
+    const ring = document.createElement('i');
+    const r = b.getBoundingClientRect();
+    const cr = c.getBoundingClientRect();
+    Object.assign(ring.style, { position: 'absolute', zIndex: 2, left: r.left - cr.left + 'px', top: r.top - cr.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: '50%', boxShadow: `0 0 0 3px ${heat(0)}`, pointerEvents: 'none' });
+    c.append(ring);
+    ML.a(ring, [{ transform: 'scale(1)', opacity: 0.9 }, { transform: 'scale(1.9)', opacity: 0 }], { duration: 620, delay: 120, easing: OUT }).finished.then(() => ring.remove()).catch(() => {});
+    const cal = v.querySelector('#cal');
+    const old = [...cal.querySelectorAll('.bd')].map((x) => x.style.width);
+    placeBands(cal, false);
+    const last = [...cal.querySelectorAll('.bd')].find((x) => !old.includes(x.style.width));
+    if (last) ML.a(last, [{ transform: 'scaleX(.8)' }, { transform: 'scaleX(1)' }], { duration: 360, delay: 160, easing: OUT });
+    const st = v.querySelector('.three .red');
+    if (st) ML.roll(st.firstChild && st.firstChild.nodeType === 3 ? wrapNum(st) : st.querySelector('.roll'), '5', 1, 320);
+    const w3 = v.querySelectorAll('.wrow')[2];
+    if (w3) {
+      const seg = w3.querySelectorAll('.ds i')[4];
+      seg.style.background = heat(EXTRA[20]);
+      ML.a(seg, [{ transform: 'scaleY(1)' }, { transform: 'scaleY(1.8)', offset: 0.3 }, { transform: 'scaleY(1)' }], { duration: 420, delay: 200, easing: OUT });
+      const wc = w3.querySelector('.wc');
+      ML.roll(wc, `${[16, 17, 18, 19, 20, 21, 22].filter((x) => doneSet().has(x)).length}/7`, 1, 300);
+    }
+    const mo = v.querySelector('.three > div:nth-child(3) b');
+    if (mo) ML.roll(mo.firstChild && mo.firstChild.nodeType === 3 ? wrapNum(mo) : mo.querySelector('.roll'), String(doneSet().size), 1, 320);
+  }
+  const wrapNum = (el) => {
+    const n = el.firstChild;
+    const sp = document.createElement('span');
+    sp.className = 'roll';
+    sp.textContent = n.textContent;
+    el.replaceChild(sp, n);
+    return sp;
+  };
+
+  /** 더 풀 때마다 오늘 칸이 한 단계씩 진해진다. */
+  function bumpToday(add) {
+    if (doneCount() < 3) return;
+    const from = EXTRA[20];
+    EXTRA[20] = Math.min(40, from + add);
+    const tgt = S.tab === 'cal' ? phone.querySelector('.c[data-d="20"] button') : phone.querySelector('.wk .c.td span');
+    if (!tgt) return;
+    tgt.style.background = heat(EXTRA[20]);
+    ML.a(tgt, [{ backgroundColor: heat(from), transform: 'scale(1)' }, { transform: 'scale(1.16)', offset: 0.3 }, { backgroundColor: heat(EXTRA[20]), transform: 'scale(1)' }], { duration: 520, easing: OUT });
+    const tag = document.createElement('span');
+    tag.className = 'plus';
+    tag.textContent = `+${EXTRA[20]}`;
+    const r = tgt.getBoundingClientRect();
+    const p = phone.getBoundingClientRect();
+    Object.assign(tag.style, { left: r.left - p.left + r.width / 2 + 'px', top: r.top - p.top - 6 + 'px', color: heat(EXTRA[20]) });
+    phone.querySelector('.scr').append(tag);
+    ML.a(tag, [{ transform: 'translate(-50%, 4px)', opacity: 0 }, { transform: 'translate(-50%, -6px)', opacity: 1, offset: 0.25 }, { transform: 'translate(-50%, -18px)', opacity: 0 }], { duration: 1000, easing: OUT }).finished.then(() => tag.remove()).catch(() => {});
   }
 
   function daySheet(n) {
-    const d = new Set(DONE);
-    if (doneCount() === 3) d.add(20);
     if (n > 20) return;
+    const d = doneSet();
     const full = d.has(n);
-    const part = PART.has(n);
-    const rows = [['뉴스', 2, full || part ? 2 : n === 20 ? S.read.filter(Boolean).length : 0], ['영단어', 6, full ? 6 : part ? 6 : n === 20 ? 3 : 0], ['Latticework', 5, full ? 5 : part ? 2 : 0]];
+    const part = n === 9 || n === 14;
+    const rows = [['뉴스', 2, full || part ? 2 : n === 20 ? S.read.filter(Boolean).length : 0], ['영단어', 6, full || part ? 6 : n === 20 ? 3 : 0], ['Latticework', 5, full ? 5 : part ? 2 : 0]];
     const dow = ['일', '월', '화', '수', '목', '금', '토'][n % 7];
+    const ex = EXTRA[n] || 0;
     const scr = phone.querySelector('.scr');
-    scr.insertAdjacentHTML('beforeend', `<div class="dim" id="dim"></div><div class="sheet" id="sh"><div class="grab"></div><h3>11월 ${n}일 ${dow}요일</h3>
-      ${rows.map(([nm, of, c]) => `<div class="task ${c >= of ? 'ok' : ''}"><span class="nm" style="width:auto;flex:1">${nm}</span><span class="tr" style="flex:none;width:120px"><i style="background:var(--blue500);transform:scaleX(${c / of})"></i></span><span class="ct">${c >= of ? K.check(18, 'var(--green500)', 3) : `${c}/${of}`}</span></div>`).join('')}
-      ${n === 20 || full ? `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--grey100)">${NEWS.map((x, i) => `<div class="hl read" data-i="${i}"><span class="d"></span><div class="t"><b style="font-size:15px">${x.t}</b><span>${x.s}</span></div></div>`).join('')}</div>` : ''}</div>`);
+    scr.insertAdjacentHTML('beforeend', `<div class="dim" id="dim"></div><div class="sheet" id="sh"><div class="grab"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:28px;height:28px;border-radius:14px;flex:none;${full ? `background:${heat(ex)}` : 'background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)'}"></span><h3 style="margin:0;flex:1">11월 ${n}일 ${dow}요일</h3>${full && ex ? `<span class="xtag" style="color:${heat(ex)}">+${ex}문제</span>` : ''}</div>
+      ${rows.map(([nm, of, c]) => `<div class="task ${c >= of ? 'ok' : ''}"><span class="nm" style="width:auto;flex:1">${nm}</span><span class="tr" style="flex:none;width:120px"><i style="background:${c >= of ? heat(0) : 'var(--grey400)'};transform:scaleX(${c / of})"></i></span><span class="ct">${c >= of ? K.check(18, 'var(--red500)', 3) : `${c}/${of}`}</span></div>`).join('')}
+      ${full ? `<div style="margin-top:8px;padding-top:12px;border-top:1px solid var(--grey100)">${NEWS.map((x, i) => `<div class="hl read" data-i="${i}"><span class="d"></span><div class="t"><b style="font-size:15px">${x.t}</b><span>${x.s}</span></div></div>`).join('')}</div>` : ''}</div>`);
     const dim = scr.querySelector('#dim');
     const sh = scr.querySelector('#sh');
     ML.a(dim, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, easing: 'ease' });
     ML.a(sh, [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 380, easing: 'cubic-bezier(0.32,0.72,0,1)' });
+    sh.querySelectorAll('.task .tr i').forEach((i, k) => ML.a(i, [{ transform: 'scaleX(0)' }, { transform: i.style.transform }], { duration: 420, delay: 200 + k * 50, easing: OUT }));
     dim.addEventListener('click', async () => {
       ML.a(dim, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
       await ML.done(ML.a(sh, [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: 240, easing: OUT }));
@@ -389,7 +495,7 @@
     if (withSplash && !q.get('nosplash')) splash();
   }
 
-  ML.bar({ title: '앱 전체', replay: () => render(true), home: '../index.html', extra: [['아침', () => { S.done = false; S.read = [false, false]; S.tab = 'home'; render(false); }], ['다 마친 뒤', () => { S.done = true; S.read = [true, true]; S.tab = 'home'; render(false); }], ['기록', () => { S.tab = 'cal'; render(false); }]] });
+  ML.bar({ title: '앱 전체', replay: () => render(true), home: '../index.html', extra: [['아침', () => { S.done = false; S.read = [false, false]; S.tab = 'home'; render(false); }], ['다 마친 뒤', () => { S.done = true; S.read = [true, true]; S.tab = 'home'; render(false); }], ['기록', () => { S.tab = 'cal'; render(false); }], ['오늘 완료', () => { S.done = false; S.read = [true, true]; S.tab = 'cal'; render(false); setTimeout(() => { S.done = true; const v = phone.querySelector('.view'); fillToday(v); }, 1300 / ML.rate); }], ['더 풀기 +5', () => { if (!S.done) { S.done = true; S.read = [true, true]; S.tab = 'cal'; render(false); } bumpToday(5); }]] });
   render(true);
 })();
 </script>
