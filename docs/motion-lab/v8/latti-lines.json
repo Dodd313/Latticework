@@ -1,0 +1,2064 @@
+{
+ "version": 1,
+ "about": "시안. Latti 페르소나와 문구. bank 는 늘 쓰는 줄, today 는 아침 예약 작업이 날마다 새로 쓰는 줄의 예시다. 앱에서는 today 를 docs/data/latti.json 으로 따로 둔다.",
+ "persona": {
+  "name": "Latti",
+  "who": "Latticework 앱 자신. 매일 아침 기사를 먼저 읽어 두고, 주인이 배운 개념과 단어를 하나도 잊지 않는 공부 친구.",
+  "traits": [
+   "호기심이 많아요. 오늘 기사와 새 개념을 먼저 궁금해해요.",
+   "따뜻해요. 결과보다 노력과 진전을 알아봐요.",
+   "살짝 장난스러워요. 가볍게 웃기지만 비꼬지 않아요.",
+   "기억력이 좋아요. 배운 개념, 읽은 기사, 숫자를 이름으로 불러요."
+  ],
+  "voice": [
+   "해요체, 한 줄 22자 안",
+   "실제 숫자와 실제 이름만",
+   "느낌표는 한 줄에 하나까지",
+   "가끔 묻지만 답을 요구하지 않아요",
+   "자기를 \"저\"라고 불러도 돼요"
+  ],
+  "never": [
+   "화면 읽는 법을 설명하지 않아요",
+   "죄책감을 주거나 재촉하지 않아요",
+   "비꼬지 않아요",
+   "지어낸 숫자를 쓰지 않아요",
+   "\"더 풀기\" 대신 \"추가 학습\"",
+   "긴 줄표, 화살표, 이모지는 쓰지 않아요",
+   "기사나 문제를 읽는 동안에는 말하지 않아요"
+  ],
+  "do": [
+   [
+    "7일째 매일 만나네요",
+    "숫자를 따뜻하게"
+   ],
+   [
+    "앤트로픽 상장 소식이 왔어요",
+    "오늘 기사를 이름으로"
+   ],
+   [
+    "알파랑 베타, 헷갈릴 만해요",
+    "배운 개념을 이름으로"
+   ],
+   [
+    "커피 한 잔 하면서 볼까요?",
+    "가볍게 묻기"
+   ],
+   [
+    "42개, 제가 다 기억해요",
+    "기억하는 친구"
+   ]
+  ],
+  "dont": [
+   [
+    "오른쪽 막대가 진행률이에요",
+    "화면 설명"
+   ],
+   [
+    "3일이나 빠졌네요",
+    "죄책감"
+   ],
+   [
+    "이것도 헷갈려요?",
+    "비꼼"
+   ],
+   [
+    "오늘 100문제 풀었어요!",
+    "지어낸 숫자"
+   ],
+   [
+    "더 풀기 해 볼까요?",
+    "금지어"
+   ],
+   [
+    "계속 학습하여 목표를 달성하세요",
+    "안내문 말투"
+   ]
+  ]
+ },
+ "rules": {
+  "maxLen": 22,
+  "noRepeatDays": 3,
+  "todayBoost": 3,
+  "lowerTierShare": 0.3,
+  "sessionAvoid": 8
+ },
+ "situations": {
+  "greet": "시작 화면 인사. hour, streak(어제까지), newsKey, newsToday",
+  "home": "홈 오늘 카드. quota(none, partial, done, extra), solved, read, left, doneParts, extra, streak, concept, latDue, vocDue",
+  "correct": "정답. combo, idx, firstTry, gap(지난번 본 뒤 지난 날), concept",
+  "wrong": "오답. miss(연달아 틀린 수), concept",
+  "finish": "세션 마침. total, right, acc, solvedToday, streak, streakUp, extra, sect, concept",
+  "level": "레벨 오름. level",
+  "quiz": "뉴스 퀴즈 마침(매일, 주간 종합). total, right, acc",
+  "recap.lat": "주간 돌아보기 Latticework 카드. weekConcepts, weekFields, topField, topFieldN, weekLinks, newest",
+  "recap.voc": "주간 돌아보기 영단어 카드. weekWords, wordsTotal, word",
+  "recap.news": "주간 돌아보기 뉴스 카드. weekRead, newsKey, quizRight",
+  "recap.streak": "주간 돌아보기 연속 카드. weekDays, streak",
+  "graph": "지식 그래프 가운데를 눌렀을 때. concepts, fields, links, newest, topField",
+  "return": "오랜만에 돌아왔을 때. away(쉰 날), concept",
+  "unlock": "새 분류 해금 화면. field, parent, rank"
+ },
+ "slots": "{key} 는 ctx 값, {key|을} 은 값 뒤에 맞는 조사(을/를, 이/가, 은/는, 과/와, 으로/로, 이에요/예요). part, day, weekend, acc, left 는 저절로 계산한다.",
+ "today": {
+  "date": "2026-11-20",
+  "by": "morning-job",
+  "lines": [
+   {
+    "id": "d1120.01",
+    "s": "greet",
+    "t": "앤트로픽 상장 소식이 왔어요",
+    "p": 1
+   },
+   {
+    "id": "d1120.02",
+    "s": "greet",
+    "t": "대기업 매출 35%가 내부거래래요",
+    "p": 1
+   },
+   {
+    "id": "d1120.03",
+    "s": "greet",
+    "t": "오늘 아침은 내부거래 얘기예요",
+    "when": {
+     "part": "morning"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.04",
+    "s": "greet",
+    "t": "의결권 49.9%, 흥미롭죠?",
+    "p": 1
+   },
+   {
+    "id": "d1120.05",
+    "s": "greet",
+    "t": "금요일엔 앤트로픽 얘기예요",
+    "when": {
+     "day": "금요일"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.06",
+    "s": "home",
+    "t": "앤트로픽 공모, 같이 읽어요",
+    "when": {
+     "quota": "none"
+    }
+   },
+   {
+    "id": "d1120.07",
+    "s": "home",
+    "t": "상표권료 얘기, 궁금하죠?",
+    "when": {
+     "quota": "none"
+    }
+   },
+   {
+    "id": "d1120.08",
+    "s": "home",
+    "t": "오늘 기사 2건 다 묵직해요",
+    "when": {
+     "quota": "none"
+    }
+   },
+   {
+    "id": "d1120.09",
+    "s": "home",
+    "t": "내부거래도 앤트로픽도 읽었네요",
+    "when": {
+     "quota": "partial",
+     "read": "2"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.10",
+    "s": "home",
+    "t": "앤트로픽부터 알파까지, 알찼어요",
+    "when": {
+     "quota": "done"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.11",
+    "s": "home",
+    "t": "오늘 알파까지 챙겼네요",
+    "when": {
+     "quota": "done"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.12",
+    "s": "correct",
+    "t": "베타랑 헷갈리지 않았네요",
+    "when": {
+     "concept": "알파"
+    },
+    "p": 3
+   },
+   {
+    "id": "d1120.13",
+    "s": "correct",
+    "t": "베타는 이제 확실하죠?",
+    "when": {
+     "concept": "베타"
+    },
+    "p": 3
+   },
+   {
+    "id": "d1120.14",
+    "s": "wrong",
+    "t": "알파랑 베타, 헷갈릴 만해요",
+    "when": {
+     "concept": "알파|베타"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.15",
+    "s": "wrong",
+    "t": "베타, 내일 다시 만나요",
+    "when": {
+     "concept": "베타"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.16",
+    "s": "finish",
+    "t": "오늘 알파까지 다 봤어요",
+    "when": {
+     "sect": "lat"
+    },
+    "p": 2
+   },
+   {
+    "id": "d1120.17",
+    "s": "finish",
+    "t": "금요일 마무리, 깔끔해요",
+    "when": {
+     "day": "금요일"
+    },
+    "p": 2
+   },
+   {
+    "id": "d1120.18",
+    "s": "graph",
+    "t": "이번 주엔 재무학이 자랐어요",
+    "p": 1
+   },
+   {
+    "id": "d1120.19",
+    "s": "graph",
+    "t": "통계학에도 친구가 생길까요?",
+    "p": 1
+   },
+   {
+    "id": "d1120.20",
+    "s": "recap.lat",
+    "t": "파마-프렌치까지 왔어요",
+    "p": 1
+   },
+   {
+    "id": "d1120.21",
+    "s": "recap.news",
+    "t": "이번 주는 엔비디아 주간이었죠?",
+    "p": 1
+   },
+   {
+    "id": "d1120.22",
+    "s": "recap.news",
+    "t": "쿠팡부터 앤트로픽까지 읽었어요",
+    "p": 1
+   },
+   {
+    "id": "d1120.23",
+    "s": "return",
+    "t": "그사이 앤트로픽이 상장했어요",
+    "p": 1
+   }
+  ]
+ },
+ "bank": [
+  {
+   "id": "greet.morning.01",
+   "s": "greet",
+   "t": "좋은 아침이에요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.02",
+   "s": "greet",
+   "t": "일찍 왔네요, 반가워요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.03",
+   "s": "greet",
+   "t": "아침부터 와 줘서 고마워요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.04",
+   "s": "greet",
+   "t": "커피 한 잔 하면서 볼까요?",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.05",
+   "s": "greet",
+   "t": "{day} 아침이에요, 반가워요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.06",
+   "s": "greet",
+   "t": "상쾌한 아침이에요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.07",
+   "s": "greet",
+   "t": "오늘 아침도 같이 해요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.morning.08",
+   "s": "greet",
+   "t": "밤사이 새 기사가 왔어요",
+   "when": {
+    "part": "morning"
+   }
+  },
+  {
+   "id": "greet.day.01",
+   "s": "greet",
+   "t": "점심은 맛있게 먹었어요?",
+   "when": {
+    "part": "day"
+   }
+  },
+  {
+   "id": "greet.day.02",
+   "s": "greet",
+   "t": "오후에도 반가워요",
+   "when": {
+    "part": "day"
+   }
+  },
+  {
+   "id": "greet.day.03",
+   "s": "greet",
+   "t": "잠깐 짬을 냈네요",
+   "when": {
+    "part": "day"
+   }
+  },
+  {
+   "id": "greet.day.04",
+   "s": "greet",
+   "t": "한낮에 만나니 반갑네요",
+   "when": {
+    "part": "day"
+   }
+  },
+  {
+   "id": "greet.day.05",
+   "s": "greet",
+   "t": "{day} 오후예요, 반가워요",
+   "when": {
+    "part": "day"
+   }
+  },
+  {
+   "id": "greet.evening.01",
+   "s": "greet",
+   "t": "오늘 하루 수고 많았어요",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.evening.02",
+   "s": "greet",
+   "t": "편안한 저녁이에요",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.evening.03",
+   "s": "greet",
+   "t": "저녁에 다시 만났네요",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.evening.04",
+   "s": "greet",
+   "t": "하루 마무리, 같이 해요",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.evening.05",
+   "s": "greet",
+   "t": "{day} 저녁이에요, 반가워요",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.evening.06",
+   "s": "greet",
+   "t": "저녁은 먹고 왔어요?",
+   "when": {
+    "part": "evening"
+   }
+  },
+  {
+   "id": "greet.night.01",
+   "s": "greet",
+   "t": "늦은 시간까지 대단해요",
+   "when": {
+    "part": "night"
+   }
+  },
+  {
+   "id": "greet.night.02",
+   "s": "greet",
+   "t": "밤이 깊었어요, 가볍게 해요",
+   "when": {
+    "part": "night"
+   }
+  },
+  {
+   "id": "greet.night.03",
+   "s": "greet",
+   "t": "잠들기 전에 잠깐 만나요",
+   "when": {
+    "part": "night"
+   }
+  },
+  {
+   "id": "greet.night.04",
+   "s": "greet",
+   "t": "자기 전 복습, 좋아요",
+   "when": {
+    "part": "night"
+   }
+  },
+  {
+   "id": "greet.night.05",
+   "s": "greet",
+   "t": "조용한 밤이네요",
+   "when": {
+    "part": "night"
+   }
+  },
+  {
+   "id": "greet.weekend.01",
+   "s": "greet",
+   "t": "주말에도 왔네요, 반가워요",
+   "when": {
+    "weekend": true
+   }
+  },
+  {
+   "id": "greet.weekend.02",
+   "s": "greet",
+   "t": "느긋한 주말이에요",
+   "when": {
+    "weekend": true
+   }
+  },
+  {
+   "id": "greet.any.01",
+   "s": "greet",
+   "t": "오늘도 와 줬네요"
+  },
+  {
+   "id": "greet.any.02",
+   "s": "greet",
+   "t": "다시 만나서 반가워요"
+  },
+  {
+   "id": "greet.any.03",
+   "s": "greet",
+   "t": "{newsKey} 소식이 와 있어요"
+  },
+  {
+   "id": "greet.any.04",
+   "s": "greet",
+   "t": "오늘 기사 {newsToday}건이 왔어요",
+   "when": {
+    "newsToday": ">=1"
+   }
+  },
+  {
+   "id": "greet.streak.01",
+   "s": "greet",
+   "t": "연속 {streak}일째예요",
+   "when": {
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.02",
+   "s": "greet",
+   "t": "{streak}일째 매일 만나네요",
+   "when": {
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.03",
+   "s": "greet",
+   "t": "{streak}일 연속 함께했어요",
+   "when": {
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.04",
+   "s": "greet",
+   "t": "벌써 {streak}일째, 반가워요",
+   "when": {
+    "streak": ">=3"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.05",
+   "s": "greet",
+   "t": "{streak}일 동안 하루도 안 빠졌어요",
+   "when": {
+    "streak": ">=5"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.06",
+   "s": "greet",
+   "t": "{streak}일째 아침 인사예요",
+   "when": {
+    "streak": ">=3",
+    "part": "morning"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.07",
+   "s": "greet",
+   "t": "어제에 이어 오늘도 왔네요",
+   "when": {
+    "streak": "1"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.08",
+   "s": "greet",
+   "t": "딱 일주일째 만나요",
+   "when": {
+    "streak": "7"
+   },
+   "p": 2
+  },
+  {
+   "id": "greet.streak.09",
+   "s": "greet",
+   "t": "일주일 내내 함께했어요",
+   "when": {
+    "streak": "7"
+   },
+   "p": 2
+  },
+  {
+   "id": "greet.streak.10",
+   "s": "greet",
+   "t": "{streak}일째, 대단한 기록이에요",
+   "when": {
+    "streak": ">=10&%10"
+   },
+   "p": 2
+  },
+  {
+   "id": "greet.streak.11",
+   "s": "greet",
+   "t": "{streak}일 연속, 놀라워요",
+   "when": {
+    "streak": ">=10&%10"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.none.01",
+   "s": "home",
+   "t": "오늘 몫이 기다리고 있어요",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.02",
+   "s": "home",
+   "t": "오늘은 어디부터 볼까요?",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.03",
+   "s": "home",
+   "t": "기사 {newsToday}건이 와 있어요",
+   "when": {
+    "quota": "none",
+    "newsToday": ">=1"
+   }
+  },
+  {
+   "id": "home.none.04",
+   "s": "home",
+   "t": "다시 볼 개념이 {latDue}개예요",
+   "when": {
+    "quota": "none",
+    "latDue": ">=1"
+   }
+  },
+  {
+   "id": "home.none.05",
+   "s": "home",
+   "t": "단어 {vocDue}개가 기다려요",
+   "when": {
+    "quota": "none",
+    "vocDue": ">=1"
+   }
+  },
+  {
+   "id": "home.none.06",
+   "s": "home",
+   "t": "{newsKey} 얘기, 궁금하죠?",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.07",
+   "s": "home",
+   "t": "오늘도 차근차근 해 봐요",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.08",
+   "s": "home",
+   "t": "가볍게 기사부터 어때요?",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.09",
+   "s": "home",
+   "t": "{concept}, 아직 기억나요?",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
+   "id": "home.none.10",
+   "s": "home",
+   "t": "저녁엔 가볍게 해 봐요",
+   "when": {
+    "quota": "none",
+    "part": "evening|night"
+   }
+  },
+  {
+   "id": "home.partial.01",
+   "s": "home",
+   "t": "오늘 벌써 {solved}문제 풀었어요!",
+   "when": {
+    "quota": "partial",
+    "solved": ">=10"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.partial.02",
+   "s": "home",
+   "t": "{solved}문제나 풀었어요, 대단해요",
+   "when": {
+    "quota": "partial",
+    "solved": ">=10"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.partial.03",
+   "s": "home",
+   "t": "하나 남았어요, 거의 다 왔어요",
+   "when": {
+    "quota": "partial",
+    "left": "1"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.partial.04",
+   "s": "home",
+   "t": "완주가 눈앞이에요",
+   "when": {
+    "quota": "partial",
+    "left": "1"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.partial.05",
+   "s": "home",
+   "t": "마지막 하나만 남았어요",
+   "when": {
+    "quota": "partial",
+    "left": "1"
+   },
+   "p": 2
+  },
+  {
+   "id": "home.partial.06",
+   "s": "home",
+   "t": "{left}개 남았어요, 천천히 해요",
+   "when": {
+    "quota": "partial",
+    "left": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.07",
+   "s": "home",
+   "t": "기사 {read}건 읽었어요, 좋아요",
+   "when": {
+    "quota": "partial",
+    "read": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.08",
+   "s": "home",
+   "t": "오늘 기사부터 챙겼네요",
+   "when": {
+    "quota": "partial",
+    "read": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.09",
+   "s": "home",
+   "t": "{doneParts}개 마쳤어요, 좋은 흐름이에요",
+   "when": {
+    "quota": "partial",
+    "doneParts": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.10",
+   "s": "home",
+   "t": "오늘 {solved}문제째예요",
+   "when": {
+    "quota": "partial",
+    "solved": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.11",
+   "s": "home",
+   "t": "{concept}까지 봤네요",
+   "when": {
+    "quota": "partial"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.partial.12",
+   "s": "home",
+   "t": "착착 해 나가고 있어요",
+   "when": {
+    "quota": "partial"
+   }
+  },
+  {
+   "id": "home.partial.13",
+   "s": "home",
+   "t": "쉬었다 와도 괜찮아요",
+   "when": {
+    "quota": "partial"
+   }
+  },
+  {
+   "id": "home.done.01",
+   "s": "home",
+   "t": "오늘 할 일을 다 마쳤어요!",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.02",
+   "s": "home",
+   "t": "오늘 완주했어요, 멋져요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.03",
+   "s": "home",
+   "t": "오늘 몫을 다 해냈어요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.04",
+   "s": "home",
+   "t": "완벽한 하루예요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.05",
+   "s": "home",
+   "t": "내일 또 만나요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.06",
+   "s": "home",
+   "t": "오늘은 푹 쉬어요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.07",
+   "s": "home",
+   "t": "{concept}, 잊기 전에 또 꺼낼게요",
+   "when": {
+    "quota": "done"
+   }
+  },
+  {
+   "id": "home.done.08",
+   "s": "home",
+   "t": "푹 자면 더 오래 남아요",
+   "when": {
+    "quota": "done",
+    "part": "evening|night"
+   }
+  },
+  {
+   "id": "home.done.09",
+   "s": "home",
+   "t": "{streak}일째 완주예요!",
+   "when": {
+    "quota": "done",
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.done.10",
+   "s": "home",
+   "t": "오늘도 다 해냈어요, {streak}일째예요",
+   "when": {
+    "quota": "done",
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.done.11",
+   "s": "home",
+   "t": "오늘 {solved}문제, 꽉 찬 하루예요",
+   "when": {
+    "quota": "done",
+    "solved": ">=15"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.extra.01",
+   "s": "home",
+   "t": "추가 학습까지 하다니요!",
+   "when": {
+    "quota": "extra"
+   }
+  },
+  {
+   "id": "home.extra.02",
+   "s": "home",
+   "t": "목표를 넘어섰어요",
+   "when": {
+    "quota": "extra"
+   }
+  },
+  {
+   "id": "home.extra.03",
+   "s": "home",
+   "t": "오늘은 한발 앞서 가요",
+   "when": {
+    "quota": "extra"
+   }
+  },
+  {
+   "id": "home.extra.04",
+   "s": "home",
+   "t": "욕심내는 날이네요, 좋아요",
+   "when": {
+    "quota": "extra"
+   }
+  },
+  {
+   "id": "home.extra.05",
+   "s": "home",
+   "t": "추가로 {extra}문제 풀었어요",
+   "when": {
+    "quota": "extra",
+    "extra": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.extra.06",
+   "s": "home",
+   "t": "추가 학습 {extra}문제째예요",
+   "when": {
+    "quota": "extra",
+    "extra": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.extra.07",
+   "s": "home",
+   "t": "추가로만 {extra}문제, 놀라워요",
+   "when": {
+    "quota": "extra",
+    "extra": ">=10"
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.any.01",
+   "s": "correct",
+   "t": "정답이에요!"
+  },
+  {
+   "id": "correct.any.02",
+   "s": "correct",
+   "t": "맞혔어요, 좋아요"
+  },
+  {
+   "id": "correct.any.03",
+   "s": "correct",
+   "t": "정확해요"
+  },
+  {
+   "id": "correct.any.04",
+   "s": "correct",
+   "t": "바로 그거예요"
+  },
+  {
+   "id": "correct.any.05",
+   "s": "correct",
+   "t": "제대로 짚었어요"
+  },
+  {
+   "id": "correct.any.06",
+   "s": "correct",
+   "t": "훌륭해요"
+  },
+  {
+   "id": "correct.any.07",
+   "s": "correct",
+   "t": "깔끔하게 맞혔어요"
+  },
+  {
+   "id": "correct.any.08",
+   "s": "correct",
+   "t": "역시 기억하고 있었네요"
+  },
+  {
+   "id": "correct.any.09",
+   "s": "correct",
+   "t": "망설임 없었죠?"
+  },
+  {
+   "id": "correct.any.10",
+   "s": "correct",
+   "t": "좋아요, 그대로 가요"
+  },
+  {
+   "id": "correct.any.11",
+   "s": "correct",
+   "t": "잘 알고 있네요"
+  },
+  {
+   "id": "correct.any.12",
+   "s": "correct",
+   "t": "이제 확실히 알겠죠?"
+  },
+  {
+   "id": "correct.any.13",
+   "s": "correct",
+   "t": "{concept}, 확실히 아네요"
+  },
+  {
+   "id": "correct.any.14",
+   "s": "correct",
+   "t": "{concept|을} 정확히 짚었어요"
+  },
+  {
+   "id": "correct.first.01",
+   "s": "correct",
+   "t": "첫 문제부터 정답이에요",
+   "when": {
+    "idx": "0",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.first.02",
+   "s": "correct",
+   "t": "시작이 좋아요!",
+   "when": {
+    "idx": "0",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.first.03",
+   "s": "correct",
+   "t": "산뜻한 출발이에요",
+   "when": {
+    "idx": "0",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.first.04",
+   "s": "correct",
+   "t": "출발부터 깔끔해요",
+   "when": {
+    "idx": "0",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.retry.01",
+   "s": "correct",
+   "t": "이번엔 맞혔어요!",
+   "when": {
+    "firstTry": false
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.retry.02",
+   "s": "correct",
+   "t": "다시 보니 보이죠?",
+   "when": {
+    "firstTry": false
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.retry.03",
+   "s": "correct",
+   "t": "두 번째엔 확실해요",
+   "when": {
+    "firstTry": false
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.retry.04",
+   "s": "correct",
+   "t": "이제 제대로 기억해요",
+   "when": {
+    "firstTry": false
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.gap.01",
+   "s": "correct",
+   "t": "{gap}일 만인데 기억했네요",
+   "when": {
+    "gap": ">=7",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.gap.02",
+   "s": "correct",
+   "t": "{gap}일 지나도 남아 있었어요",
+   "when": {
+    "gap": ">=7",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.gap.03",
+   "s": "correct",
+   "t": "{gap}일 전 기억이 살아 있어요",
+   "when": {
+    "gap": ">=7",
+    "firstTry": true
+   },
+   "p": 2
+  },
+  {
+   "id": "correct.combo3.01",
+   "s": "correct",
+   "t": "{combo}연속 정답이에요!",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo3.02",
+   "s": "correct",
+   "t": "벌써 {combo}연속이에요",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo3.03",
+   "s": "correct",
+   "t": "{combo}문제 연속 맞혔어요",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo3.04",
+   "s": "correct",
+   "t": "{combo}연속, 감이 좋아요",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo3.05",
+   "s": "correct",
+   "t": "흐름 탔네요, {combo}연속이에요",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo5.01",
+   "s": "correct",
+   "t": "{combo}연속, 흐름이 좋아요",
+   "when": {
+    "combo": "5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo5.02",
+   "s": "correct",
+   "t": "{combo}문제째 막힘이 없어요",
+   "when": {
+    "combo": "5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo5.03",
+   "s": "correct",
+   "t": "{combo}연속! 컨디션 좋네요",
+   "when": {
+    "combo": "5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo5.04",
+   "s": "correct",
+   "t": "{combo}연속, 손이 먼저 알아요",
+   "when": {
+    "combo": "5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo10.01",
+   "s": "correct",
+   "t": "{combo}연속, 거침이 없네요",
+   "when": {
+    "combo": ">=10&%5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo10.02",
+   "s": "correct",
+   "t": "{combo}문제 연속, 놀라워요",
+   "when": {
+    "combo": ">=10&%5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo10.03",
+   "s": "correct",
+   "t": "{combo}연속이라니, 대단해요",
+   "when": {
+    "combo": ">=10&%5"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo10.04",
+   "s": "correct",
+   "t": "{combo}연속, 저도 신나요",
+   "when": {
+    "combo": ">=10&%5"
+   },
+   "p": 3
+  },
+  {
+   "id": "wrong.any.01",
+   "s": "wrong",
+   "t": "괜찮아요, 이렇게 익혀 가요"
+  },
+  {
+   "id": "wrong.any.02",
+   "s": "wrong",
+   "t": "아깝네요, 다음엔 맞힐 거예요"
+  },
+  {
+   "id": "wrong.any.03",
+   "s": "wrong",
+   "t": "헷갈릴 만했어요"
+  },
+  {
+   "id": "wrong.any.04",
+   "s": "wrong",
+   "t": "좋은 시도였어요"
+  },
+  {
+   "id": "wrong.any.05",
+   "s": "wrong",
+   "t": "이번에 새로 알게 됐어요"
+  },
+  {
+   "id": "wrong.any.06",
+   "s": "wrong",
+   "t": "틀려야 더 오래 남아요"
+  },
+  {
+   "id": "wrong.any.07",
+   "s": "wrong",
+   "t": "저도 헷갈렸을 거예요"
+  },
+  {
+   "id": "wrong.any.08",
+   "s": "wrong",
+   "t": "곧 다시 만나게 해 줄게요"
+  },
+  {
+   "id": "wrong.any.09",
+   "s": "wrong",
+   "t": "아쉽지만 괜찮아요"
+  },
+  {
+   "id": "wrong.any.10",
+   "s": "wrong",
+   "t": "한 번 틀리면 잘 안 잊혀요"
+  },
+  {
+   "id": "wrong.any.11",
+   "s": "wrong",
+   "t": "{concept}, 다음엔 잡아요"
+  },
+  {
+   "id": "wrong.any.12",
+   "s": "wrong",
+   "t": "{concept}, 곧 또 만나요"
+  },
+  {
+   "id": "wrong.miss.01",
+   "s": "wrong",
+   "t": "천천히 해도 괜찮아요",
+   "when": {
+    "miss": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "wrong.miss.02",
+   "s": "wrong",
+   "t": "잠깐 숨 고르고 가요",
+   "when": {
+    "miss": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "wrong.miss.03",
+   "s": "wrong",
+   "t": "오늘 문제가 까다롭네요",
+   "when": {
+    "miss": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "finish.perfect.01",
+   "s": "finish",
+   "t": "{total}문제 모두 맞혔어요!",
+   "when": {
+    "acc": "100",
+    "total": ">=3"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.perfect.02",
+   "s": "finish",
+   "t": "{total}문제 전부 정답이에요",
+   "when": {
+    "acc": "100",
+    "total": ">=3"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.perfect.03",
+   "s": "finish",
+   "t": "하나도 안 틀렸어요!",
+   "when": {
+    "acc": "100",
+    "total": ">=3"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.perfect.04",
+   "s": "finish",
+   "t": "만점이에요, 완벽해요",
+   "when": {
+    "acc": "100",
+    "total": ">=3"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.perfect.05",
+   "s": "finish",
+   "t": "오늘은 막힘이 없었죠?",
+   "when": {
+    "acc": "100",
+    "total": ">=3"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.high.01",
+   "s": "finish",
+   "t": "{total}문제 중 {right}문제 맞혔어요",
+   "when": {
+    "acc": "80..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.high.02",
+   "s": "finish",
+   "t": "정답률 {acc}%, 훌륭해요",
+   "when": {
+    "acc": "80..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.high.03",
+   "s": "finish",
+   "t": "{right}문제 정답, 잘하고 있어요",
+   "when": {
+    "acc": "80..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.high.04",
+   "s": "finish",
+   "t": "거의 다 맞혔어요",
+   "when": {
+    "acc": "80..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.mid.01",
+   "s": "finish",
+   "t": "{right}문제 맞혔어요, 수고했어요",
+   "when": {
+    "acc": "50..79"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.mid.02",
+   "s": "finish",
+   "t": "틀린 건 곧 다시 만나요",
+   "when": {
+    "acc": "50..79"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.mid.03",
+   "s": "finish",
+   "t": "{acc}%, 다음엔 더 오를 거예요",
+   "when": {
+    "acc": "50..79"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.mid.04",
+   "s": "finish",
+   "t": "까다로웠는데 잘 버텼어요",
+   "when": {
+    "acc": "50..79"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.low.01",
+   "s": "finish",
+   "t": "끝까지 풀었어요, 수고했어요",
+   "when": {
+    "acc": "<50"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.low.02",
+   "s": "finish",
+   "t": "헷갈리는 날도 있죠",
+   "when": {
+    "acc": "<50"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.low.03",
+   "s": "finish",
+   "t": "틀린 만큼 오래 남을 거예요",
+   "when": {
+    "acc": "<50"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.many.01",
+   "s": "finish",
+   "t": "오늘 {solvedToday}문제나 풀었어요!",
+   "when": {
+    "solvedToday": ">=20"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.many.02",
+   "s": "finish",
+   "t": "오늘만 {solvedToday}문제째예요",
+   "when": {
+    "solvedToday": ">=20"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.streak.01",
+   "s": "finish",
+   "t": "연속 {streak}일째예요!",
+   "when": {
+    "streakUp": true,
+    "streak": ">=2"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.streak.02",
+   "s": "finish",
+   "t": "{streak}일 연속으로 해냈어요",
+   "when": {
+    "streakUp": true,
+    "streak": ">=2"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.streak.03",
+   "s": "finish",
+   "t": "연속 기록이 {streak}일로 늘었어요",
+   "when": {
+    "streakUp": true,
+    "streak": ">=2"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.streak.04",
+   "s": "finish",
+   "t": "{streak}일째 이어 가고 있어요",
+   "when": {
+    "streakUp": true,
+    "streak": ">=2"
+   },
+   "p": 3
+  },
+  {
+   "id": "finish.streak1.01",
+   "s": "finish",
+   "t": "연속 기록을 새로 시작했어요",
+   "when": {
+    "streakUp": true,
+    "streak": "1"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.streak1.02",
+   "s": "finish",
+   "t": "새 출발, 좋아요",
+   "when": {
+    "streakUp": true,
+    "streak": "1"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.extra.01",
+   "s": "finish",
+   "t": "추가 학습 완료, 수고했어요",
+   "when": {
+    "extra": true
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.extra.02",
+   "s": "finish",
+   "t": "추가로 {total}문제 해냈어요",
+   "when": {
+    "extra": true
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.extra.03",
+   "s": "finish",
+   "t": "오늘은 목표를 넘어섰어요",
+   "when": {
+    "extra": true
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.any.01",
+   "s": "finish",
+   "t": "오늘 몫을 해냈어요"
+  },
+  {
+   "id": "finish.any.02",
+   "s": "finish",
+   "t": "끝까지 풀었어요, 잘했어요"
+  },
+  {
+   "id": "finish.any.03",
+   "s": "finish",
+   "t": "수고했어요, 오늘도 한 걸음이에요"
+  },
+  {
+   "id": "finish.any.04",
+   "s": "finish",
+   "t": "개념이 하나씩 쌓여요",
+   "when": {
+    "sect": "lat"
+   }
+  },
+  {
+   "id": "finish.any.05",
+   "s": "finish",
+   "t": "{concept}까지 다 봤어요",
+   "when": {
+    "sect": "lat"
+   }
+  },
+  {
+   "id": "finish.any.06",
+   "s": "finish",
+   "t": "단어가 차곡차곡 쌓여요",
+   "when": {
+    "sect": "voc"
+   }
+  },
+  {
+   "id": "level.01",
+   "s": "level",
+   "t": "레벨 {level|이} 됐어요!"
+  },
+  {
+   "id": "level.02",
+   "s": "level",
+   "t": "레벨 {level} 달성, 축하해요"
+  },
+  {
+   "id": "level.03",
+   "s": "level",
+   "t": "레벨 {level}까지 올라왔어요"
+  },
+  {
+   "id": "level.04",
+   "s": "level",
+   "t": "꾸준함이 레벨 {level|을} 만들었어요"
+  },
+  {
+   "id": "level.05",
+   "s": "level",
+   "t": "레벨 {level|로} 올라섰어요"
+  },
+  {
+   "id": "level.06",
+   "s": "level",
+   "t": "한 단계 올라섰어요, 축하해요"
+  },
+  {
+   "id": "quiz.01",
+   "s": "quiz",
+   "t": "{total}문제 모두 맞혔어요!",
+   "when": {
+    "acc": "100"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.02",
+   "s": "quiz",
+   "t": "기사를 꼼꼼히 읽었네요",
+   "when": {
+    "acc": "100"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.03",
+   "s": "quiz",
+   "t": "만점이에요, 완벽해요",
+   "when": {
+    "acc": "100"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.04",
+   "s": "quiz",
+   "t": "{total}문제 중 {right}문제 맞혔어요",
+   "when": {
+    "acc": "60..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.05",
+   "s": "quiz",
+   "t": "기사를 잘 소화했어요",
+   "when": {
+    "acc": "60..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.06",
+   "s": "quiz",
+   "t": "{right}문제 정답, 잘 기억했어요",
+   "when": {
+    "acc": "60..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.07",
+   "s": "quiz",
+   "t": "끝까지 풀었어요, 수고했어요",
+   "when": {
+    "acc": "<60"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.08",
+   "s": "quiz",
+   "t": "헷갈리는 문제들이었죠?",
+   "when": {
+    "acc": "<60"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.09",
+   "s": "quiz",
+   "t": "퀴즈까지 마쳤어요"
+  },
+  {
+   "id": "recap.lat.01",
+   "s": "recap.lat",
+   "t": "이번 주 개념 {weekConcepts}개를 익혔어요"
+  },
+  {
+   "id": "recap.lat.02",
+   "s": "recap.lat",
+   "t": "한 주 동안 {weekConcepts}개, 탄탄해요"
+  },
+  {
+   "id": "recap.lat.03",
+   "s": "recap.lat",
+   "t": "{newest}까지 왔어요"
+  },
+  {
+   "id": "recap.lat.04",
+   "s": "recap.lat",
+   "t": "{topField} 다음엔 뭘 파 볼까요?"
+  },
+  {
+   "id": "recap.lat.05",
+   "s": "recap.lat",
+   "t": "{topField}에만 {topFieldN}개, 깊게 팠네요",
+   "when": {
+    "weekFields": "1"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.lat.06",
+   "s": "recap.lat",
+   "t": "{topField}만 파고든 한 주였죠?",
+   "when": {
+    "weekFields": "1"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.lat.07",
+   "s": "recap.lat",
+   "t": "{weekFields}개 학문을 오갔어요",
+   "when": {
+    "weekFields": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.lat.08",
+   "s": "recap.lat",
+   "t": "개념끼리 {weekLinks}번 이어졌어요",
+   "when": {
+    "weekLinks": ">=1"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.lat.09",
+   "s": "recap.lat",
+   "t": "이번 주는 복습 주간이었죠?",
+   "when": {
+    "weekConcepts": "0"
+   },
+   "p": 3
+  },
+  {
+   "id": "recap.voc.01",
+   "s": "recap.voc",
+   "t": "새 단어 {weekWords}개를 만났어요"
+  },
+  {
+   "id": "recap.voc.02",
+   "s": "recap.voc",
+   "t": "이번 주 단어 {weekWords}개예요"
+  },
+  {
+   "id": "recap.voc.03",
+   "s": "recap.voc",
+   "t": "모은 단어가 {wordsTotal}개예요"
+  },
+  {
+   "id": "recap.voc.04",
+   "s": "recap.voc",
+   "t": "{word}, 이제 익숙하죠?"
+  },
+  {
+   "id": "recap.voc.05",
+   "s": "recap.voc",
+   "t": "단어 {weekWords}개가 차곡차곡 쌓였어요"
+  },
+  {
+   "id": "recap.voc.06",
+   "s": "recap.voc",
+   "t": "단어 {wordsTotal}개, 세 자릿수예요",
+   "when": {
+    "wordsTotal": ">=100"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.news.01",
+   "s": "recap.news",
+   "t": "기사 {weekRead}건을 끝까지 읽었어요"
+  },
+  {
+   "id": "recap.news.02",
+   "s": "recap.news",
+   "t": "이번 주 {weekRead}건 읽었어요"
+  },
+  {
+   "id": "recap.news.03",
+   "s": "recap.news",
+   "t": "이번 주엔 {newsKey} 얘기가 많았죠?"
+  },
+  {
+   "id": "recap.news.04",
+   "s": "recap.news",
+   "t": "한 주 경제 흐름을 따라왔어요"
+  },
+  {
+   "id": "recap.news.05",
+   "s": "recap.news",
+   "t": "한 주 뉴스를 같이 읽었어요"
+  },
+  {
+   "id": "recap.news.06",
+   "s": "recap.news",
+   "t": "주간 퀴즈 {quizRight}문제 맞혔어요",
+   "when": {
+    "quizRight": ">=1"
+   }
+  },
+  {
+   "id": "recap.streak.01",
+   "s": "recap.streak",
+   "t": "이번 주 {weekDays}일 함께했어요"
+  },
+  {
+   "id": "recap.streak.02",
+   "s": "recap.streak",
+   "t": "{weekDays}일이나 만났네요"
+  },
+  {
+   "id": "recap.streak.03",
+   "s": "recap.streak",
+   "t": "다음 주에도 만나요"
+  },
+  {
+   "id": "recap.streak.04",
+   "s": "recap.streak",
+   "t": "연속 {streak}일째 이어 가요",
+   "when": {
+    "streak": ">=2"
+   }
+  },
+  {
+   "id": "recap.streak.05",
+   "s": "recap.streak",
+   "t": "일주일 내내 왔어요!",
+   "when": {
+    "weekDays": "7"
+   },
+   "p": 2
+  },
+  {
+   "id": "recap.streak.06",
+   "s": "recap.streak",
+   "t": "바쁜 한 주였죠? 수고했어요",
+   "when": {
+    "weekDays": "<=3"
+   }
+  },
+  {
+   "id": "graph.01",
+   "s": "graph",
+   "t": "개념 {concepts}개, 학문 {fields}곳이에요"
+  },
+  {
+   "id": "graph.02",
+   "s": "graph",
+   "t": "지금까지 {concepts}개를 익혔어요"
+  },
+  {
+   "id": "graph.03",
+   "s": "graph",
+   "t": "{fields}개 학문이 이어져 있어요",
+   "when": {
+    "fields": ">=2"
+   }
+  },
+  {
+   "id": "graph.04",
+   "s": "graph",
+   "t": "연결 {links}개, 점점 촘촘해요"
+  },
+  {
+   "id": "graph.05",
+   "s": "graph",
+   "t": "가장 최근엔 {newest|을} 배웠죠"
+  },
+  {
+   "id": "graph.06",
+   "s": "graph",
+   "t": "{topField|이} 제일 크게 자랐어요"
+  },
+  {
+   "id": "graph.07",
+   "s": "graph",
+   "t": "다음엔 어떤 학문이 올까요?"
+  },
+  {
+   "id": "graph.08",
+   "s": "graph",
+   "t": "{concepts}개, 제가 다 기억해요"
+  },
+  {
+   "id": "return.01",
+   "s": "return",
+   "t": "다시 와 줘서 반가워요"
+  },
+  {
+   "id": "return.02",
+   "s": "return",
+   "t": "오랜만이에요, 보고 싶었어요"
+  },
+  {
+   "id": "return.03",
+   "s": "return",
+   "t": "기다리고 있었어요"
+  },
+  {
+   "id": "return.04",
+   "s": "return",
+   "t": "천천히 다시 시작해요"
+  },
+  {
+   "id": "return.05",
+   "s": "return",
+   "t": "쉬어 가도 괜찮아요"
+  },
+  {
+   "id": "return.06",
+   "s": "return",
+   "t": "다시 만나서 정말 좋아요"
+  },
+  {
+   "id": "return.07",
+   "s": "return",
+   "t": "{concept}, 아직 기억나요?"
+  },
+  {
+   "id": "return.08",
+   "s": "return",
+   "t": "{away}일 만이에요, 반가워요",
+   "when": {
+    "away": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "return.09",
+   "s": "return",
+   "t": "{away}일 만이네요, 잘 지냈어요?",
+   "when": {
+    "away": ">=7"
+   },
+   "p": 1
+  },
+  {
+   "id": "unlock.01",
+   "s": "unlock",
+   "t": "{field|이} 새로 열렸어요!"
+  },
+  {
+   "id": "unlock.02",
+   "s": "unlock",
+   "t": "{field}까지 오다니요!"
+  },
+  {
+   "id": "unlock.03",
+   "s": "unlock",
+   "t": "세상 지식을 다 배울 건가요?"
+  },
+  {
+   "id": "unlock.04",
+   "s": "unlock",
+   "t": "{field}의 첫 개념이에요",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "unlock.05",
+   "s": "unlock",
+   "t": "{parent}에 {field|이} 생겼어요",
+   "when": {
+    "rank": "branch"
+   }
+  }
+ ]
+}

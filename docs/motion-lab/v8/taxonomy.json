@@ -1,0 +1,4344 @@
+{
+ "version": 8,
+ "updatedAt": "2026-11-20",
+ "about": "Claude 전용 참조 지침과 지금 앱 트리. referenceGuide는 앱에 보이지 않는다. 앱 트리에는 배운 지식이 있는 노드만 있다.",
+ "ranks": [
+  {
+   "rank": 0,
+   "key": "root",
+   "ko": "중심",
+   "owner": null,
+   "shown": "Latti",
+   "test": "계급이 아니다. 그래프 한가운데의 Latti.",
+   "example": "Latti"
+  },
+  {
+   "rank": 1,
+   "key": "discipline",
+   "ko": "학문",
+   "owner": "대분류",
+   "required": true,
+   "unlock": "major",
+   "test": "셋 다 통과해야 한다. T1 그 학문의 기준 개론서가 한 권 정해져 있다. T2 고유한 핵심 질문과 방법이 있어 다른 학문의 응용으로만 설명되지 않는다. T3 그 안에 분과를 3개 이상 그릴 수 있다. ISCED-F 2013 세부분야 번호는 라벨로만 적고 판정에 쓰지 않는다.",
+   "example": "재무학, 통계학, 논리학, 소프트웨어(컴퓨터과학)",
+   "create": "그 학문이 집인 개념이 처음 1개 들어올 때 만든다. 빈 폴더나 한 번 언급된 것만으로는 만들지 않는다."
+  },
+  {
+   "rank": 2,
+   "key": "branch",
+   "ko": "분과",
+   "owner": "소분류",
+   "required": true,
+   "unlock": "minor",
+   "test": "둘 다 통과해야 한다. B1 기준 개론서의 부(Part) 하나, 또는 같은 질문을 다루는 연속된 장 묶음이다. B2 처음 배우는 사람에게 목차 첫 단계로 보여 줄 만하다. 전문 분류표(JEL, MSC, ACM CCS, PsycINFO 등) 코드는 대응하는 것이 있으면 라벨로 적는다. 학문마다 깊이가 다른 것은 의도다.",
+   "example": "자본시장이론, 밸류에이션, 통계적 추론, 추론과 논증, 데이터베이스",
+   "create": "참조 목록의 분과에 개념이 처음 들어올 때 만든다. 목록에 없으면 교과서 근거를 붙여 목록에 먼저 더한다. '기타' 분과는 없다."
+  },
+  {
+   "rank": 3,
+   "key": "topic",
+   "ko": "주제",
+   "owner": "세부 항목",
+   "required": false,
+   "unlock": "sparkle",
+   "test": "셋 다 통과해야 한다. P1 그 분과의 topicSeeds(고정 용어 목록)에 있다: 이름 붙은 모형, 이론, 정리, 방법, 법칙, 또는 이론이 적은 분야에서는 연구 프로그램이나 현상 가족. P2 그 아래 서로 다른 개념이 3개 이상 실제로 있다. P3 교과서 한 장 또는 몇 개 절 크기다.",
+   "example": "CAPM, APT, 지수모형, 자본배분 (앞으로: DCF, 휴리스틱과 편향, 자연선택)",
+   "create": "같은 씨앗을 공유하는 개념이 3개가 되는 순간 만들고 개념을 옮긴다. 화면 필터로는 쓰지 않는다."
+  },
+  {
+   "rank": 4,
+   "key": "concept",
+   "ko": "개념",
+   "owner": "세부 항목(주제가 없을 때)",
+   "required": true,
+   "unlock": "sparkle",
+   "test": "C1 한 문장으로 정의된다. C2 문제 3~7개가 하나의 정답 맥락을 공유한다. C3 FSRS 기록이 붙는 최소 단위다. 부모는 주제 또는 분과.",
+   "example": "증권시장선, 알파, WACC, t통계량, 가추, DDL"
+  }
+ ],
+ "ownerSees": {
+  "대분류": "학문",
+  "소분류": "분과",
+  "세부 항목": "주제, 주제가 없으면 개념"
+ },
+ "domains": {
+  "note": "영역(갈래)은 계급이 아니라 학문의 속성이다. 그래프에서 학문이 놓이는 방향에만 쓰고 색과 노드로는 그리지 않는다. 색은 학문마다 하나씩 준다.",
+  "items": [
+   {
+    "id": "formal",
+    "ko": "형식과학",
+    "plain": "생각의 도구",
+    "ford": "1.1, 1.2 + 철학 안의 논리",
+    "angle": 0
+   },
+   {
+    "id": "social",
+    "ko": "사회과학",
+    "plain": "사회",
+    "ford": "5",
+    "angle": 90
+   },
+   {
+    "id": "natural",
+    "ko": "자연과학",
+    "plain": "자연",
+    "ford": "1.3~1.7",
+    "angle": 180
+   },
+   {
+    "id": "humanities",
+    "ko": "인문학",
+    "plain": "사람과 문화",
+    "ford": "6",
+    "angle": 225
+   },
+   {
+    "id": "engineering",
+    "ko": "공학·기술",
+    "plain": "기술",
+    "ford": "2",
+    "angle": 315
+   },
+   {
+    "id": "life",
+    "ko": "의약·농학",
+    "plain": "몸과 먹거리",
+    "ford": "3, 4",
+    "angle": 270
+   }
+  ]
+ },
+ "referenceGuide": {
+  "visibility": "앱에 표시하지 않는다. 분류기 전용.",
+  "policy": {
+   "home": "집(home) 부모는 하나다. 순서: (1) 판례(rulings)를 먼저 본다. (2) 맥락 규칙: 문제 본문이 모두 특정 모형을 적용하는 장면이면 그 모형 쪽에 둔다. 문제가 정의 자체를 물으면 정의처로 보낸다. 판정은 이름이 아니라 문제 본문으로 한다. (3) 정의처 규칙: 그 항목이 표제어로 실린 기준 개론서의 학문. (4) 둘 이상이면 판례를 새로 쓰고 그대로 따른다.",
+   "noInertia": "지금 트리에 무엇이 있는지로 집을 정하지 않는다(들어온 순서에 따라 결과가 달라지므로). 집의 학문이 트리에 없으면 만들고 해금한다.",
+   "confidence": "큰 해금(새 학문)은 판례나 정의처 규칙으로 집이 분명할 때만 만든다. 애매하면 판례를 먼저 쓰고 소유자에게 한 줄로 알린다.",
+   "newDiscipline": "참조 목록 밖의 학문은 T1~T3를 통과하고 기준 개론서를 정한 뒤 목록에 먼저 더한다. 위 판례(R10~R12)처럼 이미 정한 묶음은 따른다. 논리학과 소프트웨어는 소유자가 정한 예외다. 일반 격상 규칙은 두지 않는다.",
+   "names": "표시명(name)은 소유자가 쓴 말을 먼저 쓴다(자본시장이론, 밸류에이션, 소프트웨어). 표준 이름은 ref, en, aliases에 둔다. 카드와 리뷰에는 short를 쓴다.",
+   "labels": "분류표 코드는 라벨이다. 배치를 정하지 않는다. KDC 170, DDC 160은 철학 아래 2단계다.",
+   "ids": "노드 id는 n:<slug> 하나의 형식이다. 계급은 rank 필드에만 둔다. 이름을 바꾸거나 옮기거나 계급이 바뀌어도 id는 그대로다. 비었다가 다시 필요해진 노드는 같은 id로 되살린다(revive, 해금 없음). 한 번 쓴 id를 다른 뜻으로 쓰지 않는다.",
+   "conceptIds": "기존 개념 id(alpha, beta, capm …)는 그대로 둔다(FSRS 기록이 붙어 있다). 새 개념 id는 <분과 slug>-<용어> 형식으로 쓴다.",
+   "dedupe": "이름이 같아도 합치지 않는다. 같은 분과 후보이고 정의 문장이 같을 때만 같은 개념이다(알파: 젠센 알파와 유의수준 α는 다르다).",
+   "reorg": "분할, 병합, 이름 변경, 이동은 이벤트만 남기고 해금하지 않는다. 옛 이름은 aliases에 남긴다. 자동 병합은 없다. 소유자가 요청할 때만 합친다."
+  },
+  "rulings": [
+   {
+    "id": "R01",
+    "match": "인지 현상 그 자체(휴리스틱, 인지편향, 확증편향)",
+    "home": "psy-judgment",
+    "reason": "현상을 처음 정의하고 실험으로 다루는 곳"
+   },
+   {
+    "id": "R02",
+    "match": "효용함수로 쓴 선택 모형(전망이론, 손실회피, 쌍곡할인)",
+    "home": "econ-behavioral",
+    "reason": "모형의 형식이 경제학의 선택 이론"
+   },
+   {
+    "id": "R03",
+    "match": "자산시장에서 나타나는 현상(처분효과, 모멘텀, 거품)",
+    "home": "fin-efficiency",
+    "reason": "가격과 수익률 자료로 정의된다"
+   },
+   {
+    "id": "R04",
+    "match": "확률, 확률분포, 베이즈 정리, 중심극한정리",
+    "home": "stat-probability",
+    "reason": "ANZSRC 490506 Probability theory가 4905 Statistics 안에 있다. 수학에서는 링크만 건다"
+   },
+   {
+    "id": "R05",
+    "match": "증명 기법(귀류법, 대우증명, 수학적 귀납법)",
+    "home": "logic-proof",
+    "reason": "소유자 Drive 논리학/증명. 수학 참조 목록에는 증명 분과를 두지 않는다"
+   },
+   {
+    "id": "R06",
+    "match": "괴델 불완전성 정리, 형식 체계",
+    "home": "logic-formal",
+    "reason": "수리논리"
+   },
+   {
+    "id": "R07",
+    "match": "귀납의 문제, 반증가능성, 패러다임",
+    "home": "phil-science",
+    "reason": "정당화에 대한 질문. 귀납 논증의 형식 자체는 logic-reasoning"
+   },
+   {
+    "id": "R08",
+    "match": "엔트로피",
+    "home": "열역학 엔트로피는 phys-thermo, 정보 엔트로피는 cs-information",
+    "reason": "이름이 같은 다른 개념. 둘을 '유사'로 잇는다"
+   },
+   {
+    "id": "R09",
+    "match": "신경과학(뉴런, 도파민, 보상예측오차)",
+    "home": "bio-neuro",
+    "reason": "ISCED에 신경과학 항목이 없다. 행동 수준의 학습은 psy-memory와 '기반'으로 잇는다"
+   },
+   {
+    "id": "R10",
+    "match": "생화학(효소, ATP, 대사)",
+    "home": "bio-cell",
+    "reason": "ISCED 0512는 따로 있지만 학문으로 만들지 않는다"
+   },
+   {
+    "id": "R11",
+    "match": "마케팅",
+    "home": "mgmt-marketing",
+    "reason": "ISCED 0414는 따로 있지만 경영학 안에 둔다"
+   },
+   {
+    "id": "R12",
+    "match": "언어학과 문학",
+    "home": "새 학문 '언어와 문학' 하나",
+    "reason": "ISCED 0232가 하나로 묶는다"
+   },
+   {
+    "id": "R13",
+    "match": "과적합, 규제화(regularization), 교차검증",
+    "home": "cs-ai",
+    "reason": "기계학습 교재의 표제어. 회귀 이론과는 '기반'으로 잇는다"
+   },
+   {
+    "id": "R14",
+    "match": "환율",
+    "home": "환율 결정 이론은 econ-international, 환위험 관리와 이자율 평형 거래는 fin-international",
+    "reason": "질문이 '왜 그 값인가'면 경제학, '어떻게 대응하나'면 재무학"
+   },
+   {
+    "id": "R15",
+    "match": "값비싼 신호",
+    "home": "생물의 핸디캡 원리는 bio-behavior, 시장 신호(Spence)는 econ-info",
+    "reason": "이름이 같은 다른 개념. '유사'로 잇는다"
+   },
+   {
+    "id": "R16",
+    "match": "진화적 안정 전략(ESS)",
+    "home": "bio-evolution",
+    "reason": "내쉬균형(econ-games)과 '유사'로 잇는다"
+   },
+   {
+    "id": "R17",
+    "match": "회계기준 밖의 성과지표(EBITDA, FCF)",
+    "home": "fin-valuation",
+    "reason": "회계기준 안의 인식과 측정만 acct-financial. EBITDA는 이미 이 판례대로 놓였다"
+   },
+   {
+    "id": "R18",
+    "match": "업종·섹터 분석(투자 관점)",
+    "home": "fin-valuation",
+    "reason": "Drive 섹터/는 투자자의 업종 분석. 원자재 수급 구조 자체를 다룰 때만 econ-resources"
+   },
+   {
+    "id": "R19",
+    "match": "화폐의 시간가치, 복리, 현재가치",
+    "home": "fin-valuation",
+    "reason": "재무 개론의 첫 장. 지수 증가 일반은 math-calculus와 '기반'으로 잇는다"
+   },
+   {
+    "id": "R20",
+    "match": "순열, 조합",
+    "home": "math-discrete",
+    "reason": "확률 계산에 쓰일 때도 정의처는 이산수학"
+   },
+   {
+    "id": "R21",
+    "match": "비교우위, 기회비용",
+    "home": "econ-basics",
+    "reason": "Mankiw Part 1"
+   },
+   {
+    "id": "R22",
+    "match": "경쟁우위, 해자",
+    "home": "mgmt-strategy",
+    "reason": "Porter. 밸류에이션의 성장 가정과는 '응용'으로 잇는다"
+   },
+   {
+    "id": "R23",
+    "match": "어떤 모형을 적용하는 장면의 통계·회계 도구(CAPM 검증의 모수와 추정치, 지수모형 회귀 출력)",
+    "home": "그 모형 쪽",
+    "reason": "맥락 규칙. 정의 개념과는 '기반' 링크로 잇는다"
+   }
+  ],
+  "thresholds": [
+   {
+    "what": "학문 생성",
+    "when": "그 학문이 집인 개념 1개"
+   },
+   {
+    "what": "분과 생성",
+    "when": "그 분과가 집인 개념 1개"
+   },
+   {
+    "what": "주제 생성",
+    "when": "같은 topicSeed를 공유하는 개념 3개"
+   },
+   {
+    "what": "주제 해체",
+    "when": "개념 2개 미만이 되면 개념을 분과로 올린다"
+   },
+   {
+    "what": "주제 분할 검토",
+    "when": "개념 15개 초과이고 자연스러운 경계(이론과 실증 등)가 있을 때"
+   },
+   {
+    "what": "분과 분할 검토",
+    "when": "개념 50개 또는 주제 10개 초과. 근거는 교과서 장 묶음이나 더 세밀한 분류 코드"
+   },
+   {
+    "what": "병합",
+    "when": "자동으로 하지 않는다. 소유자 요청만"
+   },
+   {
+    "what": "소우주(그래프에서 접기)",
+    "when": "보이는 자식 7개 초과면 접고, 5개 이하가 되면 푼다"
+   },
+   {
+    "what": "학제 링크",
+    "when": "새 개념 하나에 최대 3개(응용, 기반, 유사, 대비)"
+   }
+  ],
+  "disciplines": [
+   {
+    "slug": "fin",
+    "name": "재무학",
+    "en": "Finance",
+    "domain": "social",
+    "color": "#3182f6",
+    "textbook": "Bodie, Kane, Marcus, Investments (BKM); 기업재무는 Brealey, Myers, Allen",
+    "labels": {
+     "isced": "0412",
+     "ford": "5.2",
+     "jel": "G"
+    },
+    "aliases": [
+     "금융",
+     "파이낸스",
+     "투자론"
+    ],
+    "branches": [
+     {
+      "slug": "fin-capital-markets",
+      "name": "자본시장이론",
+      "short": "자본시장",
+      "en": "Capital Market Theory",
+      "basis": "BKM Part II-III",
+      "labels": {
+       "jel": "G11, G12"
+      },
+      "scope": [
+       "위험과 수익",
+       "자본배분",
+       "분산투자",
+       "효율적 경계",
+       "지수모형",
+       "CAPM",
+       "APT",
+       "다요인모형",
+       "베타"
+      ],
+      "topicSeeds": [
+       "자본배분",
+       "최적 위험 포트폴리오",
+       "지수모형",
+       "CAPM",
+       "APT",
+       "다요인모형"
+      ],
+      "aliasesBranch": [
+       "포트폴리오 이론",
+       "자산가격결정",
+       "Capital Market Theory"
+      ],
+      "note": "소유자 Drive 폴더 이름. 표준 두 분과(포트폴리오 이론 G11, 자산가격결정 G12)를 하나로 묶었다. 개념 50개를 넘으면 이 둘로 나눈다."
+     },
+     {
+      "slug": "fin-efficiency",
+      "name": "시장효율성과 행동재무",
+      "short": "행동재무",
+      "en": "Market Efficiency and Behavioral Finance",
+      "basis": "BKM ch.11-12",
+      "labels": {
+       "jel": "G14, G41"
+      },
+      "scope": [
+       "효율적 시장가설",
+       "이상현상",
+       "처분효과",
+       "모멘텀",
+       "투자자 편향"
+      ],
+      "topicSeeds": [
+       "효율적 시장가설",
+       "이상현상"
+      ]
+     },
+     {
+      "slug": "fin-fixed-income",
+      "name": "채권과 금리",
+      "short": "채권",
+      "en": "Fixed Income",
+      "basis": "BKM Part IV",
+      "labels": {
+       "jel": "E43"
+      },
+      "scope": [
+       "채권가격",
+       "듀레이션",
+       "볼록성",
+       "기간구조"
+      ],
+      "topicSeeds": [
+       "듀레이션",
+       "기간구조"
+      ]
+     },
+     {
+      "slug": "fin-derivatives",
+      "name": "파생상품",
+      "short": "파생",
+      "en": "Derivatives",
+      "basis": "BKM Part VI",
+      "labels": {
+       "jel": "G13"
+      },
+      "scope": [
+       "옵션",
+       "선물",
+       "스왑",
+       "풋콜 패리티"
+      ],
+      "topicSeeds": [
+       "옵션 가격결정",
+       "선물 가격결정"
+      ]
+     },
+     {
+      "slug": "fin-valuation",
+      "name": "밸류에이션",
+      "short": "밸류에이션",
+      "en": "Valuation",
+      "basis": "BKM Part V, Brealey Part 1",
+      "labels": {
+       "jel": "G32"
+      },
+      "scope": [
+       "DCF",
+       "상대가치",
+       "멀티플",
+       "자본비용",
+       "WACC",
+       "재무제표 분석",
+       "EBITDA",
+       "산업분석",
+       "현재가치",
+       "복리"
+      ],
+      "topicSeeds": [
+       "화폐의 시간가치",
+       "DCF",
+       "상대가치평가",
+       "자본비용",
+       "재무비율 분석",
+       "산업분석"
+      ],
+      "aliasesBranch": [
+       "Valuation",
+       "가치평가"
+      ]
+     },
+     {
+      "slug": "fin-corporate",
+      "name": "기업재무",
+      "short": "기업재무",
+      "en": "Corporate Finance",
+      "basis": "Brealey Part 5-6",
+      "labels": {
+       "jel": "G35"
+      },
+      "scope": [
+       "자본구조",
+       "배당",
+       "자사주 매입",
+       "주주환원",
+       "레버리지"
+      ],
+      "topicSeeds": [
+       "MM 정리",
+       "주주환원"
+      ]
+     },
+     {
+      "slug": "fin-international",
+      "name": "국제재무",
+      "short": "국제재무",
+      "en": "International Finance",
+      "basis": "BKM ch.25",
+      "labels": {
+       "jel": "G15"
+      },
+      "scope": [
+       "환위험",
+       "환헤지",
+       "이자율 평형"
+      ],
+      "topicSeeds": [
+       "이자율 평형"
+      ]
+     },
+     {
+      "slug": "fin-institutions",
+      "name": "금융기관",
+      "short": "금융기관",
+      "en": "Financial Institutions",
+      "basis": "Mishkin Part 3",
+      "labels": {
+       "jel": "G2"
+      },
+      "scope": [
+       "은행",
+       "보험",
+       "펀드",
+       "뱅크런"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "econ",
+    "name": "경제학",
+    "en": "Economics",
+    "domain": "social",
+    "color": "#18a5a7",
+    "textbook": "Mankiw, Principles of Economics",
+    "labels": {
+     "isced": "0311",
+     "ford": "5.2",
+     "jel": "A-R(G 제외)"
+    },
+    "aliases": [
+     "경제"
+    ],
+    "branches": [
+     {
+      "slug": "econ-basics",
+      "name": "경제적 사고",
+      "short": "경제적 사고",
+      "en": "Thinking Like an Economist",
+      "basis": "Mankiw Part 1",
+      "labels": {
+       "jel": "A1"
+      },
+      "scope": [
+       "기회비용",
+       "한계적 사고",
+       "인센티브",
+       "비교우위",
+       "교환의 이익"
+      ],
+      "topicSeeds": [
+       "비교우위"
+      ]
+     },
+     {
+      "slug": "econ-markets",
+      "name": "시장과 가격",
+      "short": "시장과 가격",
+      "en": "Supply, Demand and Prices",
+      "basis": "Mankiw Part 2",
+      "labels": {
+       "jel": "D4"
+      },
+      "scope": [
+       "수요와 공급",
+       "가격탄력성",
+       "가격통제",
+       "조세 귀착"
+      ],
+      "topicSeeds": [
+       "수요와 공급",
+       "탄력성"
+      ]
+     },
+     {
+      "slug": "econ-firms",
+      "name": "기업과 시장구조",
+      "short": "시장구조",
+      "en": "Firms and Market Structure",
+      "basis": "Mankiw Part 5",
+      "labels": {
+       "jel": "L1"
+      },
+      "scope": [
+       "생산비용",
+       "완전경쟁",
+       "독점",
+       "과점",
+       "진입장벽"
+      ],
+      "topicSeeds": [
+       "독점"
+      ]
+     },
+     {
+      "slug": "econ-games",
+      "name": "게임이론",
+      "short": "게임이론",
+      "en": "Game Theory",
+      "basis": "Mankiw ch.17, Dixit-Nalebuff",
+      "labels": {
+       "jel": "C7"
+      },
+      "scope": [
+       "내쉬균형",
+       "죄수의 딜레마",
+       "신뢰할 수 있는 위협",
+       "반복게임"
+      ],
+      "topicSeeds": [
+       "죄수의 딜레마"
+      ]
+     },
+     {
+      "slug": "econ-info",
+      "name": "정보와 제도",
+      "short": "정보경제",
+      "en": "Information and Institutions",
+      "basis": "Mankiw ch.22",
+      "labels": {
+       "jel": "D8"
+      },
+      "scope": [
+       "역선택",
+       "도덕적 해이",
+       "시장 신호",
+       "주인-대리인"
+      ],
+      "topicSeeds": [
+       "주인-대리인 문제"
+      ]
+     },
+     {
+      "slug": "econ-welfare",
+      "name": "후생과 시장실패",
+      "short": "시장실패",
+      "en": "Welfare and Market Failure",
+      "basis": "Mankiw Part 3-4",
+      "labels": {
+       "jel": "D6, H2"
+      },
+      "scope": [
+       "소비자잉여",
+       "외부효과",
+       "공공재",
+       "코즈 정리",
+       "공유지의 비극"
+      ],
+      "topicSeeds": [
+       "외부효과"
+      ]
+     },
+     {
+      "slug": "econ-macro",
+      "name": "거시경제와 경기변동",
+      "short": "거시경제",
+      "en": "Macroeconomics and Business Cycles",
+      "basis": "Mankiw Part 8, 12",
+      "labels": {
+       "jel": "E3"
+      },
+      "scope": [
+       "GDP",
+       "실업",
+       "인플레이션",
+       "경기순환",
+       "총수요"
+      ],
+      "topicSeeds": [
+       "총수요-총공급"
+      ]
+     },
+     {
+      "slug": "econ-money",
+      "name": "화폐와 통화정책",
+      "short": "통화정책",
+      "en": "Money and Monetary Policy",
+      "basis": "Mankiw Part 10",
+      "labels": {
+       "jel": "E5"
+      },
+      "scope": [
+       "중앙은행",
+       "기준금리",
+       "통화량",
+       "화폐수량설"
+      ],
+      "topicSeeds": [
+       "화폐수량설"
+      ]
+     },
+     {
+      "slug": "econ-fiscal",
+      "name": "재정정책",
+      "short": "재정정책",
+      "en": "Fiscal Policy",
+      "basis": "Mankiw ch.34",
+      "labels": {
+       "jel": "H6"
+      },
+      "scope": [
+       "정부지출",
+       "국가부채",
+       "승수"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "econ-international",
+      "name": "국제경제",
+      "short": "국제경제",
+      "en": "International Economics",
+      "basis": "Mankiw Part 11",
+      "labels": {
+       "jel": "F1, F3"
+      },
+      "scope": [
+       "무역",
+       "관세",
+       "환율 결정",
+       "국제수지"
+      ],
+      "topicSeeds": [
+       "환율 결정 이론"
+      ]
+     },
+     {
+      "slug": "econ-growth",
+      "name": "경제성장",
+      "short": "경제성장",
+      "en": "Economic Growth",
+      "basis": "Mankiw ch.25",
+      "labels": {
+       "jel": "O4"
+      },
+      "scope": [
+       "솔로우 모형",
+       "생산성",
+       "수확체감"
+      ],
+      "topicSeeds": [
+       "솔로우 모형"
+      ]
+     },
+     {
+      "slug": "econ-behavioral",
+      "name": "행동경제학",
+      "short": "행동경제학",
+      "en": "Behavioral Economics",
+      "basis": "Thaler, Misbehaving",
+      "labels": {
+       "jel": "D9"
+      },
+      "scope": [
+       "전망이론",
+       "손실회피",
+       "쌍곡할인",
+       "심적 회계",
+       "넛지"
+      ],
+      "topicSeeds": [
+       "전망이론"
+      ]
+     },
+     {
+      "slug": "econ-resources",
+      "name": "자원·원자재 경제",
+      "short": "원자재",
+      "en": "Resource and Commodity Economics",
+      "basis": "자원경제학 개론",
+      "labels": {
+       "jel": "Q3, Q4"
+      },
+      "scope": [
+       "원자재 수급",
+       "에너지 시장",
+       "농산물 가격"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "acct",
+    "name": "회계학",
+    "en": "Accounting",
+    "domain": "social",
+    "color": "#6b7684",
+    "textbook": "Kieso, Intermediate Accounting",
+    "labels": {
+     "isced": "0411",
+     "jel": "M41"
+    },
+    "aliases": [
+     "회계"
+    ],
+    "branches": [
+     {
+      "slug": "acct-financial",
+      "name": "재무회계",
+      "short": "재무회계",
+      "en": "Financial Accounting",
+      "basis": "Kieso Part 1-3",
+      "labels": {
+       "jel": "M41"
+      },
+      "scope": [
+       "수익인식",
+       "자산 측정",
+       "부채 측정",
+       "회계기준",
+       "발생주의"
+      ],
+      "topicSeeds": [
+       "수익인식"
+      ]
+     },
+     {
+      "slug": "acct-managerial",
+      "name": "관리회계",
+      "short": "관리회계",
+      "en": "Managerial Accounting",
+      "basis": "Horngren",
+      "labels": {
+       "jel": "M41"
+      },
+      "scope": [
+       "원가계산",
+       "예산",
+       "손익분기점"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "acct-tax",
+      "name": "세무회계",
+      "short": "세무",
+      "en": "Tax Accounting",
+      "basis": "Kieso ch.19",
+      "labels": {
+       "jel": "H25"
+      },
+      "scope": [
+       "법인세",
+       "이연법인세"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "mgmt",
+    "name": "경영학",
+    "en": "Management",
+    "domain": "social",
+    "color": "#4e5968",
+    "textbook": "Porter, Competitive Strategy; Kotler, Marketing Management",
+    "labels": {
+     "isced": "0413(0414 마케팅 포함)"
+    },
+    "aliases": [
+     "경영"
+    ],
+    "branches": [
+     {
+      "slug": "mgmt-strategy",
+      "name": "경쟁전략",
+      "short": "경쟁전략",
+      "en": "Competitive Strategy",
+      "basis": "Porter",
+      "labels": {
+       "jel": "L21, M21"
+      },
+      "scope": [
+       "경쟁우위",
+       "해자",
+       "다섯 가지 힘",
+       "규모의 경제"
+      ],
+      "topicSeeds": [
+       "다섯 가지 힘"
+      ]
+     },
+     {
+      "slug": "mgmt-marketing",
+      "name": "마케팅",
+      "short": "마케팅",
+      "en": "Marketing",
+      "basis": "Kotler",
+      "labels": {
+       "jel": "M31"
+      },
+      "scope": [
+       "브랜드",
+       "포지셔닝",
+       "가격 전략"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "mgmt-organization",
+      "name": "조직과 리더십",
+      "short": "조직",
+      "en": "Organizations",
+      "basis": "Robbins",
+      "labels": {
+       "jel": "M12"
+      },
+      "scope": [
+       "조직 구조",
+       "인센티브 설계",
+       "리더십"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "stat",
+    "name": "통계학",
+    "en": "Statistics",
+    "domain": "formal",
+    "color": "#03b26c",
+    "textbook": "Freedman, Pisani, Purves, Statistics",
+    "labels": {
+     "isced": "0542",
+     "ford": "1.1",
+     "msc": "62",
+     "anzsrc": "4905"
+    },
+    "aliases": [
+     "통계"
+    ],
+    "branches": [
+     {
+      "slug": "stat-descriptive",
+      "name": "기술통계",
+      "short": "기술통계",
+      "en": "Descriptive Statistics",
+      "basis": "Freedman Part I-II",
+      "labels": {},
+      "scope": [
+       "평균",
+       "분산",
+       "표준편차",
+       "분포의 모양"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "stat-probability",
+      "name": "확률과 확률분포",
+      "short": "확률",
+      "en": "Probability",
+      "basis": "Freedman Part IV",
+      "labels": {
+       "msc": "60",
+       "anzsrc": "490506"
+      },
+      "scope": [
+       "확률법칙",
+       "조건부확률",
+       "베이즈 정리",
+       "정규분포",
+       "중심극한정리",
+       "기댓값"
+      ],
+      "topicSeeds": [
+       "베이즈 정리",
+       "중심극한정리"
+      ]
+     },
+     {
+      "slug": "stat-inference",
+      "name": "통계적 추론",
+      "short": "통계적 추론",
+      "en": "Statistical Inference",
+      "basis": "Freedman Part VI-VIII",
+      "labels": {
+       "msc": "62F",
+       "jel": "C12",
+       "anzsrc": "490509"
+      },
+      "scope": [
+       "추정",
+       "신뢰구간",
+       "가설검정",
+       "검정통계량",
+       "유의수준",
+       "p값"
+      ],
+      "topicSeeds": [
+       "가설검정"
+      ]
+     },
+     {
+      "slug": "stat-regression",
+      "name": "회귀분석",
+      "short": "회귀",
+      "en": "Regression",
+      "basis": "Freedman Part III",
+      "labels": {
+       "msc": "62J",
+       "jel": "C2"
+      },
+      "scope": [
+       "상관",
+       "선형회귀",
+       "결정계수",
+       "다중공선성"
+      ],
+      "topicSeeds": [
+       "선형회귀"
+      ]
+     },
+     {
+      "slug": "stat-bayes",
+      "name": "베이즈 통계",
+      "short": "베이즈",
+      "en": "Bayesian Statistics",
+      "basis": "Gelman, Bayesian Data Analysis",
+      "labels": {
+       "msc": "62F15"
+      },
+      "scope": [
+       "사전확률",
+       "사후확률",
+       "베이즈 갱신"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "stat-timeseries",
+      "name": "시계열 분석",
+      "short": "시계열",
+      "en": "Time Series",
+      "basis": "Hamilton",
+      "labels": {
+       "msc": "62M10",
+       "jel": "C22"
+      },
+      "scope": [
+       "자기상관",
+       "정상성",
+       "랜덤워크"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "stat-causal",
+      "name": "실험과 인과추론",
+      "short": "인과추론",
+      "en": "Experiments and Causal Inference",
+      "basis": "Freedman Part I ch.1-2",
+      "labels": {
+       "msc": "62K",
+       "jel": "C9"
+      },
+      "scope": [
+       "무작위 배정",
+       "교란변수",
+       "생존편향",
+       "선택편향"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "math",
+    "name": "수학",
+    "en": "Mathematics",
+    "domain": "formal",
+    "color": "#2272eb",
+    "textbook": "Stewart, Calculus; Strang, Linear Algebra; Rosen, Discrete Mathematics",
+    "labels": {
+     "isced": "0541",
+     "msc": "00-58"
+    },
+    "aliases": [
+     "수리"
+    ],
+    "branches": [
+     {
+      "slug": "math-calculus",
+      "name": "미적분과 해석",
+      "short": "미적분",
+      "en": "Calculus and Analysis",
+      "basis": "Stewart",
+      "labels": {
+       "msc": "26"
+      },
+      "scope": [
+       "극한",
+       "미분",
+       "적분",
+       "지수함수",
+       "로그"
+      ],
+      "topicSeeds": [
+       "지수 증가"
+      ]
+     },
+     {
+      "slug": "math-linear",
+      "name": "선형대수",
+      "short": "선형대수",
+      "en": "Linear Algebra",
+      "basis": "Strang",
+      "labels": {
+       "msc": "15"
+      },
+      "scope": [
+       "행렬",
+       "벡터",
+       "고유값"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "math-diffeq",
+      "name": "미분방정식",
+      "short": "미분방정식",
+      "en": "Differential Equations",
+      "basis": "Boyce",
+      "labels": {
+       "msc": "34, 35"
+      },
+      "scope": [
+       "상미분방정식",
+       "평형점",
+       "안정성"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "math-optimization",
+      "name": "최적화",
+      "short": "최적화",
+      "en": "Optimization",
+      "basis": "Boyd, Convex Optimization",
+      "labels": {
+       "msc": "49, 90"
+      },
+      "scope": [
+       "라그랑주 승수",
+       "선형계획",
+       "볼록성 조건"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "math-discrete",
+      "name": "이산수학",
+      "short": "이산수학",
+      "en": "Discrete Mathematics",
+      "basis": "Rosen",
+      "labels": {
+       "msc": "05"
+      },
+      "scope": [
+       "순열",
+       "조합",
+       "그래프 이론",
+       "비둘기집 원리"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "logic",
+    "name": "논리학",
+    "en": "Logic",
+    "domain": "formal",
+    "color": "#a234c7",
+    "textbook": "Copi, Introduction to Logic; 증명은 Velleman, How to Prove It",
+    "labels": {
+     "isced": "0223 안(소유자 예외)",
+     "kdc": "170(철학 아래 강목)",
+     "ddc": "160(철학 아래 division)",
+     "anzsrc": "500308"
+    },
+    "aliases": [
+     "논리"
+    ],
+    "branches": [
+     {
+      "slug": "logic-reasoning",
+      "name": "추론과 논증",
+      "short": "추론",
+      "en": "Reasoning and Argument",
+      "basis": "Copi Part I",
+      "labels": {
+       "anzsrc": "500308"
+      },
+      "scope": [
+       "연역",
+       "귀납법",
+       "가추",
+       "논증의 구조",
+       "타당성과 건전성"
+      ],
+      "topicSeeds": [
+       "귀납 논증"
+      ]
+     },
+     {
+      "slug": "logic-fallacies",
+      "name": "오류",
+      "short": "오류",
+      "en": "Fallacies",
+      "basis": "Copi ch.4",
+      "labels": {},
+      "scope": [
+       "형식적 오류",
+       "비형식적 오류",
+       "허수아비",
+       "순환논증"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "logic-formal",
+      "name": "명제논리와 술어논리",
+      "short": "형식논리",
+      "en": "Propositional and Predicate Logic",
+      "basis": "Copi Part II",
+      "labels": {
+       "msc": "03B"
+      },
+      "scope": [
+       "진리표",
+       "양화사",
+       "불완전성 정리"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "logic-proof",
+      "name": "증명 방법",
+      "short": "증명",
+      "en": "Methods of Proof",
+      "basis": "Velleman ch.3",
+      "labels": {
+       "msc": "97E50(미확인)"
+      },
+      "scope": [
+       "귀류법",
+       "대우증명",
+       "수학적 귀납법",
+       "반례"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "cs",
+    "name": "소프트웨어",
+    "en": "Computer Science",
+    "domain": "formal",
+    "color": "#fe9800",
+    "textbook": "Kurose-Ross(네트워크), Silberschatz(데이터베이스, 운영체제), CLRS(알고리즘)",
+    "labels": {
+     "isced": "061(narrow로 묶음)",
+     "ford": "1.2",
+     "acm": "CCS 2012"
+    },
+    "aliases": [
+     "software",
+     "컴퓨터과학",
+     "컴퓨터"
+    ],
+    "branches": [
+     {
+      "slug": "cs-database",
+      "name": "데이터베이스",
+      "short": "DB",
+      "en": "Databases",
+      "basis": "Silberschatz, Database System Concepts",
+      "labels": {
+       "acm": "Information systems > Data management systems"
+      },
+      "scope": [
+       "SQL",
+       "DDL",
+       "스키마",
+       "DB 정규화",
+       "트랜잭션",
+       "인덱스"
+      ],
+      "topicSeeds": [
+       "SQL"
+      ]
+     },
+     {
+      "slug": "cs-web",
+      "name": "웹",
+      "short": "웹",
+      "en": "The Web",
+      "basis": "MDN Learn",
+      "labels": {
+       "acm": "Information systems > World Wide Web"
+      },
+      "scope": [
+       "HTTP",
+       "HTML",
+       "브라우저",
+       "API"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "cs-algorithms",
+      "name": "알고리즘과 자료구조",
+      "short": "알고리즘",
+      "en": "Algorithms and Data Structures",
+      "basis": "CLRS",
+      "labels": {
+       "acm": "Theory of computation > Design and analysis of algorithms"
+      },
+      "scope": [
+       "복잡도",
+       "정렬",
+       "탐색",
+       "그래프 알고리즘"
+      ],
+      "topicSeeds": [
+       "빅오 표기"
+      ]
+     },
+     {
+      "slug": "cs-systems",
+      "name": "운영체제",
+      "short": "운영체제",
+      "en": "Operating Systems",
+      "basis": "Silberschatz, Operating System Concepts",
+      "labels": {
+       "acm": "Software and its engineering > Operating systems"
+      },
+      "scope": [
+       "프로세스",
+       "메모리",
+       "파일 시스템"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "cs-networks",
+      "name": "네트워크",
+      "short": "네트워크",
+      "en": "Networks",
+      "basis": "Kurose-Ross",
+      "labels": {
+       "acm": "Networks"
+      },
+      "scope": [
+       "TCP/IP",
+       "DNS",
+       "라우팅"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "cs-programming",
+      "name": "프로그래밍 언어",
+      "short": "프로그래밍",
+      "en": "Programming Languages",
+      "basis": "SICP",
+      "labels": {
+       "acm": "Software and its engineering > Software notations and tools"
+      },
+      "scope": [
+       "타입",
+       "함수",
+       "컴파일"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "cs-ai",
+      "name": "인공지능과 기계학습",
+      "short": "AI",
+      "en": "AI and Machine Learning",
+      "basis": "Russell-Norvig; Hastie-Tibshirani-Friedman",
+      "labels": {
+       "acm": "Computing methodologies > Machine learning"
+      },
+      "scope": [
+       "모델 학습",
+       "과적합",
+       "규제화",
+       "평가 지표",
+       "신경망"
+      ],
+      "topicSeeds": [
+       "신경망"
+      ]
+     },
+     {
+      "slug": "cs-information",
+      "name": "정보이론",
+      "short": "정보이론",
+      "en": "Information Theory",
+      "basis": "Cover-Thomas",
+      "labels": {
+       "acm": "Mathematics of computing > Information theory"
+      },
+      "scope": [
+       "정보 엔트로피",
+       "부호화",
+       "채널 용량"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "cs-security",
+      "name": "보안",
+      "short": "보안",
+      "en": "Security",
+      "basis": "Anderson, Security Engineering",
+      "labels": {
+       "acm": "Security and privacy"
+      },
+      "scope": [
+       "암호",
+       "인증"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "psy",
+    "name": "심리학",
+    "en": "Psychology",
+    "domain": "social",
+    "color": "#f04452",
+    "textbook": "Myers, Psychology",
+    "labels": {
+     "isced": "0313",
+     "ford": "5.1",
+     "psycinfo": "2000-3000번대"
+    },
+    "aliases": [
+     "심리"
+    ],
+    "branches": [
+     {
+      "slug": "psy-judgment",
+      "name": "판단과 의사결정",
+      "short": "판단",
+      "en": "Judgment and Decision Making",
+      "basis": "Myers ch.9; Kahneman",
+      "labels": {
+       "psycinfo": "2340 안(독립 코드 없음)"
+      },
+      "scope": [
+       "휴리스틱",
+       "인지편향",
+       "확증편향",
+       "닻내림",
+       "가용성"
+      ],
+      "topicSeeds": [
+       "휴리스틱과 편향"
+      ]
+     },
+     {
+      "slug": "psy-memory",
+      "name": "학습과 기억",
+      "short": "기억",
+      "en": "Learning and Memory",
+      "basis": "Myers ch.7-8",
+      "labels": {
+       "psycinfo": "2343"
+      },
+      "scope": [
+       "망각곡선",
+       "간격 반복",
+       "인출 연습",
+       "조건형성"
+      ],
+      "topicSeeds": [
+       "조작적 조건형성"
+      ]
+     },
+     {
+      "slug": "psy-motivation",
+      "name": "동기와 정서",
+      "short": "동기",
+      "en": "Motivation and Emotion",
+      "basis": "Myers ch.11-12",
+      "labels": {
+       "psycinfo": "2360"
+      },
+      "scope": [
+       "보상",
+       "습관",
+       "감정",
+       "몰입"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "psy-social",
+      "name": "사회심리",
+      "short": "사회심리",
+      "en": "Social Psychology",
+      "basis": "Myers ch.14; Cialdini",
+      "labels": {
+       "psycinfo": "3000(미확인)"
+      },
+      "scope": [
+       "동조",
+       "권위",
+       "사회적 증거",
+       "상호성",
+       "일관성"
+      ],
+      "topicSeeds": [
+       "설득의 원리"
+      ]
+     },
+     {
+      "slug": "psy-perception",
+      "name": "감각과 지각",
+      "short": "지각",
+      "en": "Sensation and Perception",
+      "basis": "Myers ch.6",
+      "labels": {
+       "psycinfo": "2320(미확인)"
+      },
+      "scope": [
+       "착시",
+       "주의",
+       "대비 효과"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "psy-development",
+      "name": "발달심리",
+      "short": "발달",
+      "en": "Developmental Psychology",
+      "basis": "Myers ch.5",
+      "labels": {
+       "psycinfo": "2800(미확인)"
+      },
+      "scope": [
+       "애착",
+       "인지발달"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "psy-personality",
+      "name": "성격과 개인차",
+      "short": "성격",
+      "en": "Personality",
+      "basis": "Myers ch.13",
+      "labels": {
+       "psycinfo": "3100(미확인)"
+      },
+      "scope": [
+       "5요인",
+       "지능"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "phys",
+    "name": "물리학",
+    "en": "Physics",
+    "domain": "natural",
+    "color": "#1b64da",
+    "textbook": "Halliday, Resnick, Walker, Fundamentals of Physics",
+    "labels": {
+     "isced": "0533",
+     "ford": "1.3"
+    },
+    "aliases": [
+     "물리"
+    ],
+    "branches": [
+     {
+      "slug": "phys-mechanics",
+      "name": "역학",
+      "short": "역학",
+      "en": "Mechanics",
+      "basis": "Halliday Part 1",
+      "labels": {},
+      "scope": [
+       "뉴턴 법칙",
+       "운동량 보존",
+       "에너지 보존",
+       "관성"
+      ],
+      "topicSeeds": [
+       "뉴턴 운동 법칙"
+      ]
+     },
+     {
+      "slug": "phys-waves",
+      "name": "파동",
+      "short": "파동",
+      "en": "Waves",
+      "basis": "Halliday Part 2",
+      "labels": {},
+      "scope": [
+       "진동",
+       "간섭",
+       "공명"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phys-thermo",
+      "name": "열역학과 통계역학",
+      "short": "열역학",
+      "en": "Thermodynamics",
+      "basis": "Halliday Part 2",
+      "labels": {
+       "physh": "Statistical Physics & Thermodynamics"
+      },
+      "scope": [
+       "열역학 엔트로피",
+       "열역학 법칙",
+       "평형"
+      ],
+      "topicSeeds": [
+       "열역학 제2법칙"
+      ]
+     },
+     {
+      "slug": "phys-em",
+      "name": "전자기학",
+      "short": "전자기",
+      "en": "Electromagnetism",
+      "basis": "Halliday Part 3-4",
+      "labels": {},
+      "scope": [
+       "전기장",
+       "자기장",
+       "맥스웰 방정식"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phys-optics",
+      "name": "광학",
+      "short": "광학",
+      "en": "Optics",
+      "basis": "Halliday Part 4",
+      "labels": {},
+      "scope": [
+       "굴절",
+       "회절"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phys-modern",
+      "name": "현대물리",
+      "short": "현대물리",
+      "en": "Modern Physics",
+      "basis": "Halliday Part 5",
+      "labels": {},
+      "scope": [
+       "불확정성",
+       "중첩",
+       "시간 지연",
+       "질량-에너지"
+      ],
+      "topicSeeds": [
+       "양자역학",
+       "상대성이론"
+      ]
+     },
+     {
+      "slug": "phys-complex",
+      "name": "복잡계",
+      "short": "복잡계",
+      "en": "Complex Systems",
+      "basis": "Strogatz, Nonlinear Dynamics and Chaos",
+      "labels": {},
+      "scope": [
+       "혼돈",
+       "임계점",
+       "멱법칙",
+       "창발"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "chem",
+    "name": "화학",
+    "en": "Chemistry",
+    "domain": "natural",
+    "color": "#029359",
+    "textbook": "Zumdahl, Chemistry",
+    "labels": {
+     "isced": "0531"
+    },
+    "aliases": [],
+    "branches": [
+     {
+      "slug": "chem-structure",
+      "name": "원자와 결합",
+      "short": "원자",
+      "en": "Atoms and Bonding",
+      "basis": "Zumdahl ch.2-9",
+      "labels": {},
+      "scope": [
+       "원자 구조",
+       "화학 결합",
+       "주기율"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "chem-reactions",
+      "name": "반응과 평형",
+      "short": "반응",
+      "en": "Reactions and Equilibrium",
+      "basis": "Zumdahl ch.12-17",
+      "labels": {},
+      "scope": [
+       "반응속도",
+       "촉매",
+       "화학 평형",
+       "르샤틀리에"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "chem-organic",
+      "name": "유기화학",
+      "short": "유기",
+      "en": "Organic Chemistry",
+      "basis": "Zumdahl ch.21-22",
+      "labels": {},
+      "scope": [
+       "탄소 화합물",
+       "고분자"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "bio",
+    "name": "생물학",
+    "en": "Biology",
+    "domain": "natural",
+    "color": "#15c47e",
+    "textbook": "Campbell Biology",
+    "labels": {
+     "isced": "0511(0512 생화학 포함)",
+     "ford": "1.6"
+    },
+    "aliases": [
+     "생물",
+     "생명과학",
+     "생화학"
+    ],
+    "branches": [
+     {
+      "slug": "bio-evolution",
+      "name": "진화",
+      "short": "진화",
+      "en": "Evolution",
+      "basis": "Campbell Unit 4",
+      "labels": {},
+      "scope": [
+       "자연선택",
+       "적응",
+       "공진화",
+       "진화적 안정 전략"
+      ],
+      "topicSeeds": [
+       "자연선택"
+      ]
+     },
+     {
+      "slug": "bio-ecology",
+      "name": "생태학",
+      "short": "생태",
+      "en": "Ecology",
+      "basis": "Campbell Unit 8",
+      "labels": {},
+      "scope": [
+       "개체군",
+       "먹이그물",
+       "니치",
+       "수용력"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "bio-genetics",
+      "name": "유전학",
+      "short": "유전",
+      "en": "Genetics",
+      "basis": "Campbell Unit 3",
+      "labels": {},
+      "scope": [
+       "유전",
+       "돌연변이",
+       "형질 발현",
+       "DNA"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "bio-cell",
+      "name": "세포와 분자",
+      "short": "세포",
+      "en": "Cells and Molecules",
+      "basis": "Campbell Unit 1-2",
+      "labels": {},
+      "scope": [
+       "세포 구조",
+       "효소",
+       "ATP",
+       "대사"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "bio-physiology",
+      "name": "생리학",
+      "short": "생리",
+      "en": "Physiology",
+      "basis": "Campbell Unit 7",
+      "labels": {},
+      "scope": [
+       "항상성",
+       "호르몬",
+       "면역"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "bio-neuro",
+      "name": "신경생물학",
+      "short": "신경",
+      "en": "Neurobiology",
+      "basis": "Campbell ch.48-49; Kandel",
+      "labels": {},
+      "scope": [
+       "뉴런",
+       "도파민",
+       "보상예측오차",
+       "시냅스 가소성"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "bio-behavior",
+      "name": "동물행동학",
+      "short": "동물행동",
+      "en": "Animal Behavior",
+      "basis": "Campbell ch.51; Dawkins",
+      "labels": {},
+      "scope": [
+       "혈연선택",
+       "핸디캡 원리",
+       "이기적 유전자"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "earth",
+    "name": "지구과학",
+    "en": "Earth Science",
+    "domain": "natural",
+    "color": "#8b95a1",
+    "textbook": "Tarbuck, Earth Science",
+    "labels": {
+     "isced": "0532"
+    },
+    "aliases": [],
+    "branches": [
+     {
+      "slug": "earth-geology",
+      "name": "지질",
+      "short": "지질",
+      "en": "Geology",
+      "basis": "Tarbuck Unit 1-3",
+      "labels": {},
+      "scope": [
+       "판구조론",
+       "암석",
+       "광물 자원"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "earth-climate",
+      "name": "대기와 기후",
+      "short": "기후",
+      "en": "Atmosphere and Climate",
+      "basis": "Tarbuck Unit 6",
+      "labels": {},
+      "scope": [
+       "기후변화",
+       "온실효과",
+       "해류"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   },
+   {
+    "slug": "phil",
+    "name": "철학",
+    "en": "Philosophy",
+    "domain": "humanities",
+    "color": "#d22030",
+    "textbook": "Blackburn, Think",
+    "labels": {
+     "isced": "0223(논리 제외)"
+    },
+    "aliases": [],
+    "branches": [
+     {
+      "slug": "phil-epistemology",
+      "name": "인식론",
+      "short": "인식론",
+      "en": "Epistemology",
+      "basis": "Blackburn ch.1",
+      "labels": {},
+      "scope": [
+       "지식의 정의",
+       "회의주의",
+       "정당화"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phil-metaphysics",
+      "name": "형이상학",
+      "short": "형이상학",
+      "en": "Metaphysics",
+      "basis": "Blackburn ch.3, 6",
+      "labels": {},
+      "scope": [
+       "인과",
+       "자유의지",
+       "실재"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phil-ethics",
+      "name": "윤리학",
+      "short": "윤리",
+      "en": "Ethics",
+      "basis": "Blackburn ch.8",
+      "labels": {},
+      "scope": [
+       "공리주의",
+       "의무론",
+       "덕 윤리"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phil-science",
+      "name": "과학철학",
+      "short": "과학철학",
+      "en": "Philosophy of Science",
+      "basis": "Okasha, Philosophy of Science",
+      "labels": {},
+      "scope": [
+       "귀납의 문제",
+       "반증가능성",
+       "패러다임"
+      ],
+      "topicSeeds": []
+     },
+     {
+      "slug": "phil-mind",
+      "name": "심리철학",
+      "short": "심리철학",
+      "en": "Philosophy of Mind",
+      "basis": "Blackburn ch.2",
+      "labels": {},
+      "scope": [
+       "심신 문제",
+       "의식"
+      ],
+      "topicSeeds": []
+     }
+    ]
+   }
+  ],
+  "goldenSet": [
+   {
+    "input": "손실회피",
+    "home": "econ-behavioral",
+    "ruling": "R02"
+   },
+   {
+    "input": "확증편향",
+    "home": "psy-judgment",
+    "ruling": "R01"
+   },
+   {
+    "input": "처분효과",
+    "home": "fin-efficiency",
+    "ruling": "R03"
+   },
+   {
+    "input": "전망이론",
+    "home": "econ-behavioral",
+    "ruling": "R02"
+   },
+   {
+    "input": "베이즈 정리",
+    "home": "stat-probability",
+    "ruling": "R04"
+   },
+   {
+    "input": "중심극한정리",
+    "home": "stat-probability",
+    "ruling": "R04"
+   },
+   {
+    "input": "귀류법",
+    "home": "logic-proof",
+    "ruling": "R05"
+   },
+   {
+    "input": "수학적 귀납법",
+    "home": "logic-proof",
+    "ruling": "R05"
+   },
+   {
+    "input": "괴델 불완전성 정리",
+    "home": "logic-formal",
+    "ruling": "R06"
+   },
+   {
+    "input": "귀납의 문제",
+    "home": "phil-science",
+    "ruling": "R07"
+   },
+   {
+    "input": "반증가능성",
+    "home": "phil-science",
+    "ruling": "R07"
+   },
+   {
+    "input": "귀납 논증",
+    "home": "logic-reasoning",
+    "ruling": "R07"
+   },
+   {
+    "input": "열역학 엔트로피",
+    "home": "phys-thermo",
+    "ruling": "R08"
+   },
+   {
+    "input": "정보 엔트로피",
+    "home": "cs-information",
+    "ruling": "R08"
+   },
+   {
+    "input": "도파민 보상예측오차",
+    "home": "bio-neuro",
+    "ruling": "R09"
+   },
+   {
+    "input": "ATP",
+    "home": "bio-cell",
+    "ruling": "R10"
+   },
+   {
+    "input": "효소",
+    "home": "bio-cell",
+    "ruling": "R10"
+   },
+   {
+    "input": "과적합",
+    "home": "cs-ai",
+    "ruling": "R13"
+   },
+   {
+    "input": "환율 결정 이론",
+    "home": "econ-international",
+    "ruling": "R14"
+   },
+   {
+    "input": "이자율 평형",
+    "home": "fin-international",
+    "ruling": "R14"
+   },
+   {
+    "input": "핸디캡 원리",
+    "home": "bio-behavior",
+    "ruling": "R15"
+   },
+   {
+    "input": "시장 신호(Spence)",
+    "home": "econ-info",
+    "ruling": "R15"
+   },
+   {
+    "input": "진화적 안정 전략",
+    "home": "bio-evolution",
+    "ruling": "R16"
+   },
+   {
+    "input": "EBITDA",
+    "home": "fin-valuation",
+    "ruling": "R17"
+   },
+   {
+    "input": "이연법인세",
+    "home": "acct-tax",
+    "ruling": null
+   },
+   {
+    "input": "수익인식",
+    "home": "acct-financial",
+    "ruling": "R17"
+   },
+   {
+    "input": "원자재 업종 분석",
+    "home": "fin-valuation",
+    "ruling": "R18"
+   },
+   {
+    "input": "원자재 수급 구조",
+    "home": "econ-resources",
+    "ruling": "R18"
+   },
+   {
+    "input": "복리",
+    "home": "fin-valuation",
+    "ruling": "R19"
+   },
+   {
+    "input": "순열과 조합",
+    "home": "math-discrete",
+    "ruling": "R20"
+   },
+   {
+    "input": "비교우위",
+    "home": "econ-basics",
+    "ruling": "R21"
+   },
+   {
+    "input": "기회비용",
+    "home": "econ-basics",
+    "ruling": "R21"
+   },
+   {
+    "input": "경제적 해자",
+    "home": "mgmt-strategy",
+    "ruling": "R22"
+   },
+   {
+    "input": "CAPM 검증에서 모수와 추정치",
+    "home": "fin-capital-markets",
+    "ruling": "R23"
+   },
+   {
+    "input": "수요의 가격탄력성",
+    "home": "econ-markets",
+    "ruling": null
+   },
+   {
+    "input": "DCF",
+    "home": "fin-valuation",
+    "ruling": null
+   },
+   {
+    "input": "자사주 매입",
+    "home": "fin-corporate",
+    "ruling": null
+   },
+   {
+    "input": "사회적 증거",
+    "home": "psy-social",
+    "ruling": null
+   },
+   {
+    "input": "간격 반복",
+    "home": "psy-memory",
+    "ruling": null
+   },
+   {
+    "input": "DB 정규화",
+    "home": "cs-database",
+    "ruling": null
+   }
+  ]
+ },
+ "tree": {
+  "version": 2,
+  "nodes": [
+   {
+    "id": "n:fin",
+    "rank": "discipline",
+    "name": "재무학",
+    "short": "재무학",
+    "en": "Finance",
+    "parent": null,
+    "ref": "fin",
+    "color": "#3182f6",
+    "domain": "social",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": []
+   },
+   {
+    "id": "n:logic",
+    "rank": "discipline",
+    "name": "논리학",
+    "short": "논리학",
+    "en": "Logic",
+    "parent": null,
+    "ref": "logic",
+    "color": "#a234c7",
+    "domain": "formal",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": []
+   },
+   {
+    "id": "n:stat",
+    "rank": "discipline",
+    "name": "통계학",
+    "short": "통계학",
+    "en": "Statistics",
+    "parent": null,
+    "ref": "stat",
+    "color": "#03b26c",
+    "domain": "formal",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": []
+   },
+   {
+    "id": "n:cs",
+    "rank": "discipline",
+    "name": "소프트웨어",
+    "short": "소프트웨어",
+    "en": "Computer Science",
+    "parent": null,
+    "ref": "cs",
+    "color": "#fe9800",
+    "domain": "formal",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [
+     "software",
+     "컴퓨터과학"
+    ],
+    "status": "active",
+    "concepts": []
+   },
+   {
+    "id": "n:fin-capital-markets",
+    "rank": "branch",
+    "name": "자본시장이론",
+    "short": "자본시장",
+    "en": "Capital Market Theory",
+    "parent": "n:fin",
+    "ref": "fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [
+     "포트폴리오 이론",
+     "자산가격결정"
+    ],
+    "status": "active",
+    "concepts": []
+   },
+   {
+    "id": "n:fin-valuation",
+    "rank": "branch",
+    "name": "밸류에이션",
+    "short": "밸류에이션",
+    "en": "Valuation",
+    "parent": "n:fin",
+    "ref": "fin-valuation",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [
+     "Valuation",
+     "가치평가"
+    ],
+    "status": "active",
+    "concepts": [
+     "ebitda",
+     "wacc"
+    ]
+   },
+   {
+    "id": "n:logic-reasoning",
+    "rank": "branch",
+    "name": "추론과 논증",
+    "short": "추론",
+    "en": "Reasoning and Argument",
+    "parent": "n:logic",
+    "ref": "logic-reasoning",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "abduction"
+    ]
+   },
+   {
+    "id": "n:stat-inference",
+    "rank": "branch",
+    "name": "통계적 추론",
+    "short": "통계적 추론",
+    "en": "Statistical Inference",
+    "parent": "n:stat",
+    "ref": "stat-inference",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "tstat"
+    ]
+   },
+   {
+    "id": "n:cs-database",
+    "rank": "branch",
+    "name": "데이터베이스",
+    "short": "DB",
+    "en": "Databases",
+    "parent": "n:cs",
+    "ref": "cs-database",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "ddl"
+    ]
+   },
+   {
+    "id": "n:fin-capital-allocation",
+    "rank": "topic",
+    "name": "자본배분",
+    "short": "자본배분",
+    "en": "Capital Allocation",
+    "parent": "n:fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "cal-borrow",
+     "cal-budget",
+     "cal-frontier",
+     "cal-indiff",
+     "cal-optimal",
+     "cal-passive",
+     "cal-problem",
+     "cal-utility"
+    ]
+   },
+   {
+    "id": "n:fin-optimal-risky",
+    "rank": "topic",
+    "name": "최적 위험 포트폴리오",
+    "short": "최적 위험 포트폴리오",
+    "en": "Optimal Risky Portfolio",
+    "parent": "n:fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [
+     "최적 포트폴리오"
+    ],
+    "status": "active",
+    "concepts": [
+     "opt-divers",
+     "opt-frontier-rf",
+     "opt-meanvar",
+     "opt-mvf",
+     "opt-risk-types",
+     "opt-separation",
+     "opt-two-risky"
+    ]
+   },
+   {
+    "id": "n:fin-index-model",
+    "rank": "topic",
+    "name": "지수모형",
+    "short": "지수모형",
+    "en": "Index Models",
+    "parent": "n:fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "idx-betastab",
+     "idx-decomp",
+     "idx-est",
+     "idx-industry",
+     "idx-pfbeta",
+     "idx-proxy",
+     "idx-regout",
+     "idx-sim"
+    ]
+   },
+   {
+    "id": "n:fin-capm",
+    "rank": "topic",
+    "name": "CAPM",
+    "short": "CAPM",
+    "en": "Capital Asset Pricing Model",
+    "parent": "n:fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "alpha",
+     "beta",
+     "capm",
+     "capm-ext",
+     "capm-param",
+     "capmtest",
+     "mkteff",
+     "sml"
+    ]
+   },
+   {
+    "id": "n:fin-apt",
+    "rank": "topic",
+    "name": "APT",
+    "short": "APT",
+    "en": "Arbitrage Pricing Theory",
+    "parent": "n:fin-capital-markets",
+    "createdAt": "2026-11-18",
+    "createdBy": "seed",
+    "aliases": [],
+    "status": "active",
+    "concepts": [
+     "apt-apply",
+     "apt-apt",
+     "apt-arb",
+     "apt-equil",
+     "apt-ff",
+     "apt-noarb"
+    ]
+   }
+  ],
+  "concepts": [
+   {
+    "id": "abduction",
+    "name": "가추",
+    "node": "n:logic-reasoning",
+    "path": "논리학 > 추론과 논증 > 가추",
+    "questions": 5
+   },
+   {
+    "id": "alpha",
+    "name": "알파",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > 알파",
+    "questions": 5
+   },
+   {
+    "id": "apt-apply",
+    "name": "차익거래기회 부재 원리의 응용",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 차익거래기회 부재 원리의 응용",
+    "questions": 5
+   },
+   {
+    "id": "apt-apt",
+    "name": "차익거래 가격결정 이론",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 차익거래 가격결정 이론",
+    "questions": 5
+   },
+   {
+    "id": "apt-arb",
+    "name": "차익거래",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 차익거래",
+    "questions": 5
+   },
+   {
+    "id": "apt-equil",
+    "name": "차익거래 논리와 균형 논리",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 차익거래 논리와 균형 논리",
+    "questions": 5
+   },
+   {
+    "id": "apt-ff",
+    "name": "파마-프렌치 다요인 모형",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 파마-프렌치 다요인 모형",
+    "questions": 5
+   },
+   {
+    "id": "apt-noarb",
+    "name": "차익거래기회 부재의 원리",
+    "node": "n:fin-apt",
+    "path": "재무학 > 자본시장이론 > APT > 차익거래기회 부재의 원리",
+    "questions": 5
+   },
+   {
+    "id": "beta",
+    "name": "베타",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > 베타",
+    "questions": 5
+   },
+   {
+    "id": "cal-borrow",
+    "name": "차입 제약",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 차입 제약",
+    "questions": 5
+   },
+   {
+    "id": "cal-budget",
+    "name": "예산선과 샤프비율",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 예산선과 샤프비율",
+    "questions": 5
+   },
+   {
+    "id": "cal-frontier",
+    "name": "투자가능집합과 효율적 경계",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 투자가능집합과 효율적 경계",
+    "questions": 5
+   },
+   {
+    "id": "cal-indiff",
+    "name": "기대수익률-표준편차 공간과 무차별곡선",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 기대수익률-표준편차 공간과 무차별곡선",
+    "questions": 5
+   },
+   {
+    "id": "cal-optimal",
+    "name": "최적 포트폴리오",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 최적 포트폴리오",
+    "questions": 5
+   },
+   {
+    "id": "cal-passive",
+    "name": "소극적 투자와 자본시장선",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 소극적 투자와 자본시장선",
+    "questions": 5
+   },
+   {
+    "id": "cal-problem",
+    "name": "자산배분 문제",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 자산배분 문제",
+    "questions": 5
+   },
+   {
+    "id": "cal-utility",
+    "name": "평균-분산 효용함수와 위험기피도",
+    "node": "n:fin-capital-allocation",
+    "path": "재무학 > 자본시장이론 > 자본배분 > 평균-분산 효용함수와 위험기피도",
+    "questions": 5
+   },
+   {
+    "id": "capm",
+    "name": "CAPM",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > CAPM",
+    "questions": 5
+   },
+   {
+    "id": "capm-ext",
+    "name": "CAPM의 확장",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > CAPM의 확장",
+    "questions": 5
+   },
+   {
+    "id": "capm-param",
+    "name": "파라미터와 추정치의 구별",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > 파라미터와 추정치의 구별",
+    "questions": 5
+   },
+   {
+    "id": "capmtest",
+    "name": "CAPM의 실증 검증",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > CAPM의 실증 검증",
+    "questions": 5
+   },
+   {
+    "id": "ddl",
+    "name": "DDL",
+    "node": "n:cs-database",
+    "path": "소프트웨어 > 데이터베이스 > DDL",
+    "questions": 5
+   },
+   {
+    "id": "ebitda",
+    "name": "EBITDA",
+    "node": "n:fin-valuation",
+    "path": "재무학 > 밸류에이션 > EBITDA",
+    "questions": 5
+   },
+   {
+    "id": "idx-betastab",
+    "name": "베타의 시간 변화와 기업의 나이",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 베타의 시간 변화와 기업의 나이",
+    "questions": 5
+   },
+   {
+    "id": "idx-decomp",
+    "name": "기대수익률과 분산의 분해",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 기대수익률과 분산의 분해",
+    "questions": 5
+   },
+   {
+    "id": "idx-est",
+    "name": "단일 지수 모형의 추정",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 단일 지수 모형의 추정",
+    "questions": 5
+   },
+   {
+    "id": "idx-industry",
+    "name": "알파와 베타의 업계 용례",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 알파와 베타의 업계 용례",
+    "questions": 5
+   },
+   {
+    "id": "idx-pfbeta",
+    "name": "포트폴리오의 알파와 베타",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 포트폴리오의 알파와 베타",
+    "questions": 5
+   },
+   {
+    "id": "idx-proxy",
+    "name": "시장 포트폴리오 수익률 프록시",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 시장 포트폴리오 수익률 프록시",
+    "questions": 5
+   },
+   {
+    "id": "idx-regout",
+    "name": "회귀 출력의 해석",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 회귀 출력의 해석",
+    "questions": 5
+   },
+   {
+    "id": "idx-sim",
+    "name": "단일 지수 모형",
+    "node": "n:fin-index-model",
+    "path": "재무학 > 자본시장이론 > 지수모형 > 단일 지수 모형",
+    "questions": 5
+   },
+   {
+    "id": "mkteff",
+    "name": "시장 포트폴리오의 효율성",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > 시장 포트폴리오의 효율성",
+    "questions": 5
+   },
+   {
+    "id": "opt-divers",
+    "name": "분산투자의 혜택",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 분산투자의 혜택",
+    "questions": 5
+   },
+   {
+    "id": "opt-frontier-rf",
+    "name": "효율적 경계와 최적 포트폴리오",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 효율적 경계와 최적 포트폴리오",
+    "questions": 5
+   },
+   {
+    "id": "opt-meanvar",
+    "name": "평균 분산 분석",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 평균 분산 분석",
+    "questions": 5
+   },
+   {
+    "id": "opt-mvf",
+    "name": "최소분산경계와 분리속성",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 최소분산경계와 분리속성",
+    "questions": 5
+   },
+   {
+    "id": "opt-risk-types",
+    "name": "분산가능위험과 분산불가능위험",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 분산가능위험과 분산불가능위험",
+    "questions": 5
+   },
+   {
+    "id": "opt-separation",
+    "name": "분리속성",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 분리속성",
+    "questions": 5
+   },
+   {
+    "id": "opt-two-risky",
+    "name": "두 위험자산의 포트폴리오",
+    "node": "n:fin-optimal-risky",
+    "path": "재무학 > 자본시장이론 > 최적 위험 포트폴리오 > 두 위험자산의 포트폴리오",
+    "questions": 5
+   },
+   {
+    "id": "sml",
+    "name": "증권시장선",
+    "node": "n:fin-capm",
+    "path": "재무학 > 자본시장이론 > CAPM > 증권시장선",
+    "questions": 5
+   },
+   {
+    "id": "tstat",
+    "name": "t통계량",
+    "node": "n:stat-inference",
+    "path": "통계학 > 통계적 추론 > t통계량",
+    "questions": 5
+   },
+   {
+    "id": "wacc",
+    "name": "WACC",
+    "node": "n:fin-valuation",
+    "path": "재무학 > 밸류에이션 > WACC",
+    "questions": 5
+   }
+  ],
+  "links": [
+   {
+    "a": "idx-regout",
+    "b": "tstat",
+    "type": "applies",
+    "ko": "응용",
+    "note": "회귀 출력의 t값 읽기"
+   },
+   {
+    "a": "capmtest",
+    "b": "tstat",
+    "type": "applies",
+    "ko": "응용",
+    "note": "CAPM 실증 검증의 유의성 판단"
+   },
+   {
+    "a": "capm-param",
+    "b": "tstat",
+    "type": "depends",
+    "ko": "기반",
+    "note": "모수와 추정치의 구별 (맥락 규칙 R23)"
+   },
+   {
+    "a": "wacc",
+    "b": "capm",
+    "type": "applies",
+    "ko": "응용",
+    "note": "자기자본비용을 CAPM으로 추정"
+   }
+  ],
+  "events": [
+   {
+    "id": "ev-seed-2026-11-18",
+    "at": "2026-11-18",
+    "type": "seed",
+    "nodes": [
+     "n:fin",
+     "n:logic",
+     "n:stat",
+     "n:cs",
+     "n:fin-capital-markets",
+     "n:fin-valuation",
+     "n:logic-reasoning",
+     "n:stat-inference",
+     "n:cs-database",
+     "n:fin-capital-allocation",
+     "n:fin-optimal-risky",
+     "n:fin-index-model",
+     "n:fin-capm",
+     "n:fin-apt"
+    ],
+    "unlock": "intro",
+    "note": "이전 데이터 이관. '지도 첫 공개' 한 장에서 재무학이 먼저 켜지고 논리학, 통계학, 소프트웨어가 차례로 켜진다."
+   }
+  ],
+  "summary": {
+   "discipline": 4,
+   "branch": 5,
+   "topic": 5,
+   "concept": 42,
+   "underTopic": 37,
+   "directToBranch": 5
+  }
+ },
+ "placementSteps": [
+  "중복 확인: 같은 분과 후보이고 정의 문장이 같을 때만 같은 개념. 같으면 문제만 합친다.",
+  "크기: 문서 하나가 모형 하나 규모면 주제 후보와 개념 목록, 아이디어 하나면 개념 하나.",
+  "집 찾기: 판례 > 맥락 규칙 > 정의처 규칙. 지금 트리를 보지 않는다.",
+  "학문: 트리에 없으면 만든다(큰 해금). 참조 목록에도 없으면 T1~T3와 기준 개론서를 정해 목록에 먼저 더한다.",
+  "분과: 참조 목록 분과의 범위에 들어가는지 본다. 트리에 없으면 만든다(가벼운 해금).",
+  "주제: topicSeeds에 있고 같은 씨앗 개념이 3개가 되면 만들고 옮긴다. 아니면 분과에 바로 붙인다.",
+  "id: 노드는 n:<slug>, 새 개념은 <분과 slug>-<용어>. 은퇴 id까지 포함해 겹침 확인.",
+  "링크: 다른 학문의 기존 개념과 실제 관계가 있으면 최대 3개.",
+  "검증 후 기록: 빈 노드 없음, 부모 계급 맞음, 항목 하나가 학문 1개와 분과 1개를 넘게 만들지 않음, 골든 세트 재현. 그다음 노드, 이벤트, 개념을 기록한다. 새 경계 사례는 판례와 골든 세트에 더한다."
+ ],
+ "vocabRule": {
+  "labels": [
+   "단어",
+   "구문"
+  ],
+  "rule": "약어 꼬리 괄호 '(PER)'와 앞의 'the'를 지우고, 선택 어구 괄호는 괄호만 벗긴다. 그다음 띄어쓰기가 없으면 단어, 있으면 구문이다.",
+  "examples": {
+   "단어": [
+    "assets",
+    "negotiate",
+    "amend",
+    "Low-key"
+   ],
+   "구문": [
+    "retained earnings",
+    "uncovered interest rate parity",
+    "Hang out",
+    "That's a stretch"
+   ]
+  },
+  "fixed": "type은 넣을 때 한 번 정해 저장하고 다시 계산하지 않는다(kindRule: v2).",
+  "expr": "expr는 화면에 보이지 않는 내부 표시다. 통째로 말로 쓰는 구문(문장, 구동사, 관용구)에 붙이고, 출제 방식(상황 문제)을 고를 때만 쓴다. 판정: 물음표·느낌표로 끝남, 축약형, 끝이 불변화사, 첫 낱말이 작은 동사 목록이나 말머리 목록(I, you, it, that, what, my, sure, fair, pretty, 두 낱말짜리 no ~)에 있음. 애매하면 넣는 사람이 정해서 저장한다.",
+  "hidden": "옛 deck(toeic, fin, gen)은 src로, group은 ctx로 옮겨 화면에 쓰지 않는다. level은 reg로 이름만 바꾼다.",
+  "glossStyle": "뜻풀이에서 동사는 '~다'로 끝낸다.",
+  "counts": {
+   "total": 255,
+   "단어": 170,
+   "구문": 85,
+   "expr": 29
+  },
+  "items": [
+   {
+    "id": "fin-0001",
+    "term": "assets",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0002",
+    "term": "balance sheet",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0003",
+    "term": "cash equivalents",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0004",
+    "term": "cashflow",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0005",
+    "term": "cashflow statement",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0006",
+    "term": "deterministic cashflow",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0007",
+    "term": "discount rate",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0008",
+    "term": "the dividend discount model (DDM)",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0009",
+    "term": "earnings",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0010",
+    "term": "earnings retention ratio",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0011",
+    "term": "intrinsic value",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0012",
+    "term": "liabilities",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0013",
+    "term": "net income",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0014",
+    "term": "no arbitrage principle",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0015",
+    "term": "plowback ratio",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0016",
+    "term": "present value",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0017",
+    "term": "present value of growth opportunities (PVGO)",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0018",
+    "term": "price-earnings ratio (PER)",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0019",
+    "term": "retained earnings",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0020",
+    "term": "return on equity (ROE)",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0021",
+    "term": "risk-free rate",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0022",
+    "term": "shareholders' equity",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0023",
+    "term": "stochastic cashflow",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0024",
+    "term": "value investing",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0025",
+    "term": "business cycle",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0026",
+    "term": "business cycle clock",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0027",
+    "term": "coincident indicators",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0028",
+    "term": "consolidation stage",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0029",
+    "term": "contraction",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0030",
+    "term": "countercyclical industries",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0031",
+    "term": "election cycle",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0032",
+    "term": "expansion",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0033",
+    "term": "fluctuation around a trend",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0034",
+    "term": "industry life cycle",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0035",
+    "term": "lagging indicators",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0036",
+    "term": "leading indicators",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0037",
+    "term": "market timing",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0038",
+    "term": "maturity stage",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0039",
+    "term": "peak",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0040",
+    "term": "procyclical industries",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0041",
+    "term": "productivity shocks",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0042",
+    "term": "sector rotation",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0043",
+    "term": "start-up stage",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0044",
+    "term": "trend",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0045",
+    "term": "trough",
+    "type": "단어"
+   },
+   {
+    "id": "fin-0046",
+    "term": "valuation ratios",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0047",
+    "term": "carry trade",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0048",
+    "term": "consumption smoothing",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0049",
+    "term": "covered interest rate parity",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0050",
+    "term": "currency appreciation",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0051",
+    "term": "currency depreciation",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0052",
+    "term": "currency hedging",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0053",
+    "term": "dollar returns",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0054",
+    "term": "exchange rate risk",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0055",
+    "term": "foreign currency returns",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0056",
+    "term": "forward exchange rate",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0057",
+    "term": "home bias puzzle",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0058",
+    "term": "home currency returns",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0059",
+    "term": "international diversification",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0060",
+    "term": "local currency returns",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0061",
+    "term": "perfectly integrated markets",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0062",
+    "term": "purchasing power parity (PPP)",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0063",
+    "term": "time-series models",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0064",
+    "term": "uncovered interest rate parity",
+    "type": "구문"
+   },
+   {
+    "id": "fin-0065",
+    "term": "world market portfolio",
+    "type": "구문"
+   },
+   {
+    "id": "gen-0001",
+    "term": "I'm down (for that)",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0002",
+    "term": "I'm good",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0003",
+    "term": "No worries",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0004",
+    "term": "My bad",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0005",
+    "term": "It's on me",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0006",
+    "term": "I'll pass",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0007",
+    "term": "I'm beat",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0008",
+    "term": "Hang out",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0009",
+    "term": "Catch up",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0010",
+    "term": "Sounds good",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0011",
+    "term": "Fair enough",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0012",
+    "term": "I feel you",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0013",
+    "term": "For real?",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0014",
+    "term": "I'm on it",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0015",
+    "term": "Heads up",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0016",
+    "term": "Touch base",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0017",
+    "term": "Figure it out",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0018",
+    "term": "Bail (on someone)",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0019",
+    "term": "Low-key",
+    "type": "단어"
+   },
+   {
+    "id": "gen-0020",
+    "term": "It's not a big deal",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0021",
+    "term": "Take a rain check",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0022",
+    "term": "Hit me up",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0023",
+    "term": "I'm running late",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0024",
+    "term": "Pretty much",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0025",
+    "term": "No cap",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0026",
+    "term": "That's a stretch",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0027",
+    "term": "I'm swamped",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0028",
+    "term": "Hold on",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0029",
+    "term": "Sure thing",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "gen-0030",
+    "term": "What's the plan?",
+    "type": "구문",
+    "expr": true
+   },
+   {
+    "id": "toe-0001",
+    "term": "allocate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0002",
+    "term": "comply",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0003",
+    "term": "reimburse",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0004",
+    "term": "postpone",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0005",
+    "term": "negotiate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0006",
+    "term": "implement",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0007",
+    "term": "expedite",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0008",
+    "term": "authorize",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0009",
+    "term": "acquire",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0010",
+    "term": "consolidate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0011",
+    "term": "delegate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0012",
+    "term": "evaluate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0013",
+    "term": "facilitate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0014",
+    "term": "terminate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0015",
+    "term": "renew",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0016",
+    "term": "notify",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0017",
+    "term": "recruit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0018",
+    "term": "resign",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0019",
+    "term": "retain",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0020",
+    "term": "oversee",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0021",
+    "term": "procure",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0022",
+    "term": "dispatch",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0023",
+    "term": "inspect",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0024",
+    "term": "assemble",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0025",
+    "term": "distribute",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0026",
+    "term": "withdraw",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0027",
+    "term": "deposit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0028",
+    "term": "forecast",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0029",
+    "term": "exceed",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0030",
+    "term": "offset",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0031",
+    "term": "waive",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0032",
+    "term": "amend",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0033",
+    "term": "enforce",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0034",
+    "term": "endorse",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0035",
+    "term": "accommodate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0036",
+    "term": "verify",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0037",
+    "term": "streamline",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0038",
+    "term": "outsource",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0039",
+    "term": "relocate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0040",
+    "term": "commute",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0041",
+    "term": "reschedule",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0042",
+    "term": "adjourn",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0043",
+    "term": "convene",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0044",
+    "term": "clarify",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0045",
+    "term": "resolve",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0046",
+    "term": "compensate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0047",
+    "term": "replenish",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0048",
+    "term": "submit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0049",
+    "term": "revise",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0050",
+    "term": "designate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0051",
+    "term": "solicit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0052",
+    "term": "disclose",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0053",
+    "term": "deduct",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0054",
+    "term": "incur",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0055",
+    "term": "launch",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0056",
+    "term": "diversify",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0057",
+    "term": "enhance",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0058",
+    "term": "commence",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0059",
+    "term": "expire",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0060",
+    "term": "subscribe",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0061",
+    "term": "defer",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0062",
+    "term": "itemize",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0063",
+    "term": "agenda",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0064",
+    "term": "consensus",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0065",
+    "term": "proposal",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0066",
+    "term": "applicant",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0067",
+    "term": "incentive",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0068",
+    "term": "appraisal",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0069",
+    "term": "probation",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0070",
+    "term": "payroll",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0071",
+    "term": "vacancy",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0072",
+    "term": "qualification",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0073",
+    "term": "referral",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0074",
+    "term": "clause",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0075",
+    "term": "provision",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0076",
+    "term": "obligation",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0077",
+    "term": "breach",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0078",
+    "term": "warranty",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0079",
+    "term": "invoice",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0080",
+    "term": "receipt",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0081",
+    "term": "freight",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0082",
+    "term": "shipment",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0083",
+    "term": "inventory",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0084",
+    "term": "tariff",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0085",
+    "term": "consignment",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0086",
+    "term": "courier",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0087",
+    "term": "revenue",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0088",
+    "term": "expenditure",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0089",
+    "term": "deficit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0090",
+    "term": "surplus",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0091",
+    "term": "dividend",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0092",
+    "term": "collateral",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0093",
+    "term": "equity",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0094",
+    "term": "audit",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0095",
+    "term": "quota",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0096",
+    "term": "itinerary",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0097",
+    "term": "layover",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0098",
+    "term": "voucher",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0099",
+    "term": "refund",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0100",
+    "term": "inquiry",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0101",
+    "term": "defect",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0102",
+    "term": "prototype",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0103",
+    "term": "specification",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0104",
+    "term": "facility",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0105",
+    "term": "productivity",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0106",
+    "term": "maintenance",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0107",
+    "term": "shortage",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0108",
+    "term": "brochure",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0109",
+    "term": "competitor",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0110",
+    "term": "merger",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0111",
+    "term": "subsidiary",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0112",
+    "term": "vendor",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0113",
+    "term": "premium",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0114",
+    "term": "estimate",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0115",
+    "term": "discrepancy",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0116",
+    "term": "turnover",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0117",
+    "term": "overhead",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0118",
+    "term": "patent",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0119",
+    "term": "venue",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0120",
+    "term": "expertise",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0121",
+    "term": "tentative",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0122",
+    "term": "mandatory",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0123",
+    "term": "eligible",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0124",
+    "term": "prospective",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0125",
+    "term": "preliminary",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0126",
+    "term": "confidential",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0127",
+    "term": "comprehensive",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0128",
+    "term": "competitive",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0129",
+    "term": "fiscal",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0130",
+    "term": "lucrative",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0131",
+    "term": "durable",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0132",
+    "term": "punctual",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0133",
+    "term": "proficient",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0134",
+    "term": "feasible",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0135",
+    "term": "obsolete",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0136",
+    "term": "substantial",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0137",
+    "term": "complimentary",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0138",
+    "term": "overdue",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0139",
+    "term": "outstanding",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0140",
+    "term": "exempt",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0141",
+    "term": "consecutive",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0142",
+    "term": "subsequent",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0143",
+    "term": "stringent",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0144",
+    "term": "versatile",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0145",
+    "term": "interim",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0146",
+    "term": "perishable",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0147",
+    "term": "unanimous",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0148",
+    "term": "courteous",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0149",
+    "term": "promptly",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0150",
+    "term": "approximately",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0151",
+    "term": "exclusively",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0152",
+    "term": "temporarily",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0153",
+    "term": "consistently",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0154",
+    "term": "significantly",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0155",
+    "term": "steadily",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0156",
+    "term": "mutually",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0157",
+    "term": "primarily",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0158",
+    "term": "accordingly",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0159",
+    "term": "respectively",
+    "type": "단어"
+   },
+   {
+    "id": "toe-0160",
+    "term": "thoroughly",
+    "type": "단어"
+   }
+  ]
+ },
+ "driveConvention": {
+  "rule": "새 지식은 학문 폴더에 넣거나 _수집함에 넣는다. 그 아래는 마음대로 둔다. 분과 폴더는 요구하지 않는다.",
+  "truth": "폴더는 힌트이고 정답은 study.json의 트리다. 분류기는 폴더 이름으로 계급을 정하지 않는다.",
+  "sourceFolders": {
+   "시사": "뉴스(트리 밖)",
+   "영어": "어휘(트리 밖)",
+   "_수집함": "입력함"
+  },
+  "hintFolders": {
+   "재무학/자본시장이론": "n:fin-capital-markets",
+   "재무학/Valuation": "n:fin-valuation",
+   "재무학/주주환원": "fin-corporate",
+   "논리학/증명": "logic-proof",
+   "software": "n:cs",
+   "software/Database": "n:cs-database",
+   "software/웹 기초": "cs-web",
+   "섹터": "업종 분석은 fin-valuation (R18)"
+  },
+  "emptyFolders": "빈 폴더(경제학/, 통계학/)만으로는 노드를 만들지 않는다.",
+  "onUnlock": "새 학문이 해금되면 Claude가 '통계학 폴더를 쓰면 됩니다'처럼 한 줄로 알린다. Drive는 Claude가 건드리지 않는다.",
+  "pending": [
+   {
+    "drive": "재무학/Valuation/DCF",
+    "to": "n:fin-valuation",
+    "topic": "DCF(개념 3개 이상이면)",
+    "unlock": "sparkle"
+   },
+   {
+    "drive": "재무학/Valuation/상장기업 Valuation 방법에는 무엇이 있는가?",
+    "to": "n:fin-valuation",
+    "topic": "상대가치평가",
+    "unlock": "sparkle"
+   },
+   {
+    "drive": "재무학/주주환원, 자사주 매입은 언제 주주가치를 만드는가?",
+    "to": "기업재무(신설)",
+    "unlock": "minor"
+   },
+   {
+    "drive": "재무학/CAPM(이전판)",
+    "to": "n:fin-capm",
+    "note": "중복 제거"
+   },
+   {
+    "drive": "재무학/자본시장이론/강의 정리, 스크립트 교정본",
+    "to": "n:fin-capital-markets",
+    "note": "원자료"
+   },
+   {
+    "drive": "논리학/증명",
+    "to": "증명 방법(신설)",
+    "unlock": "minor"
+   },
+   {
+    "drive": "software/웹 기초",
+    "to": "웹(신설)",
+    "unlock": "minor"
+   },
+   {
+    "drive": "software/Database",
+    "to": "n:cs-database"
+   },
+   {
+    "drive": "software/용어 모음집",
+    "to": "항목별"
+   },
+   {
+    "drive": "섹터/원자재",
+    "to": "업종 분석이면 n:fin-valuation(R18). 원자재 수급 구조 자체면 경제학(신설) > 자원·원자재 경제",
+    "unlock": "애매하면 큰 해금을 띄우지 않는다"
+   }
+  ]
+ },
+ "unlock": {
+  "byRank": {
+   "discipline": "major",
+   "branch": "minor",
+   "topic": "sparkle",
+   "concept": "sparkle",
+   "reorg": null,
+   "revive": null,
+   "seed": "intro"
+  },
+  "major": "전체 화면. 새 학문이 Latti에 붙는 자리가 빛나는 그래프 그림을 react-native-svg로 기기에서 그린다. 같은 묶음에서 생긴 그 학문의 분과는 이 화면 안의 작은 빛으로 함께 보인다.",
+  "minor": "전체 화면 없음. 홈 위쪽 띠('새 분과: 통계학 · 회귀분석')와 지식 탭의 점. 띠를 누르면 그 학문을 확대한 그래프로 간다.",
+  "sparkle": "화면 없음. 그래프에서 반짝임만. 주제가 새로 생기면 주간 리뷰에 한 줄('WACC가 DCF 아래로 모였어요').",
+  "queue": [
+   "스플래시",
+   "전체 화면은 한 번만. 큰 해금이 여럿이면 그 화면 안에서 옆으로 넘기는 카드로 createdAt 순서대로 보여 준다(3장까지, 넘으면 '외 N개' 1장).",
+   "주간 리뷰가 있는 날은 해금 카드가 리뷰의 첫 카드가 된다. 리뷰 그래프에는 새 노드가 이미 들어 있다.",
+   "홈. 가벼운 해금은 홈 띠와 지식 탭 점으로."
+  ],
+  "seen": "본 기록은 Firestore data/users/<uid>/unlocks에 둔다. localStorage는 캐시로만 쓰고 try/catch로 감싼다. 둘 다 못 쓰면 어제와 오늘 생긴 이벤트만 띄운다.",
+  "missed": "14일 넘게 못 본 해금은 개별로 띄우지 않고 '놓친 해금 N개' 카드 1장으로 묶는다.",
+  "intro": "seed 노드는 '지도 첫 공개' 한 장: 재무학이 먼저 켜지고 논리학, 통계학, 소프트웨어가 하나씩 켜진다.",
+  "copy": {
+   "pool": "docs/data/latti_lines.json (Latti 페르소나 문장 모음, 키별 배열)",
+   "keys": [
+    "unlock.major",
+    "unlock.major.many",
+    "unlock.minor",
+    "unlock.intro",
+    "unlock.missed",
+    "review.topicFormed"
+   ],
+   "slots": [
+    "{학문}",
+    "{분과}",
+    "{n}(몇 번째 학문)",
+    "{첫개념}",
+    "{날수}(지난 해금 뒤)",
+    "{갈래}(생각의 도구, 사회, 자연 같은 쉬운 말)"
+   ],
+   "pick": "seedOf(event.id)로 고르고 최근에 쓴 문장(Firestore unlocks.lastLines)은 건너뛴다. 같은 해금은 다시 그려도 같은 문장, 해금마다 다른 문장.",
+   "josa": "한글 낱말 받침 판정 도우미가 필요하다((글자코드 - 0xAC00) % 28). 기존 hasBatchim은 숫자 전용.",
+   "grow": "아침 예약 작업이 하루 1~2줄씩 보탠다. 앱이 실행 중에 LLM을 부르지 않는다(키 없는 정적 웹).",
+   "firstLine": "{학문} 부문을 해금했습니다! 세상의 모든 지식을 배울 생각인가요?!",
+   "tone": "해금 문구는 cheer.ts 규칙의 예외로 두 줄과 '?!'까지 허용한다. 이 예외는 cheer.ts 규칙 블록에 적는다."
+  }
+ },
+ "appUse": {
+  "graph": "Latti > 학문(학문 색, 갈래 방향) > 분과 > 주제. 분과에 바로 붙은 개념은 작은 점. 주제 아래 개념은 주제를 확대할 때만. 분과가 하나뿐인 학문은 '논리학 · 추론과 논증'처럼 라벨을 접는다.",
+  "filters": "필터와 칩은 학문과 분과까지만. 주제는 필터로 쓰지 않는다.",
+  "weeklyReview": "이름은 '주간 리뷰'(지식). 뉴스의 '주간 종합 퀴즈'와 다르다. 학문마다 한 줄('재무학 23문제 · 새 개념 4'), 누르면 분과와 주제가 펼쳐진다. 해금 한 줄.",
+  "news": "뉴스는 트리 밖이다. 기억 상태와 주제 칩 없이 읽기, 하루 퀴즈, 주간 종합 퀴즈로 끝난다.",
+  "vocab": "단어와 구문 두 갈래만 화면에 쓴다.",
+  "store": "데이터 접근은 src/store.tsx 선택자로만 한다."
+ },
+ "studyJsonV2": {
+  "taxonomy": "{version, nodes[], links[], events[], rulingsVersion}",
+  "node": "{id:'n:<slug>', rank, name, short, en, parent, ref?, color?, domain?, createdAt, createdBy, aliases[], status: active|retired|merged, into?}",
+  "event": "{id, at, type: seed|create|rename|move|split|merge|retire|revive, nodes[], unlock: major|minor|sparkle|intro|null, by}",
+  "concept": "field, topic을 지우고 node, addedAt, src를 더한다",
+  "vocab": "type(단어|구문), expr?, kindRule:'v2'를 더한다. deck은 src, group은 ctx, level은 reg",
+  "questions": "바꾸지 않는다",
+  "status": "아직 study.json에 적용하지 않았다(설계안)."
+ },
+ "pendingDataFixes": [
+  {
+   "id": "capm-param",
+   "now": "파라미터와 추정치의 구별",
+   "propose": "CAPM 검증에서 모수와 추정치",
+   "why": "맥락 규칙 R23을 이름으로 드러낸다"
+  },
+  {
+   "id": "idx-regout",
+   "now": "회귀 출력의 해석",
+   "propose": "지수모형 회귀 출력 읽기",
+   "why": "같은 이유"
+  },
+  {
+   "id": "cal-optimal",
+   "now": "최적 포트폴리오",
+   "note": "주제 이름을 '최적 위험 포트폴리오'로 바꿔 겹침을 풀었다. 개념 이름은 그대로"
+  },
+  {
+   "id": "vocab consolidation stage",
+   "now": "(산업생애주기) 확장 단계",
+   "propose": "통합 단계(성장기)",
+   "why": "낮은 우선순위. BKM의 창업기 다음 단계"
+  }
+ ],
+ "checks": [
+  "범위 키워드가 한 분과에만 있다",
+  "slug가 겹치지 않는다",
+  "모든 트리 노드에 자손 개념이 있다",
+  "부모 계급이 한 단계 위다",
+  "주제마다 개념 3개 이상",
+  "개념 42개 모두 배치",
+  "골든 세트의 집이 모두 참조 목록에 있다"
+ ]
+}
