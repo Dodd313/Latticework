@@ -836,7 +836,7 @@ export function TaskRow({
   trackWidth?: number;
   onPress?: () => void;
   a11yLabel?: string;
-  /** 마친 줄에서 체크 옆에 보이는 다음 동작(예: "더 풀기") */
+  /** 마친 줄에서 체크 옆에 보이는 다음 동작(예: "추가 학습") */
   doneLabel?: string;
 }) {
   const t = useTheme();

@@ -38,7 +38,7 @@ const has = async (label) => (await page.getByLabel(label, { exact: true }).coun
 const tap = (label) => page.getByLabel(label, { exact: true }).last().click();
 
 // 마침 화면에는 정답률 고리가 있다.
-const done = async () => (await page.getByLabel(/^정답률 /).count()) > 0 || ((await has('더 풀기')) && !(await has('확인')));
+const done = async () => (await page.getByLabel(/^정답률 /).count()) > 0 || ((await has('추가 학습')) && !(await has('확인')));
 
 // 한 세션을 끝까지 푼다. 객관식은 첫 번째 보기를 고르고, 떠올리기는 "알았다"를 누른다.
 async function solve(prefix) {
@@ -81,16 +81,16 @@ await page.waitForTimeout(2500);
 await snap('01-home');
 await tap('Latticework 열기');
 await solve('02-lat');
-// 더 풀기를 두 번 해도 같은 문제가 되풀이되지 않는지 본다.
-await tap('더 풀기');
+// 추가 학습를 두 번 해도 같은 문제가 되풀이되지 않는지 본다.
+await tap('추가 학습');
 await solve('02b-lat-more');
-await tap('더 풀기');
+await tap('추가 학습');
 await solve('02c-lat-more');
 await tap('계속');
 await snap('03-home-after-lat');
 await tap('영단어 열기');
 await solve('04-voc');
-await tap('더 풀기');
+await tap('추가 학습');
 await solve('04b-voc-more');
 await tap('계속');
 await snap('05-home-after-voc');

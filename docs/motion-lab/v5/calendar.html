@@ -40,7 +40,7 @@
   <section class="notes">
     <h2>달력 강조 시안 여섯 가지</h2>
     <p>모두 같은 규칙입니다. 할당량을 마친 날만 칠하고, 더 푼 문제가 많을수록 노랑에서 주황, 빨강으로 짙어집니다. 시안마다 "더 많이 했다" 를 무엇으로 보여 주는지가 다릅니다.</p>
-    <p class="tip">위쪽 A부터 F까지 바꿔 보세요. 시안마다 "오늘 완료" 와 "더 풀기 +5" 를 눌러 보면 움직임까지 비교할 수 있습니다.</p>
+    <p class="tip">위쪽 A부터 F까지 바꿔 보세요. 시안마다 "오늘 완료" 와 "추가 학습 +5" 를 눌러 보면 움직임까지 비교할 수 있습니다.</p>
     <div id="note"></div>
     <h3>고르실 때 봐 주실 것</h3>
     <ol style="padding-left:18px;margin:0">
@@ -399,7 +399,7 @@
     EXTRA = { ...EXTRA0 };
     render();
   };
-  ML.bar({ title: '달력 강조', replay: () => { todayDone = false; EXTRA = { ...EXTRA0 }; render(); }, home: '../index.html', extra: [['A 구슬', pick('A')], ['B 크기', pick('B')], ['C 타일', pick('C')], ['D 띠', pick('D')], ['E 링', pick('E')], ['F 높이', pick('F')], ['오늘 완료', fillToday], ['더 풀기 +5', bump]] });
+  ML.bar({ title: '달력 강조', replay: () => { todayDone = false; EXTRA = { ...EXTRA0 }; render(); }, home: '../index.html', extra: [['A 구슬', pick('A')], ['B 크기', pick('B')], ['C 타일', pick('C')], ['D 띠', pick('D')], ['E 링', pick('E')], ['F 높이', pick('F')], ['오늘 완료', fillToday], ['추가 학습 +5', bump]] });
   render();
 })();
 </script>

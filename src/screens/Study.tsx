@@ -304,14 +304,14 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const streakAtOpen = useRef(goals.streak).current;
   const xpAtRound = useRef(study.xp);
 
-  // 세션은 화면을 열 때 한 번 짠다. 오늘 목표가 남았으면 남은 만큼, 다 했으면 "더 풀기"로 연다.
+  // 세션은 화면을 열 때 한 번 짠다. 오늘 목표가 남았으면 남은 만큼, 다 했으면 "추가 학습"으로 연다.
   const first = useMemo<{ queue: Q[]; extra: boolean }>(() => {
     if (!studyData) return { queue: [], extra: false };
     const left = Math.max(0, goal - doneAtOpen);
     const now = new Date();
     const asked = studyAsked();
     if (left > 0) return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, left, 'daily', asked) : buildVoc(studyData, study, today, now, 'daily', left, asked), extra: false };
-    // 오늘 분량을 이미 마쳤으면 빈 화면 대신 바로 더 풀기로 연다.
+    // 오늘 분량을 이미 마쳤으면 빈 화면 대신 바로 추가 학습으로 연다.
     return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak', asked) : buildVoc(studyData, study, today, now, 'weak', 8, asked), extra: true };
   }, []);
 
@@ -475,7 +475,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
         streakFrom={streakAtOpen}
         streakTo={goals.streak}
         exhausted={exhausted}
-        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${tally.total === 0 ? '오늘 분량 완료' : extra ? '더 풀기 완료' : '학습 완료'}`}
+        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${tally.total === 0 ? '오늘 분량 완료' : extra ? '추가 학습 완료' : '학습 완료'}`}
         onMore={more}
         onDone={nav.pop}
       />
@@ -595,7 +595,7 @@ function Header({ onClose, value, hot, xp, bolt, combo, a11yValue, extra }: { on
         <Icon name="close" size={24} color={t.faint} />
       </Tap>
       <Combo n={combo} />
-      {extra ? <Chip label="더 풀기" tone="neutral" style={{ alignSelf: 'center' }} /> : null}
+      {extra ? <Chip label="추가 학습" tone="neutral" style={{ alignSelf: 'center' }} /> : null}
       <ProgressBar value={value} hot={hot} style={{ flex: 1 }} a11yLabel={a11yValue ? `진행 ${a11yValue}` : undefined} />
       <View accessible accessibilityLabel={`경험치 ${xp}`} style={{ minWidth: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
         <Animated.View style={{ transform: [{ scale: bolt }, { rotate: bolt.interpolate({ inputRange: [1, 1.35], outputRange: ['0deg', '-12deg'] }) }] }}>
@@ -708,7 +708,7 @@ function Finish({
         </Enter>
       </ScrollView>
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: FOOT_PAD, flexDirection: 'row', gap: 10 }}>
-        {exhausted ? null : <LipButton label="더 풀기" tone="ghost" onPress={onMore} style={{ flex: 1 }} />}
+        {exhausted ? null : <LipButton label="추가 학습" tone="ghost" onPress={onMore} style={{ flex: 1 }} />}
         <LipButton label="계속" onPress={onDone} style={{ flex: 1 }} />
       </View>
       {lvUp ? <LevelUp from={lvFrom} to={lvTo} cur={curTo} need={needTo} onClose={() => setLvUp(false)} /> : null}

@@ -154,7 +154,7 @@ function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, 
 /**
  * Latticework 세션.
  * 하루 분량(daily): 복습할 때가 된 개념을 기억이 약한 순서로 먼저 넣고, 남는 자리에 새 개념을 넣는다.
- * 더 풀기(weak): 오늘 아직 안 나온 개념을 먼저 고른다. 복습할 개념, 새 개념, 나머지 순이다.
+ * 추가 학습(weak): 오늘 아직 안 나온 개념을 먼저 고른다. 복습할 개념, 새 개념, 나머지 순이다.
  * 어느 쪽이든 오늘 이미 낸 문제는 다시 내지 않고, 한 세션에서 한 개념은 한 번만 나온다(자리가 남을 때만 다른 유형으로 한 번 더).
  */
 export function buildLat(data: StudyData, state: StudyState, today: string, now: Date, count: number, mode: 'daily' | 'weak' = 'daily', asked: Asked = NONE): Q[] {
@@ -241,7 +241,7 @@ function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
 
 /**
  * 영단어 세션. 복습할 때가 된 표현(기억이 약한 순)과 새 표현을 섞는다.
- * 더 풀기(weak)는 오늘 아직 안 나온 표현을 먼저 고른다. 오늘 이미 낸 문제는 다시 내지 않는다.
+ * 추가 학습(weak)은 오늘 아직 안 나온 표현을 먼저 고른다. 오늘 이미 낸 문제는 다시 내지 않는다.
  */
 export function buildVoc(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak' = 'daily', count?: number, asked: Asked = NONE): Q[] {
   const seen = data.vocab.filter((v) => state.cards[v.id]);

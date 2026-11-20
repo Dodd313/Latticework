@@ -200,7 +200,7 @@
   const groups = {};
   N.forEach((n) => { const g = gk(n); if (g) (groups[g] = groups[g] || []).push(n); });
   // 위에서 아래로 뉴스, 개념, 단어. 기사가 개념을 건드리고 단어가 개념의 용어가 되는 순서.
-  const HOME = { news: -150, concept: -10, word: 150 };
+  const HOME = { news: -170, concept: -20, word: 160 };
   const GL = Object.values(groups).filter((g) => g.length > 2);
   function tick() {
     const al = sim.alpha;
@@ -214,7 +214,7 @@
       const a = e.a, b = e.b;
       let dx = b.x + b.vx - a.x - a.vx, dy = b.y + b.vy - a.y - a.vy;
       let l = Math.sqrt(dx * dx + dy * dy) || 1e-6;
-      const dist = e.kind === 'group' ? 22 : e.kind === 'topic' ? 30 : 38;
+      const dist = e.kind === 'group' ? 22 : e.kind === 'topic' ? 30 : 46;
       const st = 1 / Math.min(deg(a), deg(b));
       l = ((l - dist) / l) * al * st;
       dx *= l; dy *= l;
@@ -230,7 +230,7 @@
         let d2 = dx * dx + dy * dy;
         if (d2 > 160 * 160) continue;
         if (d2 < 1) { dx = (hash(a.id + b.id) - 0.5); dy = 0.5 - hash(b.id); d2 = 1; }
-        const w = (-46 * al) / d2;
+        const w = (-58 * al) / d2;
         a.vx += dx * w; a.vy += dy * w;
         b.vx -= dx * w; b.vy -= dy * w;
         const rr = rad(a.reps) + rad(b.reps) + 2;
@@ -490,7 +490,13 @@
   }
 
   // 이름: 중요한 것부터, 겹치면 건너뛴다. 확대할수록 많이 보인다.
-  const shortLabel = (s, m = 11) => (s.length > m ? s.slice(0, m - 1) + '…' : s);
+  // 폭에 맞춰 자른다. 짧은 이름은 그대로.
+  function shortLabel(s, maxW) {
+    if (ctx.measureText(s).width <= maxW) return s;
+    let t = s;
+    while (t.length > 2 && ctx.measureText(t + '…').width > maxW) t = t.slice(0, -1);
+    return t.trimEnd() + '…';
+  }
   function drawLabels(fl) {
     const k = cam.k;
     const placed = [];
@@ -506,14 +512,14 @@
       const r = n.r * k * n.s;
       const big = n === st.sel;
       ctx.font = `${big ? 700 : 600} ${big ? 13 : 11}px ${FONT}`;
-      const txt = shortLabel(n.label, big ? 16 : fl ? 10 : 9);
+      const txt = shortLabel(n.label, big ? 180 : fl ? 120 : 96);
       const w = ctx.measureText(txt).width;
       const x = sx(n.x), y = sy(n.y) + r + (isWeak(n, st.t) ? 6 : 4);
       const box = [x - w / 2 - 2, y - 1, x + w / 2 + 2, y + (big ? 16 : 14)];
       if (box[0] < 4 || box[2] > W - 4 || box[1] < 4 || box[3] > (st.sel ? area().h : H - 74)) continue;
       if (placed.some((b) => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
       // 다른 점을 가리는 이름은 그리지 않는다(흐린 점은 괜찮다).
-      if (!big && dots.some((d) => d.n !== n && d.x + d.r > box[0] && d.x - d.r < box[2] && d.y + d.r > box[1] && d.y - d.r < box[3])) continue;
+      if (!big && dots.some((d) => d.n !== n && d.x + d.r * 0.5 > box[0] && d.x - d.r * 0.5 < box[2] && d.y + d.r * 0.5 > box[1] && d.y - d.r * 0.5 < box[3])) continue;
       placed.push(box);
       shown++;
       ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineJoin = 'round';

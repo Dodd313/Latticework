@@ -239,7 +239,7 @@ export function TodayScreen() {
                     iconBg={tint[p.key].bg}
                     onPress={() => open(p.key)}
                     a11yLabel={`${PART[p.key].name} 열기`}
-                    doneLabel={p.key === 'news' ? undefined : '더 풀기'}
+                    doneLabel={p.key === 'news' ? undefined : '추가 학습'}
                   />
                 ))}
                 {!allDone && next ? <PrimaryButton label="이어서 하기" onPress={goNext} style={{ marginTop: 10 }} /> : null}
