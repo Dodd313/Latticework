@@ -188,8 +188,10 @@
     <h3>배치 규칙</h3>
     <ul>
       <li>힘은 넷: 모든 점끼리 밀어내기(계급별 전하), 부모와 자식의 용수철(학문과 분과 52, 분과와 주제 36, 주제와 개념 19), 겹침 막기, 가운데로 당기기. 가로로 더 세게 당겨 세로로 긴 휴대폰 화면에 맞는 모양이 됩니다.</li>
-      <li>처음 자리는 8차의 숨은 영역 방위(생각의 도구 오른쪽, 사회 아래, 자연 왼쪽)에서 시작하므로 학문의 대략적인 방향은 8차와 같습니다.</li>
-      <li>6개월 뒤 데이터는 지금 데이터의 자리를 씨앗으로 다시 계산합니다. 그래서 바꿀 때 기존 점은 가까운 자리로 0.7초 동안 미끄러지고 새 점만 나타납니다.</li>
+      <li><b>학문끼리 모읍니다(10차).</b> 학문마다 느슨한 닻이 하나 있습니다. 닻은 숨은 영역 방위 순서(생각의 도구 오른쪽, 사회 아래, 자연 왼쪽)로 가운데를 둘러앉고, 둘레는 배운 양만큼 나눠 가지며, 큰 학문일수록 조금 안쪽에 놓입니다. 각도와 거리는 학문 id 씨앗으로 조금씩 흔들어 바둑판이나 파이 조각처럼 보이지 않게 했습니다.</li>
+      <li>같은 학문의 점은 제 무게중심과 닻 쪽으로 약하게 당기고(학문 점이 가장 세게, 개념은 아주 약하게), 다른 학문의 점끼리는 1.3배 세게, 더 먼 거리(120)까지 밀며 사이에 6만큼 틈을 둡니다. 무리 안의 모양은 용수철과 밀어내기가 그대로 정하므로 덩어리마다 생김새가 다릅니다.</li>
+      <li>계산이 끝나면 다른 학문의 선끼리 엇갈리는 곳을 셉니다. 하나라도 있으면 무리 사이를 더 벌려 다시 식히기를 최대 여섯 번 합니다. 지금 데이터와 6개월 뒤 데이터 모두 첫 계산에서 0이라 이 단계는 돌지 않습니다.</li>
+      <li>6개월 뒤 데이터는 지금 데이터의 자리를 씨앗으로 다시 계산합니다. 이미 있던 학문은 제 무게중심을 닻으로 삼아 자란 만큼만 바깥으로 물러나고, 새 학문은 둘레에서 가장 비어 있는 쪽 가운데 제 방위에 가까운 곳에 앉습니다. 그래서 바꿀 때 기존 점은 가까운 자리로 0.7초 동안 미끄러지고 새 무리는 빈 자리에서 나타납니다.</li>
       <li>소우주의 안쪽은 그 노드를 가운데에 고정하고 따로 계산한 작은 배치입니다. 바깥 배치에서는 고리 크기의 한 점으로 취급합니다.</li>
     </ul>
 
@@ -226,7 +228,8 @@
 
     <h3>솔직한 약점</h3>
     <ul>
-      <li>힘 배치는 데이터가 바뀌면 자리가 조금씩 움직입니다. 지금 자리를 씨앗으로 써서 줄였지만, 6개월 뒤로 가면 재무학 무리가 화면 위쪽으로 옮겨 갑니다. 풍선 트리(8차)만큼 "재무학은 늘 오른쪽" 같은 고정은 아닙니다.</li>
+      <li>힘 배치는 데이터가 바뀌면 자리가 조금씩 움직입니다. 학문마다 닻을 두어 무리째 움직이게 했지만, 6개월 뒤로 가면 통계학이 열 배 넘게 자라면서 기존 점이 평균 49(지도 폭의 12%)만큼 밀립니다. 풍선 트리(8차)만큼 "재무학은 늘 오른쪽" 같은 고정은 아닙니다.</li>
+      <li>무리 사이에 틈을 두어서, 학문이 아주 많아지면 지도가 조금 넓어집니다.</li>
       <li>지금 데이터는 재무학이 42개 중 39개라 한 무리만 크고 나머지 학문은 점 두세 개입니다. Obsidian처럼 보이려면 학문이 서너 개는 자라야 합니다.</li>
       <li>점이 작아서 손가락으로 누르기 어렵습니다. 누르는 범위를 최소 14px로 넓혔지만, 개념이 빽빽한 곳은 확대해서 눌러야 합니다.</li>
       <li>소우주 고리는 점과 선만 있는 지도에서 유일하게 다른 도형이라, 처음에는 무엇인지 모를 수 있습니다. 대신 누르면 바로 열립니다.</li>
@@ -349,11 +352,15 @@
     return 40;
   }
 
-  /** 힘 배치를 정해진 횟수만큼 한 번에 계산한다(d3-force와 같은 식). 화면에서는 돌리지 않는다. */
+  /** 힘 배치를 정해진 횟수만큼 한 번에 계산한다(d3-force와 같은 식). 화면에서는 돌리지 않는다.
+   *  o.groups 가 있으면 학문마다 한 무리로 모은다: 다른 학문끼리는 더 멀리서 더 세게 밀고 사이에 틈을 두며,
+   *  같은 학문은 제 무게중심과 느슨한 닻 쪽으로 당긴다. */
   function simulate(P, Ed, o) {
     const n = P.length, IT = o.it || 300;
-    const decay = 1 - Math.pow(0.001, 1 / IT);
-    let alpha = 1;
+    let alpha = o.alpha || 1;
+    const decay = 1 - Math.pow(0.001 / alpha, 1 / IT);
+    const NG = o.groups || 0;
+    const gx = new Float64Array(NG), gy = new Float64Array(NG), gn = new Float64Array(NG);
     for (let it = 0; it < IT; it++) {
       for (const e of Ed) {
         const a = P[e.a], b = P[e.b];
@@ -371,16 +378,27 @@
           let dx = b.x - a.x, dy = b.y - a.y;
           let d2 = dx * dx + dy * dy;
           if (d2 < 1e-4) { dx = 0.01 * (i - j); dy = 0.013; d2 = dx * dx + dy * dy; }
-          if (d2 < o.dmax * o.dmax) {
-            const f = (o.str * alpha) / d2;
+          const other = NG && a.g !== b.g;
+          const dm = other ? o.sepD : o.dmax;
+          if (d2 < dm * dm) {
+            const f = (o.str * (other ? o.sepMul : 1) * alpha) / d2;
             a.vx -= dx * f * b.q; a.vy -= dy * f * b.q;
             b.vx += dx * f * a.q; b.vy += dy * f * a.q;
           }
-          const rr = a.cr + b.cr;
+          const rr = a.cr + b.cr + (other ? o.gap : 0);
           if (d2 < rr * rr) {
             const d = Math.sqrt(d2), m = ((rr - d) / d) * 0.35;
             a.vx -= dx * m; a.vy -= dy * m; b.vx += dx * m; b.vy += dy * m;
           }
+        }
+      }
+      if (NG) {
+        gx.fill(0); gy.fill(0); gn.fill(0);
+        for (const a of P) { gx[a.g] += a.x; gy[a.g] += a.y; gn[a.g]++; }
+        for (const a of P) {
+          const mx = gx[a.g] / gn[a.g], my = gy[a.g] / gn[a.g];
+          a.vx += ((mx - a.x) * o.coh + (a.ax - a.x) * a.ak) * alpha;
+          a.vy += ((my - a.y) * o.coh + (a.ay - a.y) * a.ak) * alpha;
         }
       }
       for (const a of P) { a.vx -= a.x * o.gx * alpha; a.vy -= a.y * o.gy * alpha; }
@@ -390,6 +408,94 @@
       }
       alpha -= alpha * decay;
     }
+  }
+
+  /** 서로 다른 학문의 선끼리 엇갈리는 횟수 */
+  function crossings(P, Ed) {
+    const o = (a, b, c) => Math.sign((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
+    let c = 0;
+    for (let i = 0; i < Ed.length; i++) {
+      const e = Ed[i], p = P[e.a], q = P[e.b];
+      for (let j = i + 1; j < Ed.length; j++) {
+        const f = Ed[j], r = P[f.a], s = P[f.b];
+        if (q.g === s.g) continue;
+        if (o(p, q, r) * o(p, q, s) < 0 && o(r, s, p) * o(r, s, q) < 0) c++;
+      }
+    }
+    return c;
+  }
+
+  const wrap = (a) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  /** 학문마다 느슨한 닻. 정하는 것은 큰 원칙뿐이다: 숨은 방위 순서대로 가운데를 둘러앉고,
+   *  둘레는 배운 양만큼 나눠 가지며, 큰 학문일수록 조금 안쪽에. 각도와 거리는 학문 id 씨앗으로 조금씩 흔든다.
+   *  이전 자리가 있으면 전체를 돌려 이미 있던 학문이 제자리 근처에 남게 한다. */
+  function anchorsOf(members, prev) {
+    const discs = [...new Set(members.map((n) => n.disc))];
+    const w = new Map(discs.map((d) => [d, 0]));
+    members.forEach((n) => w.set(n.disc, w.get(n.disc) + (n.collapsed ? 4 : 1)));
+    const W = [...w.values()].reduce((s, v) => s + v, 0);
+    const rho = (d) => 16 + 12 * Math.sqrt(w.get(d));
+    const order = discs.slice().sort((a, b) => wrap(bearing(a)) - wrap(bearing(b)) || (a.id < b.id ? -1 : 1));
+    const tot = order.reduce((s, d) => s + rho(d), 0);
+    const R = order.length > 1 ? (0.8 * tot) / Math.PI : 0;
+    const ang = new Map();
+    let acc = 0;
+    order.forEach((d) => {
+      const span = (rho(d) / tot) * Math.PI * 2;
+      ang.set(d, acc + span / 2 + (hash(d.id + ':a') - 0.5) * span * 0.35);
+      acc += span;
+    });
+    // 이전 무게중심(맨 위 범위만)
+    const was = new Map();
+    if (prev) for (const n of members) {
+      const pv = prev.get(n.id);
+      if (!pv || pv.scope !== 'top') continue;
+      const c = was.get(n.disc) || { x: 0, y: 0, k: 0 };
+      c.x += pv.lx; c.y += pv.ly; c.k++;
+      was.set(n.disc, c);
+    }
+    was.forEach((c) => { c.x /= c.k; c.y /= c.k; });
+    const A = new Map();
+    const rOf = (d) => R * (0.8 + 0.3 * hash(d.id + ':r')) * (1 - 0.45 * (w.get(d) / W));
+    const put = (d, a, r) => A.set(d, { x: Math.cos(a) * r * 0.92, y: Math.sin(a) * r * 1.12, was: was.get(d), a });
+    if (!was.size) {
+      // 처음: 전체를 돌려 숨은 방위에 가장 가깝게
+      let ss = 0, sc = 0;
+      for (const d of order) { ss += rho(d) * Math.sin(bearing(d) - ang.get(d)); sc += rho(d) * Math.cos(bearing(d) - ang.get(d)); }
+      const rot = Math.atan2(ss, sc);
+      for (const d of order) put(d, ang.get(d) + rot, rOf(d));
+      return { A, order };
+    }
+    // 이전 자리가 있으면: 있던 학문은 제 무게중심을 닻으로 삼고(자라는 만큼만 바깥으로),
+    // 새 학문은 둘레에서 가장 비어 있는 쪽 가운데 숨은 방위에 가까운 곳에 앉는다.
+    let wOld = 0;
+    was.forEach((c) => (wOld += c.k));
+    const grow = Math.sqrt(Math.max(1, W / Math.max(1, wOld)));
+    const placed = [];
+    for (const d of order) {
+      const c = was.get(d);
+      if (!c) continue;
+      const s = 1 + (grow - 1) * 0.55;
+      A.set(d, { x: c.x * s, y: c.y * s, was: c });
+      placed.push({ a: Math.atan2(c.y, c.x), h: rho(d) / R });
+    }
+    const fresh = order.filter((d) => !was.has(d)).sort((a, b) => w.get(b) - w.get(a) || (a.id < b.id ? -1 : 1));
+    for (const d of fresh) {
+      const hw = rho(d) / R;
+      let best = null;
+      for (let i = 0; i < 72; i++) {
+        const t = (i / 72) * Math.PI * 2;
+        let v = 0;
+        for (const q of placed) { const da = Math.abs(Math.atan2(Math.sin(t - q.a), Math.cos(t - q.a))); v += Math.exp(-Math.pow(da / (q.h + hw), 2)) * 4; }
+        const db = Math.abs(Math.atan2(Math.sin(t - bearing(d)), Math.cos(t - bearing(d))));
+        v += 0.6 * db;
+        if (!best || v < best.v) best = { t, v };
+      }
+      const a = best.t + (hash(d.id + ':a') - 0.5) * 0.25;
+      put(d, a, R * (0.95 + 0.25 * hash(d.id + ':r')));
+      placed.push({ a, h: hw });
+    }
+    return { A, order };
   }
 
   /** 한 범위(맨 위, 또는 소우주 하나)의 배치. center 가 있으면 그 노드를 (0,0)에 고정한다. */
@@ -408,7 +514,9 @@
       const da = deg.get(all[e.a].id), db = deg.get(all[e.b].id);
       e.s = 1 / Math.min(da, db); e.bias = da / (da + db);
     });
-    // 처음 자리: 이전 자리가 있으면 그대로, 없으면 부모 바깥쪽 부채꼴에
+    // 맨 위 범위는 학문마다 닻을 둔다
+    const anc = center ? null : anchorsOf(members, prev);
+    // 처음 자리: 이전 자리가 있으면 그 무리째 닻 쪽으로 옮겨서, 없으면 부모 바깥쪽 부채꼴에
     const pos = new Map();
     if (center) pos.set(center.id, { x: 0, y: 0, dir: 0 });
     const scopeKey = center ? center.id : 'top';
@@ -416,9 +524,16 @@
     for (const n of order) {
       if (pos.has(n.id)) continue;
       const pv = prev && prev.get(n.id);
-      if (pv && pv.scope === scopeKey) { pos.set(n.id, { x: pv.lx, y: pv.ly, dir: Math.atan2(pv.ly, pv.lx) }); continue; }
+      if (pv && pv.scope === scopeKey) {
+        const a = anc && anc.A.get(n.disc), sh = a && a.was ? { x: (a.x - a.was.x) * 0.6, y: (a.y - a.was.y) * 0.6 } : { x: 0, y: 0 };
+        pos.set(n.id, { x: pv.lx + sh.x, y: pv.ly + sh.y, dir: Math.atan2(pv.ly, pv.lx) });
+        continue;
+      }
       const p = n.parent && pos.get(n.parent.id);
-      if (!p) { const b = bearing(n); pos.set(n.id, { x: Math.cos(b) * 70, y: Math.sin(b) * 70, dir: b }); continue; }
+      if (!p) {
+        if (anc) { const a = anc.A.get(n.disc); pos.set(n.id, { x: a.x, y: a.y, dir: Math.atan2(a.y, a.x) }); continue; }
+        const b = bearing(n); pos.set(n.id, { x: Math.cos(b) * 70, y: Math.sin(b) * 70, dir: b }); continue;
+      }
       const sib = n.parent.kids.filter((k) => idx.has(k.id));
       const i = sib.indexOf(n), m = sib.length;
       const spread = center && n.parent === center ? (Math.PI * 2) / m : Math.min(0.55, 2.6 / m);
@@ -427,13 +542,27 @@
       const L = restLen(n.parent, n);
       pos.set(n.id, { x: p.x + Math.cos(a) * L, y: p.y + Math.sin(a) * L, dir: a });
     }
+    const gi = anc ? new Map(anc.order.map((d, i) => [d, i])) : null;
+    const AK = { disc: 0.05, branch: 0.012, topic: 0.006, concept: 0.004 };
     const P = all.map((n) => {
       const p = pos.get(n.id);
       const q = CHARGE[n.kind] + (n.collapsed ? 1 : 0);
       const cr = n.collapsed && n !== center ? GR + 3 : COLL[n.kind];
-      return { x: p.x, y: p.y, vx: 0, vy: 0, q, cr, fix: n === center };
+      const P0 = { x: p.x, y: p.y, vx: 0, vy: 0, q, cr, fix: n === center };
+      if (anc) { const a = anc.A.get(n.disc); Object.assign(P0, { g: gi.get(n.disc), ax: a.x, ay: a.y, ak: AK[n.kind] }); }
+      return P0;
     });
-    simulate(P, Ed, center ? { str: 26, gx: 0.035, gy: 0.035, it: 260, dmax: 400 } : { str: 30, gx: 0.075, gy: 0.045, it: 300, dmax: 130 });
+    if (center) simulate(P, Ed, { str: 26, gx: 0.035, gy: 0.035, it: 260, dmax: 400 });
+    else {
+      const o = { str: 30, gx: 0.075, gy: 0.045, it: 300, dmax: 130, groups: anc.order.length, sepMul: 1.3, sepD: 120, gap: 6, coh: 0.012 };
+      simulate(P, Ed, o);
+      // 다른 학문의 선이 엇갈리면 무리 사이를 조금 더 벌려 몇 번 다시 식힌다
+      for (let k = 0; k < 6 && crossings(P, Ed) > 0; k++) {
+        o.sepMul = Math.max(o.sepMul * 1.6, 1.5); o.gap += 6; o.coh = Math.max(o.coh * 1.5, 0.015);
+        P.forEach((p) => (p.ak = Math.max(p.ak * 1.6, 0.01)));
+        simulate(P, Ed, Object.assign({}, o, { alpha: 0.5, it: 160 }));
+      }
+    }
     if (!center) {
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
       P.forEach((p) => { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); });

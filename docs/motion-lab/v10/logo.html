@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Latti 로고 2차 · Motion Lab 10차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root {
+    --wall-light: linear-gradient(155deg, #cfe0f5 0%, #e9e6f3 55%, #f5ebdf 100%);
+    --wall-dark: linear-gradient(155deg, #0c121d 0%, #1b2236 60%, #2b2a40 100%);
+    --mask: 22.37%;
+  }
+  body { background: var(--grey100); color: var(--grey900); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+  img { display: block; max-width: 100%; }
+  .doc { max-width: 1120px; margin: 0 auto; padding: 32px 16px 80px; display: flex; flex-direction: column; gap: 20px; }
+  .intro h1 { margin: 0; font-size: 30px; line-height: 40px; font-weight: 800; letter-spacing: -0.6px; }
+  .intro p { margin: 6px 0 0; font-size: 17px; line-height: 25.5px; color: var(--grey600); max-width: 760px; }
+  .card { background: #fff; border-radius: 24px; padding: 24px; min-width: 0; }
+  .card h2 { margin: 0; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.4px; }
+  .card > p { margin: 8px 0 0; font-size: 16px; line-height: 25px; color: var(--grey700); max-width: 760px; }
+
+  /* 한눈에 */
+  .board { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .tile { position: relative; border-radius: 18px; background: var(--grey50); box-shadow: inset 0 0 0 1px var(--grey200); padding: 18px 12px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-decoration: none; }
+  .tile img { width: 84px; height: 84px; }
+  .tile .nm { font-size: 15px; line-height: 22.5px; font-weight: 700; }
+  .tile .fam { font-size: 13px; line-height: 19.5px; color: var(--grey500); margin-top: -10px; }
+  .tile.top { background: #fff; box-shadow: inset 0 0 0 2px var(--grey900); }
+  .tag { position: absolute; top: 10px; left: 10px; height: 22px; padding: 0 8px; border-radius: 11px; background: var(--grey900); color: #fff; font-size: 12px; line-height: 22px; font-weight: 700; }
+  .tag.blue { background: var(--blue500); }
+  .famrow { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .walls { border-radius: 20px; padding: 20px 12px; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 16px 8px; }
+  .walls.light { background: var(--wall-light); }
+  .walls.dark { background: var(--wall-dark); }
+  .walls .app { width: 72px; }
+
+  /* 시안 한 장 */
+  .con-hd { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+  .con-hd .no { font-size: 15px; font-weight: 700; color: var(--blue500); font-variant-numeric: tabular-nums; }
+  .con-hd .fam { font-size: 14px; color: var(--grey500); }
+  .con-hd .verdict { margin-left: auto; height: 28px; padding: 0 12px; border-radius: 14px; font-size: 13px; line-height: 28px; font-weight: 700; background: var(--grey100); color: var(--grey600); }
+  .con-hd .verdict.top { background: var(--grey900); color: #fff; }
+  .con-hd .verdict.blue { background: var(--blue500); color: #fff; }
+  .why { margin: 8px 0 0; font-size: 16px; line-height: 25px; color: var(--grey800); max-width: 760px; }
+  .test { margin: 4px 0 0; font-size: 15px; line-height: 22.5px; color: var(--grey600); max-width: 760px; }
+  .panes { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 16px; }
+  .pane { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; max-width: 100%; }
+  .pane figcaption { font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); }
+  .box { border-radius: 18px; background: var(--grey50); box-shadow: inset 0 0 0 1px var(--grey200); }
+
+  .p-master .box { width: 184px; height: 184px; display: flex; align-items: center; justify-content: center; }
+  .p-master img { width: 144px; height: 144px; }
+
+  .p-home { width: 300px; }
+  .hrows { display: flex; flex-direction: column; gap: 8px; }
+  .hrow { height: 92px; border-radius: 18px; display: flex; align-items: flex-start; justify-content: space-around; padding: 12px 6px 0; }
+  .hrow.light { background: var(--wall-light); }
+  .hrow.dark { background: var(--wall-dark); }
+  .app { width: 66px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .app img, .app i { width: 60px; height: 60px; border-radius: var(--mask); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+  .app i { display: block; }
+  .app span { font-size: 11px; line-height: 13px; font-weight: 500; white-space: nowrap; letter-spacing: -0.1px; }
+  .light .app span { color: #1c2230; }
+  .dark .app span { color: #fff; }
+  .light .app i { background: rgba(255, 255, 255, 0.72); }
+  .dark .app i { background: rgba(255, 255, 255, 0.14); }
+
+  .p-splash .phone-mini { width: 168px; height: 184px; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px var(--grey200); display: flex; align-items: center; justify-content: center; }
+  .p-splash img { width: 112px; }
+
+  .p-chat { width: 300px; }
+  .chat { min-height: 184px; padding: 14px 14px; display: flex; flex-direction: column; justify-content: center; gap: 10px; background: #fff; }
+  .line { display: flex; align-items: flex-end; gap: 8px; }
+  .line img { width: 28px; height: 28px; border-radius: 50%; flex: none; }
+  .bub { padding: 10px 14px; border-radius: 18px 18px 18px 6px; background: var(--grey100); font-size: 15px; line-height: 22.5px; color: var(--grey800); }
+  .line.me { justify-content: flex-end; }
+  .line.me .bub { border-radius: 18px 18px 6px 18px; background: var(--blue500); color: #fff; }
+
+  .p-small .box { height: 184px; padding: 0 18px; display: flex; align-items: center; gap: 18px; }
+  .px { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .px .real { width: 16px; height: 16px; }
+  .px .big { width: 64px; height: 64px; image-rendering: pixelated; }
+  .px .bigi { width: 64px; height: 64px; image-rendering: pixelated; border-radius: var(--mask); }
+  .px span { font-size: 12px; line-height: 15px; color: var(--grey500); }
+
+  .p-mono .box { height: 184px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
+  .sw { width: 76px; height: 76px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .sw img { width: 52px; height: 52px; }
+  .sw.white { background: #fff; box-shadow: inset 0 0 0 1px var(--grey200); }
+  .sw.night { background: var(--grey900); }
+  .sw.blue { background: var(--blue500); }
+  .sw.inv img { filter: invert(1); }
+
+  /* 시험 표 */
+  .tbl-wrap { margin-top: 16px; overflow-x: auto; }
+  table.tests { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; line-height: 21px; }
+  .tests th, .tests td { text-align: left; padding: 10px 10px 10px 0; border-bottom: 1px solid var(--grey200); vertical-align: top; }
+  .tests th { font-size: 13px; color: var(--grey500); font-weight: 600; }
+  .tests td.nm { font-weight: 700; white-space: nowrap; }
+  .ok { color: var(--green600); font-weight: 600; }
+  .warn { color: var(--orange700); font-weight: 600; }
+  .bad { color: var(--red600); font-weight: 600; }
+
+  .recs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+  .recs .r { border-radius: 18px; background: var(--grey50); box-shadow: inset 0 0 0 1px var(--grey200); padding: 18px; }
+  .recs .r.pick { background: var(--blue50); box-shadow: inset 0 0 0 2px var(--blue500); }
+  .recs .r b { display: block; font-size: 17px; line-height: 25.5px; }
+  .recs .r p { margin: 6px 0 0; font-size: 15px; line-height: 22.5px; color: var(--grey700); }
+  .recs .r img { width: 56px; height: 56px; margin-bottom: 10px; }
+  .kit { margin: 16px 0 0; padding: 0 0 0 18px; font-size: 15px; line-height: 24px; color: var(--grey700); }
+
+  .files { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .file { width: 150px; display: flex; flex-direction: column; gap: 6px; }
+  .file .sw { width: 150px; height: 120px; }
+  .file .sw img { width: 76px; height: 76px; }
+  .file code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--grey600); word-break: break-all; }
+
+  @media (max-width: 560px) {
+    .doc { padding: 24px 16px 60px; }
+    .card { padding: 20px 16px; border-radius: 20px; }
+    .intro h1 { font-size: 26px; line-height: 35px; }
+    .p-home, .p-chat { width: 100%; }
+    .hrow { padding: 12px 2px 0; }
+    .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .file { width: calc(50% - 6px); }
+    .file .sw { width: 100%; }
+  }
+</style>
+</head>
+<body class="st3">
+<main class="doc">
+  <header class="intro">
+    <h1>Latti 로고 2차</h1>
+    <p>궤도, 육각 상자, L 한 칸을 다시 그리고, 갈래마다 비슷한 시안 둘을 더했어요. 모두 256 격자 위에 원과 선으로 짠 뒤 Inkscape에서 선을 면으로 바꾸고 합치기와 빼기로 틈을 냈어요.</p>
+  </header>
+
+  <section class="card" id="board">
+    <h2>아홉 시안</h2>
+    <p>16px, 28px, 한 색, 반전, 흐리게 보기, 비슷한 로고 찾기를 모두 거쳐 갈래마다 하나씩 남겼어요.</p>
+    <div class="board" id="boardGrid"></div>
+    <div class="famrow">
+      <div class="walls light" id="wallLight"></div>
+      <div class="walls dark" id="wallDark"></div>
+    </div>
+  </section>
+
+  <section class="card" id="pick">
+    <h2>남긴 셋과 추천</h2>
+    <p>L 점을 추천해요. 16px과 28px에서 아홉 가운데 가장 또렷하고, Latti와 Latticework의 첫 글자를 함께 가져요. 점이 영문 o로 보이면 Lo처럼 읽힐 수 있어서, 점과 L 사이 틈을 칸 사이 틈보다 넓게 뒀어요.</p>
+    <div class="recs">
+      <div class="r"><img src="logo/loop.svg" alt=""><b>돌아오는 궤도</b><p>복습이라는 뜻을 가장 잘 담았어요. 꼬리가 가늘어 아주 작게 쓰면 고리가 끊겨 보일 수 있어요.</p></div>
+      <div class="r"><img src="logo/cells.svg" alt=""><b>세 면 상자</b><p>어느 바탕에서도 가장 튼튼해요. 상자 모양 로고가 이미 많아서 우리만의 표시가 약해요.</p></div>
+      <div class="r pick"><img src="logo/lmark.svg" alt=""><b>L 점 · 추천</b><p>예전 격자 아이콘에서 이어지고 글자로도 읽혀요. 앱 아이콘으로도, 말풍선 곁 얼굴로도 한눈에 알아볼 수 있어요.</p></div>
+    </div>
+    <p style="margin-top:16px">방향을 하나 고르면 이어서 만들 것들이에요.</p>
+    <ul class="kit">
+      <li>색 체계: 파랑과 노랑 점의 정확한 값, 한 색판과 반전판</li>
+      <li>가로 로고와 세로 로고, 16px 전용으로 다듬은 작은 판</li>
+      <li>파비콘, iOS와 Android 아이콘 묶음, 웹 아이콘 묶음</li>
+      <li>쓰는 법 한 장: 여백, 가장 작은 크기, 쓰면 안 되는 예</li>
+    </ul>
+  </section>
+
+  <section class="card" id="tests">
+    <h2>시험 결과</h2>
+    <div class="tbl-wrap"><table class="tests" id="testTable"></table></div>
+  </section>
+
+  <div id="concepts" style="display:contents"></div>
+
+  <section class="card" id="files">
+    <h2>남긴 셋의 원본 파일</h2>
+    <p>모든 원본은 256 격자 SVG 이고, 모양 하나가 경로 하나예요. 반전판은 흰색이 굵어 보이는 만큼 가장자리를 0.75 단위씩 깎았어요.</p>
+    <div class="files" id="fileGrid"></div>
+  </section>
+</main>
+
+<script>
+  const C = [
+    { id: 'orbit', no: 1, name: '궤도', fam: '궤도', verdict: '',
+      why: '행성 둘레를 작은 개념이 돌아요. 고리 앞쪽을 뒤쪽보다 굵게 해 깊이를 줬어요.',
+      test: '28px까지는 좋지만 16px에서 고리와 위성이 뭉개지고, 고리 낀 행성 그림과 가까워요.',
+      t: ['ok', 'bad', 'ok', 'warn'], tn: ['28px 좋음', '16px 뭉개짐', '한 색 좋음', '토성 그림과 가까움'] },
+    { id: 'loop', no: 2, name: '돌아오는 궤도', fam: '궤도', verdict: 'top',
+      why: '복습한 개념이 한 바퀴 돌아 다시 와요. 꼬리가 가늘어지는 쪽이 지나간 시간이에요.',
+      test: '16px에서도 고리와 점이 남아요. 열린 쪽이 오른쪽이면 C로 읽혀서 위쪽으로 돌렸어요. 열린 고리 끝에 점이 붙은 Apollo 로고와는 조금 닮았어요.',
+      t: ['ok', 'warn', 'ok', 'warn'], tn: ['28px 좋음', '16px 꼬리 끝 흐림', '한 색 좋음', 'Apollo 고리와 조금 닮음'] },
+    { id: 'moon', no: 3, name: '곁의 위성', fam: '궤도', verdict: '',
+      why: '큰 개념 어깨에 작은 개념이 붙어 있어요. 선 없이 틈만으로 궤도를 떠올리게 했어요.',
+      test: '작게 보면 알림 점이 붙은 프로필 그림으로 읽혀서, 말풍선 곁에 두면 헷갈려요.',
+      t: ['ok', 'ok', 'ok', 'bad'], tn: ['28px 좋음', '16px 좋음', '한 색 좋음', '알림 점으로 읽힘'] },
+    { id: 'cube', no: 4, name: '육각 상자', fam: '상자', verdict: '',
+      why: '세 줄이 육각형을 상자로 바꿔요. 안쪽 세 줄을 바깥선보다 조금 가늘게 했어요.',
+      test: '28px까지 깔끔해요. 흔한 상자 아이콘과 거의 같아 Latti만의 표시가 약해요.',
+      t: ['ok', 'warn', 'ok', 'bad'], tn: ['28px 좋음', '16px 선이 가늘어짐', '한 색 좋음', '흔한 상자 아이콘'] },
+    { id: 'cells', no: 5, name: '세 면 상자', fam: '상자', verdict: 'top',
+      why: '세 줄이 틈으로 바뀌어 상자의 세 면을 나눠요. 세 면 모두 같은 둥근 모서리예요.',
+      test: '16px에서도 상자로 읽히고 사진과 무늬 바탕에서도 버텨요. 다른 상자 로고와 거리를 더 둬야 해요.',
+      t: ['ok', 'ok', 'ok', 'warn'], tn: ['28px 좋음', '16px 좋음', '한 색 좋음', '상자 로고가 많음'] },
+    { id: 'nextface', no: 6, name: '열린 윗면', fam: '상자', verdict: '',
+      why: '윗면 자리에 동그란 점이 들어와 다음 면을 기다려요.',
+      test: '책을 펼친 사람으로 읽혀요. 공부와 맞지만 너무 직접적이고, 상자로는 잘 안 보여요.',
+      t: ['ok', 'ok', 'ok', 'warn'], tn: ['28px 좋음', '16px 좋음', '한 색 좋음', '책 읽는 사람으로 읽힘'] },
+    { id: 'lcells', no: 7, name: 'L 한 칸', fam: 'L', verdict: '',
+      why: '세 칸이 L을 이루고 남은 한 칸이 점이 됐어요. 점을 칸보다 조금 작게 했어요.',
+      test: '28px까지 좋지만 16px에서 점과 칸이 같아 보여 네 칸 격자로 돌아가요.',
+      t: ['ok', 'bad', 'ok', 'ok'], tn: ['28px 좋음', '16px 네 칸으로 보임', '한 색 좋음', '비슷한 로고 없음'] },
+    { id: 'lnext', no: 8, name: '다음 칸', fam: 'L', verdict: '',
+      why: '빈 칸에 작은 점이 들어와 다음 칸을 채워 가요.',
+      test: '16px에서도 점이 보여요. 다만 네 칸 모양이 앱 모음 아이콘과 닮았어요.',
+      t: ['ok', 'ok', 'ok', 'warn'], tn: ['28px 좋음', '16px 좋음', '한 색 좋음', '앱 모음 아이콘과 닮음'] },
+    { id: 'lmark', no: 9, name: 'L 점', fam: 'L', verdict: 'rec',
+      why: '세 칸이 하나로 붙어 L이 되고, 새 개념 하나가 곁에 와요.',
+      test: '16px에서 가장 또렷하고 첫 글자가 바로 읽혀요. 점을 L의 윗변과 오른쪽 변에 맞춰 전체가 한 정사각형으로 닫혀요. 막대 곁에 점을 둔 ReScript 아이콘과는 구성이 조금 닮았어요.',
+      t: ['ok', 'ok', 'ok', 'warn'], tn: ['28px 좋음', '16px 가장 또렷함', '한 색 좋음', 'ReScript 아이콘과 구성이 조금 닮음'] },
+  ];
+  const FINAL = ['loop', 'cells', 'lmark'];
+  const ACCENT = { orbit: 1, loop: 1, moon: 1, nextface: 1, lcells: 1, lnext: 1, lmark: 1 };
+  const verdictLabel = { '': '탈락', top: '남김', rec: '추천' };
+  const el = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+
+  // 한눈에
+  const grid = document.getElementById('boardGrid');
+  C.forEach((c) => grid.append(el(`<a class="tile${c.verdict ? ' top' : ''}" href="#c-${c.id}">${c.verdict ? `<span class="tag${c.verdict === 'rec' ? ' blue' : ''}">${verdictLabel[c.verdict]}</span>` : ''}<img src="logo/${c.id}.svg" alt="${c.name}"><span class="nm">${c.name}</span><span class="fam">${c.fam}</span></a>`)));
+  ['wallLight', 'wallDark'].forEach((w) => {
+    const box = document.getElementById(w);
+    C.forEach((c) => box.append(el(`<div class="app"><img src="logo/${c.id}-icon.svg" alt=""><span>${c.name}</span></div>`)));
+  });
+
+  // 시험 표
+  const tt = document.getElementById('testTable');
+  tt.innerHTML = `<thead><tr><th>시안</th><th>갈래</th><th>28px</th><th>16px</th><th>한 색</th><th>닮은 것</th><th>결과</th></tr></thead><tbody>${C.map((c) => `<tr><td class="nm">${c.no}. ${c.name}</td><td>${c.fam}</td>${c.t.map((k, i) => `<td class="${k}">${c.tn[i]}</td>`).join('')}<td>${verdictLabel[c.verdict]}</td></tr>`).join('')}</tbody>`;
+
+  // 시안 한 장씩
+  const lines = ['오늘 기사 세 편을 골라 뒀어요.', '어제 본 개념이 오늘 기사에 다시 나왔어요.'];
+  const box = document.getElementById('concepts');
+  C.forEach((c) => {
+    const fin = FINAL.includes(c.id);
+    const mono = fin
+      ? `<div class="sw white"><img src="logo/${c.id}-mono.svg" alt="한 색"></div><div class="sw night"><img src="logo/${c.id}-reversed.svg" alt="반전"></div><div class="sw blue"><img src="logo/${c.id}-reversed.svg" alt="파랑 위 반전"></div>`
+      : `<div class="sw white"><img src="logo/${c.id}.svg" alt="한 색"></div><div class="sw night inv"><img src="logo/${c.id}.svg" alt="반전"></div>`;
+    box.append(el(`
+      <section class="card" id="c-${c.id}">
+        <div class="con-hd"><span class="no">${String(c.no).padStart(2, '0')}</span><h2>${c.name}</h2><span class="fam">${c.fam} 갈래</span><span class="verdict ${c.verdict === 'rec' ? 'blue' : c.verdict}">${verdictLabel[c.verdict]}</span></div>
+        <p class="why">${c.why}</p>
+        <p class="test">${c.test}</p>
+        <div class="panes">
+          <figure class="pane p-master"><div class="box"><img src="logo/${c.id}.svg" alt="${c.name} 원본"></div><figcaption>원본</figcaption></figure>
+          <figure class="pane p-home"><div class="hrows">
+            <div class="hrow light"><div class="app"><i></i><span>메모</span></div><div class="app"><img src="logo/${c.id}-icon.svg" alt=""><span>Latticework</span></div><div class="app"><i></i><span>날씨</span></div><div class="app"><i></i><span>사진</span></div></div>
+            <div class="hrow dark"><div class="app"><i></i><span>메모</span></div><div class="app"><img src="logo/${c.id}-icon.svg" alt=""><span>Latticework</span></div><div class="app"><i></i><span>날씨</span></div><div class="app"><i></i><span>사진</span></div></div>
+          </div><figcaption>앱 아이콘 60px</figcaption></figure>
+          <figure class="pane p-splash"><div class="phone-mini"><img src="logo/${c.id}-lockup.svg" alt="${c.name} 시작 화면"></div><figcaption>시작 화면</figcaption></figure>
+          <figure class="pane p-chat"><div class="box chat">
+            <div class="line"><img src="logo/${c.id}-icon.svg" alt=""><div class="bub">${lines[0]}</div></div>
+            <div class="line me"><div class="bub">좋아요</div></div>
+            <div class="line"><img src="logo/${c.id}-icon.svg" alt=""><div class="bub">${lines[1]}</div></div>
+          </div><figcaption>말풍선 곁 28px</figcaption></figure>
+          <figure class="pane p-small"><div class="box">
+            <div class="px"><img class="real" src="logo/${c.id}.svg" alt=""><span>16px</span></div>
+            <div class="px"><img class="big" src="logo/png/${c.id}-16.png" alt=""><span>16px 확대</span></div>
+            <div class="px"><img class="bigi" src="logo/png/${c.id}-icon-16.png" alt=""><span>아이콘 16px</span></div>
+          </div><figcaption>16px</figcaption></figure>
+          <figure class="pane p-mono"><div class="box">${mono}</div><figcaption>한 색${fin ? '과 반전' : ''}</figcaption></figure>
+        </div>
+      </section>`));
+  });
+
+  // 파일
+  const fg = document.getElementById('fileGrid');
+  FINAL.forEach((id) => {
+    [[`${id}.svg`, 'white'], [`${id}-mono.svg`, 'white'], [`${id}-reversed.svg`, 'night'], [`${id}-icon.svg`, 'white']].forEach(([f, bg]) => {
+      fg.append(el(`<div class="file"><div class="sw ${bg}"><img src="logo/${f}" alt=""></div><code>logo/${f}</code></div>`));
+    });
+  });
+</script>
+</body>
+</html>
