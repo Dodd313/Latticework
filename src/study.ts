@@ -3,9 +3,16 @@
 // 기억 계산은 공개된 간격 반복 방식(FSRS 4.5)의 기본값을 쓴다.
 // 항목마다 난이도(d)와 안정성(s)을 두고, 기억할 확률이 90% 아래로 내려가는 날을 다음 복습일로 잡는다.
 // 안정성 s 는 "기억 확률이 90%가 될 때까지 걸리는 일수"와 같다.
-import { addDays } from './dates';
+import { addDays, kstDate } from './dates';
 
-export type Concept = { id: string; name: string; en?: string; field?: string; topic?: string };
+/** 지식 분류의 등급: 학문 · 분과 · 주제. 개념은 study.json 의 concepts 에 따로 있다. */
+export type TaxRank = 'discipline' | 'branch' | 'topic';
+
+/** 지식 분류의 마디 하나. color 와 domain 은 학문에만 있다. */
+export type TaxNode = { id: string; ko: string; short?: string; en?: string; rank: TaxRank; parent: string | null; color?: string; domain?: string };
+
+/** node 는 이 개념이 달린 마디(분과나 주제). field, topic 은 예전 자료에만 있고 읽지 않는다. */
+export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string };
 
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용 · 5 설명. t 는 mc(4지선다), ox(맞다·틀리다), rc(떠올리고 스스로 채점). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox' | 'rc'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string; r?: string };
@@ -16,7 +23,8 @@ export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; l
 export type Asked = { keys: Set<string>; units: Set<string> };
 const NONE: Asked = { keys: new Set(), units: new Set() };
 
-export type StudyData = { version: number; updatedAt?: string; concepts: Concept[]; questions: LatQuestion[]; vocab: Vocab[] };
+/** nodes 가 없으면(예전에 받아 둔 자료) 지식 탭과 해금은 아무것도 보이지 않는다. */
+export type StudyData = { version: number; updatedAt?: string; nodes?: TaxNode[]; concepts: Concept[]; questions: LatQuestion[]; vocab: Vocab[] };
 
 export type Section = 'lat' | 'voc';
 
@@ -29,14 +37,15 @@ export type Card = {
   reps: number;
   lapses: number;
   asked: Record<string, number>; // 문제 유형별로 낸 횟수. 같은 유형만 되풀이하지 않게 한다
+  first?: string; // 처음 답한 날(한국 날짜). 이 날부터 배운 것으로 센다
 };
 
 export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number };
 
 export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number };
 
-/** 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘 */
-export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3 };
+/** 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘. r 은 틀려서 세션 끝에 다시 나온 문제 */
+export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1 };
 
 export const LAT_GOAL = 5;
 export const VOC_NEW_PER_DAY = 6;
@@ -89,7 +98,31 @@ export function review(card: Card | undefined, g: 1 | 2 | 3, now: Date, today: s
   const interval = g === 1 ? 1 : Math.max(1, Math.round(s));
   const asked = { ...(card?.asked ?? {}) };
   asked[typeKey] = (asked[typeKey] ?? 0) + 1;
-  return { d, s, last: now.toISOString(), due: addDays(today, interval), reps: (card?.reps ?? 0) + 1, lapses: (card?.lapses ?? 0) + (g === 1 ? 1 : 0), asked };
+  return { d, s, last: now.toISOString(), due: addDays(today, interval), reps: (card?.reps ?? 0) + 1, lapses: (card?.lapses ?? 0) + (g === 1 ? 1 : 0), asked, first: card?.first ?? today };
+}
+
+/**
+ * 처음 답한 날(first)이 없는 항목을 풀이 기록으로 채운다. 그 항목의 가장 이른 기록의 날, 기록이 없으면 마지막으로 푼 날.
+ * 바뀐 것이 없으면 받은 객체를 그대로 돌려준다.
+ */
+export function withFirsts(state: StudyState, log: LogRow[]): StudyState {
+  const missing = Object.keys(state.cards).filter((id) => !state.cards[id].first);
+  if (missing.length === 0) return state;
+  const earliest = new Map<string, string>();
+  for (const row of log) {
+    const cur = earliest.get(row.u);
+    if (!cur || row.t < cur) earliest.set(row.u, row.t);
+  }
+  const cards = { ...state.cards };
+  let changed = false;
+  for (const id of missing) {
+    const card = cards[id];
+    const first = kstDate(earliest.get(id) ?? '') || kstDate(card.last);
+    if (!first) continue;
+    cards[id] = { ...card, first };
+    changed = true;
+  }
+  return changed ? { ...state, cards } : state;
 }
 
 // ---------- 문제 한 건 ----------
@@ -134,8 +167,40 @@ function shuffle<T>(xs: T[], rand: () => number): T[] {
   return a;
 }
 
-function latQ(c: Concept, x: LatQuestion): Q {
-  const kicker = [c.field, c.name].filter(Boolean).join(' · ');
+// 개념 id → 그 개념의 학문. 자료 객체마다 한 번만 만든다.
+const discCache = new WeakMap<StudyData, Map<string, TaxNode>>();
+
+function disciplineOf(data: StudyData, cid: string): TaxNode | null {
+  let idx = discCache.get(data);
+  if (!idx) {
+    idx = new Map();
+    const nodes = new Map((data.nodes ?? []).map((n) => [n.id, n]));
+    for (const c of data.concepts) {
+      let n = nodes.get(c.node);
+      for (let guard = 0; n && n.parent && guard < 8; guard++) n = nodes.get(n.parent);
+      if (n && n.rank === 'discipline') idx.set(c.id, n);
+    }
+    discCache.set(data, idx);
+  }
+  return idx.get(cid) ?? null;
+}
+
+/** 그 마디(학문, 분과, 주제)에 바로 달리거나 아래 마디에 달린 개념 */
+export function conceptsOfNode(data: StudyData, nodeId: string): Concept[] {
+  const nodes = new Map((data.nodes ?? []).map((n) => [n.id, n]));
+  const under = (id: string) => {
+    let n = nodes.get(id);
+    for (let guard = 0; n && guard < 8; guard++) {
+      if (n.id === nodeId) return true;
+      n = n.parent ? nodes.get(n.parent) : undefined;
+    }
+    return false;
+  };
+  return data.concepts.filter((c) => c.node === nodeId || under(c.node));
+}
+
+function latQ(data: StudyData, c: Concept, x: LatQuestion): Q {
+  const kicker = [disciplineOf(data, c.id)?.ko, c.name].filter(Boolean).join(' · ');
   const base = { key: x.id, unit: c.id, sect: 'lat' as Section, type: `lv${x.lv}`, kicker, q: x.q, pre: x.pre };
   if (x.t === 'rc') return { ...base, reveal: x.r ?? '' };
   if (x.t === 'ox') return { ...base, options: ['맞다', '틀리다'], answer: x.a ? 0 : 1, hint: x.h, explain: x.w };
@@ -158,6 +223,29 @@ function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, 
  * 어느 쪽이든 오늘 이미 낸 문제는 다시 내지 않고, 한 세션에서 한 개념은 한 번만 나온다(자리가 남을 때만 다른 유형으로 한 번 더).
  */
 export function buildLat(data: StudyData, state: StudyState, today: string, now: Date, count: number, mode: 'daily' | 'weak' = 'daily', asked: Asked = NONE): Q[] {
+  return latFrom(data, state, latOrder(data, state, today, now, mode, asked), count, asked);
+}
+
+/**
+ * 한 개념(또는 마디)에 맞춘 Latticework 세션. 그 개념을 먼저, 같은 마디의 개념을 기억이 약한 순서로, 그 뒤는 하루 분량과 같은 순서다.
+ * focusId 가 마디 id 면 그 마디 아래 개념을 기억이 약한 순서로 먼저 낸다.
+ */
+export function buildLatFocus(data: StudyData, state: StudyState, today: string, now: Date, focusId: string, count: number, asked: Asked = NONE): Q[] {
+  const weak = (a: Concept, b: Concept) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now);
+  const focus = data.concepts.find((c) => c.id === focusId);
+  const head: Concept[] = [];
+  if (focus) {
+    head.push(focus);
+    head.push(...data.concepts.filter((c) => c !== focus && c.node === focus.node).sort(weak));
+  } else {
+    head.push(...conceptsOfNode(data, focusId).sort(weak));
+  }
+  const order = [...head];
+  for (const c of latOrder(data, state, today, now, 'daily', asked)) if (!order.includes(c)) order.push(c);
+  return latFrom(data, state, order, count, asked);
+}
+
+function latOrder(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak', asked: Asked): Concept[] {
   const seen = data.concepts.filter((c) => state.cards[c.id]);
   const fresh = data.concepts.filter((c) => !state.cards[c.id]);
   const weakest = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
@@ -179,7 +267,10 @@ export function buildLat(data: StudyData, state: StudyState, today: string, now:
     weakest.filter(untouched).forEach(push);
     weakest.forEach(push);
   }
+  return order;
+}
 
+function latFrom(data: StudyData, state: StudyState, order: Concept[], count: number, asked: Asked): Q[] {
   const out: Q[] = [];
   const used = new Set<string>(asked.keys);
   const add = (c: Concept) => {
@@ -187,7 +278,7 @@ export function buildLat(data: StudyData, state: StudyState, today: string, now:
     const x = pickLatQuestion(c, data.questions, state.cards[c.id], used);
     if (!x) return;
     used.add(x.id);
-    out.push(latQ(c, x));
+    out.push(latQ(data, c, x));
   };
   order.forEach(add);
   // 개념이 모자라 자리가 남을 때만, 이번에 나온 개념을 다른 유형으로 한 번 더 묻는다.

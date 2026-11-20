@@ -1,4 +1,5 @@
-// 자체 주소 빌드(docs/)를 휴대폰 크기로 띄워 복습 흐름을 확인한다: 홈, Latticework 5문제, 영단어, 기록.
+// 자체 주소 빌드(docs/)를 휴대폰 크기로 띄워 복습 흐름을 확인한다: 홈, Latticework 5문제, 영단어, 기록,
+// 그리고 다시 열었을 때의 해금 화면(시작 화면 다음). 처음 여는 동안은 #noflow 로 해금과 돌아보기를 끈다.
 // 사용: node scripts/shots-site.mjs
 import { createServer } from 'node:http';
 import { readFileSync, mkdirSync } from 'node:fs';
@@ -76,7 +77,7 @@ async function solve(prefix) {
   }
 }
 
-await page.goto(`${base}/index.html`);
+await page.goto(`${base}/index.html#noflow`);
 await page.waitForTimeout(2500);
 await snap('01-home');
 await tap('Latticework 열기');
@@ -110,6 +111,29 @@ const state = await page.evaluate(() => {
   const twice = Object.entries(count).filter(([, n]) => n === 2).length;
   return { repeatsOver2: repeats, askedTwice: twice, distinctQuestions: Object.keys(count).length, latUnits: units.lat ? units.lat.size : 0, vocUnits: units.voc ? units.voc.size : 0, days: s.days, cards: Object.keys(s.cards || {}).length, xp: s.xp, log: log.length, sample: Object.values(s.cards || {}).slice(0, 2) };
 });
-console.log(JSON.stringify({ errors, state }, null, 1));
+// 다시 열면(#noflow 없이) 오늘 처음 푼 개념의 학문이 시작 화면 다음에 해금 화면으로 뜬다. 계속을 눌러 홈까지 간다.
+await page.goto(`${base}/index.html`);
+await page.waitForTimeout(800);
+await page.reload();
+await page.waitForTimeout(4200);
+const flow = { unlockCards: 0, recap: false };
+for (let i = 0; i < 6 && (await page.locator('[data-testid="unlock"]').count()); i++) {
+  if (i === 0) await snap('08-unlock');
+  flow.unlockCards += 1;
+  await tap('계속');
+  await page.waitForTimeout(3200);
+}
+if (await page.locator('[data-testid="recap"]').count()) {
+  flow.recap = true;
+  await snap('08b-recap');
+  await tap('닫기');
+  await page.waitForTimeout(800);
+}
+await snap('09-home-after-flow');
+await page.reload();
+await page.waitForTimeout(3600);
+flow.again = (await page.locator('[data-testid="unlock"]').count()) > 0;
+
+console.log(JSON.stringify({ errors, state, flow }, null, 1));
 await browser.close();
 server.close();

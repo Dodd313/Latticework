@@ -103,3 +103,48 @@ export function kstDate(iso: string): string {
 }
 
 export const WEEKDAY_SHORT = ['월', '화', '수', '목', '금'];
+
+/** 그 날짜가 든 ISO 주의 이름. 예: 2026-W47 (주간 리뷰 문서 id 와 같다) */
+export function isoWeekId(date: string): string {
+  const thu = addDays(mondayOf(date), 3); // 목요일이 든 해가 그 주의 해다
+  const { y } = parts(thu);
+  const start = Date.UTC(y, 0, 1);
+  const { m, d } = parts(thu);
+  const ordinal = Math.round((Date.UTC(y, m - 1, d) - start) / 86400000) + 1;
+  return `${y}-W${String(Math.floor((ordinal - 1) / 7) + 1).padStart(2, '0')}`;
+}
+
+/** 그 날짜가 든 주의 월요일 */
+export function mondayOf(date: string): string {
+  const w = weekdayIndex(date);
+  return addDays(date, w === 0 ? -6 : 1 - w);
+}
+
+/** a 에서 b 까지 며칠(b - a). 같은 날이면 0 */
+export function dayDiff(a: string, b: string): number {
+  const p = parts(a);
+  const q = parts(b);
+  return Math.round((Date.UTC(q.y, q.m - 1, q.d) - Date.UTC(p.y, p.m - 1, p.d)) / 86400000);
+}
+
+/** YYYY-MM (monthKey 와 같다) */
+export function monthOf(date: string): string {
+  return monthKey(date);
+}
+
+/** 그 달(YYYY-MM)의 모든 날짜 */
+export function monthDays(key: string): string[] {
+  const [y, m] = key.split('-').map((v) => Number(v));
+  const count = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return Array.from({ length: count }, (_, i) => `${key}-${String(i + 1).padStart(2, '0')}`);
+}
+
+/** 한국 시각의 시(0~23) */
+export function kstHour(now: Date = new Date()): number {
+  return new Date(now.getTime() + 9 * 3600 * 1000).getUTCHours();
+}
+
+/** 0 일요일 ~ 6 토요일 */
+export function weekdayOf(date: string): number {
+  return weekdayIndex(date);
+}

@@ -1,14 +1,16 @@
 import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CSS_EASE, EASE, EASE_OUT, EASE_SHEET, NATIVE_DRIVER, motionOff, webAnimate, webStop } from './src/motion';
-import { Nav, NavCtx, NavTabCtx, Route, TabBar, TabName } from './src/nav';
+import { Nav, NavCtx, NavTabCtx, Route, TabBar, TabName, requestNode } from './src/nav';
 import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
 import { DayQuizScreen } from './src/screens/DayQuiz';
 import { NewsScreen } from './src/screens/News';
 import { StudyScreen } from './src/screens/Study';
-import { ReviewScreen } from './src/screens/Review';
+import { KnowledgeScreen } from './src/screens/Knowledge';
 import { SettingsScreen } from './src/screens/Settings';
+import { WeeklyQuizScreen } from './src/screens/WeeklyQuiz';
+import { AfterSplash, ShownCtx } from './src/screens/Flow';
 import { TodayScreen } from './src/screens/Today';
 import { StoreDefer, StoreProvider } from './src/store';
 import { Splash } from './src/ui';
@@ -127,7 +129,9 @@ const RouteScreen = memo(function RouteScreen({ route }: { route: Route }) {
   ) : route.name === 'news' ? (
     <NewsScreen />
   ) : route.name === 'study' ? (
-    <StudyScreen sect={route.sect} />
+    <StudyScreen sect={route.sect} focus={route.focus} />
+  ) : route.name === 'weekly' ? (
+    <WeeklyQuizScreen id={route.id} />
   ) : (
     <SettingsScreen />
   );
@@ -136,13 +140,15 @@ const RouteScreen = memo(function RouteScreen({ route }: { route: Route }) {
 function Shell() {
   const t = useTheme();
   const [tab, setTabState] = useState<TabName>('today');
-  const [visited, setVisited] = useState<Record<TabName, boolean>>({ today: true, archive: false, review: false });
+  const [visited, setVisited] = useState<Record<TabName, boolean>>({ today: true, archive: false, knowledge: false });
   // 쌓인 화면마다 고유 번호를 둔다. 닫히는 중인 화면 위로 새 화면이 올라와도 닫힘이 엉뚱한 화면으로 옮겨 가지 않는다.
   const [stack, setStack] = useState<{ id: number; route: Route; closing: boolean }[]>([]);
   const seq = useRef(0);
   // 시작 화면은 앱을 열 때 한 번만. 움직임 줄이기가 켜져 있으면 건너뛴다.
   const [splash, setSplash] = useState(() => !motionOff());
   const endSplash = useCallback(() => setSplash(false), []);
+  // 시작 화면 다음의 해금과 돌아보기가 덮고 있는지. 덮는 동안 탭 화면은 기록이 바뀌어도 나중에 다시 그린다.
+  const [overlay, setOverlay] = useState(false);
 
   const setTab = useCallback((next: TabName) => {
     setStack((s) => (s.length ? [] : s));
@@ -162,17 +168,31 @@ function Shell() {
   );
   const finishPop = useCallback((id: number) => setStack((s) => s.filter((e) => e.id !== id)), []);
   // 동작만 담은 값은 한 번 만들고 바꾸지 않는다. 지금 탭은 따로 내려보내 탭 막대만 다시 그린다.
-  const nav = useMemo<Nav>(() => ({ setTab, push, pop }), [setTab, push, pop]);
+  // 지식 탭의 지도로: 요청을 먼저 남기고 탭을 바꾼다(처음 여는 지식 탭도 열리면서 이 요청을 읽는다).
+  const showNode = useCallback(
+    (id: string | null) => {
+      requestNode(id);
+      setTab('knowledge');
+    },
+    [setTab],
+  );
+  const nav = useMemo<Nav>(() => ({ setTab, push, pop, showNode }), [setTab, push, pop, showNode]);
+  // 시험용(웹): 화면 이동을 바깥에서 부를 수 있게
+  useEffect(() => {
+    if (Platform.OS === 'web') (globalThis as any).__LW_NAV__ = nav;
+  }, [nav]);
   const top = stack[stack.length - 1]?.route;
   // 탭 화면은 한 번 만든 요소를 계속 쓴다. 탭을 바꾸거나 화면을 쌓아도 보이지 않는 탭까지 다시 그리지 않는다.
-  const screens = useMemo(() => ({ today: <TodayScreen />, archive: <ArchiveScreen />, review: <ReviewScreen /> }), []);
+  const screens = useMemo(() => ({ today: <TodayScreen />, archive: <ArchiveScreen />, knowledge: <KnowledgeScreen /> }), []);
   const topId = stack.length ? stack[stack.length - 1].id : 0;
 
   const layer = (name: TabName) =>
     visited[name] ? (
       <TabLayer key={name} active={tab === name}>
         {/* 안쪽 화면이 덮고 있거나 가려진 탭은 기록이 바뀌어도 맨 위 화면을 먼저 그린 뒤에 다시 그린다. */}
-        <StoreDefer defer={tab !== name || topId !== 0}>{screens[name]}</StoreDefer>
+        <ShownCtx.Provider value={tab === name && topId === 0 && !overlay}>
+          <StoreDefer defer={tab !== name || topId !== 0 || overlay}>{screens[name]}</StoreDefer>
+        </ShownCtx.Provider>
       </TabLayer>
     ) : null;
 
@@ -184,7 +204,7 @@ function Shell() {
             <View style={[styles.fill, { overflow: 'hidden' }]}>
               {layer('today')}
               {layer('archive')}
-              {layer('review')}
+              {layer('knowledge')}
               {stack.map(({ id, route, closing }) => (
                 <StackLayer key={id} id={id} closing={closing} onClosed={finishPop} bg={t.card}>
                   <StoreDefer defer={id !== topId}>
@@ -194,6 +214,8 @@ function Shell() {
               ))}
             </View>
             {top && top.name !== 'settings' ? null : <TabBar />}
+            {/* 시작 화면 다음: 해금(전체 화면), 이어서 주간·월간 돌아보기. 탭 막대까지 덮고, 시작 화면보다는 아래 */}
+            <AfterSplash splashDone={!splash} onOverlay={setOverlay} />
           </View>
           {splash ? <Splash onDone={endSplash} /> : null}
         </View>

@@ -86,8 +86,9 @@ Latticework 시사 앱: 작업 구조 공유 문서
 ====================================================================
 - 한 앱에서 세 가지를 한다: 뉴스 읽기, 영단어, Latticework(여러 분야의 개념을 문제로 복습).
   앱 이름은 "Latticework". 개념마다 앱을 따로 만들지 않는다.
-- 화면 구조는 시안 1 "지면 허브": 홈(오늘)에 세 과제가 줄로 나오고, 누르면 그 과제 화면으로 들어간다.
-  탭은 오늘 / 기록 / 리뷰. 바탕은 옅은 종이 결(밝은 화면에서만).
+- 화면 구조: 홈에 세 과제(뉴스, 영단어, Latticework)가 줄로 나오고, 누르면 그 과제 화면으로 들어간다.
+  탭은 홈 / 기록 / 지식 (2026-11-20 부터. 예전 리뷰 탭과 Review.tsx 는 없앴다. 자세한 것은 2-3).
+  디자인은 Toss 식(src/theme.tsx 의 색과 글자 크기, src/ui.tsx 의 부품). 예전 "지면형"과 종이 결은 쓰지 않는다.
 - 하루 목표: 그날 있는 과제를 그날 안에 모두 끝내기. 뉴스는 발행된 날에만, 영단어와 Latticework 는 매일(주말 포함).
   연속 기록은 하나로 센다. 계산은 src/store.tsx 의 partsOf, statusFromParts, useGoals.
 - 복습 자료: docs/data/study.json (개념 42, 문제 210, 영어 표현 95. 2026-11-19 에 복습 프로토타입
@@ -104,18 +105,82 @@ Latticework 시사 앱: 작업 구조 공유 문서
   강의, 교수, 수업, 강의자료, 도표 번호, 예제 번호, 단원처럼 출처를 가리키는 말을 쓰지 않는다. 사실만 적는다.
   아래첨자와 위첨자는 <sub>, <sup> 태그만 쓴다(화면이 이 둘만 그린다). 다른 태그, LaTeX, HTML 엔티티는 쓰지 않는다.
   계산은 암산 수준. 힌트는 답을 말하지 않는다. 해설은 왜 그 답인지 문제만 본 사람도 이해하게 쓴다.
-  같은 날 같은 문제는 다시 내지 않는다(틀린 문제만 세션 끝에 한 번). 추가 학습는 오늘 안 나온 항목부터 고른다.
+  같은 날 같은 문제는 다시 내지 않는다(틀린 문제만 세션 끝에 한 번). 추가 학습은 오늘 안 나온 항목부터 고른다.
 - 내지 않는 문제 유형 (2026-11-19 사용자 결정): 자기 말로 설명하기(스스로 채점), 영단어의 격식 고르기, 우리말에서 영어 떠올리기.
   남은 유형: Latticework 는 인식, 특징, 구분, 적용. 영단어는 뜻 고르기, 정의에 맞는 표현, 빈칸.
 - 이 앱의 목적 (사용자 표현): 살면서 배운 지식을 장기 기억으로 유지하고 서로 연결해 사고 역량을 키우는 도구. 시험 대비가 아니다.
   시험 범위, 수업 진도 같은 기준으로 문제를 만들지 않는다.
 - 영단어 단어장은 셋이다: 토익 어휘 160(단어 위주, 2026-11-19 추가. 시트에는 아직 없고 study.json 에만 있다),
   일반회화 30, 금융영어 65. 새 표현은 토익 어휘를 가장 자주 넣고 하루 6개까지.
+  화면에는 단어장 이름을 보이지 않는다. 표현은 단어 / 구문 두 가지로만 나눈다
+  (괄호를 뺀 뒤 빈칸이 있으면 구문. src/study.ts 의 vocKind).
 - 2026-11-19 에 문제 210개를 모두 다시 읽어 123개를 고쳤다. 고친 내용은 docs/data/study.json 에만 있고,
   복습 프로토타입의 저장소에는 반영하지 않았다. 지금은 study.json 이 기준이다.
-- 화면: src/screens/Today.tsx(홈), News.tsx(뉴스 목록과 저녁 퀴즈), Study.tsx(문제 풀기), Archive.tsx(기록), Review.tsx(리뷰).
-- 확인: node scripts/shots.mjs light (Claude 링크용 빌드), node scripts/shots-site.mjs (자체 주소 빌드에서 복습을 끝까지 푼다).
+- 화면: src/screens/Today.tsx(홈), News.tsx(오늘 뉴스 목록), DayQuiz.tsx(저녁 퀴즈), Study.tsx(문제 풀기),
+  Archive.tsx(기록 탭: 달력과 불꽃 띠), Knowledge*.tsx(지식 탭), WeeklyQuiz.tsx(주간 종합 퀴즈), Settings.tsx.
+- 뉴스는 장기 기억 대상이 아니다. 기억 상태, 복습일, 기억 확률을 뉴스 어디에도 두지 않는다.
+  뉴스는 다시 읽기, 저녁 퀴즈, 주간 종합 퀴즈로 끝난다. 제목은 원문 그대로 한 줄로 보이고 넘치면 말줄임(numberOfLines={1}).
+- 확인: node scripts/shots.mjs light|dark (Claude 링크용 빌드), node scripts/shots-site.mjs (자체 주소 빌드에서 복습을 끝까지 푼다).
 - 복습은 자체 주소 빌드에서만 된다. Claude 링크용 빌드는 뉴스만 보인다.
+
+====================================================================
+2-3. 지식 탭, 해금, 돌아보기, Latti (2026-11-20 사용자 결정. 2-2 보다 뒤라 다르면 이쪽이 맞다)
+====================================================================
+- 탭은 홈 / 기록 / 지식. 리뷰 탭은 없앴다. 주간 종합 퀴즈는 지식 탭 뉴스 칸의 주 머리와 돌아보기 뉴스 카드에서 연다.
+- 지식 탭은 나눔 단추 세 칸이다. Latticework(배운 개념의 지도. 마디를 누르면 개념 시트: 반복 횟수, 기억 확률, 다음 복습, 복습하기),
+  뉴스(읽은 기사를 주별로. 주 머리에 주간 종합 퀴즈), 단어장(전체 / 단어 / 구문 칩과 낱말 카드).
+  뉴스 칸에는 기억 상태가 없다. 뉴스와 단어장 칸은 지식 탭을 연 뒤 한가할 때 숨긴 채 미리 그려 둔다.
+- 분류: 학문 / 분과 / 주제(없을 수 있다) / 개념. docs/data/study.json 의 nodes 에 지금 앱에 있는 마디만 둔다
+  (id 'n:...', ko, short, en, rank, parent, 학문에만 color 와 domain). 개념마다 node 에 달린 마디 id 가 있다.
+  전체 분류 목록(motion-lab/v8/taxonomy.json)은 Claude 가 문제를 만들 때 보는 안내서이고 앱에는 넣지 않는다.
+- 배운 날 규칙(소유자 결정): 개념은 처음 답한 날(card.first, 한국 날짜)부터 배운 것이다. 자료에 넣은 날은 쓰지 않는다.
+  학문과 분과는 그 아래 개념이 처음 풀린 날에 생기고, 주제는 그 아래 개념이 3개째 풀린 날에 생긴다(그 전까지 개념은 분과에 바로 달린다).
+  계산은 기기 안에서 한다: src/knowledge.ts (learnedTree, unlockEvents, unlockPlan, freshSince).
+- 개인 기록에 더한 것(src/types.ts, 동기화된다): newsLog(읽은 기사 제목, 날짜, 주소. 기사 묶음에서 빠져도 목록이 남는다),
+  scores(퀴즈 점수), seen(본 해금 unlocks, 본 돌아보기 recaps, 지도를 본 날 map 과 그때 이미 있던 그날 것 mapIds.
+  같은 날 지도를 본 뒤에 배운 개념도 반짝이게 한다). Claude 링크 빌드에서는 seen 이 문서
+  data/users/{본인}/seen 에 저장된다. 내보내기는 version 3, 가져오기는 2 와 3 을 받는다.
+- Latti: docs/data/latti.json(늘 쓰는 줄 bank 와 하루 묶음 목록 daily). 고르는 규칙은 src/lattiLines.ts, 표식과 말풍선은 src/latti.tsx,
+  모양은 src/lattiTypes.ts. 자체 주소 빌드만 받는다(Claude 링크 빌드는 src/cheer.ts 의 문장을 쓴다).
+  한 화면에 한 줄, 기사를 읽는 동안에는 말하지 않는다. 표식은 지금 앱 아이콘이다(LattiAvatar 하나만 바꾸면 된다).
+  고르는 순서: 상황(s)과 조건(when)이 맞는 줄 가운데 우선 단계(p)가 높은 것, 3일 안에 보인 줄은 피한다, 하루 묶음 줄은 무게 3배.
+  기사가 없는 날(주말)에 기사를 말하는 줄은 when 에 "newsToday": ">=1" 을 붙인다.
+- Latti 하루 묶음은 아침 작업이 날마다 daily 목록 끝에 하나 덧붙인다(같은 date 의 묶음이 있으면 그것을 바꾼다).
+  bank, rules, persona 는 건드리지 않는다. 14일 지난 묶음은 지운다. 아침 발행 작업은 저장소에 닿지 못하므로
+  묶음을 만들어 두고, 동기화 세션이 feed.json 과 함께 docs/data/latti.json 에 덧붙여 main 에 커밋하는 식으로 잇는다.
+  이 연결은 아직 만들지 않았다(지시문 ops/daily-task-prompt.md 와 예약 작업 둘 다 그대로다). 지금 daily 에는 2026-11-20 묶음 하나만 있다.
+  묶음 하나의 모양:
+    { "date": "2026-11-21",            // 이 날부터 쓴다(한국 날짜)
+      "by": "morning-job",
+      "until": "2026-11-23",           // 선택. 쓸 수 있는 마지막 날. 없으면 date 하루만. 금요일 묶음은 월요일까지로 두면 주말에도 쓴다
+      "lines": [
+        { "id": "d1121.01",            // 묶음 안과 bank 와 겹치지 않게. d{MMDD}.{두 자리}
+          "s": "greet",                // 상황 열쇠 하나 또는 목록. latti.json 의 situations 에 있는 것만
+          "t": "어제 배운 WACC로 오늘 기사를 따져 볼까요?",   // 해요체, 40자 안, 두 문장까지, 실제 이름과 숫자만
+          "when": { "part": "morning", "newsToday": ">=1" }, // 선택. "값", ">=n", "a..b", "a|b"(또는), true/false (src/lattiLines.ts 의 test)
+          "p": 1,                      // 선택. 우선 단계
+          "w": 1,                      // 선택. 무게
+          "until": "2026-11-21" } ] }  // 선택. 줄마다 따로 끝나는 날
+  쓰기 전 검사: 줄마다 src/lattiLines.ts 의 lint 가 빈 목록이어야 한다(금지어, 긴 줄표, 화살표, 화면 설명, 죄책감, 부풀림, 길이).
+  예전 모양(최상위 today 에 묶음 하나)도 앱이 계속 읽는다.
+- 시작 화면 다음의 차례(src/screens/Flow.tsx 의 AfterSplash). 앱을 열 때 한 번만 정한다. 자료가 3.5초 안에 준비되지 않으면 이번에는 띄우지 않는다.
+  1) 해금 전체 화면(src/screens/Unlock.tsx): 새 학문마다 한 장, 3장까지. 넘치면 "외 N개" 한 장. 14일 넘게 못 본 해금은 맨 앞 "놓친 해금 N개" 한 장
+     (N 은 학문과 분과를 합친 수). 계속은 다음 장, 보러 가기는 지식 탭 지도로 가서 그 학문으로 날아간다(이때 남은 돌아보기는 다음에 열 때로 미룬다).
+  2) 돌아보기(src/screens/Recap.tsx): 주간은 토요일 0시부터 일요일까지, 못 봤으면 다음 주 월요일에도(지난주). 월간은 다음 달 1일부터 7일까지.
+     기간마다 한 번, 아무것도 안 한 기간은 건너뛴다, 둘 다 볼 때가 되면 월간만 보여 주고 주간도 본 것으로 적는다(src/period.ts 의 recapDue).
+     숫자는 날짜별 기록(study.days, user.read, 퀴즈 점수)과 풀이 기록에서 센다. 틀려서 다시 나온 문제(r 표시, 표시 전 기록은 같은 날 같은 문제의
+     두 번째 줄)는 세지 않는다. 화면 어디를 눌러도 다음 장, X 로 닫기, 마지막 장은 계속. 카드는 기간, Latticework, 영단어, 뉴스, 마무리(Claude 링크 빌드는 기간, 뉴스, 마무리).
+     뉴스 카드의 "종합 퀴즈"는 돌아보기 위에 겹쳐 열리고, 닫으면 같은 카드로 돌아온다.
+  3) 새 분과만 생겼으면 전체 화면 대신 홈 맨 위의 띠(src/screens/UnlockBand.tsx). 띠가 떠 있는 동안 홈 오늘 카드의 Latti 한 줄은 쉰다.
+  주제와 개념은 지도에서 반짝이기만 한다. 본 것은 user.seen 에 적어 다시 열어도, 다른 기기에서도 다시 뜨지 않는다.
+- 시험용: 주소 끝에 #noflow 를 붙이면 해금 화면, 돌아보기, 홈 띠를 모두 띄우지 않는다. scripts/shots.mjs 와 scripts/shots-site.mjs 는
+  이것으로 연다. 기록을 심어 여는 시험(달력, 완료)도 토요일부터 월요일 사이에는 돌아보기가 덮으므로 #noflow 로 열어야 한다.
+  shots-site.mjs 는 마지막에 #noflow 없이 다시 열어 해금 화면(site-08-unlock.png)과, 그날이 돌아보기 날이면 돌아보기(site-08b-recap.png)를 남긴다.
+- 지도: src/graph/ (layout.ts 배치, camera.ts 카메라, labels.ts 이름 자리, GraphView.tsx 그리기, GraphStage.tsx 끌기와 확대).
+  해금 화면과 홈 띠의 작은 지도도 같은 GraphView 를 쓴다. 지도 배치는 시작 화면이 떠 있는 동안 미리 계산해 둔다(warmModel).
+- 파일: src/screens/Knowledge.tsx(지식 탭 틀), KnowledgeGraph.tsx(Latticework 지도), KnowledgeNews.tsx(읽은 뉴스와 주간 종합 퀴즈),
+  KnowledgeVocab.tsx(단어장), WeeklyQuiz.tsx(주간 종합 퀴즈 화면), Flow.tsx, Unlock.tsx, UnlockBand.tsx, Recap.tsx,
+  src/quizKit.tsx(퀴즈 부품), src/heatBand.tsx(기록 탭과 돌아보기가 같이 쓰는 불꽃 띠).
 
 ====================================================================
 3. 전체 흐름
@@ -135,36 +200,51 @@ Latticework 시사 앱: 작업 구조 공유 문서
 4. 앱 코드 구조 (/home/user/latticework)
 ====================================================================
 - Expo SDK 58, React Native 0.88, react-native-web, react-native-svg. TypeScript.
-- App.tsx              탭 4개(오늘, 연결, 아카이브, 복습)와 안쪽 화면(기사 상세, 설정)의 전환
-- src/types.ts         데이터 모양 정의. 예약 작업이 쓰는 모양과 같아야 한다
-- src/store.tsx        저장소 연결과 상태. 데이터 접근은 이 파일에만 둔다
-- src/theme.tsx        색과 서체. 밝은 테마와 어두운 테마. 2026-11-18 사용자가 고른 "지면형":
-                       흰 바탕, 먹색 글자, 명조 제목과 본문(Noto Serif KR), 굵고 가는 괘선, 카드와 둥근 모서리 없음.
-                       강조는 남색 하나, 읽지 않은 기사 표식만 초록 점. 읽음 상태는 글자가 아니라 표식으로 보인다
-- src/motion.tsx       움직임 공통 부품(Rise, RuleDraw, usePop, Pulse). 기기의 "동작 줄이기"를 따른다.
-                       화면 전환과 탭 전환은 App.tsx, 탭 표시선은 nav.tsx, 읽기 진행선은 Article.tsx 에 있다
-- src/ui.tsx           공통 부품(글자, 카드, 칩, 아이콘, 링크)
-- src/nav.tsx          탭 화면 틀, 뒤로 가기 줄, 아래 탭 막대
-- src/screens/*.tsx    Today, Article, Threads, Archive, Review, Settings
+- App.tsx              탭 3개(홈, 기록, 지식)와 안쪽 화면(기사, 설정, 저녁 퀴즈, 뉴스, 문제 풀기, 주간 종합 퀴즈)의 상태 기반 전환.
+                       시작 화면 다음의 해금과 돌아보기 차례(Flow)도 여기서 띄운다
+- src/nav.tsx          탭 이름(TabName), 안쪽 화면(Route), 탭 화면 틀, 뒤로 가기 줄, 아래 탭 막대(지식 탭의 빨간 점 포함),
+                       지도로 날아가기 요청(requestNode)
+- src/types.ts         데이터 모양 정의. 예약 작업이 쓰는 모양과 같아야 한다. 개인 기록의 newsLog, scores, seen 도 여기
+- src/store.tsx        저장소 연결과 상태. 데이터 접근은 이 파일에만 둔다. 화면은 useStore(), useGoals(), useKnowledge() 등만 쓴다.
+                       숨거나 가려진 화면은 StoreDefer 로 감싸 늦게 갱신한다
+- src/theme.tsx        색과 서체. 밝은 테마와 어두운 테마. Toss 디자인 시스템 색과 글자 크기(2026-11-20 기준. 예전 "지면형"은 버렸다)
+- src/ui.tsx           공통 부품(글자 T, Tap, Card, Chip, Pill, LipButton, Sheet(clear 는 뒤를 어둡게 하지 않는 시트), 아이콘, 링크)
+- src/motion.tsx       움직임 공통 부품. 웹에서는 React 상태로 프레임마다 움직이지 않고 Web Animations 를 쓴다
+                       (WEB, MView, webTween, tweenValue, tweenStop, webShake, Rise, usePop, Count, useLater, lateBy, SinceCtx).
+                       네이티브는 RN Animated. 기기의 "동작 줄이기"를 따른다
+- src/study.ts         출제와 기억 계산(FSRS), vocKind(단어 / 구문)
+- src/knowledge.ts     배운 것의 나무와 해금: learnedTree, unlockEvents, unlockPlan, freshSince, idsOn
+- src/period.ts        돌아보기 기간과 숫자: recapDue(언제 띄울지), periodStats(기간의 숫자), ISO 주
+- src/graph/           지도: layout.ts 배치, camera.ts 카메라, labels.ts 이름 자리, GraphView.tsx 그리기, GraphStage.tsx 끌기와 확대
+- src/latti.tsx, src/lattiLines.ts, src/lattiTypes.ts   Latti 표식과 말풍선, 줄 고르기와 검사(lint), 문구 자료 모양
+- src/cheer.ts         Latti 문구가 없을 때 쓰는 응원 문장. src/quotes.ts, quoteBank.ts 는 홈 맨 위 투자자 문장
+- src/quizKit.tsx      저녁 퀴즈, 주간 종합 퀴즈가 같이 쓰는 퀴즈 부품. src/heat.ts, heatBand.tsx 는 불꽃 색과 불꽃 띠
+- src/dates.ts         한국 날짜 계산(앱의 날짜는 모두 한국 시각 기준)
+- src/screens/*.tsx    Today(홈), News, Article, DayQuiz, Study, Archive(기록), Knowledge(지식 탭 틀), KnowledgeGraph,
+                       KnowledgeNews, KnowledgeVocab, WeeklyQuiz, Flow(해금과 돌아보기 차례), Unlock, UnlockBand, Recap, Settings
+- docs/data/study.json 개념, 문제, 영어 표현, 분류 마디(nodes). docs/data/latti.json Latti 문구(bank, daily).
+                       docs/data/feed.json 기사 묶음(아침 작업이 커밋한다. 손으로 고치지 않는다)
 - web/page.html        올릴 페이지의 겉 틀(제목, 서체 링크, 바탕색, 첫 문구)
 - web/mock-claude.js, web/sample-data.json   로컬 확인 전용 가짜 저장소와 예시 데이터
 - scripts/build-web.mjs  웹 빌드. out/ (Claude 링크용)과 docs/ (자체 주소용)를 함께 만든다
 - scripts/export-feed.mjs  데이터베이스에서 받은 문서를 docs/data/feed.json 하나로 묶는다
 - scripts/make-icons.mjs   홈 화면 아이콘을 그린다
 - web/site/              자체 주소용 겉 틀: index.html, sw.js, manifest.webmanifest, icons
-- scripts/shots.mjs      휴대폰 크기(390x844)로 전 화면을 띄워 그림으로 남기고 오류를 모은다
+- scripts/shots.mjs      휴대폰 크기(390x844)로 전 화면을 띄워 그림으로 남기고 오류를 모은다(light | dark)
+- scripts/shots-site.mjs 자체 주소 빌드에서 복습을 끝까지 풀고, 마지막에 해금과 돌아보기를 띄워 본다
 - ops/daily-task-prompt.md  예약 작업에 넣은 지시문 원본
 
 고치는 순서:
   1) 소스 수정
   2) npx tsc --noEmit
   3) npm run build:web
-  4) node scripts/shots.mjs light   (dark 도 가능. shots/ 폴더에 그림이 남는다)
+  4) node scripts/shots.mjs light   (dark 도 가능. shots/ 폴더에 그림이 남는다), node scripts/shots-site.mjs
   5) Artifact 도구로 out/index.html 을 게시하고 files 에 {"app.js": "out/app.js"} 를 넘긴다.
      다른 세션에서는 url 에 앱 링크를 넣어야 같은 주소가 유지된다. capabilities 는 생략하면 그대로 이어진다.
 
 설계에서 지킨 규칙:
-- 화면은 React Native 기본 컴포넌트만 쓴다. 웹 전용 코드는 Platform.OS === 'web' 분기 안에만 둔다.
+- 화면은 React Native 기본 컴포넌트와 react-native-svg 만 쓴다. 웹 전용 코드는 Platform.OS === 'web' 분기 안에만 둔다.
+- 화면에 읽는 법을 설명하지 않는다(범례, 안내 문장, 상태 문장 없음). 우리말, 긴 줄표와 화살표 없음, "더 풀기" 대신 "추가 학습".
 - 내비게이션은 Expo Router 대신 상태 기반으로 했다. 게시된 페이지는 주소 경로를 바꿀 수 없기 때문이다.
 - 바깥 링크는 웹에서 진짜 링크(href)로 그린다. window.open 은 막힌다.
 - 한글 줄바꿈은 낱말 단위(word-break: keep-all)로 한다.

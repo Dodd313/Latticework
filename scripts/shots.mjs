@@ -59,11 +59,11 @@ const snap = async (name) => {
 };
 const tap = (label) => page.getByLabel(label, { exact: true }).last().click();
 
-await page.goto(`${base}/preview-empty.html`);
+await page.goto(`${base}/preview-empty.html#noflow`);
 await page.waitForTimeout(900);
 await snap('00-empty');
 
-await page.goto(`${base}/preview.html`);
+await page.goto(`${base}/preview.html#noflow`);
 await page.waitForTimeout(1200);
 await snap('01-today');
 
@@ -105,8 +105,13 @@ await page.getByLabel(/^\d+월 \d+일 .요일$/).last().click();
 await snap('06b-archive-day');
 await tap('닫기');
 await page.waitForTimeout(400);
-await tap('리뷰');
-await snap('07-review');
+await tap('지식');
+await snap('07-knowledge-graph');
+await tap('뉴스');
+await snap('07b-knowledge-news');
+await tap('단어장');
+await snap('07c-knowledge-vocab');
+await tap('Latticework');
 await tap('홈');
 await tap('설정');
 await snap('09-settings');

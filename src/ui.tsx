@@ -103,7 +103,6 @@ export type IconName =
   // 새 디자인
   | 'homeFill'
   | 'calFill'
-  | 'reviewFill'
   | 'close'
   | 'x'
   | 'chev'
@@ -114,7 +113,9 @@ export type IconName =
   | 'word'
   | 'lattice'
   | 'flag'
-  | 'lock';
+  | 'lock'
+  | 'graphFill'
+  | 'fit';
 
 export function Icon({ name, size = 24, color, bold, sw: swIn }: { name: IconName; size?: number; color?: string; bold?: boolean; sw?: number }) {
   const t = useTheme();
@@ -216,11 +217,25 @@ export function Icon({ name, size = 24, color, bold, sw: swIn }: { name: IconNam
     case 'calFill':
       body = <Path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" {...solid} />;
       break;
-    case 'reviewFill':
+    case 'graphFill':
+      // 지식 탭: 크기가 다른 점 다섯 개와 가는 선
       body = (
         <>
-          <Circle cx={12} cy={12} r={9.5} {...solid} />
-          <Path d="M8.3 12.2l2.6 2.6 4.8-5.2" fill="none" stroke={t.card} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+          <Path d="M7 7l8.5 9.5M17 6l-1.5 10.5M6 17l9.5-.5M20 13l-4.5 3.5" stroke={c} strokeWidth={1.1} opacity={0.55} fill="none" />
+          <Circle cx={7} cy={7} r={2.6} {...solid} />
+          <Circle cx={17} cy={6} r={1.9} {...solid} />
+          <Circle cx={15.5} cy={16.5} r={2.9} {...solid} />
+          <Circle cx={6} cy={17} r={1.7} {...solid} />
+          <Circle cx={20} cy={13} r={1.4} {...solid} />
+        </>
+      );
+      break;
+    case 'fit':
+      // 지도 전체 보기: 네 모서리와 가운데 점
+      body = (
+        <>
+          <Path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" {...common} strokeWidth={swIn ?? 2.1} />
+          <Circle cx={12} cy={12} r={2} {...solid} />
         </>
       );
       break;
@@ -1040,9 +1055,16 @@ export function DayMark({
  * 아래에서 올라오는 시트. 화면 맨 바깥(스크롤 밖) 에 두고 open 으로 연다.
  * 바깥 어두운 곳을 누르면 onClose. 흰 바탕, 위 모서리 20, 손잡이 36×4.
  */
-type SheetProps = { open: boolean; onClose: () => void; children: React.ReactNode; label?: string; style?: StyleProp<ViewStyle> };
+type SheetProps = { open: boolean; onClose: () => void; children: React.ReactNode; label?: string; style?: StyleProp<ViewStyle>; clear?: boolean };
 
-function SheetNative({ open, onClose, children, label = '닫기', style }: SheetProps) {
+/** clear: 뒤를 어둡게 하지 않는다(지도처럼 뒤가 계속 보여야 할 때). 대신 시트 위 가장자리에 얕은 그림자. */
+function sheetLift(clear: boolean | undefined, dark: boolean): any {
+  if (!clear) return null;
+  if (dark) return WEB ? { boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' } : null;
+  return WEB ? { boxShadow: '0 -1px 0 rgba(0,0,0,0.03), 0 -8px 24px rgba(0,23,51,0.08)' } : { shadowColor: '#001733', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: -4 }, elevation: 6 };
+}
+
+function SheetNative({ open, onClose, children, label = '닫기', style, clear }: SheetProps) {
   const t = useTheme();
   const [shown, setShown] = useState(open);
   const [h, setH] = useState(600);
@@ -1064,7 +1086,7 @@ function SheetNative({ open, onClose, children, label = '닫기', style }: Sheet
   if (!shown) return null;
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 30 }]}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: t.scrim, opacity: v }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: clear ? 'transparent' : t.scrim, opacity: v }]}>
         <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={label} style={StyleSheet.absoluteFill} />
       </Animated.View>
       <Animated.View
@@ -1072,6 +1094,7 @@ function SheetNative({ open, onClose, children, label = '닫기', style }: Sheet
         onLayout={(e) => setH(e.nativeEvent.layout.height)}
         style={[
           { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 12, paddingHorizontal: 20, paddingBottom: 28 },
+          sheetLift(clear, t.mode === 'dark'),
           { transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [h, 0] }) }] },
           style,
         ]}
@@ -1087,7 +1110,7 @@ function SheetNative({ open, onClose, children, label = '닫기', style }: Sheet
  * 웹: 같은 움직임(열기 380ms 시트 곡선, 닫기 240ms)을 브라우저에 맡긴다. 시트 높이만큼 내려간 자리는 translateY(100%) 로 둔다.
  * 열리는 중에 닫거나 닫히는 중에 다시 열면 지금 자리에서 이어 간다.
  */
-function SheetWeb({ open, onClose, children, label = '닫기', style }: SheetProps) {
+function SheetWeb({ open, onClose, children, label = '닫기', style, clear }: SheetProps) {
   const t = useTheme();
   const [shown, setShown] = useState(open);
   const scrim = useRef<any>(null);
@@ -1117,13 +1140,13 @@ function SheetWeb({ open, onClose, children, label = '닫기', style }: SheetPro
   if (!shown) return null;
   return (
     <View style={[StyleSheet.absoluteFill, { zIndex: 30 }]}>
-      <View ref={scrim} style={[StyleSheet.absoluteFill, { backgroundColor: t.scrim }]}>
+      <View ref={scrim} style={[StyleSheet.absoluteFill, { backgroundColor: clear ? 'transparent' : t.scrim }]}>
         <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={label} style={StyleSheet.absoluteFill} />
       </View>
       <View
         ref={panel}
         accessibilityViewIsModal
-        style={[{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 12, paddingHorizontal: 20, paddingBottom: 28 }, style]}
+        style={[{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 12, paddingHorizontal: 20, paddingBottom: 28 }, sheetLift(clear, t.mode === 'dark'), style]}
       >
         <View aria-hidden style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: t.p.grey300, alignSelf: 'center', marginBottom: 16 }} />
         {children}

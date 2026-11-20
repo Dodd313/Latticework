@@ -2,7 +2,8 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { cheerHome, seedOf } from '../cheer';
-import { addDays, weekdaysOf } from '../dates';
+import { addDays, kstDate, kstHour, weekdaysOf } from '../dates';
+import { LattiSays, useLattiSay } from '../latti';
 import { EASE_OUT, MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, webTween } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { quotesFor } from '../quotes';
@@ -10,6 +11,7 @@ import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
 import { dayQuiz, quizOpen } from './DayQuiz';
+import { UnlockBand, useHomeBand } from './UnlockBand';
 
 const WEEK = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -236,15 +238,76 @@ export function TodayScreen() {
   const allRead = !!todayDay && todayDay.articles.every((a) => !!user.read[a.id]);
   const showQuiz = !!quiz && (quizDone || (quizOpen(today) && allRead));
 
-  // 오늘 카드 머리 아래의 응원 한 줄. 숫자는 모두 오늘 기록에서 온다.
+  // 오늘 카드 머리 아래의 Latti 한 줄. 숫자와 이름은 모두 오늘 기록에서 온다.
   const rec = study.days[today];
   const solvedToday = rec ? rec.lat + rec.voc + (rec.extra ?? 0) : 0;
   const readToday = todayDay ? todayDay.articles.filter((a) => !!user.read[a.id]).length : 0;
-  const hourKST = new Date(Date.now() + 9 * 3600 * 1000).getUTCHours();
-  const cheer =
-    parts.length > 0
-      ? cheerHome({ doneParts: doneCount, totalParts: parts.length, solvedToday, readToday, streakDays: streak, allDone, hourKST, seed: seedOf(today, 'home', doneCount, allDone) })
-      : null;
+  const hourKST = kstHour();
+  const extraToday = rec?.extra ?? 0;
+  const homeCtx = useMemo(() => {
+    const yesterday = addDays(today, -1);
+    const tomorrow = addDays(today, 1);
+    const latPart = parts.find((p) => p.key === 'lat');
+    const vocPart = parts.find((p) => p.key === 'voc');
+    let latDue = 0;
+    let vocDue = 0;
+    let dueName: string | undefined;
+    let lastName: string | undefined;
+    let lastAt = '';
+    let nextName: string | undefined;
+    let yName: string | undefined;
+    if (studyData) {
+      for (const c of studyData.concepts) {
+        const card = study.cards[c.id];
+        if (!card) continue;
+        if (card.due <= today) {
+          latDue += 1;
+          dueName ??= c.name;
+        }
+        if (kstDate(card.last) === today && card.last > lastAt) {
+          lastAt = card.last;
+          lastName = c.name;
+          if (card.due === tomorrow) nextName = c.name;
+        }
+        if (card.first === yesterday) yName ??= c.name;
+      }
+      for (const v of studyData.vocab) {
+        const card = study.cards[v.id];
+        if (card && card.due <= today) vocDue += 1;
+      }
+    }
+    if (!latPart || latPart.complete) latDue = 0;
+    if (!vocPart || vocPart.complete) vocDue = 0;
+    const started = doneCount > 0 || solvedToday > 0 || readToday > 0;
+    const quota = allDone ? (extraToday > 0 ? 'extra' : 'done') : started ? 'partial' : 'none';
+    const newsToday = todayDay ? todayDay.articles.length - readToday : 0;
+    return {
+      quota,
+      solved: solvedToday,
+      read: readToday,
+      doneParts: doneCount,
+      totalParts: parts.length,
+      extra: extraToday,
+      streak,
+      newsToday,
+      latDue,
+      vocDue,
+      hour: hourKST,
+      // 이름: 처음이면 오늘 다시 나올 개념, 하는 중이면 마지막에 푼 개념, 다 했으면 내일 다시 나올 개념
+      concept: quota === 'none' ? (latDue > 0 ? dueName : undefined) : quota === 'partial' ? lastName : nextName,
+      yConcept: yName,
+    };
+  }, [today, parts, study, studyData, doneCount, allDone, solvedToday, readToday, extraToday, streak, todayDay, hourKST]);
+  const home = useLattiSay(
+    ['home', 'greet'],
+    homeCtx,
+    parts.length > 0 && !(STANDALONE && !studyData) ? `home:${today}:${doneCount}:${allDone}` : null,
+    () => cheerHome({ doneParts: doneCount, totalParts: parts.length, solvedToday, readToday, streakDays: streak, allDone, hourKST, seed: seedOf(today, 'home', doneCount, allDone) }),
+  );
+  // 해금 띠가 떠 있는 동안은 이 줄을 숨긴다(한 화면에 한 줄).
+  const band = useHomeBand();
+  const quiet = !!band;
+  const homeLine = quiet ? null : home.text;
 
   const monday = weekdaysOf(today)[0];
   const week = WEEK.map((label, i) => {
@@ -267,6 +330,7 @@ export function TodayScreen() {
 
   return (
     <TabScreen title="Latticework" brand right={header} top={<QuoteBlock today={today} />}>
+      {band ? <UnlockBand key={band.item.id} band={band} /> : null}
       <InstallHint />
       {loading ? (
         <Placeholder />
@@ -275,9 +339,11 @@ export function TodayScreen() {
           {parts.length > 0 ? (
             <Rise delay={40}>
               <Box title="오늘" aside={`${doneCount}/${parts.length}`}>
-                {cheer ? (
+                {homeLine && home.latti ? (
+                  <LattiSays text={homeLine} size={28} bubble="s" delay={220} style={{ marginTop: 4, marginBottom: 8 }} />
+                ) : homeLine ? (
                   <T s={15} w="600" lh={22.5 / 15} c={allDone ? t.blueText : t.deck} style={{ marginTop: -2, marginBottom: 6 }}>
-                    {cheer}
+                    {homeLine}
                   </T>
                 ) : null}
                 {parts.map((p) => (

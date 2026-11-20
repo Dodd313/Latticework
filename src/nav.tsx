@@ -1,19 +1,50 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useSyncExternalStore } from 'react';
 import { Animated, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
-import { STANDALONE } from './store';
+import { STANDALONE, useKnowledge } from './store';
 import { useTheme } from './theme';
 import { Icon, IconName, T, Tap } from './ui';
 
-export type TabName = 'today' | 'archive' | 'review';
+export type TabName = 'today' | 'archive' | 'knowledge';
 
-export type Route = { name: 'article'; id: string } | { name: 'settings' } | { name: 'quiz'; date: string } | { name: 'news' } | { name: 'study'; sect: 'lat' | 'voc' };
+/** study 의 focus 는 개념 id(그 개념부터 묻는 Latticework 세션), weekly 의 id 는 주간 종합 퀴즈의 ISO 주 이름 */
+export type Route =
+  | { name: 'article'; id: string }
+  | { name: 'settings' }
+  | { name: 'quiz'; date: string }
+  | { name: 'news' }
+  | { name: 'study'; sect: 'lat' | 'voc'; focus?: string }
+  | { name: 'weekly'; id: string };
 
 /** 화면 이동 동작. 앱이 떠 있는 동안 바뀌지 않으므로, 이것만 쓰는 화면은 탭을 바꿔도 다시 그려지지 않는다. */
 export type Nav = {
   setTab: (tab: TabName) => void;
   push: (route: Route) => void;
   pop: () => void;
+  /**
+   * 지식 탭의 Latticework 지도로 가서 그 마디로 날아간다(해금의 "보러 가기"). null 이면 지도 전체.
+   * 쌓인 화면을 모두 닫고 지식 탭으로 바꾼 뒤, 지도에서 그 마디와 아래만 진하게 남기고 고리가 한 번 퍼진다.
+   */
+  showNode: (nodeId: string | null) => void;
 };
+
+// 지도로 날아가라는 요청. 지식 탭이 아직 한 번도 열리지 않았어도 열릴 때 읽을 수 있게 화면 밖에 둔다.
+export type NodeRequest = { seq: number; id: string | null };
+let nodeReq: NodeRequest = { seq: 0, id: null };
+const nodeSubs = new Set<() => void>();
+export function requestNode(id: string | null) {
+  nodeReq = { seq: nodeReq.seq + 1, id };
+  nodeSubs.forEach((f) => f());
+}
+const subscribeNode = (f: () => void) => {
+  nodeSubs.add(f);
+  return () => {
+    nodeSubs.delete(f);
+  };
+};
+/** 가장 최근의 "그 마디로" 요청. seq 가 바뀌면 새 요청이다 */
+export function useNodeRequest(): NodeRequest {
+  return useSyncExternalStore(subscribeNode, () => nodeReq, () => nodeReq);
+}
 
 export const NavCtx = createContext<Nav | null>(null);
 /** 지금 켜진 탭. 탭 막대처럼 탭에 따라 모양이 바뀌는 곳만 읽는다. */
@@ -139,7 +170,7 @@ export function BackBar({
 const TABS: { name: TabName; label: string; icon: IconName }[] = [
   { name: 'today', label: '홈', icon: 'homeFill' },
   { name: 'archive', label: '기록', icon: 'calFill' },
-  { name: 'review', label: '리뷰', icon: 'reviewFill' },
+  { name: 'knowledge', label: '지식', icon: 'graphFill' },
 ];
 
 /** 화면 맨 아래 줄의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다. */
@@ -157,7 +188,10 @@ export function TabBar() {
         const c = on ? t.ink : t.faint;
         return (
           <Tap key={tab.name} role="tab" selected={on} label={tab.label} press="soft" onPress={() => nav.setTab(tab.name)} style={{ flex: 1, height: 58, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-            <Icon name={tab.icon} size={24} color={c} />
+            <View>
+              <Icon name={tab.icon} size={24} color={c} />
+              {tab.name === 'knowledge' ? <FreshDot /> : null}
+            </View>
             <T s={11} w="600" c={c} lh={1.3}>
               {tab.label}
             </T>
@@ -166,4 +200,12 @@ export function TabBar() {
       })}
     </View>
   );
+}
+
+/** 지식 탭 아이콘의 작은 빨간 점: 지도를 마지막으로 본 뒤 새로 생긴 마디나 개념이 있을 때 */
+function FreshDot() {
+  const t = useTheme();
+  const { fresh } = useKnowledge();
+  if (fresh.size === 0) return null;
+  return <View aria-hidden testID="fresh-dot" style={{ position: 'absolute', top: -3, right: -6, width: 11, height: 11, borderRadius: 6, backgroundColor: t.red, borderWidth: 2, borderColor: t.card }} />;
 }

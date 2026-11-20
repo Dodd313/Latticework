@@ -1,7 +1,10 @@
 import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
+import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, isWeekend, kstDate, todayKST } from './dates';
-import { Asked, LAT_GOAL, LogRow, Q, StudyData, StudyState, emptyStudy, review, vocGoalFor, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyState, Vocab, emptyStudy, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { LearnedTree, UnlockEvent, UnlockPlan, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
+import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
+import type { LattiData } from './lattiTypes';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -48,6 +51,13 @@ async function loadStudy(): Promise<StudyData> {
   return (await res.json()) as StudyData;
 }
 
+/** Latti 문구(늘 쓰는 줄과 오늘 줄). 자체 주소에서만 받는다. */
+async function loadLatti(): Promise<LattiData> {
+  const res = await fetch('./data/latti.json?t=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('latti ' + res.status);
+  return (await res.json()) as LattiData;
+}
+
 /** 기사 묶음 파일의 글 그대로. 지난번과 같으면 풀지도, 화면을 다시 그리지도 않는다. */
 async function loadFeedText(): Promise<string> {
   const res = await fetch('./data/feed.json?t=' + Date.now(), { cache: 'no-store' });
@@ -62,6 +72,10 @@ const STUDY_DATA_KEY = 'lw.study.data.v1';
 const STUDY_KEY = 'lw.study.state.v1';
 const STUDY_LOG_KEY = 'lw.study.log.v1';
 const LOG_CAP = 6000;
+const LATTI_DATA_KEY = 'lw.latti.data.v1';
+// Latti 가 한 줄을 보여 준 시각(줄 id → 시각). 기기에만 둔다. 30일 지난 것은 버린다.
+const LATTI_HIST_KEY = 'lw.latti.hist.v1';
+const LATTI_HIST_DAYS = 30;
 
 function loadLocal<T>(key: string): T | null {
   try {
@@ -123,6 +137,9 @@ try {
 
 type Status = 'loading' | 'live' | 'offline';
 
+/** 퀴즈 답 하나의 결과. prevRight, prevAnswered 는 이 답 전까지 맞힌 수와 답한 수(점수 칸이 없던 예전 답을 셀 때만 쓴다). */
+export type QuizMeta = { right: boolean; total: number; prevRight?: number; prevAnswered?: number };
+
 type Store = {
   status: Status;
   canSave: boolean;
@@ -133,7 +150,16 @@ type Store = {
   markRead: (articleId: string, read: boolean) => void;
   setMemo: (articleId: string, text: string) => void;
   setMarket: (market: Market) => void;
-  answerQuiz: (reviewId: string, index: number, choice: number) => void;
+  /** meta 를 주면 점수(user.scores)도 함께 적는다. */
+  answerQuiz: (reviewId: string, index: number, choice: number, meta?: QuizMeta) => void;
+  /** 해금이나 돌아보기를 보여 줬다고 적는다(한 번에 저장). unlock 은 마디 id, recap 은 'w:<월요일>' 또는 'm:YYYY-MM' */
+  markSeen: (kind: 'unlock' | 'recap', ids: string[]) => void;
+  /** 지식 탭의 Latticework 지도를 오늘 봤다고 적는다(반짝임의 기준) */
+  markMapSeen: () => void;
+  latti: LattiData | null; // Latti 문구. 없으면 화면은 예전 문구(cheer.ts)를 쓴다
+  lattiHist: () => Record<string, number>; // 줄 id → 보여 준 시각. 읽기만 한다
+  noteLatti: (id: string) => void; // 한 줄을 보여 줬다고 적는다
+  studyLog: () => LogRow[]; // 풀이 기록(읽기만 한다. 바꾸지 않는다)
   studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
@@ -173,7 +199,45 @@ function mergeUser(a: UserData, b: Partial<UserData> | null | undefined): UserDa
     // 같은 날 기록이 둘이면 더 일찍 목표를 채운 쪽을 남긴다.
     if (!cur || (v.doneAt && (!cur.doneAt || v.doneAt < cur.doneAt)) || (!cur.doneAt && !v.doneAt && v.read > cur.read)) daily[k] = v;
   }
-  return { read, daily, memos, quiz, settings: { ...a.settings, ...(b.settings ?? {}) } };
+  const newsLog: Record<string, NewsLogEntry> = { ...(b.newsLog ?? {}), ...(a.newsLog ?? {}) };
+  const scores: Record<string, QuizScore> = { ...(a.scores ?? {}) };
+  for (const [k, v] of Object.entries(b.scores ?? {})) {
+    if (!scores[k] || v.a > scores[k].a) scores[k] = v;
+  }
+  const earlier = (x: Record<string, string> | undefined, y: Record<string, string> | undefined) => {
+    const out = { ...(x ?? {}) };
+    for (const [k, v] of Object.entries(y ?? {})) if (!out[k] || v < out[k]) out[k] = v;
+    return out;
+  };
+  const sa: Partial<SeenState> = a.seen ?? {};
+  const sb: Partial<SeenState> = b.seen ?? {};
+  const map = sa.map && sb.map ? (sa.map > sb.map ? sa.map : sb.map) : (sa.map ?? sb.map);
+  // 지도를 본 날이 같으면 그날 본 것을 합치고, 다르면 늦은 쪽 것을 쓴다.
+  // 그날 본 것 목록이 없는 쪽(예전 기록)이 있으면 그날 것은 모두 본 것으로 둔다(목록을 남기지 않는다).
+  const same = [sa, sb].filter((x) => !!map && x.map === map);
+  const mapIds = same.length && same.every((x) => Array.isArray(x.mapIds)) ? [...new Set(same.flatMap((x) => x.mapIds!))].sort() : undefined;
+  const seen: SeenState = { unlocks: earlier(sa.unlocks, sb.unlocks), recaps: earlier(sa.recaps, sb.recaps), ...(map ? { map } : null), ...(mapIds ? { mapIds } : null) };
+  return { read, daily, memos, quiz, settings: { ...a.settings, ...(b.settings ?? {}) }, newsLog, scores, seen };
+}
+
+/** 읽은 기사의 제목과 날짜를 남긴다(기사 묶음에 있는 것만). 바뀐 것이 없으면 받은 객체를 그대로 돌려준다. */
+function withNewsLog(user: UserData, days: Day[]): UserData {
+  let log: Record<string, NewsLogEntry> | null = null;
+  for (const day of days) {
+    for (const a of day.articles) {
+      if (!user.read[a.id] || user.newsLog?.[a.id]) continue;
+      log ??= { ...(user.newsLog ?? {}) };
+      log[a.id] = newsEntry(a, day.date);
+    }
+  }
+  return log ? { ...user, newsLog: log } : user;
+}
+
+function newsEntry(a: { title: string; url?: string; source?: string }, date: string): NewsLogEntry {
+  const e: NewsLogEntry = { t: a.title, d: date };
+  if (a.url) e.u = a.url;
+  if (a.source) e.s = a.source;
+  return e;
 }
 
 /** 읽은 기록으로 날짜별 목표 기록을 맞춘다. 바뀐 것이 없으면 받은 객체를 그대로 돌려준다. */
@@ -228,18 +292,43 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData>(() => mergeUser(EMPTY_USER, loadLocal<UserData>(USER_KEY)));
 
   const [studyData, setStudyData] = useState<StudyData | null>(() => loadLocal<StudyData>(STUDY_DATA_KEY));
-  const [study, setStudy] = useState<StudyState>(() => loadLocal<StudyState>(STUDY_KEY) ?? emptyStudy(todayKST()));
+  // 풀이 기록은 메모리에 두고 붙여 쓴다. 처음 필요할 때 한 번만 읽는다(최대 6,000줄).
+  const logRef = useRef<LogRow[] | null>(null);
+  const getLog = useCallback(() => (logRef.current ??= loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []), []);
+  const [study, setStudy] = useState<StudyState>(() => {
+    const st = loadLocal<StudyState>(STUDY_KEY);
+    if (!st) return emptyStudy(todayKST());
+    // 예전 기록: 처음 답한 날(first)이 없는 항목은 풀이 기록으로 한 번 채우고 저장한다.
+    if (!st.cards || Object.values(st.cards).every((c) => c.first)) return st;
+    const next = withFirsts(st, getLog());
+    if (next !== st) saveLater(STUDY_KEY, () => studyRef.current);
+    return next;
+  });
   const studyRef = useRef(study);
   studyRef.current = study;
 
-  const writers = useRef<{ progress?: (b: any) => void; memos?: (b: any) => void; settings?: (b: any) => void; quiz?: (b: any) => void }>({});
+  const [latti, setLatti] = useState<LattiData | null>(() => loadLocal<LattiData>(LATTI_DATA_KEY));
+  const lattiHistRef = useRef<Record<string, number> | null>(null);
+  const lattiHist = useCallback(() => {
+    if (!lattiHistRef.current) {
+      const raw = loadLocal<Record<string, number>>(LATTI_HIST_KEY) ?? {};
+      const cut = Date.now() - LATTI_HIST_DAYS * 86400000;
+      const kept: Record<string, number> = {};
+      for (const [k, v] of Object.entries(raw)) if (typeof v === 'number' && v >= cut) kept[k] = v;
+      lattiHistRef.current = kept;
+    }
+    return lattiHistRef.current;
+  }, []);
+  const noteLatti = useCallback((id: string) => {
+    lattiHistRef.current = { ...lattiHist(), [id]: Date.now() };
+    saveLater(LATTI_HIST_KEY, lattiHist);
+  }, []);
+
+  const writers = useRef<{ progress?: (b: any) => void; memos?: (b: any) => void; settings?: (b: any) => void; quiz?: (b: any) => void; seen?: (b: any) => void }>({});
   const userRef = useRef(user);
   userRef.current = user;
   const daysRef = useRef(days);
   daysRef.current = days;
-  // 풀이 기록은 메모리에 두고 붙여 쓴다. 처음 필요할 때 한 번만 읽는다(최대 6,000줄).
-  const logRef = useRef<LogRow[] | null>(null);
-  const getLog = useCallback(() => (logRef.current ??= loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []), []);
   // 화면을 닫을 때 남은 저장을 마친다.
   useEffect(() => () => flushSaves(), []);
   const cacheRef = useRef({ days, threads, reviews });
@@ -293,6 +382,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           })
           .catch(() => {
             // 못 받으면 기기에 남아 있는 자료로 계속 쓴다.
+          });
+        loadLatti()
+          .then((data) => {
+            if (!alive || !data || !Array.isArray(data.bank) || !data.rules) return;
+            setLatti(data);
+            saveLater(LATTI_DATA_KEY, () => data);
+          })
+          .catch(() => {
+            // 못 받으면 기기에 남아 있는 문구로 계속 쓴다.
           });
         const doc = (globalThis as any).document;
         const onVisible = () => {
@@ -374,32 +472,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (!uid) return;
       try {
         const base = db.collection('data/users/' + uid);
-        const refs = { progress: base.doc('progress'), memos: base.doc('memos'), settings: base.doc('settings'), quiz: base.doc('quiz') };
-        const [p, m, s, q] = await Promise.all([refs.progress.get(), refs.memos.get(), refs.settings.get(), refs.quiz.get()]);
+        const refs = { progress: base.doc('progress'), memos: base.doc('memos'), settings: base.doc('settings'), quiz: base.doc('quiz'), seen: base.doc('seen') };
+        const [p, m, s, q, sn] = await Promise.all([refs.progress.get(), refs.memos.get(), refs.settings.get(), refs.quiz.get(), refs.seen.get().catch(() => ({ exists: false }))]);
         if (!alive) return;
+        const seenDoc = sn.exists ? ((sn as any).data() as any) : null;
         const remote: Partial<UserData> = {
           read: p.exists ? ((p.data() as any).read ?? {}) : {},
           daily: p.exists ? ((p.data() as any).daily ?? {}) : {},
+          newsLog: p.exists ? ((p.data() as any).newsLog ?? {}) : {},
           memos: m.exists ? ((m.data() as any).memos ?? {}) : {},
           settings: s.exists ? (s.data() as any) : undefined,
           quiz: q.exists ? ((q.data() as any).answers ?? {}) : {},
+          scores: q.exists ? ((q.data() as any).scores ?? {}) : {},
+          seen: seenDoc ? { unlocks: seenDoc.unlocks ?? {}, recaps: seenDoc.recaps ?? {}, ...(seenDoc.map ? { map: seenDoc.map, ...(Array.isArray(seenDoc.mapIds) ? { mapIds: seenDoc.mapIds } : null) } : null) } : { unlocks: {}, recaps: {} },
         };
         writers.current = {
           progress: makeWriter(refs.progress),
           memos: makeWriter(refs.memos),
           settings: makeWriter(refs.settings),
           quiz: makeWriter(refs.quiz),
+          seen: makeWriter(refs.seen),
         };
         setCanSave(true);
         setUser((local) => {
           const merged = mergeUser(local, remote);
           saveLocal(USER_KEY, merged);
           // 기기에만 있던 기록이 있으면 저장소에도 올려 둔다.
-          if (Object.keys(merged.read).length !== Object.keys(remote.read ?? {}).length) {
-            writers.current.progress?.({ read: merged.read, daily: merged.daily, updatedAt: new Date().toISOString() });
+          const n = (o: object | undefined) => Object.keys(o ?? {}).length;
+          if (n(merged.read) !== n(remote.read) || n(merged.newsLog) !== n(remote.newsLog)) {
+            writers.current.progress?.({ read: merged.read, daily: merged.daily, newsLog: merged.newsLog, updatedAt: new Date().toISOString() });
           }
-          if (Object.keys(merged.memos).length !== Object.keys(remote.memos ?? {}).length) {
+          if (n(merged.memos) !== n(remote.memos)) {
             writers.current.memos?.({ memos: merged.memos, updatedAt: new Date().toISOString() });
+          }
+          // 점수는 답한 수가 더 많은 쪽이 남으므로, 기기 쪽이 더 많이 답한 퀴즈가 있어도 올린다.
+          if (n(merged.scores) !== n(remote.scores) || Object.entries(merged.scores).some(([k, v]) => (remote.scores?.[k]?.a ?? -1) < v.a)) {
+            writers.current.quiz?.({ answers: merged.quiz, scores: merged.scores, updatedAt: new Date().toISOString() });
+          }
+          const rs = remote.seen!;
+          if (n(merged.seen.unlocks) !== n(rs.unlocks) || n(merged.seen.recaps) !== n(rs.recaps) || merged.seen.map !== rs.map || n(merged.seen.mapIds) !== n(rs.mapIds)) {
+            writers.current.seen?.({ ...merged.seen, updatedAt: new Date().toISOString() });
           }
           return merged;
         });
@@ -420,20 +532,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const commit = useCallback((next: UserData, part: 'progress' | 'memos' | 'settings' | 'quiz') => {
+  const commit = useCallback((next: UserData, part: 'progress' | 'memos' | 'settings' | 'quiz' | 'seen') => {
     userRef.current = next;
     setUser(next);
     saveLater(USER_KEY, () => userRef.current);
     const now = new Date().toISOString();
-    if (part === 'progress') writers.current.progress?.({ read: next.read, daily: next.daily, updatedAt: now });
+    if (part === 'progress') writers.current.progress?.({ read: next.read, daily: next.daily, newsLog: next.newsLog, updatedAt: now });
     if (part === 'memos') writers.current.memos?.({ memos: next.memos, updatedAt: now });
     if (part === 'settings') writers.current.settings?.({ ...next.settings, updatedAt: now });
-    if (part === 'quiz') writers.current.quiz?.({ answers: next.quiz, updatedAt: now });
+    if (part === 'quiz') writers.current.quiz?.({ answers: next.quiz, scores: next.scores, updatedAt: now });
+    if (part === 'seen') writers.current.seen?.({ ...next.seen, updatedAt: now });
   }, []);
 
-  // 읽은 기록이나 기사 목록이 바뀌면 날짜별 목표 기록을 맞춰 저장한다.
+  // 읽은 기록이나 기사 목록이 바뀌면 날짜별 목표 기록과 읽은 기사 목록(제목, 날짜)을 맞춰 한 번에 저장한다.
   useEffect(() => {
-    const next = withDaily(userRef.current, days);
+    const next = withNewsLog(withDaily(userRef.current, days), days);
     if (next !== userRef.current) commit(next, 'progress');
   }, [days, user.read, commit]);
 
@@ -483,7 +596,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setStudy(next);
     // 기기 안 보관은 조금 뒤에 한다(답을 확인하는 순간의 움직임을 막지 않게). 앱을 닫으면 바로 쓴다.
     saveLater(STUDY_KEY, () => studyRef.current);
-    const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade };
+    const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade, ...(q.retry ? { r: 1 as const } : null) };
     const log = getLog();
     log.push(row);
     if (log.length > LOG_CAP) log.splice(0, log.length - LOG_CAP);
@@ -508,10 +621,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (read && cur.read[articleId]) return;
       if (!read && !cur.read[articleId]) return;
       const nextRead = { ...cur.read };
-      if (read) nextRead[articleId] = new Date().toISOString();
-      else delete nextRead[articleId];
-      // 날짜별 목표 기록도 같이 맞춰 한 번에 저장한다(따로 맞추면 화면을 두 번 그린다).
-      commit(withDaily({ ...cur, read: nextRead }, daysRef.current), 'progress');
+      const newsLog = { ...(cur.newsLog ?? {}) };
+      if (read) {
+        nextRead[articleId] = new Date().toISOString();
+        const day = daysRef.current.find((d) => d.articles.some((a) => a.id === articleId));
+        const a = day?.articles.find((x) => x.id === articleId);
+        if (day && a && !newsLog[articleId]) newsLog[articleId] = newsEntry(a, day.date);
+      } else {
+        delete nextRead[articleId];
+        delete newsLog[articleId];
+      }
+      // 날짜별 목표 기록과 읽은 기사 목록도 같이 맞춰 한 번에 저장한다(따로 맞추면 화면을 두 번 그린다).
+      commit(withDaily({ ...cur, read: nextRead, newsLog }, daysRef.current), 'progress');
     },
     [commit],
   );
@@ -538,17 +659,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const answerQuiz = useCallback(
-    (reviewId: string, index: number, choice: number) => {
+    (reviewId: string, index: number, choice: number, meta?: QuizMeta) => {
       const cur = userRef.current;
       const prev = cur.quiz[reviewId] ?? {};
       if (prev[String(index)] !== undefined) return;
-      commit({ ...cur, quiz: { ...cur.quiz, [reviewId]: { ...prev, [String(index)]: choice } } }, 'quiz');
+      let scores = cur.scores;
+      if (meta) {
+        // 점수를 처음 적는 퀴즈(점수 칸이 생기기 전에 답한 문항이 있으면 그 결과부터)
+        const s = cur.scores?.[reviewId] ?? { r: meta.prevRight ?? 0, a: meta.prevAnswered ?? 0, n: meta.total };
+        scores = { ...(cur.scores ?? {}), [reviewId]: { r: s.r + (meta.right ? 1 : 0), a: s.a + 1, n: meta.total } };
+      }
+      commit({ ...cur, quiz: { ...cur.quiz, [reviewId]: { ...prev, [String(index)]: choice } }, scores }, 'quiz');
     },
     [commit],
   );
 
+  const markSeen = useCallback(
+    (kind: 'unlock' | 'recap', ids: string[]) => {
+      const cur = userRef.current;
+      const field = kind === 'unlock' ? 'unlocks' : 'recaps';
+      const prev = cur.seen?.[field] ?? {};
+      const fresh = ids.filter((id) => id && !prev[id]);
+      if (fresh.length === 0) return;
+      const now = new Date().toISOString();
+      const next = { ...prev };
+      for (const id of fresh) next[id] = now;
+      const seen: SeenState = { ...(cur.seen ?? EMPTY_USER.seen), [field]: next };
+      commit({ ...cur, seen }, 'seen');
+    },
+    [commit],
+  );
+
+  const markMapSeen = useCallback(() => {
+    const cur = userRef.current;
+    const today = todayKST();
+    // 오늘 생긴 것 가운데 지금 본 것을 함께 적는다(오늘 이 뒤에 배운 것은 다음에 열 때 반짝인다).
+    const ids = idsOn(eventsFor(treeFor(studyDataRef.current, studyRef.current.cards)), today);
+    const prev = cur.seen?.map === today ? (cur.seen.mapIds ?? ids) : null;
+    if (prev && ids.every((id) => prev.includes(id))) return;
+    const mapIds = [...new Set([...(prev ?? []), ...ids])].sort();
+    commit({ ...cur, seen: { ...(cur.seen ?? EMPTY_USER.seen), map: today, mapIds } }, 'seen');
+  }, [commit]);
+
+  const studyLog = useCallback(() => getLog(), []);
+
   const exportData = useCallback(() => {
-    return JSON.stringify({ app: 'latticework-sisa', version: 2, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog() }, null, 2);
+    return JSON.stringify({ app: 'latticework-sisa', version: 3, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog() }, null, 2);
   }, []);
 
   const importData = useCallback(
@@ -558,15 +714,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const incoming = (parsed && parsed.data ? parsed.data : parsed) as Partial<UserData>;
         if (!incoming || typeof incoming !== 'object' || (!incoming.read && !incoming.daily)) return false;
         // 복습 기록은 더 많이 쌓인 쪽을 남긴다.
-        const st = parsed && parsed.study ? (parsed.study as StudyState) : null;
-        if (st && st.cards && Object.keys(st.cards).length >= Object.keys(studyRef.current.cards).length) {
-          studyRef.current = st;
-          setStudy(st);
-          saveLater(STUDY_KEY, () => studyRef.current);
+        const st0 = parsed && parsed.study ? (parsed.study as StudyState) : null;
+        if (st0 && st0.cards && Object.keys(st0.cards).length >= Object.keys(studyRef.current.cards).length) {
           if (Array.isArray(parsed.studyLog)) {
             logRef.current = parsed.studyLog.slice(-LOG_CAP);
             saveLater(STUDY_LOG_KEY, getLog);
           }
+          // 예전 내보내기(버전 2)에는 처음 답한 날이 없다. 풀이 기록으로 채운다.
+          const st = withFirsts(st0, getLog());
+          studyRef.current = st;
+          setStudy(st);
+          saveLater(STUDY_KEY, () => studyRef.current);
         }
         const merged = mergeUser(userRef.current, incoming);
         userRef.current = merged;
@@ -574,9 +732,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         saveLater(USER_KEY, () => userRef.current);
         flushSaves();
         const now = new Date().toISOString();
-        writers.current.progress?.({ read: merged.read, daily: merged.daily, updatedAt: now });
+        writers.current.progress?.({ read: merged.read, daily: merged.daily, newsLog: merged.newsLog, updatedAt: now });
         writers.current.memos?.({ memos: merged.memos, updatedAt: now });
-        writers.current.quiz?.({ answers: merged.quiz, updatedAt: now });
+        writers.current.quiz?.({ answers: merged.quiz, scores: merged.scores, updatedAt: now });
+        writers.current.seen?.({ ...merged.seen, updatedAt: now });
         return true;
       } catch {
         return false;
@@ -586,8 +745,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(
-    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked }),
-    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked],
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, latti, lattiHist, noteLatti }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, latti, lattiHist, noteLatti],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
@@ -679,4 +838,120 @@ export function findArticle(days: Day[], id: string) {
     if (a) return a;
   }
   return null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 지식(배운 나무, 해금), 돌아보기, 읽은 기사, 배운 단어
+// ─────────────────────────────────────────────────────────────
+
+// 배운 나무는 자료와 기억 상태가 같으면 다시 만들지 않는다(여러 화면이 같이 읽어도 한 번).
+let treeMemo: { data: StudyData | null; cards: Record<string, Card> | null; tree: LearnedTree | null } = { data: null, cards: null, tree: null };
+function treeFor(data: StudyData | null, cards: Record<string, Card>): LearnedTree | null {
+  if (!data) return null;
+  if (treeMemo.data === data && treeMemo.cards === cards) return treeMemo.tree;
+  const tree = learnedTree(data, cards);
+  treeMemo = { data, cards, tree };
+  return tree;
+}
+const eventsMemo = new WeakMap<LearnedTree, UnlockEvent[]>();
+function eventsFor(tree: LearnedTree | null): UnlockEvent[] {
+  if (!tree) return [];
+  let ev = eventsMemo.get(tree);
+  if (!ev) eventsMemo.set(tree, (ev = unlockEvents(tree)));
+  return ev;
+}
+
+/**
+ * 배운 나무와 해금. plan 은 아직 안 본 해금의 차례(전체 화면 카드와 홈 띠), fresh 는 지도에서 반짝일 마디와 개념.
+ * 분류가 없는 자료(예전 자료, Claude 링크 빌드)면 tree 는 null 이고 나머지는 비어 있다.
+ */
+export function useKnowledge(): { data: StudyData | null; tree: LearnedTree | null; events: UnlockEvent[]; plan: UnlockPlan; fresh: Set<string> } {
+  const { studyData, study, user } = useStore();
+  const today = todayKST();
+  const tree = treeFor(studyData, study.cards);
+  const events = eventsFor(tree);
+  const seen = user.seen;
+  return useMemo(() => ({ data: studyData, tree, events, plan: unlockPlan(events, seen?.unlocks, today), fresh: freshSince(events, seen?.map, today, seen?.mapIds) }), [studyData, tree, events, seen, today]);
+}
+
+/** 오늘 보여 줄 돌아보기(주간 또는 월간). 없으면 null. 기간 안에 한 일이 있는지만 가볍게 본다. */
+export function useRecapDue(): { show: Period; alsoSeen: string[] } | null {
+  const { user, study } = useStore();
+  const goals = useGoals();
+  return useMemo(() => {
+    const today = goals.today;
+    const reads = Object.values(user.read).map((at) => kstDate(at));
+    const active = (p: Period) => {
+      const dates = periodDates(p, today);
+      if (dates.length === 0) return false;
+      const from = dates[0];
+      const to = dates[dates.length - 1];
+      for (const d of dates) {
+        const sd = study.days[d];
+        if (sd && sd.lat + sd.voc + (sd.extra ?? 0) > 0) return true;
+        if (goals.statusOf(d) === 'done') return true;
+      }
+      return reads.some((d) => d >= from && d <= to);
+    };
+    return recapDue(today, user.seen?.recaps, active);
+  }, [user.read, user.seen, study.days, goals]);
+}
+
+/** 돌아보기 한 기간의 숫자. 풀이 기록을 읽으므로 돌아보기 화면 안에서만 부른다. */
+export function usePeriodStats(p: Period | null): PeriodStats | null {
+  const s = useStore();
+  const goals = useGoals();
+  const key = p?.key ?? '';
+  return useMemo(
+    () =>
+      p
+        ? periodStats(p, { today: goals.today, days: s.days, user: s.user, study: s.study, data: s.studyData, log: s.studyLog(), reviews: s.reviews, statusOf: goals.statusOf, extraOf: goals.extraOf, streak: goals.streak })
+        : null,
+    [key, goals, s.days, s.user, s.study, s.studyData, s.reviews],
+  );
+}
+
+/** 읽은 기사 하나. inFeed 면 기사 묶음에 아직 있어 기사 화면으로 열 수 있다. */
+export type NewsItem = { id: string; date: string; title: string; url?: string; source?: string; readAt: string; inFeed: boolean };
+
+/** 읽은 기사 전체. 새 날짜부터(같은 날은 늦게 읽은 것부터). 기억 상태는 없다. */
+export function useNewsHistory(): NewsItem[] {
+  const { user, days } = useStore();
+  return useMemo(() => {
+    const feed = new Map<string, { date: string; title: string; url?: string; source?: string }>();
+    for (const d of days) for (const a of d.articles) feed.set(a.id, { date: d.date, title: a.title, url: a.url, source: a.source });
+    const out: NewsItem[] = [];
+    for (const [id, readAt] of Object.entries(user.read)) {
+      const f = feed.get(id);
+      const e = user.newsLog?.[id];
+      const title = e?.t ?? f?.title;
+      if (!title) continue;
+      out.push({ id, date: e?.d ?? f?.date ?? kstDate(readAt), title, url: e?.u ?? f?.url, source: e?.s ?? f?.source, readAt, inFeed: !!f });
+    }
+    return out.sort((a, b) => (a.date === b.date ? (a.readAt < b.readAt ? 1 : a.readAt > b.readAt ? -1 : 0) : a.date < b.date ? 1 : -1));
+  }, [user.read, user.newsLog, days]);
+}
+
+/** 배운 표현 하나. first 는 처음 답한 날, reps 는 푼 횟수. */
+export type VocabItem = { v: Vocab; kind: '단어' | '구문'; first: string; reps: number };
+
+/** 이미 배운 표현(한 번이라도 답한 것)만. 새로 배운 것부터. */
+export function useVocabLearned(): VocabItem[] {
+  const { studyData, study } = useStore();
+  const cards = study.cards;
+  return useMemo(() => {
+    if (!studyData) return [];
+    const out: VocabItem[] = [];
+    for (const v of studyData.vocab) {
+      const c = cards[v.id];
+      if (!c) continue;
+      out.push({ v, kind: vocKind(v), first: firstOf(c), reps: c.reps });
+    }
+    return out.sort((a, b) => (a.first === b.first ? (cards[a.v.id].last < cards[b.v.id].last ? 1 : -1) : a.first < b.first ? 1 : -1));
+  }, [studyData, cards]);
+}
+
+/** 그 주(ISO 주 이름)의 주간 종합 퀴즈 */
+export function weeklyReviewFor(reviews: Review[], weekId: string): Review | null {
+  return reviews.find((r) => r.id === weekId) ?? null;
 }
