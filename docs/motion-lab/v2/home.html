@@ -33,7 +33,7 @@
   .lvcard .xb { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.28); overflow: hidden; position: relative; }
   .lvcard .xb i { position: absolute; inset: 0; background: #fff; transform-origin: left; transform: scaleX(0.58); }
   .boxw { background: #fff; border-radius: 20px; border: 1px solid var(--s-line); padding: 6px 16px; }
-  /* C: 두 문 */
+  /* C: 분할 진입 */
   .door { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; padding: 26px 24px; cursor: pointer; overflow: hidden; }
   .door.read { top: 0; height: 46%; }
   .door.solve { bottom: 0; height: 54%; background: #fff; }
@@ -62,7 +62,7 @@
     <table class="spec">
       <tr><th>구조</th><th>좋은 점</th><th>아쉬운 점</th></tr>
       <tr><td>B 탭으로 나눔</td><td>두 세계가 가장 또렷이 나뉨. 학습 탭을 듀오링고처럼 크게 꾸밀 수 있음</td><td>뉴스가 탭 뒤로 숨어 매일 두 건 읽기가 잊히기 쉬움. 하루 목표가 한눈에 안 보임</td></tr>
-      <tr><td>C 두 문</td><td>첫인상이 가장 강함</td><td>매번 한 번 더 눌러야 함. 기록과 리뷰를 둘 자리가 없음</td></tr>
+      <tr><td>C 분할 진입</td><td>첫인상이 가장 강함</td><td>매번 한 번 더 눌러야 함. 기록과 리뷰를 둘 자리가 없음</td></tr>
     </table>
     <h3>참고한 것</h3>
     <ul>
@@ -234,7 +234,7 @@
     variant = v;
     render();
   };
-  ML.bar({ title: '홈 구조', replay: render, home: '../index.html', extra: [['A 두 구역', pick('A')], ['B 탭', pick('B')], ['C 두 문', pick('C')]] });
+  ML.bar({ title: '홈 구조', replay: render, home: '../index.html', extra: [['A 두 구역', pick('A')], ['B 탭', pick('B')], ['C 분할 진입', pick('C')]] });
   render();
 })();
 </script>

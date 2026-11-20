@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>연속 학습 · Motion Lab 4차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .body { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; padding: 28px 16px 0; overflow: hidden; }
+  .hero { position: relative; width: 220px; height: 220px; }
+  .halo { position: absolute; inset: -40px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 195, 66, 0.42) 0%, rgba(254, 152, 0, 0.14) 42%, rgba(254, 152, 0, 0) 68%); opacity: 0; }
+  .fire { position: absolute; inset: 0; filter: grayscale(1) brightness(1.18) opacity(0.5); transition: filter 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
+  .fire.lit { filter: none; }
+  .spk { position: absolute; width: 96px; height: 96px; right: -30px; top: -10px; pointer-events: none; }
+  .pop { position: absolute; width: 150px; height: 150px; bottom: -36px; pointer-events: none; opacity: 0; }
+  .pop.l { left: -96px; transform: scaleX(-1); }
+  .pop.r { right: -96px; }
+  .num { margin-top: 4px; font-size: 80px; line-height: 84px; font-weight: 800; letter-spacing: -2px; color: var(--grey300); font-variant-numeric: tabular-nums; transition: color 0.2s; }
+  .num.lit { color: var(--orange500); }
+  .cap { margin-top: 2px; font-size: 22px; line-height: 31px; font-weight: 700; color: var(--grey900); }
+  .badge { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); height: 36px; padding: 0 14px; border-radius: 18px; background: var(--orange-weak); color: var(--orange800); font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; opacity: 0; white-space: nowrap; }
+  .card { width: 100%; margin-top: 24px; border: 2px solid var(--grey200); border-radius: 16px; padding: 16px 14px 14px; }
+  .wk { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 8px; }
+  .wk .lb { text-align: center; font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); }
+  .wk .lb.td { color: var(--orange700); font-weight: 700; }
+  .wk .cell { position: relative; z-index: 1; height: 34px; display: flex; align-items: center; justify-content: center; }
+  .wk .dot { position: relative; width: 34px; height: 34px; border-radius: 17px; background: var(--grey100); display: flex; align-items: center; justify-content: center; }
+  .wk .dot.on { background: var(--orange500); }
+  .wk .dot .chk { opacity: 0; }
+  .wk .dot.on .chk { opacity: 1; }
+  .wk .bar { position: absolute; z-index: 0; height: 34px; border-radius: 17px; background: var(--orange200); transform-origin: left; }
+  .msg { margin: 12px 2px 0; font-size: 15px; line-height: 22.5px; color: var(--grey700); }
+  .msg b { color: var(--orange800); font-weight: 700; }
+  .foot { flex: none; padding: 12px 16px 28px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>연속 학습</h2>
+    <p>불꽃을 직접 그리지 않았습니다. Google 이 만든 Noto 애니메이션 이모지의 불꽃을 그대로 씁니다. 움직임의 순서와 시간은 LottieFiles 의 motion-design 스킬과 Emil Kowalski 의 choreograph 스킬 규칙에 맞췄습니다.</p>
+    <p class="tip">"연장" 은 평소의 하루, "1주 달성" 은 고비입니다. "느리게" 로 한 박자씩 보세요.</p>
+    <h3>타임라인 (choreograph 스킬 형식)</h3>
+    <table class="spec">
+      <tr><th>요소</th><th>역할</th><th>시작</th><th>움직임</th><th>관계</th></tr>
+      <tr><td>불꽃</td><td>주인공</td><td class="num">0</td><td>회색으로 0.9배 웅크림 240ms, 1.15배로 튀며 색이 켜짐, 스프링으로 1배 안착</td><td>예비 동작, 동작, 안착</td></tr>
+      <tr><td>빛무리</td><td>장식</td><td class="num">330</td><td>투명도와 크기만 600ms, 이후 3초 주기로 숨쉬기</td><td>불꽃이 켜지는 순간과 함께</td></tr>
+      <tr><td>반짝임</td><td>장식</td><td class="num">330</td><td>Noto 반짝임 한 번 재생</td><td>켜지는 순간에 맞춤</td></tr>
+      <tr><td>숫자</td><td>보조</td><td class="num">330</td><td>4 가 위로 빠지고 5 가 올라옴, 회색에서 주황</td><td>켜지는 순간에 맞춤</td></tr>
+      <tr><td>문구</td><td>보조</td><td class="num">420</td><td>8px 올라오며 나타남</td><td>숫자와 겹침</td></tr>
+      <tr><td>이번 주 카드</td><td>보조</td><td class="num">560</td><td>16px 올라오며 나타남</td><td>숫자 다음, 원인과 결과</td></tr>
+      <tr><td>오늘 칸</td><td>보조</td><td class="num">780</td><td>주황으로 차고 체크가 그려짐</td><td>카드가 자리 잡은 뒤</td></tr>
+      <tr><td>이어진 날 막대</td><td>장식</td><td class="num">780</td><td>오늘까지 늘어남</td><td>오늘 칸과 함께</td></tr>
+      <tr><td>계속 버튼</td><td>정지</td><td>처음부터</td><td>움직이지 않음</td><td>연출이 조작을 막지 않음</td></tr>
+    </table>
+    <h3>스킬에서 가져온 규칙</h3>
+    <ul>
+      <li>세 층: 주인공 불꽃, 보조 숫자와 카드, 배경의 빛무리. 한 층이라도 빠지면 밋밋해 보입니다. (LottieFiles)</li>
+      <li>네 막: 예비 동작, 동작, 반응, 안착. (LottieFiles)</li>
+      <li>보조 효과는 주인공이 켜지는 순간에 맞춥니다. 대충 맞는 지연으로 두지 않습니다. (Emil Kowalski)</li>
+      <li>버튼은 처음부터 눌립니다. 연출이 조작을 막지 않습니다. (Emil Kowalski)</li>
+      <li>1주 달성에서만 폭죽을 더하고, 폭죽도 Noto 애니메이션을 씁니다.</li>
+    </ul>
+    <p style="font-size:12.5px;color:var(--sub)">불꽃, 반짝임, 폭죽: Noto Emoji Animation, Google, CC BY 4.0. 재생기: lottie-web, MIT.</p>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="assets/lottie_light.min.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+  let scene = 'extend';
+  let run = 0;
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)'; // Emil Kowalski 의 강한 ease-out
+  const BACK = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+
+  async function render() {
+    const my = ++run;
+    LT.destroyAll();
+    ML.clear(phone);
+    const week = scene === 'week';
+    const from = week ? 6 : 4;
+    const today = week ? 6 : 4;
+    phone.innerHTML = `<div class="scr"><div class="body">
+        <span class="badge" id="badge">1주 연속 달성</span>
+        <div class="hero" id="hero"><span class="halo" id="halo"></span><div class="fire" id="fire"></div><div class="spk" id="spk"></div><div class="pop l" id="pl"></div><div class="pop r" id="pr"></div></div>
+        <div class="num" id="num"><span class="roll" id="nr">${from}</span></div>
+        <div class="cap" id="cap" style="opacity:0">일 연속 학습</div>
+        <div class="card" id="card" style="opacity:0"><div class="wk" id="wk">${DAYS.map((d, i) => `<span class="lb ${i === today ? 'td' : ''}">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="cell"><span class="dot ${i < from ? 'on' : ''}" data-i="${i}">${K.check(16, '#fff', 3.2)}</span></span>`).join('')}<span class="bar" id="bar"></span></div>
+          <p class="msg" id="msg">${week ? '이번 주를 하루도 빼지 않았어요.' : '일요일까지 이어 가면 <b>1주 연속</b>이에요.'}</p></div>
+      </div><div class="foot"><button class="lbtn" id="go"><span class="lbl">계속</span></button></div></div>`;
+    K.press(phone.querySelector('#go'));
+    phone.querySelector('#go').addEventListener('click', () => (location.href = 'home.html?after=1'));
+    const fireEl = phone.querySelector('#fire');
+    const fire = await LT.load(fireEl, '1f525', { loop: true, autoplay: false });
+    if (my !== run) return;
+    fire.goToAndStop(0, true);
+    // 이어진 날 막대: 월요일부터 어제까지
+    const bar = phone.querySelector('#bar');
+    const place = (n) => {
+      const ds = phone.querySelectorAll('#wk .dot');
+      const w = phone.querySelector('#wk').getBoundingClientRect();
+      const a = ds[0].getBoundingClientRect();
+      const b = ds[n - 1].getBoundingClientRect();
+      Object.assign(bar.style, { left: a.left - w.left + 'px', top: a.top - w.top + 'px', width: b.right - a.left + 'px' });
+    };
+    place(from);
+    await ML.wait(300);
+    if (my !== run) return;
+
+    // 1막 예비 동작: 회색 불꽃이 웅크린다
+    await ML.done(ML.a(fireEl, [{ transform: 'scale(1)' }, { transform: 'scale(.9, .86) translateY(8px)' }], { duration: 240, easing: 'cubic-bezier(.5,0,.75,0)' }));
+    if (my !== run) return;
+    // 2막 동작: 튀어 오르며 색이 켜지고 불이 움직이기 시작
+    fireEl.classList.add('lit');
+    fire.play();
+    ML.a(fireEl, [{ transform: 'scale(.9, .86) translateY(8px)' }, { transform: 'scale(1.15) translateY(-6px)', offset: 0.45 }, { transform: 'scale(1) translateY(0)' }], { duration: 620, easing: OUT });
+    // 3막 반응: 빛무리, 반짝임, 숫자가 켜지는 순간에 함께
+    await ML.wait(90);
+    ML.a(phone.querySelector('#halo'), [{ opacity: 0, transform: 'scale(.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 600, easing: OUT }).finished.then(() => {
+      ML.a(phone.querySelector('#halo'), [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0.7, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 3000, iterations: Infinity, easing: 'ease-in-out', fill: 'none' });
+    }).catch(() => {});
+    LT.load(phone.querySelector('#spk'), '2728', { loop: false });
+    const num = phone.querySelector('#num');
+    num.classList.add('lit');
+    ML.roll(phone.querySelector('#nr'), String(from + 1), 1, 340);
+    ML.a(num, [{ transform: 'scale(1)' }, { transform: 'scale(1.1)', offset: 0.35 }, { transform: 'scale(1)' }], { duration: 420, easing: OUT });
+    const cap = phone.querySelector('#cap');
+    cap.style.opacity = '';
+    ML.a(cap, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 90, easing: OUT });
+    // 이번 주 카드: 숫자 다음
+    await ML.wait(230);
+    const card = phone.querySelector('#card');
+    card.style.opacity = '';
+    ML.a(card, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, easing: OUT });
+    await ML.wait(220);
+    if (my !== run) return;
+    // 4막 안착: 오늘 칸
+    const td = phone.querySelector(`#wk .dot[data-i="${today}"]`);
+    td.classList.add('on');
+    ML.a(td, [{ transform: 'scale(.7)' }, { transform: 'scale(1)' }], { duration: 360, easing: BACK });
+    const p = td.querySelector('path');
+    const L = p.getTotalLength();
+    p.style.strokeDasharray = L;
+    ML.a(p, [{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 260, delay: 120, easing: OUT });
+    const w0 = parseFloat(bar.style.width);
+    place(from + 1);
+    ML.a(bar, [{ transform: `scaleX(${w0 / parseFloat(bar.style.width)})` }, { transform: 'scaleX(1)' }], { duration: 400, easing: OUT });
+    if (!week) return;
+
+    // 고비: 1주 연속
+    await ML.wait(520);
+    if (my !== run) return;
+    ['#pl', '#pr'].forEach((s, k) => {
+      const el = phone.querySelector(s);
+      el.style.opacity = 1;
+      LT.load(el, '1f389', { loop: false });
+    });
+    ML.a(fireEl, [{ transform: 'scale(1)' }, { transform: 'scale(1.08)', offset: 0.35 }, { transform: 'scale(1)' }], { duration: 520, easing: OUT });
+    const badge = phone.querySelector('#badge');
+    ML.a(badge, [{ opacity: 0, transform: 'translate(-50%, 8px) scale(.96)' }, { opacity: 1, transform: 'translate(-50%, 0) scale(1)' }], { duration: 360, delay: 120, easing: OUT });
+    const msg = phone.querySelector('#msg');
+    ML.done(ML.a(msg, [{ opacity: 1 }, { opacity: 0 }], { duration: 120 })).then(() => {
+      msg.innerHTML = '<b>1주 연속</b>을 달성했어요. 다음 목표는 2주예요.';
+      ML.a(msg, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: OUT });
+    });
+  }
+
+  const pick = (s) => () => {
+    scene = s;
+    render();
+  };
+  ML.bar({ title: '연속 학습', replay: render, home: '../index.html', extra: [['연장', pick('extend')], ['1주 달성', pick('week')]] });
+  document.querySelectorAll('.lab-bar button').forEach((b) => b.textContent === '느리게' && b.addEventListener('click', () => setTimeout(LT.syncRate, 0)));
+  render();
+})();
+</script>
+</body>
+</html>

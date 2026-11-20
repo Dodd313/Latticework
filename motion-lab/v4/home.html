@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>홈 · Motion Lab 4차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../home.css">
+<link rel="stylesheet" href="../v2/kit.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .scr.g { background: var(--grey100); }
+  .hd4 { height: 56px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .hd4 b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: var(--grey900); }
+  .spill { height: 34px; padding: 0 12px 0 6px; border-radius: 17px; background: #fff; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--grey400); }
+  .spill.lit { color: var(--orange700); }
+  .spill .fi { width: 26px; height: 26px; filter: grayscale(1) brightness(1.2) opacity(0.55); transition: filter 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
+  .spill.lit .fi { filter: none; }
+  .main { flex: 1; overflow: hidden; padding: 0 12px; display: flex; flex-direction: column; gap: 12px; }
+  .box { position: relative; background: #fff; border-radius: 20px; padding: 20px; }
+  .ttl { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .ttl b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .ttl span { font-size: 13px; font-weight: 600; color: var(--grey500); display: inline-flex; align-items: center; gap: 2px; }
+  .rowx { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .rowx .ic { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex: none; font-size: 17px; font-weight: 700; }
+  .rowx .tx { flex: 1; min-width: 0; }
+  .rowx .tx b { display: block; font-size: 17px; line-height: 25.5px; font-weight: 600; color: var(--grey900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rowx .tx span { font-size: 13px; line-height: 19.5px; color: var(--grey500); }
+  .rowx .n { font-size: 15px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .rowx .n.ok { color: var(--green600); }
+  .rowx .dot { width: 8px; height: 8px; border-radius: 4px; background: var(--green500); flex: none; }
+  .rowx .dot.off { background: var(--grey300); }
+  .meter { display: flex; gap: 4px; margin-top: 6px; }
+  .meter i { position: relative; flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; }
+  .meter i b { position: absolute; inset: 0; background: var(--blue500); transform-origin: left; transform: scaleX(0); }
+  .box .tbtn { margin-top: 8px; }
+  .tabs4 { flex: none; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); }
+  .tabs4 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs4 button.on { color: var(--grey900); }
+  /* 뉴스로 들어가는 층: 흰 카드에서 시작해 지면으로 바뀐다 */
+  .lift { position: absolute; inset: 0; z-index: 20; overflow: hidden; }
+  .lift .w { position: absolute; inset: 0; background: #fff; }
+  .lift .p { position: absolute; inset: 0; opacity: 0; }
+  .lift .src { position: absolute; }
+  .lift .dst { position: absolute; inset: 0; opacity: 0; display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>홈 · 한 가지 톤</h2>
+    <p>홈은 Toss 톤 하나로만 그립니다. 뉴스 카드도 다른 카드와 같은 흰 카드입니다. 지면 톤은 뉴스 카드를 눌러 화면이 넘어가는 동안에만 바뀝니다.</p>
+    <p class="tip">뉴스 카드를 눌러 보세요. "마친 뒤" 를 누르면 오늘 할 일을 마쳤을 때 위쪽 불꽃이 켜지는 모습을 볼 수 있습니다.</p>
+    <h3>뉴스로 넘어갈 때</h3>
+    <table class="spec">
+      <tr><th>시점</th><th>움직임</th></tr>
+      <tr><td class="num">0</td><td>누른 카드가 0.98배로 눌림</td></tr>
+      <tr><td class="num">0~440ms</td><td>카드가 화면 전체로 커짐. 모서리 20 에서 0 으로</td></tr>
+      <tr><td class="num">80~240ms</td><td>카드 안의 글자가 사라짐. 새 글자와 겹쳐 빈 화면이 생기지 않음</td></tr>
+      <tr><td class="num">120~400ms</td><td>흰 바탕이 지면 색으로 바뀌고 종이 질감이 드러남</td></tr>
+      <tr><td class="num">170~470ms</td><td>지면 제목과 기사 목록이 6px 올라오며 나타남</td></tr>
+      <tr><td>뒤로</td><td>같은 길을 거꾸로, 320ms. 지면이 먼저 흰색으로 돌아온 뒤 카드 크기로 줄어듦</td></tr>
+    </table>
+    <p>카드가 커져 다음 화면이 되는 방식은 Material Design 의 컨테이너 전환과 같습니다. 화면이 바뀌는 이유를 공간으로 보여 주기 때문에, 톤이 바뀌어도 같은 앱 안에서 이어진다고 느낍니다.</p>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="assets/lottie_light.min.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  let after = !!new URLSearchParams(location.search).get('after');
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const INOUT = 'cubic-bezier(0.77, 0, 0.175, 1)';
+  const SHEET = 'cubic-bezier(0.32, 0.72, 0, 1)';
+  const NEWS = [['공정위, 쿠팡·김범석 의장 검찰 고발 의견', '공정거래 · 지배구조'], ['엔비디아, CEO 승계 계획 공백 논란', '상장 규정']];
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    rev: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><path d="M8.3 12.2l2.6 2.6 4.8-5.2" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+
+  async function render() {
+    LT.destroyAll();
+    ML.clear(phone);
+    const c = after ? ['2/2', '6/6', '4/5'] : ['0/2', '3/6', '0/5'];
+    phone.innerHTML = `<div class="scr g">
+      <div class="hd4"><b>Latticework</b><span class="spill" id="sp"><span class="fi" id="fi"></span><span class="roll" id="spn">4</span>일</span></div>
+      <div class="main">
+        <div class="box" id="today"><div class="ttl"><b id="tt">오늘 ${after ? 2 : 0}/3</b><span>${after ? '하나 남았어요' : '세 가지를 마치면 5일 연속'}</span></div>
+          <div class="meter" id="meter">${[after ? 1 : 0, after ? 1 : 0.5, after ? 0.8 : 0].map((p, k) => `<i><b style="transform:scaleX(${p})" data-k="${k}"></b></i>`).join('')}</div></div>
+        <div class="box" id="news"><div class="ttl"><b>오늘의 뉴스</b><span>11월 20일 ${K.chev(14)}</span></div>
+          ${NEWS.map(([t, k], i) => `<div class="rowx"><span class="dot ${after ? 'off' : ''}"></span><div class="tx"><b>${t}</b><span>${k}</span></div></div>`).join('')}</div>
+        <div class="box" id="study" style="padding:12px 20px 20px">
+          <div class="rowx"><span class="ic" style="background:var(--blue-weak);color:var(--blue600)">A</span><div class="tx"><b>영단어</b><span>토익 어휘 · 금융영어</span></div><span class="n ${after ? 'ok' : ''}">${c[1]}</span></div>
+          <div class="rowx"><span class="ic" style="background:var(--green-weak);color:var(--green600)">${LW.mark(24, 'currentColor', 3)}</span><div class="tx"><b>Latticework</b><span>재무학 · 논리학</span></div><span class="n" id="ln">${c[2]}</span></div>
+          <button class="tbtn" id="go">${after ? '마지막 문제 풀기' : '이어서 풀기'}</button></div>
+      </div>
+      <div class="tabs4"><button class="on">${ICON.home}홈</button><button>${ICON.cal}기록</button><button>${ICON.rev}리뷰</button></div></div>`;
+    K.press(phone.querySelector('#go'));
+    K.press(phone.querySelector('#news'));
+    phone.querySelector('#news').addEventListener('click', openNews);
+    phone.querySelector('#go').addEventListener('click', () => (after ? finishToday() : (location.href = '../v3/lesson.html')));
+    phone.querySelector('#sp').addEventListener('click', () => (location.href = '../v3/streak.html?s=record'));
+    const fire = await LT.load(phone.querySelector('#fi'), '1f525', { loop: true, autoplay: false });
+    fire.goToAndStop(0, true);
+    phone._fire = fire;
+  }
+
+  /** 오늘 마지막 할 일을 마쳤을 때: 진행 막대가 차고, 위쪽 불꽃이 켜지고, 숫자가 오른다. */
+  async function finishToday() {
+    const b = phone.querySelector('#meter b[data-k="2"]');
+    ML.a(b, [{ transform: 'scaleX(.8)' }, { transform: 'scaleX(1)' }], { duration: 360, easing: OUT });
+    ML.roll(phone.querySelector('#ln'), '5/5', 1, 260);
+    phone.querySelector('#ln').classList.add('ok');
+    ML.roll(phone.querySelector('#tt'), '오늘 3/3', 1, 260);
+    await ML.wait(300);
+    const sp = phone.querySelector('#sp');
+    ML.a(sp, [{ transform: 'scale(1)' }, { transform: 'scale(.92)' }], { duration: 160, easing: 'cubic-bezier(.5,0,.75,0)' });
+    await ML.wait(160);
+    sp.classList.add('lit');
+    phone._fire.play();
+    ML.a(sp, [{ transform: 'scale(.92)' }, { transform: 'scale(1.14)', offset: 0.4 }, { transform: 'scale(1)' }], { duration: 520, easing: OUT });
+    ML.roll(phone.querySelector('#spn'), '5', 1, 320);
+    const go = phone.querySelector('#go');
+    go.textContent = '더 풀기';
+  }
+
+  const rect = (el) => {
+    const a = el.getBoundingClientRect();
+    const b = phone.getBoundingClientRect();
+    return { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height };
+  };
+
+  /** 흰 카드가 커지며 지면으로 바뀐다. */
+  async function openNews() {
+    const card = phone.querySelector('#news');
+    const r = rect(card);
+    const W = phone.offsetWidth;
+    const H = phone.offsetHeight;
+    const clipFrom = `inset(${r.y}px ${W - r.x - r.w}px ${H - r.y - r.h}px ${r.x}px round 20px)`;
+    const layer = document.createElement('div');
+    layer.className = 'lift';
+    layer.innerHTML = `<div class="w"></div><div class="p paper"></div>
+      <div class="src" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px">${card.innerHTML}</div>
+      <div class="dst"><div class="topbar"><button class="back" id="bk">${ML.backSvg}홈</button><span class="brand">Latticework</span></div>
+        <div class="hm" style="padding-top:8px"><div class="mast"><b>오늘의 뉴스</b></div><div class="rules"><span class="r3"></span><span class="r1"></span><span>2026년 11월 20일 금요일</span><span class="streak">2건</span></div>
+        ${NEWS.map(([t, k]) => `<div class="srow"><div class="hd"><span class="kk">${k}</span><span class="mark"><span class="dot"></span></span></div><div class="tt">${t}</div><div class="mt"><span>연합뉴스</span><span>3분</span></div></div>`).join('')}</div></div>`;
+    const src = layer.querySelector('.src');
+    src.style.padding = '20px';
+    src.style.background = '#fff';
+    phone.querySelector('.scr').append(layer);
+    card.style.visibility = 'hidden';
+    ML.a(layer, [{ clipPath: clipFrom }, { clipPath: `inset(0px 0px 0px 0px round 0px)` }], { duration: 440, easing: SHEET });
+    ML.a(src, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, delay: 80, easing: OUT });
+    ML.a(layer.querySelector('.p'), [{ opacity: 0 }, { opacity: 1 }], { duration: 280, delay: 120, easing: INOUT });
+    const dst = layer.querySelector('.dst');
+    ML.a(dst, [{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 170, easing: OUT });
+    ML.stagger(dst.querySelectorAll('.mast, .rules, .srow'), [{ transform: 'translateY(6px)' }, { transform: 'translateY(0)' }], { duration: 300, delay: 170, easing: OUT }, 40);
+    layer.querySelector('#bk').addEventListener('click', async () => {
+      ML.a(dst, [{ opacity: 1 }, { opacity: 0 }], { duration: 100, easing: OUT });
+      ML.a(layer.querySelector('.p'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: OUT });
+      ML.a(src, [{ opacity: 0 }, { opacity: 1 }], { duration: 140, delay: 180, easing: OUT });
+      await ML.done(ML.a(layer, [{ clipPath: 'inset(0px 0px 0px 0px round 0px)' }, { clipPath: clipFrom }], { duration: 320, delay: 60, easing: INOUT }));
+      card.style.visibility = '';
+      layer.remove();
+    });
+  }
+
+  ML.bar({ title: '홈', replay: render, home: '../index.html', extra: [['아침', () => { after = false; render(); }], ['마친 뒤', () => { after = true; render().then(() => setTimeout(finishToday, 700 / ML.rate)); }]] });
+  render();
+})();
+</script>
+</body>
+</html>

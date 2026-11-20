@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>앱 실행 · Motion Lab 4차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .scr.g { background: var(--grey100); }
+  .hd4 { height: 56px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .hd4 b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .spill { height: 34px; width: 74px; border-radius: 17px; background: #fff; display: inline-flex; align-items: center; gap: 2px; padding-left: 6px; font-size: 15px; font-weight: 700; color: var(--grey400); }
+  .spill .fi { width: 26px; height: 26px; filter: grayscale(1) brightness(1.2) opacity(0.55); }
+  .main { flex: 1; padding: 0 12px; display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border-radius: 20px; padding: 20px; }
+  .h1 { height: 116px; } .h2 { height: 200px; } .h3 { height: 214px; }
+  .tabs4 { flex: none; height: 64px; background: #fff; border-top: 1px solid var(--grey200); }
+  .ct { opacity: 0; }
+  .ttl b { font-size: 20px; line-height: 29px; font-weight: 700; }
+  .ln { margin-top: 14px; font-size: 17px; line-height: 25.5px; font-weight: 600; }
+  .ln small { display: block; font-size: 13px; font-weight: 500; color: var(--grey500); }
+  .clock { position: absolute; left: 12px; bottom: 76px; font-size: 12px; font-family: ui-monospace, Menlo, monospace; color: var(--grey500); background: #fff; padding: 4px 8px; border-radius: 8px; z-index: 5; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>앱 실행</h2>
+    <p>첫 진입 장면을 없앴습니다. 최고 수준의 레퍼런스가 모두 같은 방향을 가리키기 때문입니다.</p>
+    <ul>
+      <li><strong>Apple HIG:</strong> 실행 화면은 앱의 첫 화면과 거의 같게 만들라고 합니다. 실행 화면과 첫 화면이 다르면 그 사이에 깜빡임이 생깁니다. 또 실행 화면은 브랜드를 보여 주는 자리가 아니라, 앱이 빨리 열리고 바로 쓸 수 있다고 느끼게 하는 자리라고 정합니다.</li>
+      <li><strong>Emil Kowalski 스킬:</strong> 하루에 여러 번 보는 장면에는 꾸미는 움직임을 넣지 않습니다. 즐거움을 주는 움직임은 드물게 오는 순간, 첫 설치나 성공이나 축하에만 씁니다.</li>
+      <li><strong>Toss:</strong> 앱을 열면 로고 장면 없이 홈이 바로 뜹니다.</li>
+    </ul>
+    <p>Latticework 는 매일 여는 앱입니다. 그래서 여는 순간은 빠르게 끝내고, 즐거움은 하루 할 일을 마쳤을 때의 불꽃 장면에 모읍니다.</p>
+    <h3>움직임</h3>
+    <table class="spec">
+      <tr><th>시점</th><th>화면</th></tr>
+      <tr><td class="num">0</td><td>실행 화면: 홈과 같은 자리에 같은 크기의 빈 카드. 글자와 로고 없음</td></tr>
+      <tr><td>준비되면</td><td>카드는 그대로 있고 안의 글자만 150ms 동안 나타남. 아무것도 움직이지 않음</td></tr>
+      <tr><td>오늘 이미 마쳤으면</td><td>위쪽 불꽃이 처음부터 켜진 채로 나타남. 다시 켜는 장면을 반복하지 않음</td></tr>
+    </table>
+    <p class="tip">"다시 재생" 으로 실행 화면에서 홈으로 넘어가는 순간을 보세요. 왼쪽 아래 시계는 실제 앱이 준비되는 시간을 흉내 낸 것입니다.</p>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="assets/lottie_light.min.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  async function render() {
+    LT.destroyAll();
+    ML.clear(phone);
+    phone.innerHTML = `<div class="scr g">
+      <div class="hd4"><b class="ct">Latticework</b><span class="spill"><span class="fi ct" id="fi"></span><span class="ct">4일</span></span></div>
+      <div class="main">
+        <div class="box h1"><div class="ct"><div class="ttl"><b>오늘 0/3</b></div><div class="ln">세 가지를 마치면 5일 연속<small>뉴스 · 영단어 · Latticework</small></div></div></div>
+        <div class="box h2"><div class="ct"><div class="ttl"><b>오늘의 뉴스</b></div><div class="ln">공정위, 쿠팡·김범석 의장 검찰 고발 의견<small>공정거래 · 지배구조</small></div><div class="ln">엔비디아, CEO 승계 계획 공백 논란<small>상장 규정</small></div></div></div>
+        <div class="box h3"><div class="ct"><div class="ttl"><b>학습</b></div><div class="ln">영단어<small>3/6</small></div><div class="ln">Latticework<small>0/5</small></div></div></div>
+      </div><div class="tabs4"></div><span class="clock" id="clk">0ms</span></div>`;
+    const t0 = performance.now();
+    const clk = phone.querySelector('#clk');
+    const tick = () => {
+      const t = Math.round((performance.now() - t0) * ML.rate);
+      clk.textContent = t + 'ms';
+      if (t < 900) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    const fire = await LT.load(phone.querySelector('#fi'), '1f525', { loop: true, autoplay: false });
+    fire.goToAndStop(0, true);
+    await ML.wait(420); // 앱이 준비되는 시간
+    phone.querySelectorAll('.ct').forEach((el) => ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: 'ease' }));
+  }
+  ML.bar({ title: '앱 실행', replay: render, home: '../index.html' });
+  render();
+})();
+</script>
+</body>
+</html>

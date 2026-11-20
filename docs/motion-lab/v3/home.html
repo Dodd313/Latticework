@@ -53,8 +53,8 @@
   <div class="phone clean st3" id="phone"></div>
   <section class="notes">
     <h2>홈</h2>
-    <p>2차의 A안, 회색 바탕 위에 신문 조각과 흰 카드를 놓는 구조를 유지하고 맨 위에 "오늘" 카드를 더했습니다. 세 고리가 오늘 할 일 세 가지이고, 가운데 불꽃은 세 고리를 다 닫아야 켜집니다.</p>
-    <p class="tip">"아침" 은 아직 할 일이 남은 상태입니다. "마친 뒤" 를 누르면 마지막 고리가 닫히고 불꽃이 켜지며 위쪽 연속 일수가 4에서 5로 바뀝니다.</p>
+    <p>2차의 A안, 회색 바탕 위에 신문 조각과 흰 카드를 놓는 구조를 유지하고 맨 위에 "오늘" 카드를 더했습니다. 세 링이 오늘 할 일 세 가지이고, 가운데 불꽃은 세 링을 다 닫아야 켜집니다.</p>
+    <p class="tip">"아침" 은 아직 할 일이 남은 상태입니다. "마친 뒤" 를 누르면 마지막 링이 닫히고 불꽃이 켜지며 위쪽 연속 일수가 4에서 5로 바뀝니다.</p>
     <h3>규격</h3>
     <table class="spec">
       <tr><th>부분</th><th>값</th><th>근거</th></tr>
@@ -63,8 +63,8 @@
       <tr><td>제목</td><td>20/29 굵게</td><td>Toss t4</td></tr>
       <tr><td>줄 글자</td><td>17/25.5 · 15/22.5 · 13/19.5</td><td>Toss t5 · t6 · t7</td></tr>
       <tr><td>단추</td><td>높이 56, 모서리 16, 17px. 누르면 0.96배와 7% 어둡게</td><td>Toss 단추 xlarge</td></tr>
-      <tr><td>고리</td><td>굵기 10, 둥근 끝, 바탕은 같은 색 15%</td><td>애플 활동 고리의 짜임</td></tr>
-      <tr><td>고리 색</td><td class="num">teal500 · purple500 · blue500</td><td>Toss 팔레트</td></tr>
+      <tr><td>링</td><td>굵기 10, 둥근 끝, 바탕은 같은 색 15%</td><td>애플 활동 링의 짜임</td></tr>
+      <tr><td>링 색</td><td class="num">teal500 · purple500 · blue500</td><td>Toss 팔레트</td></tr>
     </table>
     <h3>불꽃의 세 상태</h3>
     <ul>
@@ -94,7 +94,7 @@
   async function render() {
     ML.clear(phone);
     const after = state === 'after';
-    // 마친 뒤 장면은 Latticework 고리 80% 에서 시작해 닫힌다.
+    // 마친 뒤 장면은 Latticework 링 80% 에서 시작해 닫힌다.
     const P = after ? [1, 1, 0.8] : [1, 0.5, 0];
     const counts = after ? ['2/2', '6/6', '4/5'] : ['2/2', '3/6', '0/5'];
     phone.innerHTML = `<div class="scr g">
@@ -119,12 +119,12 @@
     phone.querySelector('#sp').addEventListener('click', () => (location.href = 'streak.html?s=record'));
     ML.stagger(phone.querySelectorAll('.main > *'), [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320 }, 50);
     if (!after) {
-      // 오늘 아직: 회색 불꽃이 아주 천천히 숨 쉰다.
+      // 오늘 아직: 회색 불꽃이 아주 천천히 천천히 깜빡인다.
       ML.a(phone.querySelector('#ctr'), [{ opacity: 1 }, { opacity: 0.55 }, { opacity: 1 }], { duration: 2400, iterations: Infinity, easing: 'ease-in-out', fill: 'none' });
       return;
     }
     await ML.wait(700);
-    // 마지막 고리가 닫힌다
+    // 마지막 링이 닫힌다
     const arc = phone.querySelector('.arc[data-k="2"]');
     const L = C(24);
     ML.roll(phone.querySelector('#c2'), '5/5', 1, 280);

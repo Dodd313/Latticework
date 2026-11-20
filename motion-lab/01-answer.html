@@ -19,16 +19,16 @@
   <div class="phone" id="phone"></div>
   <section class="notes">
     <h2>정답과 오답</h2>
-    <p>문제를 풀 때 가장 자주 보는 장면입니다. 지금 앱은 고른 보기가 회색 중간색을 거쳐 칠해지고, 정답과 오답이 아무 움직임 없이 바뀝니다. 제안은 "먹이 번진다"는 한 가지 비유로 고르기, 틀림, 맞힘을 구분합니다.</p>
+    <p>문제를 풀 때 가장 자주 보는 장면입니다. 지금 앱은 고른 보기가 회색 중간색을 거쳐 칠해지고, 정답과 오답이 아무 움직임 없이 바뀝니다. 제안은 "잉크가 퍼진다"는 한 가지 비유로 고르기, 틀림, 맞힘을 구분합니다.</p>
     <p class="tip">"가" 나 "나" 를 먼저 골라 틀려 보고, 힌트를 본 뒤 "다" 를 고르세요. 위쪽의 "현재 앱" 을 누르면 지금 모습과 비교할 수 있습니다.</p>
     <h3>움직임 명세</h3>
     <table class="spec">
       <tr><th>장면</th><th>움직임</th><th>시간</th></tr>
       <tr><td>누름</td><td>줄이 0.985배로 살짝 눌림</td><td class="num">90ms</td></tr>
-      <tr><td>고름</td><td>먹이 왼쪽에서 오른쪽으로 번져 칠해짐. 글자는 40ms 늦게 흰색으로</td><td class="num">180ms out</td></tr>
+      <tr><td>고름</td><td>잉크가 왼쪽에서 오른쪽으로 번져 칠해짐. 글자는 40ms 늦게 흰색으로</td><td class="num">180ms out</td></tr>
       <tr><td>다른 보기로 바꿈</td><td>앞의 먹은 오른쪽으로 걷힘</td><td class="num">160ms in</td></tr>
-      <tr><td>확인 단추 켜짐</td><td>회색 위로 먹이 번짐</td><td class="num">220ms out</td></tr>
-      <tr><td>틀림</td><td>줄이 좌우로 세 번 흔들림, 글자 위로 취소선이 그어짐, 먹이 걷힘</td><td class="num">320 + 220ms</td></tr>
+      <tr><td>확인 단추 켜짐</td><td>회색 위로 잉크 확산</td><td class="num">220ms out</td></tr>
+      <tr><td>틀림</td><td>줄이 좌우로 세 번 흔들림, 글자 위로 취소선이 그어짐, 잉크가 걷힘</td><td class="num">320 + 220ms</td></tr>
       <tr><td>힌트</td><td>칸이 내용 높이만큼 펼쳐지고 글이 6px 올라오며 나타남</td><td class="num">280ms out</td></tr>
       <tr><td>맞힘</td><td>체크가 그려지며 튀어 오름, 초록 밑줄이 그어짐</td><td class="num">260 + 460ms spring</td></tr>
       <tr><td>단추 글자</td><td>"확인" 이 위로 빠지고 "다음" 이 올라옴</td><td class="num">320ms</td></tr>

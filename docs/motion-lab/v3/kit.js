@@ -6,7 +6,7 @@
   /** Toss 스프링으로 움직이기. name: quick, medium, bounce, basic, rapid, large, small, slow */
   K.spring = (el, kf, name = 'quick', o = {}) => ML.a(el, kf, Object.assign({ duration: S[name].ms, easing: S[name].ease }, o));
 
-  /** 누름 상태. 단추와 보기 칸에 .down 을 붙였다 뗀다. */
+  /** 누름 상태. 단추와 선택지에 .down 을 붙였다 뗀다. */
   K.press = (el, onTbtnScale = true) => {
     const isT = el.classList.contains('tbtn');
     el.addEventListener('pointerdown', () => {

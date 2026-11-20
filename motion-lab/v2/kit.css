@@ -32,7 +32,7 @@
 .sbtn.green { background: var(--s-green); }
 .sbtn.red { background: var(--s-red); }
 .sbtn.ghost { background: var(--s-bg2); color: var(--s-sub); }
-/* 작은 알약 */
+/* 작은 배지 */
 .pill2 { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px 0 8px; border-radius: 15px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .pill2.xp { background: var(--s-amber-soft); color: #b26b00; }
 .pill2.fire { background: #fff0e5; color: #d35a00; }
