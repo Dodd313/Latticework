@@ -111,16 +111,16 @@ function WeekRow({ id, week, width, row, statusOf, extraOf, today, onPick }: { i
         const w0 = Math.min(w, MARK);
         const op = (v: number) => lerp(v, [0, 0.15, 1], [0, 1, 1]);
         // 띠는 왼쪽부터 드러난다(오른쪽을 둥글게 잘라 낸다). 폭을 바꾸지 않으므로 그라데이션은 제자리에 있다.
-        all.push(webTween(band, curve, (v) => ({ opacity: op(v), clipPath: `inset(0px ${w - lerp(v, [0, 1], [w0, w])}px 0px 0px round ${MARK / 2}px)` }), { delay }));
+        all.push(webTween(band, curve, (v) => ({ opacity: op(v), clipPath: `inset(0px ${w - lerp(v, [0, 1], [w0, w])}px 0px 0px round ${MARK / 2}px)` }), { delay, stops: [0.15] }));
         // 그림자는 따로 두고 같은 자리까지만 드러낸다(끝에서 그림자 끝자락까지 펼친다).
-        all.push(webTween(shade, curve, (v) => ({ opacity: op(v), clipPath: `inset(-12px ${w - lerp(v, [0, 1], [w0, w]) - 12 * v}px -12px -12px)` }), { delay }));
+        all.push(webTween(shade, curve, (v) => ({ opacity: op(v), clipPath: `inset(-12px ${w - lerp(v, [0, 1], [w0, w]) - 12 * v}px -12px -12px)` }), { delay, stops: [0.15] }));
       }
       done.forEach((isDone, di) => {
         if (!isDone) return;
         const run = runs.find((r) => r.a <= di && di <= r.b);
         const reach = run && run.b > run.a && cw > 0 ? ((di - run.a) * cw) / ((run.b - run.a) * cw) : 0;
         const end = Math.max(0.22, reach);
-        all.push(webTween(marks.current[di], curve, (v) => ({ opacity: lerp(v, [end - 0.1, end], [0, 1], true) }), { delay }));
+        all.push(webTween(marks.current[di], curve, (v) => ({ opacity: lerp(v, [end - 0.1, end], [0, 1], true) }), { delay, stops: [end - 0.1, end] }));
       });
       return () => all.forEach((x) => x?.anim.cancel());
     }

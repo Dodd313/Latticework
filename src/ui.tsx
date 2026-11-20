@@ -765,7 +765,7 @@ export function Ring({ value, size = 148, stroke = 12, color, track, children, d
       from.current = target;
       const arc = (box.current as HTMLElement | null)?.querySelectorAll?.('circle')[1];
       if (motionOff() || !arc || start === target) return;
-      const tw = webTween(arc, { duration, easing: EASE_OUT }, (x) => ({ strokeDashoffset: String(C * (1 - x)), opacity: x > 0 ? 1 : 0 }), { from: start, to: target, delay });
+      const tw = webTween(arc, { duration, easing: EASE_OUT }, (x) => ({ strokeDashoffset: String(C * (1 - x)), opacity: x > 0 ? 1 : 0 }), { from: start, to: target, delay, stops: [start + (target - start) * 0.001] });
       return () => tw?.anim.cancel();
     }
     if (motionOff()) {

@@ -111,8 +111,8 @@ function springSamples(c: SpringCfg, from: number, to: number): number[] {
 /** 움직임 한 가지: 시간과 곡선(timing) 또는 스프링 이름이나 값(spring). */
 export type Curve = { duration: number; easing?: (x: number) => number } | { spring: SpringName | SpringCfg };
 
-/** 브라우저 움직임 하나와, 그 움직임이 지나는 값들(중간에 끊을 때 지금 값을 알아내는 데 쓴다). */
-export type Tween = { anim: Animation; values: number[]; from: number; to: number };
+/** 브라우저 움직임 하나와, 그 움직임이 1/60초마다 지나는 값들(중간에 끊을 때 지금 값을 알아내는 데 쓴다). */
+export type Tween = { anim: Animation; values: number[]; duration: number; delay: number; from: number; to: number };
 
 function samplesOf(curve: Curve, from: number, to: number): { values: number[]; duration: number } {
   if ('spring' in curve) {
@@ -136,23 +136,58 @@ function elOf(target: Target): HTMLElement | null {
   return el && typeof el.animate === 'function' ? el : null;
 }
 
+// CSS linear() 곡선을 쓸 수 있는지(Chrome 113+, Safari 17.2+). 못 쓰면 장면을 1/60초마다 하나씩 만든다.
+let linearOk: boolean | null = null;
+function canLinear(): boolean {
+  if (linearOk == null) {
+    try {
+      linearOk = !!(globalThis as any).CSS?.supports?.('animation-timing-function', 'linear(0, 0.5 50%, 1)');
+    } catch {
+      linearOk = false;
+    }
+  }
+  return linearOk;
+}
+
 /**
- * 웹 전용: 값 v 를 from 에서 to 로 curve 대로 옮기는 움직임을, frame(v) 로 만든 장면들로 브라우저에 맡긴다.
- * Animated 와 같은 곡선과 같은 interpolate 결과를 1/60초 간격으로 미리 계산해 두므로 모양은 같고,
- * 움직이는 동안 JavaScript 와 React 는 일하지 않는다. 웹이 아니거나 요소가 없으면 null.
- * fill 기본값 'backwards': 기다리는 동안(delay)은 첫 장면을 보이고, 끝나면 React 가 그린 모습(끝 상태)으로 돌아간다.
+ * 웹 전용: 값 v 를 from 에서 to 로 curve 대로 옮기는 움직임을 브라우저에 맡긴다. 웹이 아니거나 요소가 없으면 null.
+ * frame(v) 는 v 일 때의 모습(CSS)이다. frame 은 v 에 대해 직선이어야 하고, 꺾이는 곳(Animated interpolate 의
+ * inputRange 중간 값)은 stops 로 알려 준다. 곡선(Animated 와 같은 식으로 1/60초마다 계산한 값)은 CSS linear() 로 넘기므로
+ * 움직이는 동안 JavaScript 와 React 는 일하지 않고, 장면도 몇 개만 만든다. 범위를 넘는 값(스프링이 지나쳐 가는 곳)은
+ * 브라우저가 양 끝 구간을 그대로 늘려 계산한다(Animated interpolate 의 기본과 같다).
+ * fill 기본값 'backwards': 기다리는 동안(delay)은 첫 모습을 보이고, 끝나면 React 가 그린 모습(끝 상태)으로 돌아간다.
  */
-export function webTween(target: Target, curve: Curve, frame: (v: number) => Keyframe, opts: { from?: number; to?: number; delay?: number; fill?: FillMode; iterations?: number } = {}): Tween | null {
+export function webTween(
+  target: Target,
+  curve: Curve,
+  frame: (v: number) => Keyframe,
+  opts: { from?: number; to?: number; delay?: number; fill?: FillMode; iterations?: number; stops?: readonly number[] } = {},
+): Tween | null {
   if (!WEB) return null;
   const el = elOf(target);
   if (!el) return null;
   const from = opts.from ?? 0;
   const to = opts.to ?? 1;
+  const delay = opts.delay ?? 0;
   const { values, duration } = samplesOf(curve, from, to);
-  const last = values.length - 1;
-  const frames = values.map((v, i) => ({ ...frame(v), offset: i / last }));
-  const anim = el.animate(frames, { duration, delay: opts.delay ?? 0, easing: 'linear', fill: opts.fill ?? 'backwards', iterations: opts.iterations ?? 1 });
-  return { anim, values, from, to };
+  const timing: KeyframeAnimationOptions = { duration, delay, fill: opts.fill ?? 'backwards', iterations: opts.iterations ?? 1 };
+  let anim: Animation;
+  if (from !== to && canLinear()) {
+    const span = to - from;
+    const p = (v: number) => (v - from) / span;
+    const pts = [from, ...(opts.stops ?? []).filter((b) => p(b) > 0 && p(b) < 1), to].sort((a, b) => p(a) - p(b));
+    const frames = pts.map((v) => ({ ...frame(v), offset: p(v) }));
+    const r = (x: number) => Math.round(x * 10000) / 10000;
+    const easing = `linear(${values.map((v) => r(p(v))).join(', ')})`;
+    anim = el.animate(frames, { ...timing, easing });
+  } else {
+    const last = values.length - 1;
+    anim = el.animate(
+      values.map((v, i) => ({ ...frame(v), offset: i / last })),
+      { ...timing, easing: 'linear' },
+    );
+  }
+  return { anim, values, duration, delay, from, to };
 }
 
 /** 움직임이 지금 지나고 있는 값. 아직 기다리는 중이면 시작 값, 끝났거나 없으면 끝 값(없으면 rest). */
@@ -160,9 +195,9 @@ export function tweenValue(tw: Tween | null | undefined, rest: number): number {
   if (!tw) return rest;
   const { anim, values } = tw;
   if (anim.playState === 'finished' || anim.playState === 'idle') return tw.to;
-  const p = anim.effect?.getComputedTiming().progress;
-  if (p == null) return tw.from;
-  const x = p * (values.length - 1);
+  const t = typeof anim.currentTime === 'number' ? anim.currentTime : Number(anim.currentTime ?? 0);
+  const k = Math.max(0, Math.min(1, (t - tw.delay) / tw.duration));
+  const x = k * (values.length - 1);
   const i = Math.min(values.length - 2, Math.floor(x));
   return values[i] + (values[i + 1] - values[i]) * (x - i);
 }
@@ -181,7 +216,7 @@ export function origami(tension: number, friction: number): SpringCfg {
 
 /** 웹 전용: 옆으로 흔들기(translateX). input/output 은 Animated interpolate 와 같은 표. */
 export function webShake(target: Target, input: readonly number[], output: readonly number[], duration: number, easing: (x: number) => number): Tween | null {
-  return webTween(target, { duration, easing }, (v) => ({ transform: `translateX(${lerp(v, input, output)}px)` }));
+  return webTween(target, { duration, easing }, (v) => ({ transform: `translateX(${lerp(v, input, output)}px)` }), { stops: input });
 }
 
 /** Toss 스프링으로 값을 옮긴다. 동작 줄이기가 켜져 있으면 바로 끝 값으로 둔다. */

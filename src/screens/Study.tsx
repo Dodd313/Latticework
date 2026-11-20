@@ -99,7 +99,7 @@ function EnterWeb({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale =
   const ref = useRef<any>(null);
   useLayoutEffect(() => {
     if (motionOff()) return;
-    const tw = webTween(ref, { duration, easing }, (v) => ({ opacity: lerp(v, [0, 0.4, 1], [0, 1, 1], true), transform: `translateY(${y * (1 - v)}px) scale(${scale + (1 - scale) * v})` }), { delay });
+    const tw = webTween(ref, { duration, easing }, (v) => ({ opacity: lerp(v, [0, 0.4, 1], [0, 1, 1], true), transform: `translateY(${y * (1 - v)}px) scale(${scale + (1 - scale) * v})` }), { delay, stops: [0.4] });
     return () => tw?.anim.cancel();
   }, []);
   return (
@@ -150,11 +150,11 @@ function TileFxWeb({ shake, pop, children, style }: TileFxProps) {
   const ref = useRef<any>(null);
   useLayoutEffect(() => {
     if (!shake || motionOff()) return;
-    webTween(ref, { duration: 380, easing: Easing.out(Easing.quad) }, (v) => ({ transform: `translateX(${lerp(v, TILE_SHAKE[0], TILE_SHAKE[1])}px)` }));
+    webTween(ref, { duration: 380, easing: Easing.out(Easing.quad) }, (v) => ({ transform: `translateX(${lerp(v, TILE_SHAKE[0], TILE_SHAKE[1])}px)` }), { stops: TILE_SHAKE[0] });
   }, [shake]);
   useLayoutEffect(() => {
     if (!pop || motionOff()) return;
-    webTween(ref, { duration: 320, easing: EASE_OUT }, (v) => ({ transform: `scale(${lerp(v, TILE_POP[0], TILE_POP[1])})` }));
+    webTween(ref, { duration: 320, easing: EASE_OUT }, (v) => ({ transform: `scale(${lerp(v, TILE_POP[0], TILE_POP[1])})` }), { stops: TILE_POP[0] });
   }, [pop]);
   return (
     <View ref={ref} style={style}>
@@ -242,7 +242,7 @@ function FlyXp({ amount, onDone }: { amount: number; onDone: () => void }) {
           opacity: lerp(x, FLY_STOPS, [0, 1, 1, 0]),
           transform: `translateY(${lerp(x, FLY_STOPS, [36, 20, -6, -30])}px) translateX(${lerp(x, [0, 0.62, 1], [-40, -16, 0])}px) scale(${lerp(x, FLY_STOPS, [0.3, 1, 0.95, 0.5])})`,
         }),
-        { delay: 180, fill: 'both' },
+        { delay: 180, fill: 'both', stops: FLY_STOPS },
       );
       if (!tw) {
         onDone();
