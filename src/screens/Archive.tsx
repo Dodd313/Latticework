@@ -22,18 +22,6 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Legend({ status, label }: { status: DayStatus; label: string }) {
-  const t = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <DayMark status={status} label="" size={14} />
-      <T s={12} c={t.sub}>
-        {label}
-      </T>
-    </View>
-  );
-}
-
 function Calendar({ month, statusOf, onPrev, onNext, canPrev, canNext }: { month: string; statusOf: (date: string) => DayStatus; onPrev: () => void; onNext: () => void; canPrev: boolean; canNext: boolean }) {
   const t = useTheme();
   const today = todayKST();
@@ -70,12 +58,6 @@ function Calendar({ month, statusOf, onPrev, onNext, canPrev, canNext }: { month
             ))}
           </View>
         ))}
-      </View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingTop: 8 }}>
-        <Legend status="done" label="달성" />
-        <Legend status="late" label="늦게 읽음" />
-        <Legend status="missed" label="미달성" />
-        <Legend status="pending" label="오늘" />
       </View>
     </View>
   );
@@ -130,7 +112,7 @@ export function ArchiveScreen() {
               accessibilityLabel="기사 검색"
               value={q}
               onChangeText={setQ}
-              placeholder="기사 제목 검색"
+              placeholder=""
               placeholderTextColor={t.mute}
               style={[{ flex: 1, height: 44, fontFamily: FONT_SANS, fontSize: 16, color: t.ink }, { outlineStyle: 'none' } as any]}
             />
@@ -142,9 +124,8 @@ export function ArchiveScreen() {
           ) : (
             groups.map((g, gi) => (
               <Rise key={g.date} trigger={`${shown}-${needle}`} delay={60 + gi * 50} style={{ gap: 2 }}>
-                <T s={12.5} w="700" c={t.sub} mono style={{ paddingTop: 8, letterSpacing: 0.3 }}>
+                <T s={12.5} w="700" c={g.date === today ? t.blue : t.sub} mono style={{ paddingTop: 8, letterSpacing: 0.3 }}>
                   {shortStamp(g.date)}
-                  {g.date === today ? ' · 오늘' : ''}
                 </T>
                 {g.articles.map((a) => (
                   <Tap key={a.id} onPress={() => nav.push({ name: 'article', id: a.id })} label={`${a.title} 열기`} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 56, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: t.lineSoft }}>

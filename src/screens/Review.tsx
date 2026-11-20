@@ -72,15 +72,6 @@ export function Quiz({ review }: { review: Review }) {
                 <T s={15} w="500" style={{ flex: 1 }}>
                   {opt}
                 </T>
-                {isAnswer ? (
-                  <T s={12} w="700" c={t.blue}>
-                    정답
-                  </T>
-                ) : isWrong ? (
-                  <T s={12} w="700" c={t.orange}>
-                    내 답
-                  </T>
-                ) : null}
               </Tap>
             );
           })}
@@ -98,11 +89,7 @@ export function Quiz({ review }: { review: Review }) {
               </Tap>
             ) : null}
           </Rise>
-        ) : (
-          <T s={13} c={t.sub}>
-            답을 선택하면 해설이 표시됩니다.
-          </T>
-        )}
+        ) : null}
       </Card>
       </Rise>
 
@@ -125,10 +112,7 @@ export function Quiz({ review }: { review: Review }) {
       </View>
 
       {allDone ? (
-        <Card style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 0 }}>
-          <T s={14} w="600">
-            이번 주 정답 수
-          </T>
+        <Card style={{ borderRadius: 0 }}>
           <T s={16} w="600" mono>
             {correctCount}/{review.questions.length}
           </T>
@@ -177,7 +161,6 @@ function WeekRecap() {
 
       {inWeek.length > 0 ? (
         <View style={{ paddingTop: 10 }}>
-          <SectionTitle title="이번 주 기사" />
           {inWeek.map((d, di) =>
             d.articles.map((a, ai) => (
               <Rise key={a.id} delay={80 + (di * 2 + ai) * 50}>
@@ -212,18 +195,14 @@ export function ReviewScreen() {
   return (
     <TabScreen title="리뷰" subtitle={weekTitle(days[0]?.date ?? today)} contentStyle={{ gap: 0 }}>
       <WeekRecap />
-      <View style={{ gap: 12, paddingTop: 26 }}>
-        <View style={{ borderTopWidth: 3, borderTopColor: t.rule, paddingTop: 12 }}>
-          <SectionTitle title={review && review.questions.length > 0 ? `주간 퀴즈 · ${review.title}` : '주간 퀴즈'} />
-        </View>
-        {review && review.questions.length > 0 ? (
+      {review && review.questions.length > 0 ? (
+        <View style={{ gap: 12, paddingTop: 26 }}>
+          <View style={{ borderTopWidth: 3, borderTopColor: t.rule, paddingTop: 12 }}>
+            <SectionTitle title={`주간 퀴즈 · ${review.title}`} />
+          </View>
           <Quiz key={review.id} review={review} />
-        ) : (
-          <T s={14} lh={1.6} c={t.sub}>
-            금요일 오전에 한 주간 기사에서 다섯 문항을 출제합니다. 오답 문항은 다음 주에 다시 출제합니다.
-          </T>
-        )}
-      </View>
+        </View>
+      ) : null}
     </TabScreen>
   );
 }

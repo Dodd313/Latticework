@@ -135,7 +135,7 @@ function shuffle<T>(xs: T[], rand: () => number): T[] {
 }
 
 function latQ(c: Concept, x: LatQuestion): Q {
-  const kicker = [c.field, c.name, LEVEL_NAME[x.lv] ?? ''].filter(Boolean).join(' · ');
+  const kicker = [c.field, c.name].filter(Boolean).join(' · ');
   const base = { key: x.id, unit: c.id, sect: 'lat' as Section, type: `lv${x.lv}`, kicker, q: x.q, pre: x.pre };
   if (x.t === 'rc') return { ...base, reveal: x.r ?? '' };
   if (x.t === 'ox') return { ...base, options: ['맞다', '틀리다'], answer: x.a ? 0 : 1, hint: x.h, explain: x.w };
@@ -197,7 +197,6 @@ export function buildLat(data: StudyData, state: StudyState, today: string, now:
 
 const REGISTERS = ['친구끼리', '일반', '격식', '속어'];
 const DECK_NAME: Record<Vocab['deck'], string> = { fin: '금융영어', gen: '일반회화', toeic: '토익 어휘' };
-const VOC_TYPE_NAME: Record<string, string> = { meaning: '뜻 고르기', define: '정의에 맞는 표현', cloze: '빈칸', register: '격식 고르기', recall: '떠올리기' };
 
 function vocTypes(v: Vocab): string[] {
   // 격식 고르기와 우리말에서 떠올리기는 내지 않는다 (2026-11-19 사용자 결정).
@@ -208,7 +207,7 @@ function vocTypes(v: Vocab): string[] {
 
 function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
   const rand = rng(`${seed}:${v.id}:${type}`);
-  const kicker = `${DECK_NAME[v.deck]} · ${VOC_TYPE_NAME[type]}`;
+  const kicker = DECK_NAME[v.deck];
   const base = { key: `${v.id}:${type}`, unit: v.id, sect: 'voc' as Section, type, kicker };
   // 오답 보기: 같은 단어장에서, 되도록 같은 묶음에서 고른다.
   const pool = data.vocab.filter((x) => x.id !== v.id && x.deck === v.deck);

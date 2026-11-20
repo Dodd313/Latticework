@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { addDays, isWeekend, korean, todayKST, weekdaysOf } from '../dates';
+import { addDays, korean, todayKST, weekdaysOf } from '../dates';
 import { Pulse, Rise } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
@@ -21,8 +21,6 @@ function TodayPanel() {
   const left = parts.filter((p) => !p.complete).map((p) => PART_NAME[p.key]);
   const monday = weekdaysOf(today)[0];
 
-  // 설명 문장 없이, 쉬는 날만 짧은 표지를 둔다.
-  const line = parts.length === 0 ? (isWeekend(today) ? '주말 휴간' : '발행 전') : '';
   void left;
   void streak;
 
@@ -47,11 +45,6 @@ function TodayPanel() {
           })}
         </View>
       </View>
-      {line ? (
-        <T s={14} w="500" lh={1.5} c={t.sub}>
-          {line}
-        </T>
-      ) : null}
     </View>
   );
 }
@@ -69,7 +62,7 @@ function SectionRow({ kicker, title, meta, part, onPress, locked }: { kicker: st
           </T>
           {part ? <ReadMark read={complete} /> : null}
         </View>
-        <T serif s={21} w="700" lh={1.4} c={complete ? t.sub : t.ink} role="heading" level={2}>
+        <T serif s={21} w="700" lh={1.4} c={complete || locked ? t.sub : t.ink} role="heading" level={2}>
           {title}
         </T>
         {part && part.total > 1 && !complete && part.done > 0 ? (
@@ -79,16 +72,18 @@ function SectionRow({ kicker, title, meta, part, onPress, locked }: { kicker: st
             ))}
           </View>
         ) : null}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <T s={12.5} c={t.sub} style={{ flex: 1 }}>
-            {meta}
-          </T>
-          {part ? (
-            <T s={12.5} c={t.sub} mono>
-              {part.done}/{part.total}
+        {meta || part ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <T s={12.5} c={t.sub} style={{ flex: 1 }}>
+              {meta}
             </T>
-          ) : null}
-        </View>
+            {part ? (
+              <T s={12.5} c={t.sub} mono>
+                {part.done}/{part.total}
+              </T>
+            ) : null}
+          </View>
+        ) : null}
       </View>
     </Tap>
   );
@@ -120,10 +115,7 @@ function InstallHint() {
   return (
     <Card tone="blue" style={{ gap: 8, marginTop: 14 }}>
       <T s={15} w="600">
-        홈 화면에 추가하면 앱처럼 열립니다
-      </T>
-      <T s={14} c={t.onBlueTint}>
-        사파리 아래의 공유 버튼을 누르고 "홈 화면에 추가"를 고르세요. 주소창 없이 전체 화면으로 열립니다.
+        홈 화면에 추가
       </T>
       <Tap onPress={close} label="안내 닫기" style={{ minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
         <T s={14} w="600" c={t.blue}>
@@ -158,22 +150,17 @@ export function TodayScreen() {
   let newsTitle = '오늘의 주요 뉴스 2건';
   let newsMeta = '';
   if (!todayDay) {
-    newsTitle = day ? '지난 발행분' : '발행 전';
-    newsMeta = isWeekend(today) ? '주말 휴간' : '발행 전';
+    newsTitle = day ? korean(day.date) : '오늘의 주요 뉴스';
   } else if (unread) {
     newsTitle = unread.title;
-    newsMeta = `${unread.source} · 읽는 시간 ${unread.minutes}분`;
+    newsMeta = `${unread.source} · ${unread.minutes}분`;
   } else if (quiz && quizLeft > 0) {
-    newsMeta = quizOpen(today) ? `모두 읽음 · 퀴즈 ${quiz.questions.length - quizLeft}/${quiz.questions.length}` : '모두 읽음 · 퀴즈 18:00';
-  } else {
-    newsMeta = quiz ? '모두 읽음 · 퀴즈 완료' : '모두 읽음';
+    newsMeta = quizOpen(today) ? `${quiz.questions.length - quizLeft}/${quiz.questions.length}` : '18:00';
   }
 
   const rec = study.days[today];
   const vocPart = part('voc');
   const latPart = part('lat');
-  const newCount = studyData ? studyData.vocab.filter((v) => !study.cards[v.id]).length : 0;
-  const fields = studyData ? Array.from(new Set(studyData.concepts.map((c) => c.field).filter(Boolean))).slice(0, 3).join(' · ') : '';
 
   return (
     <TabScreen title="Latticework" subtitle={`${today.slice(0, 4)}년 ${korean(today)}`} meta={`연속 ${goals.streak}일`} right={settings} contentStyle={{ gap: 0 }}>
@@ -197,8 +184,8 @@ export function TodayScreen() {
               <Rise delay={260}>
                 <SectionRow
                   kicker="영단어"
-                  title={vocPart ? (vocPart.complete ? '완료' : `오늘의 표현 ${vocPart.total}개`) : '복습 없음'}
-                  meta={vocPart && !vocPart.complete ? `토익 어휘 · 일반회화 · 금융영어 · 새 표현 ${newCount}개` : '더 풀기'}
+                  title={vocPart ? `오늘의 표현 ${vocPart.total}개` : '오늘의 표현'}
+                  meta=""
                   part={vocPart}
                   onPress={() => nav.push({ name: 'study', sect: 'voc' })}
                 />
@@ -206,8 +193,8 @@ export function TodayScreen() {
               <Rise delay={360}>
                 <SectionRow
                   kicker="Latticework"
-                  title={latPart?.complete ? '완료' : `오늘의 ${rec?.latGoal ?? 5}문제`}
-                  meta={latPart?.complete ? '더 풀기' : `${fields} · 개념 ${studyData.concepts.length}개`}
+                  title={`오늘의 ${rec?.latGoal ?? 5}문제`}
+                  meta=""
                   part={latPart}
                   onPress={() => nav.push({ name: 'study', sect: 'lat' })}
                 />
@@ -217,9 +204,11 @@ export function TodayScreen() {
               </T>
             </>
           ) : STANDALONE ? (
-            <T s={13} c={t.sub} style={{ paddingTop: 14 }}>
-              복습 자료를 받는 중입니다.
-            </T>
+            <Pulse style={{ gap: 12, paddingVertical: 24 }}>
+              <View style={{ width: 96, height: 12, backgroundColor: t.chip }} />
+              <View style={{ height: 26, backgroundColor: t.chip }} />
+              <View style={{ width: '72%', height: 26, backgroundColor: t.chip }} />
+            </Pulse>
           ) : null}
         </>
       )}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
-import { isWeekend, korean, todayKST } from '../dates';
+import { korean, todayKST } from '../dates';
 import { Rise } from '../motion';
 import { BackBar, useNav } from '../nav';
 import { useStore } from '../store';
@@ -23,7 +23,7 @@ function Story({ a, read, lead }: { a: Article; read: boolean; lead: boolean }) 
         </T>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <T s={12.5} c={t.sub}>
-            {a.source} · 읽는 시간 {a.minutes}분
+            {a.source} · {a.minutes}분
           </T>
           <ReadMark read={read} />
         </View>
@@ -52,7 +52,7 @@ function QuizRow({ day }: { day: Day }) {
     : !open
       ? `${QUIZ_OPEN_HOUR}:00`
       : unread > 0
-        ? `읽은 기사 ${day.articles.length - unread}/${day.articles.length}`
+        ? `${day.articles.length - unread}/${day.articles.length}`
         : `${answered}/${total}`;
   return (
     <Tap onPress={() => nav.push({ name: 'quiz', date: day.date })} disabled={!ready && !done} label="저녁 퀴즈 풀기">
@@ -79,7 +79,6 @@ export function NewsScreen() {
   const { days, user } = useStore();
   const today = todayKST();
   const day = days[0];
-  const stale = day && day.date !== today;
   return (
     <View style={{ flex: 1, backgroundColor: t.ground }}>
       <BackBar label="오늘" />
@@ -91,11 +90,6 @@ export function NewsScreen() {
           <T serif s={26} w="700" lh={1.35} role="heading" level={1}>
             오늘의 주요 뉴스
           </T>
-          {stale ? (
-            <T s={13} c={t.sub}>
-              {isWeekend(today) ? '주말 휴간' : '발행 전'} · 지난 발행분
-            </T>
-          ) : null}
         </View>
         {!day ? (
           <EmptyState title="기사 없음" />

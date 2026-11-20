@@ -6,7 +6,7 @@ import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
 import { Article, ArticleLink } from '../types';
-import { ExtLink, Icon, SectionTitle, T, Tap } from '../ui';
+import { ExtLink, Icon, T, Tap } from '../ui';
 
 const STANDALONE_PAD: any = BOTTOM_PAD === 8 ? 12 : 'calc(12px + env(safe-area-inset-bottom, 0px))';
 
@@ -17,7 +17,7 @@ function LinkCard({ link }: { link: ArticleLink }) {
     <View style={{ gap: 8, paddingVertical: 16, borderTopWidth: 1, borderTopColor: t.line }}>
       {link.refDate ? (
         <T s={12.5} c={t.sub} mono>
-          {monthDay(link.refDate)} 보도
+          {monthDay(link.refDate)}
         </T>
       ) : null}
       {link.refTitle ? (
@@ -71,17 +71,16 @@ function Body({ a }: { a: Article }) {
           </T>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: t.rule }}>
             <T s={12.5} c={t.sub}>
-              출처 {a.source}
+              {a.source}
             </T>
             <T s={12.5} c={t.sub} mono>
-              {a.date.replace(/-/g, '.')} · 읽는 시간 {a.minutes}분
+              {a.date.replace(/-/g, '.')} · {a.minutes}분
             </T>
           </View>
         </Rise>
 
         {a.summary.length > 0 ? (
           <Rise delay={180} style={{ gap: 14, paddingVertical: 18, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
-            <SectionTitle title="핵심 요약" />
             <View style={{ gap: 12 }}>
               {a.summary.map((line, i) => (
                 <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
@@ -109,9 +108,6 @@ function Body({ a }: { a: Article }) {
 
         {past.length > 0 ? (
           <View>
-            <View style={{ paddingBottom: 14 }}>
-              <SectionTitle title="관련 기사" />
-            </View>
             {past.map((link, i) => (
               <LinkCard key={i} link={link} />
             ))}
@@ -153,7 +149,7 @@ export function ArticleScreen({ id }: { id: string }) {
       ) : (
         <View style={{ padding: 22 }}>
           <T s={15} c={t.sub}>
-            기사를 찾을 수 없습니다.
+            기사 없음
           </T>
         </View>
       )}

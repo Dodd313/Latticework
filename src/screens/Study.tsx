@@ -114,7 +114,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
     open(0, list);
   };
 
-  const position = q ? (q.retry ? '다시 풀기' : `${queue.slice(0, at + 1).filter((x) => !x.retry).length} / ${firstRun}`) : '';
+  const position = q ? (q.retry ? '' : `${queue.slice(0, at + 1).filter((x) => !x.retry).length} / ${firstRun}`) : '';
   const settled = phase === 'right' || phase === 'wrong';
 
   return (
@@ -139,7 +139,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
       {!studyData ? (
         <View style={{ padding: 22 }}>
           <T s={15} c={t.sub} lh={1.6}>
-            복습 자료를 받지 못했습니다. 인터넷에 연결한 뒤 다시 열어 주세요.
+            오프라인
           </T>
         </View>
       ) : finished ? (
@@ -149,13 +149,15 @@ export function StudyScreen({ sect }: { sect: Section }) {
               <T s={13} w="700" c={t.sub} style={{ letterSpacing: 0.4 }}>
                 {SECT_NAME[sect]}
               </T>
-              <T serif s={28} w="700" lh={1.35}>
-                {exhausted ? '남은 문제 없음' : extra ? '더 풀기 완료' : '학습 완료'}
-              </T>
               {tally.total > 0 ? (
-                <T s={15} lh={1.6} c={t.deck}>
-                  정답 {tally.right}/{tally.total} · 경험치 +{tally.xp}
-                </T>
+                <>
+                  <T serif s={28} w="700" lh={1.35}>
+                    {tally.right}/{tally.total}
+                  </T>
+                  <T s={15} lh={1.6} c={t.deck}>
+                    경험치 +{tally.xp}
+                  </T>
+                </>
               ) : null}
               <T s={13} c={t.sub}>
                 레벨 {levelOf(study.xp)} · 누적 경험치 {study.xp}점
@@ -222,48 +224,27 @@ export function StudyScreen({ sect }: { sect: Section }) {
             ) : null}
 
             {phase === 'hint' && q.hint ? (
-              <Rise y={8} style={{ gap: 6 }}>
-                <T s={12.5} w="700" c={t.orange} style={{ letterSpacing: 0.3 }}>
-                  힌트
-                </T>
+              <Rise y={8} style={{ borderLeftWidth: 3, borderLeftColor: t.orange, paddingLeft: 12 }}>
                 <Rich s={15} lh={1.65}>
                   {q.hint}
                 </Rich>
               </Rise>
             ) : null}
-            {phase === 'hint' && !q.hint ? (
-              <T s={14} c={t.orange}>
-                다시 골라 보세요.
-              </T>
-            ) : null}
 
-            {settled ? (
-              <Rise y={8} style={{ gap: 6 }}>
-                <T s={12.5} w="700" c={phase === 'right' ? t.green : t.orange} style={{ letterSpacing: 0.3 }}>
-                  {phase === 'right' ? (attempts === 1 ? '정답' : '두 번째에 정답') : '오답'}
-                </T>
-                {q.explain ? (
-                  <Rich s={15} lh={1.7} c={t.deck}>
-                    {q.explain}
-                  </Rich>
-                ) : null}
+            {settled && q.explain ? (
+              <Rise y={8}>
+                <Rich s={15} lh={1.7} c={t.deck}>
+                  {q.explain}
+                </Rich>
               </Rise>
             ) : null}
 
             {phase === 'grade' ? (
-              <Rise y={8} style={{ gap: 8, paddingVertical: 16, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
-                <T s={12.5} w="700" style={{ letterSpacing: 0.4 }}>
-                  기준 답
-                </T>
+              <Rise y={8} style={{ paddingVertical: 16, borderTopWidth: 3, borderTopColor: t.rule, borderBottomWidth: 1, borderBottomColor: t.rule }}>
                 <Rich serif s={16.5} lh={1.8} c={t.bodyInk}>
                   {q.reveal}
                 </Rich>
               </Rise>
-            ) : null}
-            {phase === 'think' ? (
-              <T s={14} lh={1.6} c={t.sub}>
-                머릿속으로 답을 말해 본 뒤 기준 답과 견줘 보세요.
-              </T>
             ) : null}
           </ScrollView>
 

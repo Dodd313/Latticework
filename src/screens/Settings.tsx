@@ -14,7 +14,7 @@ const MARKETS: { id: Market; label: string }[] = [
   { id: 'us', label: '미국 중심' },
 ];
 
-function Group({ title, children, foot }: { title: string; children: React.ReactNode; foot?: string }) {
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
   const t = useTheme();
   return (
     <View style={{ gap: 6 }}>
@@ -22,11 +22,6 @@ function Group({ title, children, foot }: { title: string; children: React.React
         {title}
       </T>
       {children}
-      {foot ? (
-        <T s={13} c={t.sub} style={{ paddingHorizontal: 0 }}>
-          {foot}
-        </T>
-      ) : null}
     </View>
   );
 }
@@ -56,15 +51,12 @@ export function SettingsScreen() {
       if (Platform.OS === 'web') await (globalThis as any).navigator.clipboard.writeText(json);
       setNote('복사됨');
     } catch {
-      setNote('길게 눌러 복사');
+      setNote('');
     }
   };
 
   const doImport = () => {
-    if (box.trim() === '') {
-      setNote('붙여 넣을 내용 없음');
-      return;
-    }
+    if (box.trim() === '') return;
     setNote(importData(box) ? '가져옴' : '형식 오류');
   };
 
@@ -95,15 +87,7 @@ export function SettingsScreen() {
         </Group>
         )}
 
-        <Group title="알림">
-          <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
-            <Row label="발행 알림" value="평일 오전 7:15 전후" />
-            <Divider />
-            <Row label="주말" value="휴간" />
-          </Card>
-        </Group>
-
-        <Group title="열람 기록" foot="기기를 바꿀 때 사용합니다. 내보낸 내용을 붙여 넣고 가져오기를 누르면 기존 기록과 병합됩니다.">
+        <Group title="열람 기록">
           <Card style={{ paddingVertical: 0, borderRadius: 0 }}>
             <Row label="읽은 기사" value={`${readCount}건`} />
             <Divider />
@@ -115,7 +99,7 @@ export function SettingsScreen() {
                 내보내기
               </T>
             </Tap>
-            <Tap onPress={doImport} label="기록 가져오기" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
+            <Tap onPress={doImport} disabled={box.trim() === ''} label="기록 가져오기" style={{ flex: 1, height: 48, borderRadius: 0, borderWidth: 1, borderColor: t.line, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center' }}>
               <T s={15} w="600">
                 가져오기
               </T>
@@ -132,8 +116,6 @@ export function SettingsScreen() {
             value={box}
             onChangeText={setBox}
             multiline
-            placeholder="가져올 기록을 여기에 붙여 넣습니다"
-            placeholderTextColor={t.mute}
             style={{ minHeight: 96, maxHeight: 180, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 0, padding: 12, fontFamily: FONT_MONO, fontSize: 12, lineHeight: 18, color: t.ink, textAlignVertical: 'top' }}
           />
         </Group>
