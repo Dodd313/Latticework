@@ -48,11 +48,14 @@ function WeekRow({ id, week, width, row, statusOf, extraOf, today }: { id: strin
   const runs = runsOf(done);
   const cw = width / 7;
   const grow = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
+  // 한 달을 처음 그릴 때 한 번만 그어진다. 탭을 오가거나 다시 그려져도 반복하지 않는다(달을 바꾸면 줄이 새로 생겨 다시 그어진다).
+  const played = useRef(false);
   useEffect(() => {
-    if (width <= 0 || motionOff()) return;
-    grow.setValue(0);
+    if (width <= 0 || played.current) return;
+    played.current = true;
+    if (motionOff()) return grow.setValue(1);
     Animated.timing(grow, { toValue: 1, duration: 560, delay: 60 + row * 110, easing: Easing.bezier(0.65, 0, 0.35, 1), useNativeDriver: false }).start();
-  }, [id, width > 0]);
+  }, [width > 0]);
   return (
     <View style={{ height: 40, flexDirection: 'row' }}>
       {width > 0
@@ -74,7 +77,7 @@ function WeekRow({ id, week, width, row, statusOf, extraOf, today }: { id: strin
                       })}
                     </LinearGradient>
                     <LinearGradient id={`${gid}-s`} x1="0" y1="0" x2="0" y2="1">
-                      <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.35} />
+                      <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.22} />
                       <Stop offset="0.55" stopColor="#FFFFFF" stopOpacity={0} />
                     </LinearGradient>
                   </Defs>
@@ -93,7 +96,9 @@ function WeekRow({ id, week, width, row, statusOf, extraOf, today }: { id: strin
         // 칠한 날의 숫자는 띠가 그 날에 닿는 순간 나타난다. 흰 숫자가 띠보다 먼저 보이지 않게.
         const run = isDone ? runs.find((r) => r.a <= di && di <= r.b) : undefined;
         const reach = run && run.b > run.a && cw > 0 ? ((di - run.a) * cw) / ((run.b - run.a) * cw) : 0;
-        const show = isDone ? grow.interpolate({ inputRange: [Math.max(0, reach - 0.12), Math.max(0.01, reach)], outputRange: [0, 1], extrapolate: 'clamp' }) : 1;
+        // 띠가 보이기 시작하는 구간(0~0.15)이 지난 뒤에만 숫자가 나타난다.
+        const end = Math.max(0.22, reach);
+        const show = isDone ? grow.interpolate({ inputRange: [end - 0.1, end], outputRange: [0, 1], extrapolate: 'clamp' }) : 1;
         return (
           <View key={di} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <Animated.View style={{ width: MARK, height: MARK, borderRadius: MARK / 2, alignItems: 'center', justifyContent: 'center', borderWidth: ring ? 2 : 0, borderColor: HEAT_RING, opacity: show }}>
@@ -135,7 +140,14 @@ function Calendar({ month, statusOf, extraOf, onPrev, onNext, canPrev, canNext }
           </View>
         ))}
       </View>
-      <View style={{ gap: 2 }} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      <View
+        style={{ gap: 2 }}
+        onLayout={(e) => {
+          // 탭이 가려질 때 폭이 0 으로 보고되므로 무시한다. 그래야 띠가 사라졌다 다시 그어지지 않는다.
+          const w = e.nativeEvent.layout.width;
+          if (w > 0) setWidth(w);
+        }}
+      >
         {weeks.map((week, wi) => (
           <WeekRow key={`${month}-${wi}`} id={`${month}-${wi}`} week={week} width={width} row={wi} statusOf={statusOf} extraOf={extraOf} today={today} />
         ))}

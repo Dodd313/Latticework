@@ -33,9 +33,23 @@ export function heatColor(extra: number): string {
   return hex(mix(extra));
 }
 
-/** 칠한 칸 위 글자색. 밝은 노랑 위에서는 흰 글자가 안 보여 어두운 글자를 쓴다. */
+const DARK: [number, number, number] = [0, 12, 30];
+const DARK_ALPHA = 0.82;
+const lum = (c: [number, number, number]) => {
+  const l = c.map((v) => {
+    const x = v / 255;
+    return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+};
+const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/** 칠한 칸 위 글자색. 흰 글자와 어두운 글자 중 대비가 더 큰 쪽을 고른다. 노랑과 주황 위에서는 어두운 글자가 된다. */
 export function heatInk(extra: number): string {
-  return Math.min(1, extra / HEAT_FULL) < 0.22 ? 'rgba(0,12,30,0.82)' : '#FFFFFF';
+  const fill = mix(extra);
+  const dark = fill.map((v, j) => v * (1 - DARK_ALPHA) + DARK[j] * DARK_ALPHA) as [number, number, number];
+  const lf = lum(fill);
+  return ratio(lf, 1) > ratio(lf, lum(dark)) ? '#FFFFFF' : 'rgba(0,12,30,0.82)';
 }
 
 /** 오늘 아직 마치지 못했을 때의 테두리 */

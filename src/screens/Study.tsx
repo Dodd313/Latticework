@@ -70,7 +70,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
 
   const settle = (grade: 1 | 2 | 3, ok: boolean, tries: number): Q[] => {
     if (!q) return queue;
-    recordStudy(q, { ok, attempts: tries, sec: (Date.now() - shownAt.current) / 1000, grade, counts: !q.retry && !extra, extra: !q.retry && extra });
+    recordStudy(q, { ok, attempts: tries, sec: (Date.now() - shownAt.current) / 1000, grade });
     if (!q.retry) setTally((s) => ({ right: s.right + (grade === 3 ? 1 : 0), total: s.total + 1, xp: s.xp + xpFor(grade) }));
     // 틀린 문제는 세션 끝에 한 번 더 낸다.
     if (grade === 1 && !q.retry) {

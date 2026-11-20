@@ -95,7 +95,7 @@ type Store = {
   studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
-  recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean; extra?: boolean }) => void;
+  recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
 };
@@ -381,15 +381,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLocal(STUDY_KEY, next);
   }, [studyData, todayStr]);
 
-  const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean; extra?: boolean }) => {
+  const studyDataRef = useRef(studyData);
+  studyDataRef.current = studyData;
+  const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => {
     const cur = studyRef.current;
     const now = new Date();
     const today = todayKST();
     const cards = { ...cur.cards };
     // 틀려서 다시 나온 문제는 기억 상태를 또 바꾸지 않는다.
     if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type);
-    const day = { ...(cur.days[today] ?? { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 }) };
-    if (result.counts) {
+    // 그날 기록이 아직 없으면(자정을 넘겨 푼 경우 등) 아침에 정하는 것과 같은 방식으로 목표를 정한다.
+    const sd = studyDataRef.current;
+    const day = { ...(cur.days[today] ?? { lat: 0, voc: 0, latGoal: sd && sd.questions.length === 0 ? 0 : LAT_GOAL, vocGoal: sd ? vocGoalFor(sd, cur, today, now) : 0 }) };
+    // 할당량인지 더 푼 것인지는 답을 저장하는 순간, 그날 기록을 보고 정한다. 다시 나온 문제는 어느 쪽에도 세지 않는다.
+    const counts = !q.retry && (q.sect === 'lat' ? day.lat < day.latGoal : day.voc < day.vocGoal);
+    const extra = !q.retry && !counts;
+    if (counts) {
       if (q.sect === 'lat') {
         day.lat += 1;
         if (!day.latDoneAt && day.lat >= day.latGoal) day.latDoneAt = now.toISOString();
@@ -397,7 +404,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         day.voc += 1;
         if (!day.vocDoneAt && day.voc >= day.vocGoal) day.vocDoneAt = now.toISOString();
       }
-    } else if (result.extra) {
+    } else if (extra) {
       // 할당량을 넘겨 더 푼 문제. 달력의 색 짙기에 쓴다.
       day.extra = (day.extra ?? 0) + 1;
     }
