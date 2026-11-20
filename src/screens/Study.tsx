@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { cheerCorrect, cheerFinish, cheerLevel, cheerWrong, seedOf } from '../cheer';
 import { todayKST } from '../dates';
-import { EASE_OUT, NATIVE_DRIVER, Rise, motionOff, spring, useCount } from '../motion';
+import { Count, EASE_OUT, MView, NATIVE_DRIVER, Rise, Tween, WEB, lerp, motionOff, spring, tweenStop, webTween } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
 import { LAT_GOAL, Q, Section, buildLat, buildVoc, levelOf, xpFor } from '../study';
@@ -32,7 +32,8 @@ const GLYPH = ['○', '✕'];
 // ─────────────────────────────────────────────────────────────
 
 /** 오른쪽에서 32 밀려 들어온다(Toss quick 스프링). */
-function SlideIn({ delay, children, style }: { delay: number; children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+type SlideInProps = { delay: number; children: React.ReactNode; style?: StyleProp<ViewStyle> };
+function SlideInNative({ delay, children, style }: SlideInProps) {
   const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
   useEffect(() => {
     const a = spring(v, 1, 'quick', { delay });
@@ -53,9 +54,26 @@ function SlideIn({ delay, children, style }: { delay: number; children: React.Re
     </Animated.View>
   );
 }
+const slideIn = (v: number) => ({ opacity: Math.max(0, Math.min(1, v)), transform: `translateX(${32 * (1 - v)}px)` });
+/** 웹: 같은 스프링을 미리 계산해 브라우저에 맡긴다. 그리기 전에 걸어 첫 장면부터 제자리 밖에 있다. */
+function SlideInWeb({ delay, children, style }: SlideInProps) {
+  const ref = useRef<any>(null);
+  useLayoutEffect(() => {
+    if (motionOff()) return;
+    const tw = webTween(ref, { spring: 'quick' }, slideIn, { delay });
+    return () => tw?.anim.cancel();
+  }, []);
+  return (
+    <View ref={ref} style={style}>
+      {children}
+    </View>
+  );
+}
+const SlideIn = WEB ? SlideInWeb : SlideInNative;
 
 /** 열릴 때 한 번: 투명에서 나타나며 y 만큼 올라오고 scale 에서 1 로. */
-function Enter({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale = 1, children, style }: { delay?: number; duration?: number; easing?: (x: number) => number; y?: number; scale?: number; children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+type EnterProps = { delay?: number; duration?: number; easing?: (x: number) => number; y?: number; scale?: number; children: React.ReactNode; style?: StyleProp<ViewStyle> };
+function EnterNative({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale = 1, children, style }: EnterProps) {
   const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
   useEffect(() => {
     if (motionOff()) return;
@@ -77,9 +95,32 @@ function Enter({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale = 1,
     </Animated.View>
   );
 }
+function EnterWeb({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale = 1, children, style }: EnterProps) {
+  const ref = useRef<any>(null);
+  useLayoutEffect(() => {
+    if (motionOff()) return;
+    const tw = webTween(ref, { duration, easing }, (v) => ({ opacity: lerp(v, [0, 0.4, 1], [0, 1, 1], true), transform: `translateY(${y * (1 - v)}px) scale(${scale + (1 - scale) * v})` }), { delay });
+    return () => tw?.anim.cancel();
+  }, []);
+  return (
+    <View ref={ref} style={style}>
+      {children}
+    </View>
+  );
+}
+const Enter = WEB ? EnterWeb : EnterNative;
 
 /** 선택지 하나의 반응: 틀리면 옆으로 흔들리고, 맞으면 1.03 배로 한 번 커진다. */
-function TileFx({ shake, pop, children, style }: { shake: number; pop: number; children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+const TILE_SHAKE: [number[], number[]] = [
+  [0, 0.2, 0.4, 0.6, 0.8, 1],
+  [0, -8, 7, -4, 2, 0],
+];
+const TILE_POP: [number[], number[]] = [
+  [0, 0.35, 1],
+  [1, 1.03, 1],
+];
+type TileFxProps = { shake: number; pop: number; children: React.ReactNode; style?: StyleProp<ViewStyle> };
+function TileFxNative({ shake, pop, children, style }: TileFxProps) {
   const sx = useRef(new Animated.Value(0)).current;
   const sc = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -97,10 +138,7 @@ function TileFx({ shake, pop, children, style }: { shake: number; pop: number; c
       style={[
         style,
         {
-          transform: [
-            { translateX: sx.interpolate({ inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1], outputRange: [0, -8, 7, -4, 2, 0] }) },
-            { scale: sc.interpolate({ inputRange: [0, 0.35, 1], outputRange: [1, 1.03, 1] }) },
-          ],
+          transform: [{ translateX: sx.interpolate({ inputRange: TILE_SHAKE[0], outputRange: TILE_SHAKE[1] }) }, { scale: sc.interpolate({ inputRange: TILE_POP[0], outputRange: TILE_POP[1] }) }],
         },
       ]}
     >
@@ -108,9 +146,26 @@ function TileFx({ shake, pop, children, style }: { shake: number; pop: number; c
     </Animated.View>
   );
 }
+function TileFxWeb({ shake, pop, children, style }: TileFxProps) {
+  const ref = useRef<any>(null);
+  useLayoutEffect(() => {
+    if (!shake || motionOff()) return;
+    webTween(ref, { duration: 380, easing: Easing.out(Easing.quad) }, (v) => ({ transform: `translateX(${lerp(v, TILE_SHAKE[0], TILE_SHAKE[1])}px)` }));
+  }, [shake]);
+  useLayoutEffect(() => {
+    if (!pop || motionOff()) return;
+    webTween(ref, { duration: 320, easing: EASE_OUT }, (v) => ({ transform: `scale(${lerp(v, TILE_POP[0], TILE_POP[1])})` }));
+  }, [pop]);
+  return (
+    <View ref={ref} style={style}>
+      {children}
+    </View>
+  );
+}
+const TileFx = WEB ? TileFxWeb : TileFxNative;
 
 /** 막대 위 연속 정답 칩 "×N". 3 이상일 때 통 튀어나오고, 끊기면 사라진다. */
-function Combo({ n }: { n: number }) {
+function ComboNative({ n }: { n: number }) {
   const v = useRef(new Animated.Value(0)).current;
   const [shown, setShown] = useState(n);
   const on = n >= 3;
@@ -143,22 +198,69 @@ function Combo({ n }: { n: number }) {
     </Animated.View>
   );
 }
+const comboFrame = (v: number) => ({ opacity: Math.max(0, Math.min(1, v)), transform: `translateY(${4 * (1 - v)}px) scale(${0.7 + 0.3 * v})` });
+/** 웹: 보이는 정도를 브라우저 움직임이 붙들고 있다(React 는 숨긴 모습만 그린다). 끊기면 지금 자리에서 사라진다. */
+function ComboWeb({ n }: { n: number }) {
+  const ref = useRef<any>(null);
+  const tw = useRef<Tween | null>(null);
+  const [shown, setShown] = useState(n);
+  const on = n >= 3;
+  if (on && shown !== n) setShown(n);
+  useLayoutEffect(() => {
+    const from = tweenStop(tw.current, 0);
+    if (motionOff()) {
+      tw.current = webTween(ref, { duration: 1 }, comboFrame, { from: on ? 1 : 0, to: on ? 1 : 0, fill: 'forwards' });
+      return;
+    }
+    tw.current = on ? webTween(ref, { spring: 'bounce' }, comboFrame, { from: 0, to: 1, delay: 260, fill: 'both' }) : from > 0 ? webTween(ref, { duration: 160 }, comboFrame, { from, to: 0, fill: 'forwards' }) : null;
+  }, [n]);
+  return (
+    <View ref={ref} pointerEvents="none" aria-hidden style={{ position: 'absolute', left: 56, top: 2, zIndex: 3, opacity: 0 }}>
+      <Chip tone="hot" label={`×${shown}`} />
+    </View>
+  );
+}
+const Combo = WEB ? ComboWeb : ComboNative;
 
 /** 맞힌 순간 노란 "+10" 이 떠올라 경험치 숫자로 빨려 들어간다. */
+const FLY_STOPS = [0, 0.3, 0.62, 1];
 function FlyXp({ amount, onDone }: { amount: number; onDone: () => void }) {
   const t = useTheme();
   const v = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
+  const ref = useRef<any>(null);
+  (WEB ? useLayoutEffect : useEffect)(() => {
     if (motionOff()) {
       onDone();
       return;
+    }
+    if (WEB) {
+      // 웹: 같은 시간(180ms 기다린 뒤 880ms, 일정한 빠르기)과 같은 경로를 브라우저에 맡긴다.
+      const tw = webTween(
+        ref,
+        { duration: 880, easing: Easing.linear },
+        (x) => ({
+          opacity: lerp(x, FLY_STOPS, [0, 1, 1, 0]),
+          transform: `translateY(${lerp(x, FLY_STOPS, [36, 20, -6, -30])}px) translateX(${lerp(x, [0, 0.62, 1], [-40, -16, 0])}px) scale(${lerp(x, FLY_STOPS, [0.3, 1, 0.95, 0.5])})`,
+        }),
+        { delay: 180, fill: 'both' },
+      );
+      if (!tw) {
+        onDone();
+        return;
+      }
+      tw.anim.onfinish = () => onDone();
+      return () => {
+        tw.anim.onfinish = null;
+        tw.anim.cancel();
+      };
     }
     const a = Animated.timing(v, { toValue: 1, duration: 880, delay: 180, easing: Easing.linear, useNativeDriver: NATIVE_DRIVER });
     a.start(() => onDone());
     return () => a.stop();
   }, []);
   return (
-    <Animated.View
+    <MView
+      ref={ref}
       pointerEvents="none"
       aria-hidden
       style={{
@@ -174,24 +276,28 @@ function FlyXp({ amount, onDone }: { amount: number; onDone: () => void }) {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 2,
-        opacity: v.interpolate({ inputRange: [0, 0.3, 0.62, 1], outputRange: [0, 1, 1, 0] }),
-        transform: [
-          { translateY: v.interpolate({ inputRange: [0, 0.3, 0.62, 1], outputRange: [36, 20, -6, -30] }) },
-          { translateX: v.interpolate({ inputRange: [0, 0.62, 1], outputRange: [-40, -16, 0] }) },
-          { scale: v.interpolate({ inputRange: [0, 0.3, 0.62, 1], outputRange: [0.3, 1, 0.95, 0.5] }) },
-        ],
+        ...(WEB
+          ? { opacity: 0 }
+          : {
+              opacity: v.interpolate({ inputRange: FLY_STOPS, outputRange: [0, 1, 1, 0] }),
+              transform: [
+                { translateY: v.interpolate({ inputRange: FLY_STOPS, outputRange: [36, 20, -6, -30] }) },
+                { translateX: v.interpolate({ inputRange: [0, 0.62, 1], outputRange: [-40, -16, 0] }) },
+                { scale: v.interpolate({ inputRange: FLY_STOPS, outputRange: [0.3, 1, 0.95, 0.5] }) },
+              ],
+            }),
       }}
     >
       <Icon name="bolt" size={14} color={t.onYellow} />
       <T s={14} w="700" c={t.onYellow} mono lh={1.4}>
         +{amount}
       </T>
-    </Animated.View>
+    </MView>
   );
 }
 
 /** 채점 뒤 화면 아래 끝에서 올라오는 판. 단추는 제자리에 있고 판만 뒤에서 올라온다. */
-function Panel({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void }) {
+function PanelNative({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void }) {
   const t = useTheme();
   const [shown, setShown] = useState<Fb | null>(fb);
   const [h, setH] = useState(0);
@@ -221,8 +327,6 @@ function Panel({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void 
     return () => a.stop();
   }, [fb]);
   if (!shown) return null;
-  const ok = shown.ok;
-  const ink = ok ? t.greenText : t.redText;
   return (
     <Animated.View
       key={n}
@@ -238,63 +342,114 @@ function Panel({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void 
         else Animated.timing(tx, { toValue: 1, duration: 220, delay: 120, easing: EASE_OUT, useNativeDriver: NATIVE_DRIVER }).start();
       }}
       accessibilityLiveRegion="polite"
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 2,
-        maxHeight: '78%',
-        paddingTop: 20,
-        paddingHorizontal: 16,
-        paddingBottom: PANEL_PAD,
-        backgroundColor: ok ? t.greenWeak : t.redWeak,
-        transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [h || 1000, 0] }) }],
-      }}
+      style={[PANEL_BOX, { backgroundColor: shown.ok ? t.greenWeak : t.redWeak, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [h || 1000, 0] }) }] }]}
     >
-      <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} bounces={false}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Animated.View
-            accessible
-            accessibilityLabel={ok ? '정답' : '오답'}
-            style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', flexShrink: 0, transform: [{ scale: ic }] }}
-          >
-            {ok ? <Icon name="check" size={20} color={t.green} sw={3.4} /> : <Icon name="x" size={18} color={t.red} sw={3.4} />}
-          </Animated.View>
-          <Animated.View style={{ flex: 1, opacity: tx, transform: [{ translateX: tx.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }}>
-            {ok ? (
-              <T type="t3" w="700" c={ink}>
-                {shown.cheer ?? ''}
-              </T>
-            ) : (
-              <>
-                <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
-                  {shown.title ?? ''}
-                </Rich>
-                {shown.cheer ? (
-                  <T type="t6" w="600" c={ink} style={{ marginTop: 2 }}>
-                    {shown.cheer}
-                  </T>
-                ) : null}
-              </>
-            )}
-          </Animated.View>
-        </View>
-        {shown.body ? (
-          <Animated.View style={{ marginTop: 8, opacity: tx }}>
-            {ok ? (
-              <Rich type="t6" w="600" c={ink}>
-                {shown.body}
-              </Rich>
-            ) : (
-              <Rich type="t6" c={t.deck}>
-                {shown.body}
-              </Rich>
-            )}
-          </Animated.View>
-        ) : null}
-      </ScrollView>
+      <PanelBody shown={shown} ic={{ transform: [{ scale: ic }] }} tx={{ opacity: tx, transform: [{ translateX: tx.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }} body={{ opacity: tx }} />
     </Animated.View>
+  );
+}
+
+/**
+ * 웹: 같은 스프링(판 quick, 아이콘 bounce 90ms 뒤)과 같은 글자 움직임(220ms, 120ms 뒤)을 브라우저에 맡긴다.
+ * 판이 내려가 있는 자리는 translateY(100%) 라서 높이를 재기 전 첫 장면부터 화면 밖에 있다. 닫힐 때는 지금 자리에서 내려간다.
+ */
+function PanelWeb({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => void }) {
+  const t = useTheme();
+  const [shown, setShown] = useState<Fb | null>(fb);
+  const [n, setN] = useState(0);
+  const box = useRef<any>(null);
+  const icon = useRef<any>(null);
+  const text = useRef<any>(null);
+  const body = useRef<any>(null);
+  const enter = useRef<Tween | null>(null);
+  if (fb && fb !== shown) {
+    setShown(fb);
+    setN((x) => x + 1);
+  }
+  useLayoutEffect(() => {
+    if (!fb || !shown) return;
+    if (motionOff()) return;
+    enter.current = webTween(box, { spring: 'quick' }, (v) => ({ transform: `translateY(${(1 - v) * 100}%)` }));
+    webTween(icon, { spring: 'bounce' }, (v) => ({ transform: `scale(${v})` }), { delay: 90 });
+    const txt = (v: number) => ({ opacity: v, transform: `translateX(${-6 * (1 - v)}px)` });
+    webTween(text, { duration: 220, easing: EASE_OUT }, txt, { delay: 120 });
+    webTween(body, { duration: 220, easing: EASE_OUT }, (v) => ({ opacity: v }), { delay: 120 });
+  }, [n]);
+  useLayoutEffect(() => {
+    if (fb || !shown) return;
+    onHeight(0);
+    const from = tweenStop(enter.current, 1);
+    enter.current = null;
+    const out = motionOff() ? null : webTween(box, { duration: 200, easing: Easing.in(Easing.cubic) }, (v) => ({ transform: `translateY(${(1 - v) * 100}%)` }), { from, to: 0, fill: 'forwards' });
+    if (!out) {
+      setShown(null);
+      return;
+    }
+    out.anim.onfinish = () => setShown(null);
+    return () => {
+      out.anim.onfinish = null;
+    };
+  }, [fb]);
+  if (!shown) return null;
+  return (
+    <View key={n} ref={box} onLayout={(e) => fb && onHeight(e.nativeEvent.layout.height)} accessibilityLiveRegion="polite" style={[PANEL_BOX, { backgroundColor: shown.ok ? t.greenWeak : t.redWeak }]}>
+      <PanelBody shown={shown} iconRef={icon} textRef={text} bodyRef={body} />
+    </View>
+  );
+}
+const Panel = WEB ? PanelWeb : PanelNative;
+
+const PANEL_BOX: ViewStyle = { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 2, maxHeight: '78%', paddingTop: 20, paddingHorizontal: 16, paddingBottom: PANEL_PAD };
+
+/** 판 안쪽: 정답·오답 아이콘, 응원 한 줄, 풀이. 움직임은 바깥에서 style(앱) 이나 ref(웹)로 건다. */
+function PanelBody({ shown, ic, tx, body, iconRef, textRef, bodyRef }: { shown: Fb; ic?: any; tx?: any; body?: any; iconRef?: React.RefObject<any>; textRef?: React.RefObject<any>; bodyRef?: React.RefObject<any> }) {
+  const t = useTheme();
+  const ok = shown.ok;
+  const ink = ok ? t.greenText : t.redText;
+  return (
+    <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} bounces={false}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <MView
+          ref={iconRef}
+          accessible
+          accessibilityLabel={ok ? '정답' : '오답'}
+          style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }, ic]}
+        >
+          {ok ? <Icon name="check" size={20} color={t.green} sw={3.4} /> : <Icon name="x" size={18} color={t.red} sw={3.4} />}
+        </MView>
+        <MView ref={textRef} style={[{ flex: 1 }, tx]}>
+          {ok ? (
+            <T type="t3" w="700" c={ink}>
+              {shown.cheer ?? ''}
+            </T>
+          ) : (
+            <>
+              <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
+                {shown.title ?? ''}
+              </Rich>
+              {shown.cheer ? (
+                <T type="t6" w="600" c={ink} style={{ marginTop: 2 }}>
+                  {shown.cheer}
+                </T>
+              ) : null}
+            </>
+          )}
+        </MView>
+      </View>
+      {shown.body ? (
+        <MView ref={bodyRef} style={[{ marginTop: 8 }, body]}>
+          {ok ? (
+            <Rich type="t6" w="600" c={ink}>
+              {shown.body}
+            </Rich>
+          ) : (
+            <Rich type="t6" c={t.deck}>
+              {shown.body}
+            </Rich>
+          )}
+        </MView>
+      ) : null}
+    </ScrollView>
   );
 }
 
@@ -348,6 +503,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const [shownXp, setShownXp] = useState(study.xp);
   const flying = useRef(false);
   const bolt = useRef(new Animated.Value(1)).current;
+  const boltRef = useRef<any>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const later = (fn: () => void, ms: number) => {
     timers.current.push(setTimeout(fn, motionOff() ? 0 : ms));
@@ -364,6 +520,10 @@ export function StudyScreen({ sect }: { sect: Section }) {
     later(() => {
       setShownXp(study.xp);
       if (motionOff()) return;
+      if (WEB) {
+        webTween(boltRef, { spring: 'medium' }, boltFrame, { from: 1.35, to: 1 });
+        return;
+      }
       bolt.setValue(1.35);
       spring(bolt, 1, 'medium').start();
     }, flying.current ? 1060 : 0);
@@ -467,7 +627,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
   if (!studyData) {
     return (
       <View style={{ flex: 1, backgroundColor: t.card }}>
-        <Header onClose={nav.pop} value={0} hot={false} xp={shownXp} bolt={bolt} combo={0} />
+        <Header onClose={nav.pop} value={0} hot={false} xp={shownXp} bolt={bolt} boltRef={boltRef} combo={0} />
         <View style={{ padding: 20 }}>
           <T type="t5" c={t.sub}>
             오프라인
@@ -521,7 +681,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.card, overflow: 'hidden' }}>
-      <Header onClose={nav.pop} value={firstRun ? filled / firstRun : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} combo={combo} a11yValue={`${filled}/${firstRun}`} extra={extra} />
+      <Header onClose={nav.pop} value={firstRun ? filled / firstRun : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} boltRef={boltRef} combo={combo} a11yValue={`${filled}/${firstRun}`} extra={extra} />
       {fly ? (
         <FlyXp
           key={fly.id}
@@ -621,7 +781,10 @@ export function StudyScreen({ sect }: { sect: Section }) {
 }
 
 /** 위쪽 줄: 닫기 X, 높이 16 진행 막대(연속 정답 3 이상이면 주황), 번개와 누적 경험치. */
-function Header({ onClose, value, hot, xp, bolt, combo, a11yValue, extra }: { onClose: () => void; value: number; hot: boolean; xp: number; bolt: Animated.Value; combo: number; a11yValue?: string; extra?: boolean }) {
+/** 번개의 크기와 기울기: 1.35 배에서 1 로 돌아오며 -12도에서 바로 선다(Animated interpolate 와 같은 계산). */
+const boltFrame = (v: number) => ({ transform: `scale(${v}) rotate(${lerp(v, [1, 1.35], [0, -12])}deg)` });
+
+function Header({ onClose, value, hot, xp, bolt, boltRef, combo, a11yValue, extra }: { onClose: () => void; value: number; hot: boolean; xp: number; bolt: Animated.Value; boltRef: React.RefObject<any>; combo: number; a11yValue?: string; extra?: boolean }) {
   const t = useTheme();
   return (
     <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 8, paddingRight: 16, zIndex: 3 }}>
@@ -632,9 +795,9 @@ function Header({ onClose, value, hot, xp, bolt, combo, a11yValue, extra }: { on
       {extra ? <Chip label="추가 학습" tone="neutral" style={{ alignSelf: 'center' }} /> : null}
       <ProgressBar value={value} hot={hot} style={{ flex: 1 }} a11yLabel={a11yValue ? `진행 ${a11yValue}` : undefined} />
       <View accessible accessibilityLabel={`경험치 ${xp}`} style={{ minWidth: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
-        <Animated.View style={{ transform: [{ scale: bolt }, { rotate: bolt.interpolate({ inputRange: [1, 1.35], outputRange: ['0deg', '-12deg'] }) }] }}>
+        <MView ref={boltRef} style={WEB ? null : { transform: [{ scale: bolt }, { rotate: bolt.interpolate({ inputRange: [1, 1.35], outputRange: ['0deg', '-12deg'] }) }] }}>
           <Icon name="bolt" size={18} color={t.yellow} />
-        </Animated.View>
+        </MView>
         <T s={15} w="700" c={t.deck} mono lh={1.4}>
           {xp}
         </T>
@@ -684,11 +847,7 @@ function Finish({
   const [bar, setBar] = useState(curFrom / needFrom);
   const [lvUp, setLvUp] = useState(false);
   const [lvShown, setLvShown] = useState(lvFrom);
-  const accN = useCount(Math.round(acc * 100), { duration: 900, delay: 100 });
-  const xpN = useCount(tally.xp, { duration: 600, delay: 420 });
-  const rightN = useCount(tally.right, { duration: 500, delay: 420 });
-  const stN = useCount(streakTo, { from: streakFrom, duration: 320, delay: 680 });
-  const barN = useCount(up ? needFrom : curTo, { from: curFrom, duration: up ? 360 : 600, delay: BAR_AT });
+  // 세어 올라가는 숫자는 저마다 작은 글자(Count)가 맡는다. 프레임마다 이 화면 전체를 다시 그리지 않는다.
   useEffect(() => {
     const ids: ReturnType<typeof setTimeout>[] = [];
     const wait = (ms: number) => (motionOff() ? 0 : ms);
@@ -715,7 +874,8 @@ function Finish({
       </T>
     </Enter>
   ) : null;
-  const [boxCur, boxNeed] = lvShown === lvTo && up ? [curTo, needTo] : [Math.round(barN), up ? needFrom : needTo];
+  const [boxCur, boxNeed]: [React.ReactNode, number] =
+    lvShown === lvTo && up ? [curTo, needTo] : [<Count key="bar" from={curFrom} to={up ? needFrom : curTo} duration={up ? 360 : 600} delay={BAR_AT} />, up ? needFrom : needTo];
 
   return (
     <View style={{ flex: 1, backgroundColor: t.card }}>
@@ -725,7 +885,7 @@ function Finish({
             <Enter duration={400} scale={0.94}>
               <Ring value={acc} a11yLabel={`정답률 ${Math.round(acc * 100)}%`}>
                 <T s={36} w="800" mono lh={40 / 36} style={{ letterSpacing: -1 }}>
-                  {Math.round(accN)}%
+                  <Count to={Math.round(acc * 100)} duration={900} delay={100} />%
                 </T>
                 <T s={13} w="600" c={t.mute} lh={1.4}>
                   정답률
@@ -735,13 +895,13 @@ function Finish({
             {heading}
             <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: 10 }}>
               <Enter delay={260} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="yellow" icon="bolt" label="경험치" value={`+${Math.round(xpN)}`} a11yLabel={`경험치 ${tally.xp}`} />
+                <StatCard tone="yellow" icon="bolt" label="경험치" num={<>+<Count to={tally.xp} duration={600} delay={420} /></>} a11yLabel={`경험치 ${tally.xp}`} />
               </Enter>
               <Enter delay={320} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="green" icon="check" label="정답" value={`${Math.round(rightN)}/${tally.total}`} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
+                <StatCard tone="green" icon="check" label="정답" num={<><Count to={tally.right} duration={500} delay={420} />/{tally.total}</>} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
               </Enter>
               <Enter delay={380} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="orange" icon="calFill" label="연속" value={`${Math.round(stN)}일`} a11yLabel={`연속 ${streakTo}일`} />
+                <StatCard tone="orange" icon="calFill" label="연속" num={<><Count from={streakFrom} to={streakTo} duration={320} delay={680} />일</>} a11yLabel={`연속 ${streakTo}일`} />
               </Enter>
             </View>
           </>
@@ -749,7 +909,7 @@ function Finish({
           heading
         )}
         <Enter delay={any ? 440 : 0} duration={320} y={10} style={{ alignSelf: 'stretch' }}>
-          <LevelBox lv={lvShown} cur={boxCur} need={boxNeed} value={bar} />
+          <LevelBox lv={lvShown} cur={boxCur} a11yCur={lvShown === lvTo && up ? curTo : up ? needFrom : curTo} need={boxNeed} value={bar} />
         </Enter>
       </ScrollView>
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: FOOT_PAD, flexDirection: 'row', gap: 10 }}>
@@ -762,7 +922,7 @@ function Finish({
 }
 
 /** 회색 상자: "Lv.N" 과 경험치 숫자, 노란 막대(높이 12). */
-function LevelBox({ lv, cur, need, value, hideLv }: { lv: number; cur: number; need: number; value: number; hideLv?: boolean }) {
+function LevelBox({ lv, cur, need, value, hideLv, a11yCur }: { lv: number; cur: React.ReactNode; need: number; value: number; hideLv?: boolean; a11yCur?: number }) {
   const t = useTheme();
   return (
     <View style={{ alignSelf: 'stretch', padding: 16, borderRadius: 16, backgroundColor: t.p.grey100, gap: 10 }}>
@@ -779,7 +939,7 @@ function LevelBox({ lv, cur, need, value, hideLv }: { lv: number; cur: number; n
           {cur} / {need} XP
         </T>
       </View>
-      <ProgressBar value={value} height={12} color={t.yellow} a11yLabel={`Lv.${lv} ${cur}/${need}`} />
+      <ProgressBar value={value} height={12} color={t.yellow} a11yLabel={`Lv.${lv} ${a11yCur ?? cur}/${need}`} />
     </View>
   );
 }
@@ -787,13 +947,24 @@ function LevelBox({ lv, cur, need, value, hideLv }: { lv: number; cur: number; n
 /** 레벨이 오른 순간의 화면: 파란 메달 숫자가 바뀌고, 새 레벨의 막대가 보인다. */
 function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; cur: number; need: number; onClose: () => void }) {
   const t = useTheme();
-  const fade = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
-  const medal = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
+  const fade = useRef(new Animated.Value(motionOff() || WEB ? 1 : 0)).current;
+  const medal = useRef(new Animated.Value(motionOff() || WEB ? 1 : 0)).current;
   const roll = useRef(new Animated.Value(1)).current;
   const [n, setN] = useState(motionOff() ? to : from);
   const line = useMemo(() => cheerLevel({ level: to, seed: seedOf(todayKST(), 'level', to) }), [to]);
-  useEffect(() => {
+  // 웹: 같은 시간과 곡선을 브라우저에 맡긴다. 숫자가 바뀌는 순간(620ms)에만 React 가 다시 그린다.
+  const root = useRef<any>(null);
+  const medalRef = useRef<any>(null);
+  const rollRef = useRef<any>(null);
+  const fadeTw = useRef<Tween | null>(null);
+  (WEB ? useLayoutEffect : useEffect)(() => {
     if (motionOff()) return;
+    if (WEB) {
+      fadeTw.current = webTween(root, { duration: 220, easing: Easing.ease }, (v) => ({ opacity: v }));
+      webTween(medalRef, { spring: 'bounce' }, (v) => ({ opacity: Math.max(0, Math.min(1, v)), transform: `scale(${0.6 + 0.4 * v})` }), { delay: 100 });
+      const id = setTimeout(() => setN(to), 620);
+      return () => clearTimeout(id);
+    }
     Animated.timing(fade, { toValue: 1, duration: 220, easing: Easing.ease, useNativeDriver: NATIVE_DRIVER }).start();
     spring(medal, 1, 'bounce', { delay: 100 }).start();
     const id = setTimeout(() => {
@@ -803,21 +974,40 @@ function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; c
     }, 620);
     return () => clearTimeout(id);
   }, []);
+  // 웹: 숫자가 바뀐 장면부터 아래에서 굴러 올라온다.
+  const rolled = useRef(false);
+  useLayoutEffect(() => {
+    if (!WEB || n !== to || n === from || rolled.current || motionOff()) return;
+    rolled.current = true;
+    webTween(rollRef, { duration: 360, easing: EASE_OUT }, (v) => ({ opacity: v, transform: `translateY(${24 * (1 - v)}px)` }));
+  }, [n]);
   const close = () => {
     if (motionOff()) return onClose();
+    if (WEB) {
+      const from = tweenStop(fadeTw.current, 1);
+      const out = webTween(root, { duration: 200, easing: Easing.ease }, (v) => ({ opacity: v }), { from, to: 0, fill: 'forwards' });
+      if (out) out.anim.onfinish = () => onClose();
+      else onClose();
+      return;
+    }
     Animated.timing(fade, { toValue: 0, duration: 200, easing: Easing.ease, useNativeDriver: NATIVE_DRIVER }).start(() => onClose());
   };
   return (
-    <Animated.View accessibilityViewIsModal style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 30, backgroundColor: t.card, opacity: fade }}>
+    <MView ref={root} accessibilityViewIsModal style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 30, backgroundColor: t.card, opacity: WEB ? 1 : fade }}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 20, paddingHorizontal: 24 }}>
-        <Animated.View
+        <MView
+          ref={medalRef}
           accessible
           accessibilityLabel={`Lv.${to}`}
           style={{
             width: 128,
             height: 134,
-            opacity: medal.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' }),
-            transform: [{ scale: medal.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
+            ...(WEB
+              ? null
+              : {
+                  opacity: medal.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' }),
+                  transform: [{ scale: medal.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }],
+                }),
           }}
         >
           <View style={{ position: 'absolute', left: 0, top: 6, width: 128, height: 128, borderRadius: 36, backgroundColor: t.blueLip }} />
@@ -834,13 +1024,13 @@ function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; c
                 <Rect x={0} y={0} width={128} height={128} fill="url(#medal)" />
               </Svg>
             </View>
-            <Animated.View style={{ opacity: roll, transform: [{ translateY: roll.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }}>
+            <MView ref={rollRef} style={WEB ? null : { opacity: roll, transform: [{ translateY: roll.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }}>
               <T s={56} w="800" c="#ffffff" mono lh={60 / 56}>
                 {n}
               </T>
-            </Animated.View>
+            </MView>
           </View>
-        </Animated.View>
+        </MView>
         <Enter delay={640} duration={320} y={8} style={{ alignSelf: 'stretch', alignItems: 'center' }}>
           <T type="t3" w="700" center>
             {line}
@@ -855,6 +1045,6 @@ function LevelUp({ from, to, cur, need, onClose }: { from: number; to: number; c
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: FOOT_PAD }}>
         <LipButton label="확인" onPress={close} />
       </View>
-    </Animated.View>
+    </MView>
   );
 }

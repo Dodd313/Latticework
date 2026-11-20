@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, ScrollView, TextInput, View } from 'react-native';
-import { motionOff, NATIVE_DRIVER } from '../motion';
+import { MView, motionOff, NATIVE_DRIVER, WEB, webShake } from '../motion';
 import { BackBar } from '../nav';
 import { STANDALONE, useStore } from '../store';
 import { FONT_SANS, useTheme } from '../theme';
@@ -64,12 +64,18 @@ function Segment({ value, onChange }: { value: Market; onChange: (m: Market) => 
 
 type Result = '' | 'copied' | 'imported' | 'bad';
 
+const SHAKE: [number[], number[]] = [
+  [0, 0.2, 0.4, 0.6, 0.8, 1],
+  [0, -6, 6, -4, 4, 0],
+];
+
 export function SettingsScreen() {
   const t = useTheme();
   const { user, setMarket, exportData, importData, canSave, status, days } = useStore();
   const [box, setBox] = useState('');
   const [result, setResult] = useState<Result>('');
   const shake = useRef(new Animated.Value(0)).current;
+  const shakeBox = useRef<any>(null);
 
   // 결과 표시는 잠시 머물렀다 사라진다.
   useEffect(() => {
@@ -108,6 +114,10 @@ export function SettingsScreen() {
     setResult('bad');
     say('형식 오류');
     if (!motionOff()) {
+      if (WEB) {
+        webShake(shakeBox, SHAKE[0], SHAKE[1], 300, Easing.out(Easing.quad));
+        return;
+      }
       shake.setValue(0);
       Animated.timing(shake, { toValue: 1, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: NATIVE_DRIVER }).start();
     }
@@ -116,7 +126,7 @@ export function SettingsScreen() {
   const readCount = Object.keys(user.read).length;
   const total = days.reduce((n, d) => n + d.articles.length, 0);
   const conn = status === 'live' ? ['연결됨', t.green] : status === 'loading' ? ['연결 중', t.orange] : ['오프라인', t.p.grey400];
-  const shift = shake.interpolate({ inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1], outputRange: [0, -6, 6, -4, 4, 0] });
+  const shift = shake.interpolate({ inputRange: SHAKE[0], outputRange: SHAKE[1] });
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -149,7 +159,7 @@ export function SettingsScreen() {
                 <PrimaryButton label="가져오기" a11yLabel="기록 가져오기" weak icon={result === 'imported' ? 'check' : undefined} disabled={box.trim() === ''} onPress={doImport} style={{ paddingHorizontal: 12 }} />
               </View>
             </View>
-            <Animated.View style={{ marginTop: 12, transform: [{ translateX: shift }] }}>
+            <MView ref={shakeBox} style={{ marginTop: 12, transform: [{ translateX: WEB ? 0 : shift }] }}>
               <TextInput
                 nativeID="records-box"
                 accessibilityLabel="기록 내보내기와 가져오기 상자"
@@ -182,7 +192,7 @@ export function SettingsScreen() {
                   <Icon name="x" size={12} color={t.onColor} />
                 </View>
               ) : null}
-            </Animated.View>
+            </MView>
           </Box>
 
           <Box title="정보" style={{ paddingBottom: 8 }}>

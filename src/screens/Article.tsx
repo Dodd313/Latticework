@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
 import { cheerRead, seedOf } from '../cheer';
 import { monthDay, todayKST } from '../dates';
-import { NATIVE_DRIVER, Rise, motionOff, spring, usePop } from '../motion';
+import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, usePop, webTween } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
@@ -51,24 +51,27 @@ function LinkRow({ link, first }: { link: ArticleLink; first: boolean }) {
 /** 위쪽 줄 오른쪽의 읽음 단추. 읽으면 파랑 원 안에 흰 체크. */
 function ReadToggle({ read, onPress }: { read: boolean; onPress: () => void }) {
   const t = useTheme();
-  const scale = usePop(read);
+  const pop = usePop(read);
   return (
     <Tap onPress={onPress} label={read ? '읽음 해제' : '읽음 표시'} selected={read} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: 13,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: read ? t.blue : 'transparent',
-          borderWidth: read ? 0 : 2,
-          borderColor: t.line,
-          transform: [{ scale }],
-        }}
+      <MView
+        ref={pop.ref}
+        style={[
+          {
+            width: 26,
+            height: 26,
+            borderRadius: 13,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: read ? t.blue : 'transparent',
+            borderWidth: read ? 0 : 2,
+            borderColor: t.line,
+          },
+          pop.style,
+        ]}
       >
         <Icon name="check" size={16} color={read ? t.onColor : t.faint} sw={3} />
-      </Animated.View>
+      </MView>
     </Tap>
   );
 }
@@ -76,8 +79,29 @@ function ReadToggle({ read, onPress }: { read: boolean; onPress: () => void }) {
 /** 끝까지 읽었을 때 아래에서 올라와 2초쯤 머물다 사라지는 응원 한 줄. 화면 위에 떠서 자리를 밀지 않는다. */
 function ReadToast({ text, onDone }: { text: string; onDone: () => void }) {
   const t = useTheme();
-  const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
+  const v = useRef(new Animated.Value(motionOff() || WEB ? 1 : 0)).current;
+  const box = useRef<any>(null);
+  // 웹: 같은 스프링과 같은 나가기를 브라우저에 맡긴다.
+  useLayoutEffect(() => {
+    if (!WEB) return;
+    const toast = (x: number) => ({ opacity: x, transform: `translateY(${24 * (1 - x)}px)` });
+    const enter = motionOff() ? null : webTween(box, { spring: 'quick' }, toast);
+    let out: ReturnType<typeof webTween> = null;
+    const id = setTimeout(() => {
+      if (motionOff()) return onDone();
+      enter?.anim.cancel();
+      out = webTween(box, { duration: 200, easing: Easing.in(Easing.cubic) }, toast, { from: 1, to: 0, fill: 'forwards' });
+      if (out) out.anim.onfinish = () => onDone();
+      else onDone();
+    }, 2200);
+    return () => {
+      clearTimeout(id);
+      enter?.anim.cancel();
+      if (out) out.anim.onfinish = null;
+    };
+  }, []);
   useEffect(() => {
+    if (WEB) return;
     let out: Animated.CompositeAnimation | null = null;
     const enter = spring(v, 1, 'quick');
     enter.start();
@@ -94,7 +118,8 @@ function ReadToast({ text, onDone }: { text: string; onDone: () => void }) {
   }, []);
   return (
     <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 3, alignItems: 'center', paddingHorizontal: 16, paddingBottom: 20 }}>
-      <Animated.View
+      <MView
+        ref={box}
         accessibilityLiveRegion="polite"
         accessibilityRole="alert"
         style={{
@@ -107,8 +132,7 @@ function ReadToast({ text, onDone }: { text: string; onDone: () => void }) {
           paddingRight: 18,
           borderRadius: 16,
           backgroundColor: t.blue,
-          opacity: v,
-          transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+          ...(WEB ? null : { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }),
         }}
       >
         <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: t.onColor, alignItems: 'center', justifyContent: 'center' }} aria-hidden>
@@ -117,7 +141,7 @@ function ReadToast({ text, onDone }: { text: string; onDone: () => void }) {
         <T type="t6" w="600" c={t.onColor} lines={1} style={{ flexShrink: 1 }}>
           {text}
         </T>
-      </Animated.View>
+      </MView>
       <View style={{ height: BOTTOM_PAD }} />
     </View>
   );
@@ -128,6 +152,8 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
   const { days, user, markRead } = useStore();
   const isRead = !!user.read[a.id];
   const progress = useRef(new Animated.Value(0)).current;
+  // 웹: 스크롤마다 React 를 다시 그리지 않고 진행선의 transform 만 고쳐 쓴다.
+  const bar = useRef<any>(null);
   const autoMarked = useRef(false);
   const [toast, setToast] = useState<string | null>(null);
   // 끝까지 읽어 새로 읽음이 되면 응원 한 줄. 숫자는 오늘 기사 중 읽은 수(이번 기사 포함)와 오늘 기사 수.
@@ -143,7 +169,11 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
     const room = Math.max(1, contentSize.height - layoutMeasurement.height);
-    progress.setValue(Math.max(0, Math.min(1, contentOffset.y / room)));
+    const p = Math.max(0, Math.min(1, contentOffset.y / room));
+    if (WEB) {
+      const el = bar.current as HTMLElement | null;
+      if (el) el.style.transform = `scaleX(${p})`;
+    } else progress.setValue(p);
     if (!autoMarked.current && contentOffset.y + layoutMeasurement.height >= contentSize.height - 24) {
       autoMarked.current = true;
       if (!isRead) setToast(cheer());
@@ -159,7 +189,7 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
     <>
       <BackBar label="뒤로" title={pos} right={<ReadToggle read={isRead} onPress={() => markRead(a.id, !isRead)} />} />
       <View style={{ height: 2, zIndex: 2 }} aria-hidden>
-        <Animated.View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 2, backgroundColor: t.blue, transformOrigin: 'left', transform: [{ scaleX: progress }] }} />
+        <MView ref={bar} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 2, backgroundColor: t.blue, transformOrigin: 'left', transform: [{ scaleX: WEB ? 0 : progress }] }} />
       </View>
       <ScrollView style={{ flex: 1 }} onScroll={onScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 32 }}>
         <Rise delay={60}>

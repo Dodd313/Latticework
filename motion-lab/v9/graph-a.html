@@ -368,7 +368,7 @@
           let dx = b.x - a.x, dy = b.y - a.y;
           let d2 = dx * dx + dy * dy;
           if (d2 < 1e-4) { dx = 0.01 * (i - j); dy = 0.013; d2 = dx * dx + dy * dy; }
-          if (d2 < 250000) {
+          if (d2 < o.dmax * o.dmax) {
             const f = (o.str * alpha) / d2;
             a.vx -= dx * f * b.q; a.vy -= dy * f * b.q;
             b.vx += dx * f * a.q; b.vy += dy * f * a.q;
@@ -430,7 +430,7 @@
       const cr = n.collapsed && n !== center ? GR + 3 : COLL[n.kind];
       return { x: p.x, y: p.y, vx: 0, vy: 0, q, cr, fix: n === center };
     });
-    simulate(P, Ed, center ? { str: 26, gx: 0.035, gy: 0.035, it: 260 } : { str: 30, gx: 0.05, gy: 0.022, it: 300 });
+    simulate(P, Ed, center ? { str: 26, gx: 0.035, gy: 0.035, it: 260, dmax: 400 } : { str: 30, gx: 0.075, gy: 0.045, it: 300, dmax: 130 });
     if (!center) {
       let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
       P.forEach((p) => { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); });
@@ -618,7 +618,7 @@
         if (n.fx != null && mt < 1) { x = lerp(n.fx, n.wx, me); y = lerp(n.fy, n.wy, me); }
         n._x = (x - cam.x) * k + W / 2; n._y = (y - cam.y) * k + H / 2;
         n._z = (k * n.sc) / K0;
-        n._r = n.rb * Math.pow(clamp(n._z, 0.45, 5), 0.45) * this.dotScale;
+        n._r = n.rb * Math.min(n.kind === 'concept' ? 1.55 : 1.3, Math.pow(clamp(n._z, 0.45, 3), 0.4)) * this.dotScale;
         let ap = 1, eg = 1;
         if (rev) {
           const e = rev.map.get(n.id);
@@ -664,14 +664,18 @@
       for (const C of M.cols) {
         const g = C._v * (1 - C._open) * C._ap;
         if (g < 0.01) continue;
-        const Ru = GR * k * C.sc, R = Math.max(10, Ru), f = R / Ru;
+        const Ru = GR * k * C.sc, R = Math.max(10, Ru, C._r + 8), f = R / Ru;
+        // 축소판 점은 가운데 점에 가리지 않게 고리 안쪽 띠로 옮긴다(열릴수록 실제 자리와 같아진다)
+        const hole = (C._r + 2.5) * (1 - C._open);
         if (C._x < -R || C._x > W + R || C._y < -R || C._y > H + R) continue;
         const e = C._e;
         ctx.strokeStyle = rgba(C.color, 0.5 * g * e);
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(C._x, C._y, R, 0, Math.PI * 2); ctx.stroke();
         for (const m of C.members) {
-          const mx = C._x + (m._x - C._x) * f, my = C._y + (m._y - C._y) * f;
+          const vx = (m._x - C._x) * f, vy = (m._y - C._y) * f, vl = Math.hypot(vx, vy) || 1;
+          const sl = (hole + (vl * (R - hole - 2.5)) / R) / vl;
+          const mx = C._x + vx * sl, my = C._y + vy * sl;
           const r = lerp(1.15, m._r, C._open);
           ctx.fillStyle = m.due || (m.collapsed && m.dueIn) ? rgba(ORANGE, 0.95 * g * e) : rgba(C.color, (m.kind === 'concept' ? 0.6 : 0.9) * g * e);
           ctx.beginPath(); ctx.arc(mx, my, m.kind === 'concept' ? r : r * 1.25, 0, Math.PI * 2); ctx.fill();
@@ -688,7 +692,7 @@
         const e = n._e;
         if (n.kind === 'concept') {
           if (n.mem.studied) {
-            ctx.fillStyle = rgba(n.color, (0.38 + 0.62 * n.mem.strength) * a * e);
+            ctx.fillStyle = rgba(n.color, (0.45 + 0.55 * n.mem.strength) * a * e);
             ctx.beginPath(); ctx.arc(n._x, n._y, r, 0, Math.PI * 2); ctx.fill();
           } else {
             ctx.strokeStyle = rgba(n.color, 0.75 * a * e); ctx.lineWidth = 1.2;
@@ -907,7 +911,7 @@
 
   // 포인터: 끌기, 두 손가락 확대, 휠, 누르기, 마우스 올리기
   const ptrs = new Map();
-  let gest = null, lastMv = 0;
+  let gest = null, lastMv = 0, hoverLock = null;
   const local = (ev) => { const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
   cv.addEventListener('pointerdown', (ev) => {
     try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
@@ -920,7 +924,10 @@
   cv.addEventListener('pointermove', (ev) => {
     if (!ptrs.has(ev.pointerId)) {
       if (ev.pointerType !== 'mouse' || sheetMode) return;
-      const p = local(ev), h = G.hit(p.x, p.y);
+      const p = local(ev);
+      if (hoverLock && Math.hypot(p.x - hoverLock.x, p.y - hoverLock.y) < 6) return;
+      hoverLock = null;
+      const h = G.hit(p.x, p.y);
       const id = h && !h.glyph ? h.n.id : null;
       cv.classList.toggle('pt', !!h);
       if (id !== hover) { hover = id; setFocus(); }
@@ -967,10 +974,13 @@
   cv.addEventListener('dblclick', (ev) => { const p = local(ev); const t = G.toWorld(p.x, p.y); G.flyTo({ x: t.x, y: t.y, k: Math.min(G.cam.k * 2.2, G.kLim()[1]) }); });
 
   function tap(px, py) {
+    // 누른 뒤에는 마우스를 다시 움직이기 전까지 올리기 강조를 쉰다
+    hoverLock = { x: px, y: py };
+    if (hover) { hover = null; setFocus(); }
     const h = G.hit(px, py);
     if (!h) { if (sheetMode) closeSheet(); if (pick) { pick = null; setFocus(); } return; }
     const n = h.n;
-    if (h.glyph) { if (sheetMode) closeSheet(); pick = null; setFocus(); G.flyTo(G.nodeFit(n)); return; }
+    if (h.glyph || (n.collapsed && n._open < 0.5)) { if (sheetMode) closeSheet(); pick = null; setFocus(); G.flyTo(G.nodeFit(n)); return; }
     if (n.kind === 'concept') { select(n.id); return; }
     if (sheetMode) closeSheet();
     pick = { id: n.id }; setFocus();
@@ -1306,9 +1316,10 @@
     const steps = [d, ...sub.filter((x) => x !== d).sort((a, b) => a.depth - b.depth)];
     steps.forEach((x, i) => map.set(x.id, { t: x === d ? 0 : 520 + (x.depth - 1) * 300 + i * 40, d: x === d ? 620 : 520, mode: x === d ? 'fade' : 'grow' }));
     S.rev = { t0, map, end: true };
-    // 카메라: 지도 전체에서 새 학문 쪽으로 조금 다가간다. 새 하위 트리는 화면 안쪽에.
+    // 카메라: 처음에는 조금 멀리서, 천천히 다가온다. 새 하위 트리는 화면 안쪽에.
     const fit = S.fitBox(M.box, { x: 60, y: 110 });
-    let tx = lerp(fit.x, d.wx, 0.35), ty = lerp(fit.y, d.wy, 0.35), tk = fit.k * 1.18;
+    // 지도 전체가 들어오는 구도를 지키고, 새 학문 쪽으로 아주 조금만 기운다
+    let tx = lerp(fit.x, d.wx, 0.08), ty = lerp(fit.y, d.wy, 0.08), tk = fit.k * 1.04;
     const inside = (k) => sub.every((x) => { const X = (x.wx - tx) * k + 195, Y = (x.wy - ty) * k + 240; return X > 70 && X < 320 && Y > 70 && Y < 390; });
     while (tk > fit.k && !inside(tk)) tk *= 0.96;
     S.cam = { x: fit.x, y: fit.y, k: fit.k * 0.94 };
@@ -1320,7 +1331,7 @@
     const bub = el.querySelector('.bub');
     bub.firstChild.textContent = line;
     const cam = { x: tx, y: ty, k: tk };
-    const scrX = (n) => (n.wx - cam.x) * cam.k + 195, scrY = (n.wy - cam.y) * cam.k + 240;
+    const scrX = (n) => (n.wx - cam.x) * cam.k + 195, scrY = (n) => (n.wy - cam.y) * cam.k + 240;
     const bw = bub.offsetWidth, bh = bub.offsetHeight;
     const DX = scrX(d), DY = scrY(d);
     const rects = M.list.filter((n) => !n.scope).map((n) => [scrX(n) - 8, scrY(n) - 8, scrX(n) + 8, scrY(n) + 8]);
@@ -1454,7 +1465,10 @@
     const n = G.M.N.get(id);
     pick = { id, set: new Set(subtree(n).map((x) => x.id).concat(chainOf(n))) };
     setFocus();
-    const f = G.nodeFit(n);
+    const pts = subtree(n).concat(n.parent ? [n.parent] : []);
+    const bx = { x0: Math.min(...pts.map((p) => p.wx)) - 20, x1: Math.max(...pts.map((p) => p.wx)) + 20, y0: Math.min(...pts.map((p) => p.wy)) - 20, y1: Math.max(...pts.map((p) => p.wy)) + 20 };
+    const f = G.fitBox(bx, { x: 120, y: 200 });
+    f.k = clamp(Math.min(f.k, 2.3 * G.K0), G.K0, G.kLim()[1]);
     G.flyTo(f, { delay: 200, min: 700, done: () => { G.pulses.push({ id, t0: performance.now(), d: 1000, r: 26 }); G.dirty = true; } });
   }
 

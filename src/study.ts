@@ -196,7 +196,8 @@ export function buildLat(data: StudyData, state: StudyState, today: string, now:
 }
 
 const REGISTERS = ['친구끼리', '일반', '격식', '속어'];
-const DECK_NAME: Record<Vocab['deck'], string> = { fin: '금융영어', gen: '일반회화', toeic: '토익 어휘' };
+/** 문제 위 작은 글씨: 단어장 이름이 아니라 단어인지 구문인지만 보인다. 띄어쓰기가 있으면 구문이다(2026-11-20 사용자 결정). */
+export const vocKind = (v: Vocab): '단어' | '구문' => (/\s/.test(v.term.replace(/\s*\(.*?\)/g, '').trim()) ? '구문' : '단어');
 
 function vocTypes(v: Vocab): string[] {
   // 격식 고르기와 우리말에서 떠올리기는 내지 않는다 (2026-11-19 사용자 결정).
@@ -207,7 +208,7 @@ function vocTypes(v: Vocab): string[] {
 
 function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
   const rand = rng(`${seed}:${v.id}:${type}`);
-  const kicker = DECK_NAME[v.deck];
+  const kicker = vocKind(v);
   const base = { key: `${v.id}:${type}`, unit: v.id, sect: 'voc' as Section, type, kicker };
   // 오답 보기: 같은 단어장에서, 되도록 같은 묶음에서 고른다.
   const pool = data.vocab.filter((x) => x.id !== v.id && x.deck === v.deck);

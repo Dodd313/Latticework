@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, Review, Thread, UserData } from './types';
 import { addDays, isWeekend, kstDate, todayKST } from './dates';
 import { Asked, LAT_GOAL, LogRow, Q, StudyData, StudyState, emptyStudy, review, vocGoalFor, xpFor } from './study';
@@ -48,10 +48,11 @@ async function loadStudy(): Promise<StudyData> {
   return (await res.json()) as StudyData;
 }
 
-async function loadFeed(): Promise<Feed> {
+/** 기사 묶음 파일의 글 그대로. 지난번과 같으면 풀지도, 화면을 다시 그리지도 않는다. */
+async function loadFeedText(): Promise<string> {
   const res = await fetch('./data/feed.json?t=' + Date.now(), { cache: 'no-store' });
   if (!res.ok) throw new Error('feed ' + res.status);
-  return (await res.json()) as Feed;
+  return await res.text();
 }
 
 // 기기 안 임시 보관. 연결 전 첫 화면을 채우고, 연결이 안 될 때의 대비책으로만 쓴다.
@@ -79,6 +80,47 @@ function saveLocal(key: string, value: unknown) {
   }
 }
 
+// 기기 안 보관은 누른 순간에 하지 않고 조금 뒤(움직임이 끝난 뒤 한가할 때)에 한꺼번에 한다.
+// 같은 열쇠에 여러 번 쓰면 마지막 값 하나만 쓴다. 값은 쓰는 순간에 get() 으로 읽으므로 언제나 최신이다.
+// 앱을 닫거나 다른 앱으로 넘어가면(pagehide, 화면 숨김) 기다리지 않고 바로 쓴다.
+const pendingSaves = new Map<string, () => unknown>();
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let saveIdle: number | null = null;
+const SAVE_AFTER = 700;
+
+function flushSaves() {
+  if (saveTimer) clearTimeout(saveTimer);
+  if (saveIdle != null) (globalThis as any).cancelIdleCallback?.(saveIdle);
+  saveTimer = null;
+  saveIdle = null;
+  const items = [...pendingSaves];
+  pendingSaves.clear();
+  for (const [key, get] of items) saveLocal(key, get());
+}
+
+function saveLater(key: string, get: () => unknown) {
+  pendingSaves.set(key, get);
+  if (saveTimer || saveIdle != null) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    const ric = (globalThis as any).requestIdleCallback as undefined | ((cb: () => void, o: { timeout: number }) => number);
+    if (ric) saveIdle = ric(() => ((saveIdle = null), flushSaves()), { timeout: 2000 });
+    else flushSaves();
+  }, SAVE_AFTER);
+}
+
+try {
+  const w = globalThis as any;
+  if (w.addEventListener && w.document) {
+    w.addEventListener('pagehide', flushSaves);
+    w.document.addEventListener('visibilitychange', () => {
+      if (w.document.visibilityState === 'hidden') flushSaves();
+    });
+  }
+} catch {
+  // 알림을 못 받는 환경이면 정해진 시간에 쓴다.
+}
+
 type Status = 'loading' | 'live' | 'offline';
 
 type Store = {
@@ -101,6 +143,17 @@ type Store = {
 };
 
 const StoreCtx = createContext<Store | null>(null);
+
+/**
+ * 안쪽 화면이 덮고 있거나 보이지 않는 화면(탭, 아래 깔린 화면)용. 기록이 바뀌면 바로 다시 그리지 않고,
+ * 맨 위 화면을 먼저 그린 뒤 틈틈이(끊어 가며) 다시 그린다. 누른 순간의 일이 그만큼 가벼워진다.
+ * defer 가 false 면(맨 위 화면) 그대로 바로 그린다.
+ */
+export function StoreDefer({ defer = true, children }: { defer?: boolean; children: React.ReactNode }) {
+  const live = useContext(StoreCtx);
+  const later = useDeferredValue(live);
+  return <StoreCtx.Provider value={defer ? later : live}>{children}</StoreCtx.Provider>;
+}
 
 function mergeUser(a: UserData, b: Partial<UserData> | null | undefined): UserData {
   if (!b) return a;
@@ -182,6 +235,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const writers = useRef<{ progress?: (b: any) => void; memos?: (b: any) => void; settings?: (b: any) => void; quiz?: (b: any) => void }>({});
   const userRef = useRef(user);
   userRef.current = user;
+  const daysRef = useRef(days);
+  daysRef.current = days;
+  // 풀이 기록은 메모리에 두고 붙여 쓴다. 처음 필요할 때 한 번만 읽는다(최대 6,000줄).
+  const logRef = useRef<LogRow[] | null>(null);
+  const getLog = useCallback(() => (logRef.current ??= loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []), []);
+  // 화면을 닫을 때 남은 저장을 마친다.
+  useEffect(() => () => flushSaves(), []);
   const cacheRef = useRef({ days, threads, reviews });
   cacheRef.current = { days, threads, reviews };
 
@@ -198,10 +258,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         // 자체 주소: 기사 묶음 파일을 읽고, 앱으로 돌아올 때마다 새로 받는다.
         let latest = '';
+        let lastText = '';
         const refresh = async () => {
           try {
-            const feed = await loadFeed();
+            const text = await loadFeedText();
             if (!alive) return;
+            // 지난번에 받은 것과 같으면(대부분의 다시 받기) 아무것도 바꾸지 않는다.
+            if (text === lastText) {
+              setStatus('live');
+              return;
+            }
+            lastText = text;
+            const feed = JSON.parse(text) as Feed;
             const nextDays = (feed.days ?? []).filter((d) => d && d.date && Array.isArray(d.articles)).sort((a, b) => b.date.localeCompare(a.date));
             const nextThreads = (feed.threads ?? []).filter((t) => t && t.id && Array.isArray(t.entries));
             nextThreads.sort((a, b) => (b.updatedAt ?? b.startedAt).localeCompare(a.updatedAt ?? a.startedAt));
@@ -210,7 +278,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             setDays(nextDays);
             setThreads(nextThreads);
             setReviews(nextReviews);
-            saveLocal(CACHE_KEY, { days: nextDays.slice(0, 40), threads: nextThreads, reviews: nextReviews.slice(0, 4) });
+            saveLater(CACHE_KEY, () => ({ days: nextDays.slice(0, 40), threads: nextThreads, reviews: nextReviews.slice(0, 4) }));
             setStatus('live');
           } catch {
             if (alive) setStatus('offline');
@@ -353,8 +421,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const commit = useCallback((next: UserData, part: 'progress' | 'memos' | 'settings' | 'quiz') => {
+    userRef.current = next;
     setUser(next);
-    saveLocal(USER_KEY, next);
+    saveLater(USER_KEY, () => userRef.current);
     const now = new Date().toISOString();
     if (part === 'progress') writers.current.progress?.({ read: next.read, daily: next.daily, updatedAt: now });
     if (part === 'memos') writers.current.memos?.({ memos: next.memos, updatedAt: now });
@@ -377,8 +446,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const latGoal = studyData.questions.length > 0 ? LAT_GOAL : 0;
     const vocGoal = vocGoalFor(studyData, cur, todayStr, new Date());
     const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { lat: 0, voc: 0, latGoal, vocGoal } } };
+    studyRef.current = next;
     setStudy(next);
-    saveLocal(STUDY_KEY, next);
+    saveLater(STUDY_KEY, () => studyRef.current);
   }, [studyData, todayStr]);
 
   const studyDataRef = useRef(studyData);
@@ -411,18 +481,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const next: StudyState = { ...cur, cards, days: { ...cur.days, [today]: day }, xp: cur.xp + (q.retry ? 0 : xpFor(result.grade)) };
     studyRef.current = next;
     setStudy(next);
-    saveLocal(STUDY_KEY, next);
+    // 기기 안 보관은 조금 뒤에 한다(답을 확인하는 순간의 움직임을 막지 않게). 앱을 닫으면 바로 쓴다.
+    saveLater(STUDY_KEY, () => studyRef.current);
     const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade };
-    const log = loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? [];
+    const log = getLog();
     log.push(row);
-    saveLocal(STUDY_LOG_KEY, log.slice(-LOG_CAP));
+    if (log.length > LOG_CAP) log.splice(0, log.length - LOG_CAP);
+    saveLater(STUDY_LOG_KEY, getLog);
   }, []);
 
   const studyAsked = useCallback((): Asked => {
     const today = todayKST();
     const keys = new Set<string>();
     const units = new Set<string>();
-    for (const row of loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []) {
+    for (const row of getLog()) {
       if (kstDate(row.t) !== today) continue;
       keys.add(row.q);
       units.add(row.u);
@@ -438,7 +510,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const nextRead = { ...cur.read };
       if (read) nextRead[articleId] = new Date().toISOString();
       else delete nextRead[articleId];
-      commit({ ...cur, read: nextRead }, 'progress');
+      // 날짜별 목표 기록도 같이 맞춰 한 번에 저장한다(따로 맞추면 화면을 두 번 그린다).
+      commit(withDaily({ ...cur, read: nextRead }, daysRef.current), 'progress');
     },
     [commit],
   );
@@ -475,7 +548,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const exportData = useCallback(() => {
-    return JSON.stringify({ app: 'latticework-sisa', version: 2, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? [] }, null, 2);
+    return JSON.stringify({ app: 'latticework-sisa', version: 2, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog() }, null, 2);
   }, []);
 
   const importData = useCallback(
@@ -487,13 +560,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // 복습 기록은 더 많이 쌓인 쪽을 남긴다.
         const st = parsed && parsed.study ? (parsed.study as StudyState) : null;
         if (st && st.cards && Object.keys(st.cards).length >= Object.keys(studyRef.current.cards).length) {
+          studyRef.current = st;
           setStudy(st);
-          saveLocal(STUDY_KEY, st);
-          if (Array.isArray(parsed.studyLog)) saveLocal(STUDY_LOG_KEY, parsed.studyLog.slice(-LOG_CAP));
+          saveLater(STUDY_KEY, () => studyRef.current);
+          if (Array.isArray(parsed.studyLog)) {
+            logRef.current = parsed.studyLog.slice(-LOG_CAP);
+            saveLater(STUDY_LOG_KEY, getLog);
+          }
         }
         const merged = mergeUser(userRef.current, incoming);
+        userRef.current = merged;
         setUser(merged);
-        saveLocal(USER_KEY, merged);
+        saveLater(USER_KEY, () => userRef.current);
+        flushSaves();
         const now = new Date().toISOString();
         writers.current.progress?.({ read: merged.read, daily: merged.daily, updatedAt: now });
         writers.current.memos?.({ memos: merged.memos, updatedAt: now });

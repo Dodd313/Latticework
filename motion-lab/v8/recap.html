@@ -349,7 +349,7 @@
       weekConcepts: S.newConcepts, newConcepts: S.newConcepts, weekFields: M.active.length, fields: M.active.length,
       topField: M.top.ko, topFieldN: M.top.newConcepts, weekLinks: M.weekLinks, newest: M.newest,
       weekWords: S.vocab['단어'], words: S.vocab.new, wordsTotal: V.totals.vocabTypes['단어'], vocTotal: V.totals.vocab, word: wordPick.length ? wordPick[wordPick.length - 1].term : null,
-      weekRead: S.news.read, read: S.news.read, quizRight: S.weeklyQuiz ? S.weeklyQuiz.correct : 0, wq: S.weeklyQuiz ? S.weeklyQuiz.count || 1 : 0,
+      weekRead: S.news.read, read: S.news.read, newsDays: M.newsDays, quizRight: S.weeklyQuiz ? S.weeklyQuiz.correct : 0, wq: S.weeklyQuiz ? S.weeklyQuiz.count || 1 : 0,
       solved: S.latSolved, days: S.activeDays, xpS: fmt(S.xp), level: M.lv1, levelUp: M.lv1 > M.lv0,
       newField: M.newDisc ? M.newDisc.ko : null, hasNewField: !!M.newDisc,
     };
@@ -554,7 +554,8 @@
   function cardNews(M, W, line) {
     const S = M.S;
     const week = M.mode === 'week';
-    const wdays = M.dates.filter((d) => dowMon(d) < 5 && d <= V.today);
+    const wdays = M.dates.filter((d) => dowMon(d) < 5 && d <= V.today && d >= (V.newsStart || ''));
+    const few = week || wdays.length <= 7; // 뉴스가 시작된 지 얼마 안 된 달은 주간과 같은 칸 크기
     const cols = wdays.map((d) => {
       const n = DAY[d] ? DAY[d].newsRead : 0;
       const td = d === V.today && n < 2;
@@ -568,11 +569,11 @@
     const shownH = hls.slice(0, cap);
     const wqHtml = wq
       ? `<div class="qrow" style="margin:16px 0 0"><span class="sn">종합 퀴즈</span><b>${Math.round((wq.correct / wq.total) * 100)}%<small>${wq.correct}/${wq.total}</small></b></div>`
-      : `<button class="tbtn weak qbtn" data-quiz type="button">종합 퀴즈</button>`;
+      : week ? `<button class="tbtn weak qbtn" data-quiz type="button">종합 퀴즈</button>` : '';
     const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
       <div class="ttl">뉴스</div>
       <div class="hero"><div><span class="sn">읽은 기사</span><span class="sv"><span data-hero data-final="${fmt(S.news.read)}">0</span></span></div><div><span class="sn">읽은 날</span><span class="sv md"><span data-to="${M.newsDays}">0</span><small>일</small></span></div></div>
-      <div class="np ${week ? '' : 'dense'}" style="grid-template-columns:repeat(${wdays.length}, minmax(0,1fr));margin-top:16px;${week ? `width:${Math.min(W, wdays.length * 30 + (wdays.length - 1) * 8)}px;column-gap:8px` : ''}">${cols.join('')}</div>
+      <div class="np ${few ? '' : 'dense'}" style="grid-template-columns:repeat(${wdays.length}, minmax(0,1fr));margin-top:16px;${few ? `width:${Math.min(W, wdays.length * 30 + (wdays.length - 1) * 8)}px;column-gap:8px` : ''}">${cols.join('')}</div>
       <div class="fl" style="min-height:24px;max-height:28px"></div>
       <div class="qrow"><span class="sn">저녁 퀴즈</span><b><span data-acc>0</span>%<small>${dq.correct}/${dq.total}</small></b></div>
       <div class="segbar ${dq.total > 20 ? 'dense' : ''}">${Array.from({ length: dq.total }, (_, i) => `<i><b style="background:${i < dq.correct ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div>

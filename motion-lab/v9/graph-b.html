@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>방사 나무 · Motion Lab 9차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .scr { background: #fff !important; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* 머리: 제목과 나눔 단추 */
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 106px; padding: 12px 20px 0; background: #fff; z-index: 8; }
+  .top h1 { margin: 0; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; color: var(--grey900); }
+  .seg { position: relative; margin-top: 10px; height: 40px; padding: 3px; border-radius: 12px; background: var(--grey100); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .seg .th { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / 3); border-radius: 9px; background: #fff; box-shadow: 0 1px 2px rgba(0, 23, 51, .06), 0 3px 10px rgba(0, 23, 51, .06); }
+  .seg button { position: relative; z-index: 1; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--grey500); text-align: center; letter-spacing: -0.2px; transition: color .2s; }
+  .seg button.on { color: var(--grey900); }
+
+  .pane { position: absolute; left: 0; right: 0; top: 106px; bottom: 64px; }
+  .pane[hidden] { display: block !important; visibility: hidden; pointer-events: none; }
+  .pane.list { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .pane.list::-webkit-scrollbar { display: none; }
+
+  /* 그래프 */
+  #gcv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: default; }
+  #gcv.grab { cursor: grabbing; }
+  .gfade { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: linear-gradient(#fff, rgba(255, 255, 255, 0)); pointer-events: none; }
+  .crumb { position: absolute; left: 12px; top: 10px; max-width: calc(100% - 72px); height: 36px; display: flex; align-items: center; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 23, 51, .05), 0 3px 12px rgba(0, 23, 51, .08); padding: 0 12px 0 0; font-size: 14px; font-weight: 600; color: var(--grey500); white-space: nowrap; overflow: hidden; z-index: 3; }
+  .crumb[hidden] { display: none; }
+  .crumb .bk { width: 36px; height: 36px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--grey700); }
+  .crumb .cs { display: flex; align-items: center; min-width: 0; overflow: hidden; }
+  .crumb .c { flex: none; padding: 0 2px; font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--grey500); }
+  .crumb .c:last-child { color: var(--grey900); flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+  .crumb .sl { flex: none; width: 14px; text-align: center; color: var(--grey300); font-weight: 500; }
+  .fitb { position: absolute; right: 12px; top: 10px; width: 36px; height: 36px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 23, 51, .05), 0 3px 12px rgba(0, 23, 51, .08); display: flex; align-items: center; justify-content: center; color: var(--grey700); z-index: 3; }
+  .fitb[hidden] { display: none; }
+
+  /* 시트 */
+  .scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0, 12, 30, .38); opacity: 0; pointer-events: none; }
+  .scrim.on { pointer-events: auto; }
+  .scrim.clear { background: transparent; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; background: #fff; border-radius: 22px 22px 0 0; padding: 10px 20px 22px; box-shadow: 0 -1px 0 rgba(0, 0, 0, .03), 0 -10px 30px rgba(0, 23, 51, .10); transform: translateY(110%); touch-action: none; }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--grey300); margin: 0 auto 16px; }
+  .sheet .path { margin: 0 0 6px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--grey400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet h3 { margin: 0; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.4px; color: var(--grey900); }
+  .sheet .en { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--grey500); }
+  .kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+  .kv div { background: var(--grey50); border-radius: 14px; padding: 12px 14px; }
+  .kv span { display: block; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .kv b { display: block; margin-top: 2px; font-size: 18px; line-height: 26px; font-weight: 700; color: var(--grey900); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .kv b.due { color: var(--orange700); }
+  .sheet .tbtn { margin-top: 18px; }
+
+  /* 목록 (뉴스, 단어장): 8차 그대로 */
+  .srch { position: sticky; top: 0; z-index: 2; background: #fff; padding: 6px 20px 10px; }
+  .srch label { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border-radius: 12px; background: var(--grey100); color: var(--grey400); }
+  .srch input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-family: var(--font); font-size: 16px; font-weight: 500; color: var(--grey900); }
+  .srch input::placeholder { color: var(--grey400); }
+  .srch input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+  .chips { display: flex; gap: 8px; margin-top: 10px; }
+  .chips button { height: 34px; padding: 0 14px; border-radius: 17px; background: var(--grey100); font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--grey700); display: inline-flex; align-items: center; gap: 5px; transition: background-color .2s, color .2s; }
+  .chips button em { font-style: normal; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; transition: color .2s; }
+  .chips button.on { background: var(--grey900); color: #fff; }
+  .chips button.on em { color: var(--grey400); }
+  .lband { height: 10px; background: var(--grey100); }
+  .wk-h { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 14px 20px 4px; }
+  .wk-h b { font-size: 17px; line-height: 25px; font-weight: 700; letter-spacing: -0.3px; color: var(--grey900); }
+  .wk-h .sc { display: inline-flex; align-items: baseline; gap: 5px; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .wk-h .sc em { font-style: normal; font-size: 15px; font-weight: 700; color: var(--grey800); font-variant-numeric: tabular-nums; }
+  .wk-h .qb { height: 30px; padding: 0 12px; border-radius: 15px; background: var(--blue-weak); color: var(--blue600); font-family: var(--font); font-size: 13px; font-weight: 700; }
+  .nr { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 6px 20px; }
+  .nr .d { width: 50px; flex: none; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .nr .h { flex: 1; min-width: 0; font-size: 16px; line-height: 23px; font-weight: 500; color: var(--grey800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  .tail { height: 24px; }
+  .vd { padding: 16px 20px 2px; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .vr { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; width: 100%; min-height: 60px; padding: 8px 20px; }
+  .vr b { font-size: 17px; line-height: 24px; font-weight: 600; color: var(--grey900); letter-spacing: -0.2px; }
+  .vr span { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--grey600); }
+
+  /* 아래 탭 */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 9; }
+  .tabs span { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs span.on { color: var(--grey900); }
+
+  /* 해금 장면 */
+  .scene { position: absolute; inset: 0; z-index: 30; background: #fff; }
+  .scene.grey { background: var(--grey100); }
+  .splash { display: flex; align-items: center; justify-content: center; z-index: 33; }
+  .splash .wm { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: var(--grey900); }
+  .ust { position: absolute; left: 0; right: 0; top: 0; height: 470px; }
+  .ust canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bub { position: absolute; left: 0; top: 0; padding: 8px 12px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 23, 51, .06), 0 6px 18px rgba(0, 23, 51, .10); font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: -0.2px; color: var(--grey800); white-space: nowrap; opacity: 0; }
+  .bub::after { content: ''; position: absolute; left: var(--tx, 50%); width: 9px; height: 9px; background: #fff; transform: translateX(-50%) rotate(45deg); }
+  .bub.up::after { bottom: -4.5px; box-shadow: 1px 1px 0 rgba(0, 23, 51, .06); }
+  .bub.dn::after { top: -4.5px; box-shadow: -1px -1px 0 rgba(0, 23, 51, .06); }
+  .ucopy { position: absolute; left: 24px; right: 24px; top: 486px; }
+  .ucopy .k { font-size: 15px; line-height: 22px; font-weight: 700; letter-spacing: -0.2px; }
+  .ucopy h1 { margin: 6px 0 0; font-size: 30px; line-height: 40px; font-weight: 700; letter-spacing: -0.8px; color: var(--grey900); }
+  .ucopy .fl { margin-top: 12px; font-size: 14px; line-height: 21px; font-weight: 500; color: var(--grey500); }
+  .ubtns { position: absolute; left: 20px; right: 20px; bottom: 24px; display: grid; grid-template-columns: 1fr 1.25fr; gap: 8px; }
+  .tbtn.ghost { background: var(--grey100); color: var(--grey700); }
+
+  /* 홈과 분과 띠 */
+  .view { position: absolute; inset: 0 0 64px 0; overflow: hidden; }
+  .hd { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .hd b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .pill { height: 32px; padding: 0 12px; border-radius: 16px; background: #fff; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--grey500); }
+  .pill b { font-size: 15px; font-weight: 700; color: var(--orange700); letter-spacing: 0; }
+  .stack { padding: 4px 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border-radius: 20px; padding: 20px; }
+  .bh { display: flex; justify-content: space-between; align-items: center; }
+  .bh b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .bh span { font-size: 15px; font-weight: 600; color: var(--grey500); }
+  .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .task .ic { width: 40px; height: 40px; border-radius: 12px; flex: none; }
+  .task .nm { width: 92px; font-size: 16px; font-weight: 600; }
+  .task .tr { flex: 1; height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; }
+  .task .ct { width: 40px; text-align: right; font-size: 14px; font-weight: 600; color: var(--grey500); }
+  .box .tbtn { margin-top: 10px; }
+  .hl { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+  .hl .d { width: 8px; height: 8px; border-radius: 4px; background: var(--grey300); margin-top: 9px; flex: none; }
+  .hl b { font-size: 16px; line-height: 25px; font-weight: 600; color: var(--grey600); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bandw { overflow: hidden; }
+  .band { position: relative; display: flex; gap: 14px; align-items: center; background: #fff; border-radius: 20px; padding: 12px 14px 12px 12px; }
+  .band .sn { width: 88px; height: 88px; flex: none; border-radius: 16px; background: var(--grey50); overflow: hidden; position: relative; }
+  .band .sn canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .band .tx { flex: 1; min-width: 0; }
+  .band .tx .k { display: block; font-size: 13px; line-height: 19px; font-weight: 700; }
+  .band .tx b { display: block; font-size: 18px; line-height: 26px; font-weight: 700; letter-spacing: -0.3px; color: var(--grey900); }
+  .band .ln { position: relative; display: inline-block; max-width: 100%; margin-top: 6px; padding: 5px 10px; border-radius: 12px; background: var(--grey100); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+  .band .bb { display: flex; gap: 6px; margin-top: 10px; }
+  .band .sb { height: 32px; padding: 0 12px; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 600; background: var(--grey100); color: var(--grey700); }
+
+  .notes code { font-size: 12px; background: rgba(21, 23, 26, .06); padding: 1px 4px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes" id="notes">
+    <h2>지식 탭 · 9차 시안 B · 방사 나무</h2>
+    <p>Latticework 지도를 식물 도감의 방사형 계통도처럼 그렸습니다. 가운데 아주 작은 회색 점에서 학문, 분과, 주제가 안쪽부터 동심원 위에 놓이고, 개념은 모두 맨 바깥 원 한 줄에 같은 간격으로 섭니다. 학문마다 한 부채꼴을 가집니다. 개념끼리 잇는 선은 하나도 없고, 부모와 자식을 잇는 가는 곡선만 있습니다. 이 곡선은 바깥으로 갈수록 옅고 가늘어집니다.</p>
+    <p>해 볼 것: 끌기, 두 손가락 확대(데스크톱은 휠), 학문이나 분과 누르기, 동그란 테 안에 작은 점들이 모인 <b>소우주</b> 누르기, 개념 누르기. 위 막대의 "지금 / 6개월 뒤"로 데이터를 바꾸고 "학문 해금", "분과 해금"으로 해금 장면을 봅니다.</p>
+
+    <h3>8차에서 바뀐 것</h3>
+    <ul>
+      <li><b>개념 사이 연결 삭제.</b> <code>tree.links</code>와 <code>relatedIds</code>를 읽지 않습니다. 개념 시트의 관계 칩도 뺐습니다.</li>
+      <li><b>점 크기.</b> 8차의 원은 학문 반지름 15~33px였습니다. 이번에는 처음 배율에서 개념 2.5~3.9px, 주제 3.4~4.6px, 분과 4~6px, 학문 6~9px입니다. 배운 양(푼 문제 수, 개념 수의 제곱근)으로 아주 조금만 커집니다. 확대하면 점도 조금(배율의 0.32제곱) 커지지만 1.55배에서 멈춥니다.</li>
+      <li><b>가운데 Latti 삭제.</b> 가운데에는 지름 5px 회색 점 하나뿐입니다. 학문으로 가는 선은 이 점에서 곧게 나가고 회색입니다.</li>
+      <li><b>배치.</b> 풍선 트리 대신 방사형 계통도(radial cluster). 계급이 반지름이 되므로 "안쪽일수록 큰 범주"가 위치만으로 읽힙니다.</li>
+      <li><b>해금.</b> 지도 한가운데로 아이콘이 날아드는 연출을 버리고, 원 둘레의 부채꼴이 벌어지며 새 학문 자리가 생기는 장면으로 바꿨습니다. 시작 화면도 글자 로고만 둡니다.</li>
+    </ul>
+
+    <h3>시각 언어 (화면에는 설명을 쓰지 않음)</h3>
+    <table class="spec">
+      <tr><th>무엇</th><th>어떻게</th></tr>
+      <tr><td>계급</td><td>반지름. 학문 원(안), 분과 원, 주제 원, 개념 원(맨 바깥). 학문은 색 채움, 분과는 옅은 색 채움, 주제는 흰 속에 색 테두리, 개념은 작은 점</td></tr>
+      <tr><td>학문</td><td>부채꼴과 색. 개념이 하나뿐인 학문도 원의 8% 이상(최소 4칸)을 받아 이름이 들어갈 자리가 있음</td></tr>
+      <tr><td>기억 세기</td><td>개념 점의 진하기(30~100%). 아직 안 푼 개념은 흰 속의 고리</td></tr>
+      <tr><td>오늘 복습</td><td>개념 점 둘레의 주황 고리. 소우주 안에 있으면 소우주 테 오른쪽 위에 주황 점</td></tr>
+      <tr><td>소우주</td><td>보이는 자식이 7개를 넘는 노드(<code>collapse.collapsed</code>). 지름 약 20px의 옅은 테 안에 자식 수만큼 작은 점이 둥글게 놓인 민들레 모양. 이 점들이 곧 안쪽 지도의 첫 고리라서, 날아 들어가면 점이 그대로 자라 노드가 됩니다</td></tr>
+      <tr><td>이름</td><td>학문 이름은 늘(13px), 분과는 1.35배, 주제는 2배 확대부터(12px). 개념 이름은 바깥 원을 따라 방사 방향으로 눕혀 쓰고, 이웃 개념과 13px 이상 벌어지는 배율에서만 보입니다. 겹치는 이름은 다른 자리를 찾고, 없으면 숨깁니다</td></tr>
+    </table>
+
+    <h3>배치 규칙</h3>
+    <ul>
+      <li>잎(개념)마다 한 칸, 소우주는 2.4칸. 학문 사이에는 1.2칸 틈. 노드의 각도는 자기 칸 묶음의 가운데입니다. 그래서 같은 데이터면 늘 같은 자리이고, 힘 시뮬레이션이 없어 흔들리지 않습니다.</li>
+      <li>바깥 원 반지름은 잎 수에 비례(칸당 26단위, 최소 232). 안쪽 고리는 바깥 반지름의 (i/L)<sup>0.85</sup>입니다.</li>
+      <li>학문 순서는 8차의 숨은 참조 방위(생각의 도구 오른쪽, 사회 아래, 자연 왼쪽)를 따르고, 전체 원을 칸 수로 가중한 평균 방위가 맞도록 한 번 돌립니다.</li>
+      <li>소우주 안은 같은 규칙으로 만든 작은 방사 나무입니다. 바깥 지도에서 그 노드 자리에 아주 작게 그려 두고, 확대하면 바깥 지도는 투명도만 내려가고 안쪽이 올라옵니다. 소우주 안의 소우주도 같은 방식입니다.</li>
+    </ul>
+
+    <h3>움직임</h3>
+    <ul>
+      <li>카메라 이동은 8차와 같은 van Wijk와 Nuij 부드러운 확대 경로. 소우주로 들어갈 때 바뀌는 것은 배율과 투명도뿐입니다.</li>
+      <li>처음 열 때 안쪽 고리부터 바깥 고리까지 한 번 번지듯 나타나고(0.9초), 이후로는 가만히 있습니다.</li>
+      <li>지금과 6개월 뒤를 바꾸면 노드가 원 둘레를 따라 각도와 반지름으로 미끄러집니다(직선으로 가로지르지 않음).</li>
+      <li>학문 해금: 시작 화면 다음, 지난번 지도가 나오고 부채꼴들이 옆으로 비켜서며 빈 자리가 열립니다. 가운데 점에서 선이 뻗어 새 학문 점이 켜지고, 분과, 개념 순으로 바깥 원까지 이어집니다. 다른 학문은 반쯤 옅어집니다. 그다음 제목과 작은 말풍선이 나옵니다.</li>
+      <li>분과 해금: 홈 맨 위 띠가 펼쳐지고, 띠 안 88px 조각(같은 지도를 그 부채꼴로 잘라 확대)에서 학문 점으로부터 새 가지가 뻗습니다.</li>
+    </ul>
+
+    <h3>참고한 것</h3>
+    <ul>
+      <li>Obsidian 그래프 보기: 아주 작은 점, 배율 따라 나타나는 이름, 연결선보다 점이 주인공인 밀도</li>
+      <li>D3 radial cluster(방사형 덴드로그램)와 그 링크 곡선(d3.linkRadial). 잎을 한 원에 세우는 방식</li>
+      <li>식물 분류 도감과 계통수 그림(예: Tree of Life 원형 계통도). 대칭과 고요함</li>
+      <li>Apple 지도의 의미적 확대, van Wijk &amp; Nuij(2003)</li>
+      <li>Toss 나눔 단추, 바닥 시트, 홈 카드</li>
+    </ul>
+
+    <h3>강점</h3>
+    <ul>
+      <li>위치가 곧 계급이라 범례 없이 읽힙니다. 안쪽 원은 학문, 바깥 테두리는 개념.</li>
+      <li>점이 작고 선이 옅어 첫 화면이 조용합니다. 개념 사이 선이 없어서 개념이 수백 개가 돼도 바깥 원의 점 띠가 촘촘해질 뿐 엉키지 않습니다.</li>
+      <li>바깥 원의 점 띠가 그대로 "얼마나 배웠나"의 둘레가 됩니다. 학문 부채꼴의 넓이가 배운 양의 비율입니다.</li>
+      <li>해금이 지도 문법 그대로입니다. 새 학문은 "원 둘레에 자리가 하나 생기는 것"이라 따로 그림을 만들 필요가 없습니다.</li>
+      <li>소우주의 작은 그림이 안쪽 지도의 첫 고리 그 자체라 들어갈 때 끊기지 않습니다.</li>
+    </ul>
+
+    <h3>솔직한 약점</h3>
+    <ul>
+      <li>지금 데이터는 재무학이 42개 중 39개라 원의 3분의 2가 파랑입니다. 작은 학문 셋은 최소 부채꼴 덕에 이름은 들어가지만 가지가 하나뿐이라 빈약해 보입니다.</li>
+      <li>원 모양이라 세로로 긴 화면의 위아래가 남습니다(390×630 판에서 지름 354px).</li>
+      <li>학문이 하나 생기면 모든 부채꼴이 조금씩 돌아갑니다. 8차처럼 큰 학문을 못 박지 않아서, 공간 기억이 "재무학은 오른쪽 아래" 정도로만 남습니다.</li>
+      <li>개념이 늘면 바깥 원이 커지고 처음 배율이 작아집니다. 6개월 뒤 데이터(192개)에서 바깥 점 사이가 약 8px라 점이 띠처럼 보입니다. 개념 이름은 확대해야 보입니다.</li>
+      <li>개념 이름을 방사 방향으로 눕혀 쓰므로 왼쪽 반쪽과 위아래 끝에서는 고개를 기울여 읽게 됩니다. 긴 이름은 108px에서 말줄임표로 자릅니다.</li>
+      <li>경제학처럼 학문 전체가 소우주면, 첫 화면에서 그 부채꼴이 거의 비어 보입니다(작은 테 하나).</li>
+      <li>복습 주황과 소프트웨어 학문 주황이 같습니다. 고리(복습)와 채움(학문)으로 가르지만 학문 색표에서 주황을 빼는 것을 권합니다.</li>
+      <li>캔버스 그림이라 화면 읽기 프로그램이 노드를 읽지 못합니다. 실제 앱에는 같은 트리를 목록으로 읽어 주는 접근성 층이 필요합니다.</li>
+    </ul>
+
+    <h3>확인한 것과 못 한 것</h3>
+    <ul>
+      <li>390×800에서 Playwright로 첫 화면, 재무학 확대, CAPM 소우주 안, 개념 시트, 6개월 뒤와 경제학 소우주, 학문 해금(진행 중과 끝), 분과 해금 띠를 찍어 확인했습니다. 콘솔 오류는 글꼴 CDN 하나뿐입니다.</li>
+      <li>실제 아이폰의 두 손가락 확대와 60fps는 확인하지 못했습니다. 그리기는 움직일 때만 하고, 노드 250개 남짓에서 한 프레임이 데스크톱에서 1~2ms입니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="../v8/data.js"></script>
+<script src="../v8/latti.js"></script>
+<script>
+(async function () {
+  const V = window.V8;
+  const phone = document.getElementById('phone');
+  const E = ML.ease;
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const FONT = "'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif";
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const TAU = Math.PI * 2;
+  const norm = (x) => ((x % TAU) + TAU) % TAU;
+  const DAY = 864e5;
+  const dt = (s) => Date.parse(s.slice(0, 10) + 'T00:00:00Z');
+  const ymd = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const md = (s) => `${+s.slice(5, 7)}월 ${+s.slice(8, 10)}일`;
+  const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  const dow = (s) => DOW[new Date(dt(s)).getUTCDay()];
+  const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+  try { await Latti.lines.load('../v8/latti-lines.json'); } catch (e) {}
+
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    graph: '<svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="4.5" r="2.2" fill="currentColor"/><circle cx="18.5" cy="15.8" r="2.2" fill="currentColor"/><circle cx="5.5" cy="15.8" r="2.2" fill="currentColor"/><path d="M12 12V4.5M12 12l6.5 3.8M12 12l-6.5 3.8" stroke="currentColor" stroke-width="1.6"/></svg>',
+    back: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    fit: '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg>',
+    search: '<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="10.5" cy="10.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.3 15.3l4.6 4.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  };
+  const tabs = (on) => `<nav class="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['graph', ICON.graph, '지식']].map(([k, i, l]) => `<span class="${k === on ? 'on' : ''}">${i}${l}</span>`).join('')}</nav>`;
+
+  phone.innerHTML = `<div class="scr">
+    <div class="top"><h1>지식</h1>
+      <div class="seg" id="seg"><i class="th"></i><button class="on" data-i="0">Latticework</button><button data-i="1">뉴스</button><button data-i="2">단어장</button></div></div>
+    <div class="pane" id="pg"><canvas id="gcv"></canvas><div class="gfade"></div>
+      <div class="crumb" id="crumb" hidden><button class="bk" id="cbk" aria-label="뒤로">${ICON.back}</button><div class="cs" id="cs"></div></div>
+      <button class="fitb" id="fitb" hidden aria-label="전체">${ICON.fit}</button></div>
+    <div class="pane list" id="pn" hidden></div>
+    <div class="pane list" id="pv" hidden></div>
+    ${tabs('graph')}
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" id="sheet"><div class="grab"></div><div id="sbody"></div></div>
+  </div>`;
+  const scr = phone.querySelector('.scr');
+  const $ = (s) => phone.querySelector(s);
+
+  /* ═════════════ 색 ═════════════ */
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (c, t) => { const [r, g, b] = hex(c); return `rgb(${Math.round(255 + (r - 255) * t)},${Math.round(255 + (g - 255) * t)},${Math.round(255 + (b - 255) * t)})`; };
+  const rgba = (c, a) => { const [r, g, b] = hex(c); return `rgba(${r},${g},${b},${a})`; };
+  const ink = (c) => { const [r, g, b] = hex(c); return `rgb(${Math.round(r * 0.8)},${Math.round(g * 0.8)},${Math.round(b * 0.8)})`; };
+  const ORANGE = '#fe9800';
+
+  /* ═════════════ 데이터 ═════════════ */
+  // 숨은 참조: 영역의 방위(0도 오른쪽, 90도 아래)와 영역 안 학문 순서. 8차와 같다. 화면에는 그리지 않는다.
+  const REF = {
+    formal: { ang: 0, list: ['stat', 'math', 'logic', 'cs'] },
+    social: { ang: 90, list: ['fin', 'econ', 'acct', 'mgmt', 'psy'] },
+    natural: { ang: 180, list: ['phys', 'chem', 'bio', 'earth'] },
+    humanities: { ang: 225, list: ['phil'] },
+    life: { ang: 270, list: [] },
+    engineering: { ang: 315, list: [] },
+  };
+  function bearing(n) {
+    const d = REF[n.raw.domain] || REF.formal;
+    const slug = n.id.slice(2);
+    let i = d.list.indexOf(slug);
+    const m = Math.max(d.list.length, 1);
+    if (i < 0) i = (m - 1) / 2;
+    const off = m > 1 ? (i - (m - 1) / 2) * (64 / (m - 1)) : 0;
+    return ((d.ang + off) * Math.PI) / 180;
+  }
+  const SETS = {
+    now: { tree: V.tree, collapse: V.tree.collapse, today: V.today },
+    future: { tree: V.future.tree, collapse: V.future.collapse, today: V.future.asOf },
+  };
+  function memOf(c, today) {
+    if (!c.reps) return { studied: false, R: null, S: 0, due: c.due || today, strength: 0 };
+    let R = c.retrievability;
+    if (R == null) R = 1 / (1 + (dt(today) - dt(c.last)) / DAY / (9 * c.stability));
+    const due = c.due || ymd(dt(c.last) + Math.round(c.stability) * DAY);
+    const strength = clamp(R * (Math.log(1 + c.stability) / Math.log(1 + 90)), 0, 1);
+    return { studied: true, R, S: c.stability, due, strength };
+  }
+
+  /* ═════════════ 방사 나무 배치 ═════════════ */
+  // 한 틀(frame) = 가운데 노드 하나와 그 아래를 동심원에 놓은 작은 나무. 맨 위 틀의 가운데는 빈 점이고,
+  // 소우주(접힌 노드)는 부모 틀 안에서 잎 하나처럼 자리만 차지하고, 자기 틀을 따로 가진다.
+  const RANK = { discipline: 'disc', branch: 'branch', topic: 'topic' };
+  const RI = { root: 0, disc: 1, branch: 2, topic: 3 };
+  const GLYPH = 10; // 소우주 첫 고리의 반지름(부모 틀 단위)
+  const SLOT = 26; // 바깥 원에서 잎 한 칸의 길이
+  function build(set, o = {}) {
+    const T = set.tree;
+    const ex = new Set(o.exclude || []);
+    const raw = new Map(T.nodes.map((x) => [x.id, x]));
+    const out = (id) => { for (let x = raw.get(id); x; x = raw.get(x.parent)) if (ex.has(x.id)) return true; return false; };
+    const N = new Map();
+    const root = { id: 'root', kind: 'root', kids: [], parent: null, ko: '전체', short: '전체', x: 0, y: 0 };
+    N.set('root', root);
+    for (const x of T.nodes) {
+      if (out(x.id)) continue;
+      N.set(x.id, { id: x.id, kind: RANK[x.rank], ko: x.ko, short: x.short || x.ko, en: x.en, raw: x, kids: [], pid: x.parent || 'root', born: x.createdAt });
+    }
+    for (const c of T.concepts) {
+      if (ex.has(c.id) || !N.has(c.node)) continue;
+      const amount = c.solved != null ? c.solved : (c.reps || 0) * 3;
+      N.set(c.id, { id: c.id, kind: 'concept', ko: c.name, en: c.en, raw: c, kids: [], pid: c.node, born: c.first, amount, mem: memOf(c, set.today) });
+    }
+    for (const n of N.values()) if (n !== root) { n.parent = N.get(n.pid) || root; n.parent.kids.push(n); }
+    for (const n of N.values()) {
+      if (n === root) continue;
+      let d = n;
+      while (d.parent !== root) d = d.parent;
+      n.disc = d;
+      n.color = d.raw.color;
+      if (n.kind === 'concept') n.due = n.mem.studied && n.mem.due <= set.today;
+    }
+    const byBorn = (a, b) => (a.born < b.born ? -1 : a.born > b.born ? 1 : a.id < b.id ? -1 : 1);
+    for (const n of N.values()) {
+      if (n === root) n.kids.sort((a, b) => bearing(a) - bearing(b) || byBorn(a, b));
+      else n.kids.sort((a, b) => (a.kind === 'concept') - (b.kind === 'concept') || byBorn(a, b));
+    }
+    const tally = (n) => {
+      if (n.kind === 'concept') { n.nC = 1; n.nDue = n.due ? 1 : 0; return; }
+      n.nC = 0; n.nDue = 0;
+      for (const k of n.kids) { tally(k); n.nC += k.nC; n.nDue += k.nDue; }
+    };
+    tally(root);
+    const col = new Set(((set.collapse && set.collapse.collapsed) || []).map((c) => c.nodeId));
+    for (const n of N.values()) n.collapsed = n !== root && n.kind !== 'concept' && n.kids.length > 0 && (col.has(n.id) || n.kids.length > 7);
+
+    const frames = [];
+    function makeFrame(c, P) {
+      const F = { node: c, parent: P, isRoot: !P, kids: [], items: [] };
+      frames.push(F);
+      const walk = (n) => {
+        for (const k of n.kids) {
+          k.F = F;
+          F.items.push(k);
+          if (k.kind !== 'concept') k.ring = RI[k.kind] - RI[c.kind];
+          if (k.kind !== 'concept' && !k.collapsed) walk(k);
+        }
+      };
+      walk(c);
+      const inner = F.items.filter((n) => n.kind !== 'concept');
+      const hasLeaf = F.items.some((n) => n.kind === 'concept');
+      const L = Math.max(1, (inner.length ? Math.max(...inner.map((n) => n.ring)) : 0) + (hasLeaf ? 1 : 0));
+      F.L = L;
+      F.items.forEach((n) => { if (n.kind === 'concept') n.ring = L; });
+      // 칸: 잎 1, 소우주 2.4
+      const wOf = (n) => {
+        if (n.kind === 'concept') return (n.w = 1);
+        if (n.collapsed && n !== c) return (n.w = 2.4);
+        let s = 0;
+        for (const k of n.kids) s += wOf(k);
+        return (n.w = Math.max(1, s));
+      };
+      let tot = 0;
+      c.kids.forEach((k) => (tot += wOf(k)));
+      const minW = F.isRoot ? Math.max(4, 0.08 * tot) : 0;
+      const gap = F.isRoot ? 1.2 : 0;
+      const gw = c.kids.map((k) => Math.max(k.w, minW));
+      const total = gw.reduce((a, b) => a + b, 0) + gap * c.kids.length;
+      F.R = Math.max(F.isRoot ? 232 : 60 * L, (total * SLOT) / TAU);
+      F.ringR = (i) => (i >= L ? F.R : F.R * Math.pow(i / L, 0.85));
+      const per = TAU / total;
+      const assign = (n, a0, a1) => {
+        n.a0 = a0; n.a1 = a1; n.la = (a0 + a1) / 2;
+        if (n.kind === 'concept' || n.collapsed) return;
+        let s = a0;
+        for (const k of n.kids) { const sp = ((a1 - a0) * k.w) / n.w; assign(k, s, s + sp); s += sp; }
+      };
+      let a = 0;
+      c.kids.forEach((k, i) => { a += (gap / 2) * per; const sp = gw[i] * per; assign(k, a, a + sp); a += sp + (gap / 2) * per; });
+      let rot;
+      if (F.isRoot) {
+        let sx = 0, sy = 0;
+        c.kids.forEach((k, i) => { const d = bearing(k) - k.la; sx += gw[i] * Math.cos(d); sy += gw[i] * Math.sin(d); });
+        rot = Math.atan2(sy, sx);
+      } else rot = c.la + Math.PI; // 안쪽 나무의 이음매는 부모 쪽을 본다
+      F.items.forEach((n) => {
+        n.a0 += rot; n.a1 += rot; n.la += rot;
+        n.lr = n.kind === 'concept' ? F.R : F.ringR(n.ring);
+        n.lx = n.lr * Math.cos(n.la); n.ly = n.lr * Math.sin(n.la);
+      });
+      const lv = F.items.filter((n) => n.kind === 'concept').sort((p, q) => norm(p.la) - norm(q.la));
+      lv.forEach((n, i) => {
+        if (lv.length < 2) { n.gap = Math.PI; return; }
+        const pv = lv[(i - 1 + lv.length) % lv.length], nx = lv[(i + 1) % lv.length];
+        n.gap = Math.min(norm(n.la - pv.la), norm(nx.la - n.la));
+      });
+      F.items.filter((n) => n.collapsed).forEach((n) => { n.inner = makeFrame(n, F); F.kids.push(n.inner); });
+      return F;
+    }
+    const RF = makeFrame(root, null);
+    RF.s = 1; RF.cx = 0; RF.cy = 0;
+    for (const F of frames) if (!F.isRoot) F.s = (GLYPH * F.parent.s) / F.ringR(1);
+    const M = { N, root, frames, RF, today: set.today, discs: root.kids };
+    place(M, null);
+    return M;
+  }
+  // 세계 좌표. 바꾸는 중(mo)에는 맨 위 틀의 노드가 원 둘레를 따라(각도와 반지름으로) 옮겨 간다.
+  function place(M, mo) {
+    for (const F of M.frames) {
+      if (!F.isRoot) { F.cx = F.node.x; F.cy = F.node.y; }
+      for (const n of F.items) {
+        let x = F.cx + F.s * n.lx, y = F.cy + F.s * n.ly;
+        if (mo && F.isRoot) {
+          const f = mo.from.get(n.id);
+          if (f) {
+            const a1 = Math.atan2(y, x), r1 = Math.hypot(x, y);
+            const da = Math.atan2(Math.sin(a1 - f.a), Math.cos(a1 - f.a));
+            const aa = f.a + da * mo.e, rr = lerp(f.r, r1, mo.e);
+            x = rr * Math.cos(aa); y = rr * Math.sin(aa);
+          }
+        }
+        n.x = x; n.y = y;
+      }
+    }
+  }
+  const polarOf = (M) => new Map([...M.N.values()].filter((n) => n.kind !== 'root').map((n) => [n.id, { a: Math.atan2(n.y, n.x), r: Math.hypot(n.x, n.y) }]));
+  function subtree(n) { const out = [n]; n.kids.forEach((k) => out.push(...subtree(k))); return out; }
+
+  /* ═════════════ 그리기 ═════════════ */
+  function makeView(cv, o = {}) {
+    const S = Object.assign({ cv, ctx: cv.getContext('2d'), W: 390, H: 600, DPR: 1, cam: { x: 0, y: 0, k: 1 }, M: null, labels: 9, sel: null, chrome: [], reveal: null, link: null, dim: null, dotK: 1, inner: true, enter: null, mo: null, hits: [], dots: [], sticky: new Map(), halo: null, dirty: true }, o);
+    S.resize = (w, h) => { S.W = w; S.H = h; S.DPR = Math.max(1, window.devicePixelRatio || 1); cv.width = Math.round(w * S.DPR); cv.height = Math.round(h * S.DPR); S.dirty = true; };
+    return S;
+  }
+  function kFit(S, F) {
+    const W = S.fitW || S.W, H = S.fitH || S.H;
+    const base = Math.min(W / 2 - 18, H / 2 - 40);
+    const tgt = F.isRoot ? base : F.L === 1 ? Math.max(40, Math.min(92, W / 2 - 100)) : base - 6;
+    return tgt / (F.s * F.R);
+  }
+  const rootFit = (S) => ({ x: 0, y: 0, k: kFit(S, S.M.RF) });
+  const gz = (z) => (z >= 1 ? Math.min(1.55, Math.pow(z, 0.32)) : 0.38 + 0.62 * smooth(0.22, 1, z));
+  function baseR(n) {
+    switch (n.kind) {
+      case 'disc': return 6 + Math.min(3, 0.45 * Math.sqrt(n.nC));
+      case 'branch': return 4 + Math.min(2, 0.4 * Math.sqrt(n.nC));
+      case 'topic': return 3.4 + Math.min(1.2, 0.3 * Math.sqrt(n.nC));
+      default: return 2.5 + Math.min(1.4, 0.22 * Math.sqrt(n.amount || 0));
+    }
+  }
+  const twc = new Map();
+  let mctx = null;
+  function textW(font, s) {
+    const key = font + '|' + s;
+    let w = twc.get(key);
+    if (w == null) { mctx = mctx || document.createElement('canvas').getContext('2d'); mctx.font = font; w = mctx.measureText(s).width; twc.set(key, w); }
+    return w;
+  }
+  const fitc = new Map();
+  function fitText(font, s, max) {
+    const key = font + '|' + s + '|' + max;
+    if (fitc.has(key)) return fitc.get(key);
+    let t = s;
+    if (textW(font, s) > max) { const ch = [...s]; while (ch.length > 1 && textW(font, ch.join('') + '…') > max) ch.pop(); t = ch.join('') + '…'; }
+    fitc.set(key, t);
+    return t;
+  }
+  const F_ = { disc: `700 13px ${FONT}`, branch: `600 12px ${FONT}`, topic: `500 12px ${FONT}`, concept: `500 11.5px ${FONT}`, sel: `700 12px ${FONT}` };
+  const LCOL = { disc: '#191f28', branch: '#4e5968', topic: '#6b7684' };
+
+  function bez(S, F, p, n, t) {
+    const { cam, W, H } = S, k = cam.k;
+    const cx = (F.cx - cam.x) * k + W / 2, cy = (F.cy - cam.y) * k + H / 2;
+    const x0 = (p.x - cam.x) * k + W / 2, y0 = (p.y - cam.y) * k + H / 2;
+    const x3 = (n.x - cam.x) * k + W / 2, y3 = (n.y - cam.y) * k + H / 2;
+    const r0 = Math.hypot(x0 - cx, y0 - cy), r3 = Math.hypot(x3 - cx, y3 - cy);
+    const a3 = Math.atan2(y3 - cy, x3 - cx), a0 = r0 < 0.5 ? a3 : Math.atan2(y0 - cy, x0 - cx);
+    const rm = (r0 + r3) / 2;
+    let P = [x0, y0, cx + rm * Math.cos(a0), cy + rm * Math.sin(a0), cx + rm * Math.cos(a3), cy + rm * Math.sin(a3), x3, y3];
+    if (t < 1) {
+      // de Casteljau: 0..t 구간
+      const L = (a, b) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)];
+      const p0 = [P[0], P[1]], p1 = [P[2], P[3]], p2 = [P[4], P[5]], p3 = [P[6], P[7]];
+      const q0 = L(p0, p1), q1 = L(p1, p2), q2 = L(p2, p3), r0_ = L(q0, q1), r1_ = L(q1, q2), s0 = L(r0_, r1_);
+      P = [p0[0], p0[1], q0[0], q0[1], r0_[0], r0_[1], s0[0], s0[1]];
+    }
+    return P;
+  }
+
+  function draw(S, now) {
+    const { ctx, W, H, cam, M } = S;
+    ctx.setTransform(S.DPR, 0, 0, S.DPR, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    S.hits = []; S.dots = [];
+    if (!M) return;
+    if (S.mo) place(M, S.mo);
+    const k = cam.k;
+    const X = (x) => (x - cam.x) * k + W / 2, Y = (y) => (y - cam.y) * k + H / 2;
+    const half = Math.min(W, H) / 2;
+    // 틀마다 "안에 들어와 있는 정도"(tin)와 보이는 정도(vis)
+    for (const F of M.frames) {
+      F.kf = kFit(S, F);
+      F.z = k / F.kf;
+      if (F.isRoot) { F.tin = 1; continue; }
+      if (!S.inner) { F.tin = 0; continue; }
+      const zf = smooth(0.3, 0.75, F.z);
+      const ds = Math.hypot(X(F.cx) - W / 2, Y(F.cy) - H / 2) / half;
+      const dw = Math.hypot(cam.x - F.cx, cam.y - F.cy) / (F.s * F.R);
+      const pf = Math.max(1 - smooth(0.75, 1.1, ds), 1 - smooth(1.15, 1.5, dw));
+      F.tin = zf * pf * smooth(0.5, 0.95, F.parent.tin);
+    }
+    for (const F of M.frames) { let m = 0; for (const C of F.kids) m = Math.max(m, C.tin); F.vis = F.tin * (1 - m); }
+    const RF = M.RF;
+    const tE = S.enter ? (now - S.enter.t0) * ML.rate : 1e9;
+    const ER = (n) => (tE > 1400 ? 1 : smooth(0, 1, (tE - 60 - clamp(Math.hypot(n.x, n.y) / RF.R, 0, 1) * 560) / 320));
+    const RV = (n) => (S.reveal && S.reveal.has(n.id) ? S.reveal.get(n.id) : 1);
+    const LK = (n) => (S.link && S.link.has(n.id) ? S.link.get(n.id) : 1);
+    const DM = (n) => (S.dim ? S.dim(n) : 1);
+
+    // 보이는 것 모으기
+    const its = [];
+    for (const F of M.frames) {
+      if (F.vis < 0.004 && !(F.parent && F.parent.vis > 0.004)) continue;
+      for (const n of F.items) {
+        let a = F.vis;
+        const la = F.vis;
+        if (!F.isRoot && n.ring === 1) a = Math.max(a, F.parent.vis);
+        if (n.inner) a = Math.max(a, n.inner.vis);
+        if (a < 0.004) continue;
+        const m = ER(n) * DM(n);
+        const rv = RV(n);
+        let z = F.z;
+        if (n.inner) z = lerp(F.z, n.inner.z, n.inner.tin);
+        let r = baseR(n) * gz(z) * S.dotK;
+        if (n.kind === 'concept') r = Math.min(r, Math.max(0.9, n.gap * F.R * F.s * k * 0.4));
+        r *= 0.5 + 0.5 * easeOut(rv);
+        its.push({ n, F, x: X(n.x), y: Y(n.y), r, a0: a * m, a: a * m * rv, la: (n.inner ? Math.max(la, n.inner.vis) : la) * m * rv, rv, lk: LK(n) });
+      }
+    }
+
+    // 새 학문 둘레의 옅은 빛
+    if (S.halo && S.halo.a > 0.01) {
+      const h = S.halo, hx = X(h.n.x), hy = Y(h.n.y), hr = h.r;
+      const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, hr);
+      g.addColorStop(0, rgba(h.n.color, 0.2 * h.a)); g.addColorStop(1, rgba(h.n.color, 0));
+      ctx.globalAlpha = 1; ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(hx, hy, hr, 0, TAU); ctx.fill();
+    }
+
+    // 부모와 자식을 잇는 곡선: 바깥으로 갈수록 옅고 가늘다
+    ctx.lineCap = 'round';
+    for (const it of its) {
+      const n = it.n, F = it.F;
+      if (it.lk <= 0 || it.a0 < 0.01) continue;
+      const P = bez(S, F, n.parent, n, it.lk);
+      const xs = [P[0], P[2], P[4], P[6]], ys = [P[1], P[3], P[5], P[7]];
+      if (Math.max(...xs) < -4 || Math.min(...xs) > W + 4 || Math.max(...ys) < -4 || Math.min(...ys) > H + 4) continue;
+      const dT = n.kind === 'concept' ? 1 : (n.ring - 1) / Math.max(1, F.L - 1);
+      let al, col, lw;
+      if (F.isRoot && n.ring === 1) { col = '#8b95a1'; al = 0.34; lw = 1; }
+      else { col = n.color; al = 0.5 - 0.32 * dT; lw = 1.05 - 0.35 * dT; }
+      if (!F.isRoot && n.ring === 1 && F.tin < 0.5) { al = Math.max(al, 0.42); lw = 0.8; }
+      ctx.globalAlpha = it.a0 * al;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = lw;
+      ctx.beginPath(); ctx.moveTo(P[0], P[1]); ctx.bezierCurveTo(P[2], P[3], P[4], P[5], P[6], P[7]); ctx.stroke();
+    }
+
+    // 소우주의 테
+    for (const it of its) {
+      const n = it.n;
+      if (!n.inner) continue;
+      const G = n.inner;
+      const ga = it.F.vis * ER(n) * DM(n) * it.rv * (1 - smooth(0.05, 0.6, G.tin));
+      if (ga < 0.01) continue;
+      const rr = GLYPH * it.F.s * k + 3.2;
+      if (it.x < -rr || it.x > W + rr || it.y < -rr || it.y > H + rr) continue;
+      ctx.globalAlpha = ga * 0.55;
+      ctx.strokeStyle = n.color; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(it.x, it.y, rr, 0, TAU); ctx.stroke();
+      if (n.nDue) {
+        ctx.globalAlpha = ga;
+        ctx.fillStyle = ORANGE;
+        ctx.beginPath(); ctx.arc(it.x + rr * 0.72, it.y - rr * 0.72, 2.3, 0, TAU); ctx.fill();
+      }
+    }
+
+    // 점
+    const rootA = RF.vis * ER(M.root) * (S.dim ? S.dim(M.root) : 1);
+    if (rootA > 0.01) {
+      ctx.globalAlpha = rootA; ctx.fillStyle = '#b0b8c1';
+      ctx.beginPath(); ctx.arc(X(0), Y(0), 2.5, 0, TAU); ctx.fill();
+    }
+    const order = { concept: 0, topic: 1, branch: 2, disc: 3 };
+    its.sort((p, q) => order[p.n.kind] - order[q.n.kind]);
+    for (const it of its) {
+      const n = it.n;
+      if (it.a < 0.01) continue;
+      if (it.x < -it.r - 4 || it.x > W + it.r + 4 || it.y < -it.r - 4 || it.y > H + it.r + 4) continue;
+      ctx.globalAlpha = it.a;
+      ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, TAU);
+      if (n.kind === 'disc') { ctx.fillStyle = n.color; ctx.fill(); }
+      else if (n.kind === 'branch') { ctx.fillStyle = mix(n.color, 0.62); ctx.fill(); }
+      else if (n.kind === 'topic') { ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = n.color; ctx.lineWidth = Math.min(1.5, it.r * 0.42); ctx.stroke(); }
+      else if (n.mem.studied) { ctx.fillStyle = rgba(n.color, 0.3 + 0.7 * n.mem.strength); ctx.fill(); }
+      else { ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = rgba(n.color, 0.7); ctx.lineWidth = 1; ctx.stroke(); }
+      if (n.due && it.r > 1.4) {
+        ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 2.1, 0, TAU); ctx.stroke();
+      }
+      if (S.sel === n.id) {
+        ctx.globalAlpha = 1; ctx.strokeStyle = '#191f28'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(it.x, it.y, it.r + (n.due ? 4.4 : 3), 0, TAU); ctx.stroke();
+      }
+      if (it.a > 0.25) S.dots.push({ x: it.x, y: it.y, r: it.r + (n.due ? 3.4 : 1), n });
+      const ta = n.inner ? it.a : it.la;
+      if (ta > 0.35) {
+        const glyph = n.inner && n.inner.tin < 0.5;
+        S.hits.push({ n, x: it.x, y: it.y, r: glyph ? GLYPH * it.F.s * k + 9 : Math.max(it.r + 7, 14), glyph });
+      }
+    }
+
+    if (!S.labels) return;
+    // 이름
+    ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    const txt = (s, x, y, font, color, a, align) => {
+      ctx.globalAlpha = a; ctx.font = font; ctx.textAlign = align;
+      ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(255,255,255,.94)'; ctx.strokeText(s, x, y);
+      ctx.fillStyle = color; ctx.fillText(s, x, y);
+    };
+    const boxes = S.chrome.slice();
+    const LB = [];
+    for (const it of its) {
+      const n = it.n, F = it.F;
+      if (n.kind === 'concept') continue;
+      let need;
+      if (n.ring === 1) need = 1;
+      else if (n.ring === 2) need = smooth(1.25, 1.45, F.z);
+      else need = smooth(1.9, 2.1, F.z);
+      if (S.labels < n.ring) need = 0;
+      let a = it.la * need, center = false, pri = n.ring;
+      if (n.inner && n.inner.tin > 0.4) { const ca = it.a * smooth(0.4, 0.7, n.inner.tin); if (ca > a) { a = ca; center = true; pri = 0; } }
+      if (S.labels < 9 && !center && n.ring > 1) a = 0;
+      if (a > 0.04) LB.push({ it, a, center, pri });
+    }
+    LB.sort((p, q) => p.pri - q.pri || q.it.r - p.it.r);
+    const hitDot = (b, self) => {
+      for (const d of S.dots) {
+        if (d.n === self) continue;
+        const cx = clamp(d.x, b[0], b[2]), cy = clamp(d.y, b[1], b[3]);
+        if ((cx - d.x) ** 2 + (cy - d.y) ** 2 < d.r * d.r) return true;
+      }
+      return false;
+    };
+    for (const L of LB) {
+      const { it } = L, n = it.n;
+      const kind = L.center ? 'disc' : n.kind;
+      const font = F_[kind];
+      const s = n.ko;
+      const w = textW(font, s), h = 16;
+      const Fr = L.center ? n.inner : it.F;
+      const fcx = X(Fr.cx), fcy = Y(Fr.cy);
+      let ux = it.x - fcx, uy = it.y - fcy;
+      const ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+      const g = it.r + 4;
+      let C = [];
+      if (L.center) C = [[it.x - w / 2, it.y + g], [it.x - w / 2, it.y - g - h]];
+      else {
+        if (ux > 0.38) C.push([it.x + g, it.y - h / 2]);
+        else if (ux < -0.38) C.push([it.x - g - w, it.y - h / 2]);
+        else if (uy < 0) C.push([it.x - w / 2, it.y - g - h]);
+        else C.push([it.x - w / 2, it.y + g]);
+        C.push([it.x - w / 2, it.y + g], [it.x - w / 2, it.y - g - h], [it.x + g, it.y - h / 2], [it.x - g - w, it.y - h / 2],
+          [it.x + g * 0.7, it.y + g * 0.6], [it.x - w - g * 0.7, it.y + g * 0.6], [it.x + g * 0.7, it.y - h - g * 0.6], [it.x - w - g * 0.7, it.y - h - g * 0.6]);
+      }
+      const key = n.id + (L.center ? '#c' : '');
+      const st = S.sticky.get(key);
+      if (st != null && st < C.length) C = [C[st]].concat(C);
+      const Rl = Fr.R * Fr.s * k - 3;
+      let pick = -1, box = null;
+      for (let i = 0; i < C.length; i++) {
+        const b = [C[i][0], C[i][1], C[i][0] + w, C[i][1] + h];
+        if (b[0] < 4 || b[2] > W - 4 || b[1] < 2 || b[3] > H - 2) continue;
+        let bad = false;
+        for (const q of boxes) if (b[0] < q[2] + 3 && b[2] > q[0] - 3 && b[1] < q[3] + 1 && b[3] > q[1] - 1) { bad = true; break; }
+        if (bad) continue;
+        if (hitDot(b, n)) continue;
+        if (Fr.L > 1 && !L.center) {
+          let out = false;
+          for (const [px, py] of [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]]]) if (Math.hypot(px - fcx, py - fcy) > Rl) { out = true; break; }
+          if (out) continue;
+        }
+        pick = i; box = b; break;
+      }
+      if (pick < 0) continue;
+      const orig = st != null && st < C.length ? (pick === 0 ? st : pick - 1 >= st ? pick : pick - 1) : pick;
+      S.sticky.set(key, orig);
+      boxes.push(box);
+      txt(s, box[0], box[1] + h / 2 + 0.5, font, LCOL[kind], L.a, 'left');
+    }
+    // 개념 이름: 바깥 원을 따라 방사 방향으로
+    if (S.labels >= 9 || S.sel) {
+      for (const it of its) {
+        const n = it.n, F = it.F;
+        if (n.kind !== 'concept') continue;
+        const isSel = S.sel === n.id;
+        if (S.labels < 9 && !isSel) continue;
+        const sp = n.gap * F.R * F.s * k;
+        const need = (F.L === 1 ? smooth(0.7, 0.9, F.z) : smooth(1.7, 1.9, F.z)) * smooth(12, 14, sp);
+        const a = isSel ? it.a : it.la * need;
+        if (a < 0.04) continue;
+        if (it.x < -20 || it.x > W + 20 || it.y < -20 || it.y > H + 20) continue;
+        let inChrome = false;
+        for (const q of S.chrome) if (it.x > q[0] && it.x < q[2] && it.y > q[1] && it.y < q[3]) inChrome = true;
+        if (inChrome) continue;
+        const ang = Math.atan2(n.y - F.cy, n.x - F.cx);
+        const flip = Math.cos(ang) < 0;
+        const font = isSel ? F_.sel : F_.concept;
+        const s = fitText(font, n.ko, 108);
+        ctx.save();
+        ctx.translate(it.x, it.y);
+        ctx.rotate(flip ? ang + Math.PI : ang);
+        const off = it.r + (n.due ? 5.5 : 4);
+        txt(s, flip ? -off : off, 0.5, font, isSel ? '#191f28' : '#4e5968', a, flip ? 'right' : 'left');
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ═════════════ 지식 지도 화면 ═════════════ */
+  const cv = $('#gcv');
+  const pane = $('#pg');
+  const S = makeView(cv);
+  const cam = S.cam;
+  const G = { which: 'now', fly: null, coast: false, morph: null, active: true, focus: [], sheetH: 0, sel: null };
+  function resize() { const r = pane.getBoundingClientRect(); S.resize(r.width, r.height); }
+  const toWorld = (px, py) => ({ x: cam.x + (px - S.W / 2) / cam.k, y: cam.y + (py - S.H / 2) / cam.k });
+
+  function nodeFit(n) {
+    if (!n || n.kind === 'root') return rootFit(S);
+    if (n.inner) { const F = n.inner, kk = kFit(S, F); return { x: F.cx, y: F.cy + 4 / kk, k: kk }; }
+    const F = n.F;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const walk = (m) => {
+      const pad = m.inner ? GLYPH * F.s : 0;
+      x0 = Math.min(x0, m.x - pad); x1 = Math.max(x1, m.x + pad); y0 = Math.min(y0, m.y - pad); y1 = Math.max(y1, m.y + pad);
+      if (!m.inner) m.kids.forEach(walk);
+    };
+    walk(n);
+    const kf = kFit(S, F);
+    const kk = clamp(Math.min((S.W - 90) / Math.max(1, x1 - x0), (S.H - 170) / Math.max(1, y1 - y0)), kf * 1.5, kf * 3);
+    return { x: (x0 + x1) / 2, y: (y0 + y1) / 2, k: kk };
+  }
+  const kLimits = () => { const f = rootFit(S); let m = f.k * 3; for (const F of S.M.frames) m = Math.max(m, kFit(S, F) * 3); return [f.k * 0.6, m]; };
+
+  // van Wijk & Nuij 부드러운 확대 경로 (d3 interpolateZoom 과 같은 식)
+  function zoomPath(p0, p1) {
+    const rho = Math.SQRT2, rho2 = 2, rho4 = 4;
+    const [ux0, uy0, w0] = p0, [ux1, uy1, w1] = p1;
+    const dx = ux1 - ux0, dy = uy1 - uy0, d2 = dx * dx + dy * dy;
+    let i, Sx;
+    if (d2 < 1e-12) {
+      Sx = Math.log(w1 / w0) / rho;
+      i = (t) => [ux0 + t * dx, uy0 + t * dy, w0 * Math.exp(rho * t * Sx)];
+    } else {
+      const d1 = Math.sqrt(d2);
+      const b0 = (w1 * w1 - w0 * w0 + rho4 * d2) / (2 * w0 * rho2 * d1);
+      const b1 = (w1 * w1 - w0 * w0 - rho4 * d2) / (2 * w1 * rho2 * d1);
+      const r0 = Math.log(Math.sqrt(b0 * b0 + 1) - b0), r1 = Math.log(Math.sqrt(b1 * b1 + 1) - b1);
+      Sx = (r1 - r0) / rho;
+      i = (t) => { const s = t * Sx, c0 = Math.cosh(r0), u = (w0 / (rho2 * d1)) * (c0 * Math.tanh(rho * s + r0) - Math.sinh(r0)); return [ux0 + u * dx, uy0 + u * dy, (w0 * c0) / Math.cosh(rho * s + r0)]; };
+    }
+    i.ms = Math.abs(Sx) * 1000;
+    return i;
+  }
+  const VM = () => Math.min(S.W, S.H);
+  function flyTo(t, o = {}) {
+    G.coast = false;
+    const p = zoomPath([cam.x, cam.y, VM() / cam.k], [t.x, t.y, VM() / t.k]);
+    const ms = clamp(p.ms * 0.62, o.min || 460, 1150);
+    G.fly = { p, t0: performance.now(), ms, done: o.done };
+    S.dirty = true;
+  }
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!G.active) return;
+    let busy = false;
+    if (G.fly) {
+      const f = G.fly;
+      const t = clamp(((now - f.t0) * ML.rate) / f.ms, 0, 1);
+      const [x, y, w] = f.p(easeIO(t));
+      cam.x = x; cam.y = y; cam.k = VM() / w;
+      busy = true;
+      if (t >= 1) { G.fly = null; f.done && f.done(); }
+    }
+    if (G.coast) {
+      G.vx *= 0.93; G.vy *= 0.93;
+      cam.x -= G.vx / cam.k; cam.y -= G.vy / cam.k;
+      bound();
+      if (Math.hypot(G.vx, G.vy) < 0.05) G.coast = false;
+      busy = true;
+    }
+    if (S.enter) { busy = true; if ((now - S.enter.t0) * ML.rate > 1400) S.enter = null; }
+    if (G.morph) {
+      const p = clamp(((now - G.morph.t0) * ML.rate) / 700, 0, 1);
+      S.mo.e = easeIO(p);
+      for (const id of G.morph.fresh) S.reveal.set(id, smooth(0.5, 1, p));
+      busy = true;
+      if (p >= 1) { S.mo = null; place(S.M, null); S.reveal = null; G.morph = null; }
+    }
+    if (busy || S.dirty) {
+      S.dirty = false;
+      draw(S, now);
+      updateCrumb();
+    }
+  }
+
+  /* ───── 손가락 ───── */
+  const ptrs = new Map();
+  let gest = null;
+  const local = (ev) => { const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+  function hit(px, py) {
+    let best = null, bs = Infinity;
+    for (const h of S.hits) {
+      const d = Math.hypot(h.x - px, h.y - py);
+      if (d < h.r) { const s = d / h.r + (h.glyph ? 0.15 : 0); if (s < bs) { bs = s; best = h; } }
+    }
+    return best;
+  }
+  function bound() {
+    const [k0, k1] = kLimits();
+    cam.k = clamp(cam.k, k0, k1);
+    const R = S.M.RF.R + 60;
+    cam.x = clamp(cam.x, -R, R);
+    cam.y = clamp(cam.y, -R, R);
+  }
+  function zoomAt(px, py, f) {
+    const w = toWorld(px, py);
+    const [k0, k1] = kLimits();
+    cam.k = clamp(cam.k * f, k0, k1);
+    cam.x = w.x - (px - S.W / 2) / cam.k; cam.y = w.y - (py - S.H / 2) / cam.k;
+    bound();
+    S.dirty = true;
+  }
+  cv.addEventListener('pointerdown', (ev) => {
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
+    const p = local(ev);
+    ptrs.set(ev.pointerId, p);
+    G.coast = false;
+    if (ptrs.size === 1) gest = { mode: 'tap', start: p, last: p };
+    else if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      gest = { mode: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+      G.fly = null;
+    }
+  });
+  let lastMv = 0;
+  cv.addEventListener('pointermove', (ev) => {
+    if (!ptrs.has(ev.pointerId) || !gest) return;
+    const p = local(ev);
+    ptrs.set(ev.pointerId, p);
+    if (gest.mode === 'pinch' && ptrs.size >= 2) {
+      const [a, b] = [...ptrs.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const w = toWorld(gest.m.x, gest.m.y);
+      const [k0, k1] = kLimits();
+      cam.k = clamp(cam.k * (d / gest.d), k0, k1);
+      cam.x = w.x - (m.x - S.W / 2) / cam.k; cam.y = w.y - (m.y - S.H / 2) / cam.k;
+      bound();
+      gest.d = d; gest.m = m; S.dirty = true;
+      return;
+    }
+    if (gest.mode === 'tap' && Math.hypot(p.x - gest.start.x, p.y - gest.start.y) > 6) { gest.mode = 'pan'; cv.classList.add('grab'); G.fly = null; }
+    if (gest.mode === 'pan') {
+      const dx = p.x - gest.last.x, dy = p.y - gest.last.y;
+      cam.x -= dx / cam.k; cam.y -= dy / cam.k;
+      bound();
+      const now = performance.now();
+      const dtm = Math.max(8, now - lastMv); lastMv = now;
+      G.vx = (dx / dtm) * 16; G.vy = (dy / dtm) * 16;
+      S.dirty = true;
+    }
+    gest.last = p;
+  });
+  const end = (ev) => {
+    if (!ptrs.has(ev.pointerId)) return;
+    ptrs.delete(ev.pointerId);
+    cv.classList.remove('grab');
+    if (!gest) return;
+    if (gest.mode === 'tap' && ptrs.size === 0) tap(gest.start.x, gest.start.y);
+    else if (gest.mode === 'pan' && ptrs.size === 0 && performance.now() - lastMv < 60) G.coast = true;
+    if (ptrs.size === 1 && gest.mode === 'pinch') { const p = [...ptrs.values()][0]; gest = { mode: 'pan', start: p, last: p }; return; }
+    if (ptrs.size === 0) gest = null;
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', (ev) => { ev.preventDefault(); G.fly = null; const p = local(ev); zoomAt(p.x, p.y, Math.exp(-ev.deltaY * 0.0022)); }, { passive: false });
+  cv.addEventListener('dblclick', (ev) => { const p = local(ev); const t = toWorld(p.x, p.y); flyTo({ x: t.x, y: t.y, k: Math.min(cam.k * 2.2, kLimits()[1]) }); });
+
+  function tap(px, py) {
+    const h = hit(px, py);
+    if (!h) { if (G.sel) closeSheet(); return; }
+    const n = h.n;
+    if (n.kind === 'concept') { select(n.id); return; }
+    if (G.sel) closeSheet();
+    flyTo(nodeFit(n));
+  }
+
+  /* ───── 위치 표시(빵부스러기)와 전체 단추 ───── */
+  let crumbKey = '';
+  function focusPath() {
+    const M = S.M;
+    let deep = null;
+    for (const F of M.frames) if (!F.isRoot && F.tin > 0.5) deep = F;
+    if (deep) { const p = []; for (let n = deep.node; n && n.kind !== 'root'; n = n.parent) p.unshift(n); return p; }
+    const RF = M.RF;
+    const z = cam.k / kFit(S, RF);
+    if (z < 1.25) return [];
+    const c = toWorld(S.W / 2, S.H / 2 - (G.sel ? G.sheetH / 2 : 0));
+    const r = Math.hypot(c.x, c.y);
+    if (r < RF.ringR(1) * 0.6) return [];
+    const a = Math.atan2(c.y, c.x);
+    const inS = (n) => norm(a - n.a0) <= n.a1 - n.a0;
+    const d = M.root.kids.find(inS);
+    if (!d) return [];
+    const p = [d];
+    if (z >= 1.8 && r > RF.ringR(2) * 0.7 && !d.inner) { const b = d.kids.find((x) => x.kind !== 'concept' && inS(x)); if (b) p.push(b); }
+    return p;
+  }
+  function updateCrumb() {
+    const path = focusPath();
+    G.focus = path;
+    const fit = rootFit(S);
+    const away = Math.abs(Math.log(cam.k / fit.k)) > 0.12 || Math.hypot(cam.x - fit.x, cam.y - fit.y) * cam.k > 30;
+    const key = path.map((n) => n.id).join('>') + '|' + away;
+    if (key === crumbKey) return;
+    crumbKey = key;
+    const cr = $('#crumb');
+    $('#fitb').hidden = !away;
+    if (!path.length) cr.hidden = true;
+    else {
+      const show = path.length > 3 ? path.slice(-3) : path;
+      const long = show.reduce((s, n) => s + n.ko.length, 0) > 17;
+      $('#cs').innerHTML = show.map((n, i) => `${i ? '<span class="sl">/</span>' : ''}<button class="c" data-id="${n.id}">${esc(long && i < show.length - 1 ? n.short : n.ko)}</button>`).join('');
+      if (cr.hidden) { cr.hidden = false; K.spring(cr, [{ opacity: 0, transform: 'translateY(-6px) scale(.96)' }, { opacity: 1, transform: 'none' }], 'quick'); }
+    }
+    const out = [];
+    if (!cr.hidden) out.push([4, 2, 12 + cr.offsetWidth + 8, 54]);
+    if (!$('#fitb').hidden) out.push([S.W - 56, 2, S.W, 54]);
+    S.chrome = out;
+    S.dirty = true;
+  }
+  $('#cs').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-id]');
+    if (!b) return;
+    if (G.sel) closeSheet();
+    flyTo(nodeFit(S.M.N.get(b.dataset.id)));
+  });
+  $('#cbk').addEventListener('click', () => {
+    const path = G.focus;
+    if (G.sel) closeSheet();
+    flyTo(path.length >= 2 ? nodeFit(path[path.length - 2]) : rootFit(S));
+  });
+  $('#fitb').addEventListener('click', () => { if (G.sel) closeSheet(); flyTo(rootFit(S)); });
+  K.press($('#fitb'));
+
+  /* ───── 개념 시트 (관계 칩 없음) ───── */
+  const sheet = $('#sheet'), sbody = $('#sbody'), scrim = $('#scrim');
+  let sheetMode = null;
+  function pathText(n) { const out = []; for (let p = n.parent; p && p.kind !== 'root'; p = p.parent) out.unshift(p.ko); return out.join(' · '); }
+  function dueText(d, today) { const k = Math.round((dt(d) - dt(today)) / DAY); return k <= 0 ? '오늘' : k === 1 ? '내일' : md(d); }
+  function conceptHtml(n) {
+    const m = n.mem, today = S.M.today;
+    const kv = m.studied
+      ? [['반복', `${n.raw.reps}회`], ['기억', `${Math.round(m.R * 100)}%`], ['다음 복습', dueText(m.due, today), n.due]]
+      : [['반복', '0회'], ['기억', '0%'], ['다음 복습', dueText(m.due, today), false]];
+    return `<p class="path">${esc(pathText(n))}</p><h3>${esc(n.ko)}</h3>${n.en && n.en !== n.ko ? `<p class="en">${esc(n.en)}</p>` : ''}
+      <div class="kv">${kv.map(([a, b, d]) => `<div><span>${a}</span><b class="${d ? 'due' : ''}">${b}</b></div>`).join('')}</div>
+      <button class="tbtn" id="act">복습하기</button>`;
+  }
+  function openSheet(html, mode, opts = {}) {
+    const was = sheetMode;
+    sheetMode = mode;
+    if (was) {
+      const h0 = sheet.offsetHeight;
+      sbody.innerHTML = html;
+      const h1 = sheet.offsetHeight;
+      ML.a(sbody, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: OUT });
+      if (h0 !== h1) ML.a(sheet, [{ transform: `translateY(${h1 - h0}px)` }, { transform: 'translateY(0)' }], { duration: 320, easing: E.sheet });
+    } else {
+      sbody.innerHTML = html;
+      sheet.getAnimations().forEach((a) => a.cancel());
+      sheet.style.transform = 'translateY(0)';
+      ML.a(sheet, [{ transform: 'translateY(110%)' }, { transform: 'translateY(0)' }], { duration: 420, easing: E.sheet });
+    }
+    scrim.classList.toggle('clear', !!opts.clear);
+    scrim.classList.add('on');
+    if (!opts.clear) ML.a(scrim, [{ opacity: getComputedStyle(scrim).opacity }, { opacity: 1 }], { duration: 260, easing: 'ease' });
+    else scrim.style.opacity = 1;
+    G.sheetH = sheet.offsetHeight;
+    sheet.querySelectorAll('button').forEach((b) => K.press(b, b.classList.contains('tbtn')));
+  }
+  function closeSheet() {
+    if (!sheetMode) return;
+    sheetMode = null;
+    G.sel = null; S.sel = null;
+    S.dirty = true;
+    scrim.classList.remove('on');
+    ML.a(scrim, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+    const cur = getComputedStyle(sheet).transform;
+    ML.a(sheet, [{ transform: cur === 'none' ? 'translateY(0)' : cur }, { transform: 'translateY(110%)' }], { duration: 300, easing: E.in }).finished.then(() => { if (!sheetMode) sheet.style.transform = 'translateY(110%)'; }).catch(() => {});
+  }
+  scrim.addEventListener('click', closeSheet);
+  let y0 = null;
+  sheet.addEventListener('pointerdown', (ev) => { if (ev.target.closest('button')) return; y0 = ev.clientY; try { sheet.setPointerCapture(ev.pointerId); } catch (e) {} });
+  sheet.addEventListener('pointermove', (ev) => { if (y0 == null) return; sheet.getAnimations().forEach((a) => a.cancel()); sheet.style.transform = `translateY(${Math.max(0, ev.clientY - y0)}px)`; });
+  sheet.addEventListener('pointerup', (ev) => {
+    if (y0 == null) return;
+    const dy = ev.clientY - y0; y0 = null;
+    if (dy > 70) closeSheet();
+    else { ML.a(sheet, [{ transform: `translateY(${Math.max(0, dy)}px)` }, { transform: 'translateY(0)' }], { duration: 300, easing: E.sheet }); sheet.style.transform = 'translateY(0)'; }
+  });
+  sbody.addEventListener('click', (ev) => { if (ev.target.closest('#act')) setTimeout(closeSheet, 160); });
+
+  function select(id) {
+    const n = S.M.N.get(id);
+    if (!n) return;
+    G.sel = id; S.sel = id;
+    openSheet(conceptHtml(n), 'concept', { clear: true });
+    const F = n.F;
+    const kf = kFit(S, F);
+    const k = Math.min(Math.max(cam.k, kf * (F.isRoot || F.L > 1 ? 2.0 : 1)), kLimits()[1]);
+    const visH = S.H - (G.sheetH - 64);
+    const ty = Math.max(90, visH / 2);
+    // 소우주 안이면 그 틀의 가운데를 남은 자리의 가운데에, 아니면 개념을
+    const fx = !F.isRoot && F.L === 1 ? F.cx : n.x, fy = !F.isRoot && F.L === 1 ? F.cy : n.y;
+    flyTo({ x: fx, y: fy + (S.H / 2 - ty) / k, k }, { min: 520 });
+    S.dirty = true;
+  }
+
+  /* ───── 데이터 바꾸기, 처음 등장 ───── */
+  function useSet(which, o = {}) {
+    const old = S.M;
+    G.which = which;
+    S.M = build(SETS[which]);
+    S.sticky = new Map();
+    if (old && o.morph) {
+      S.mo = { from: polarOf(old), e: 0 };
+      const fresh = [...S.M.N.values()].filter((n) => n.kind !== 'root' && !old.N.has(n.id)).map((n) => n.id);
+      S.reveal = new Map(fresh.map((id) => [id, 0]));
+      G.morph = { t0: performance.now(), fresh };
+      place(S.M, S.mo);
+    } else { S.mo = null; S.reveal = null; G.morph = null; }
+    if (G.sel) closeSheet();
+    S.dirty = true;
+  }
+  function enter() {
+    G.fly = null;
+    Object.assign(cam, rootFit(S));
+    S.enter = { t0: performance.now() };
+    S.dirty = true;
+  }
+
+  /* ═════════════ 뉴스, 단어장: 8차 목록 그대로(자리만) ═════════════ */
+  const pn = $('#pn');
+  const weekOf = (d) => { const t = dt(d); const w = (new Date(t).getUTCDay() + 6) % 7; return ymd(t - w * DAY); };
+  const WQ = new Map(V.weeklyQuiz.map((q) => [q.weekStart, q]));
+  function weekTitle(ws) {
+    if (ws === V.weekStart) return '이번 주';
+    if (ws === ymd(dt(V.weekStart) - 7 * DAY)) return '지난주';
+    const we = ymd(dt(ws) + 6 * DAY);
+    return ws.slice(5, 7) === we.slice(5, 7) ? `${md(ws)} ~ ${+we.slice(8, 10)}일` : `${md(ws)} ~ ${md(we)}`;
+  }
+  (function renderNews() {
+    const items = V.news.filter((n) => n.read).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.id < b.id ? 1 : -1));
+    const groups = new Map();
+    items.forEach((n) => { const w = weekOf(n.date); if (!groups.has(w)) groups.set(w, []); groups.get(w).push(n); });
+    let h = `<div class="srch"><label>${ICON.search}<input type="search" placeholder="기사 검색" autocomplete="off"></label></div>`;
+    let gi = 0;
+    for (const [ws, list] of groups) {
+      const wq = WQ.get(ws);
+      const right = wq ? `<span class="sc">종합 퀴즈<em>${wq.correct}/${wq.total}</em></span>` : ws === V.weekStart ? '<button class="qb" type="button">종합 퀴즈 풀기</button>' : '';
+      if (gi++) h += '<div class="lband"></div>';
+      h += `<div class="wk-h"><b>${weekTitle(ws)}</b>${right}</div>`;
+      let lastD = '';
+      for (const n of list) {
+        const d = n.date !== lastD ? `${+n.date.slice(8, 10)}일 ${dow(n.date)}` : '';
+        lastD = n.date;
+        h += `<button class="nr"><span class="d">${d}</span><span class="h">${esc(n.headline)}</span></button>`;
+      }
+    }
+    pn.innerHTML = h + '<div class="tail"></div>';
+  })();
+  const pv = $('#pv');
+  (function renderVocab() {
+    const VT = { 전체: V.vocab.length, 단어: V.vocab.filter((v) => v.type === '단어').length, 구문: V.vocab.filter((v) => v.type === '구문').length };
+    const dayTitle = (d) => { const k = Math.round((dt(V.today) - dt(d)) / DAY); return k === 0 ? '오늘' : k === 1 ? '어제' : md(d); };
+    let h = `<div class="srch"><label>${ICON.search}<input type="search" placeholder="단어 검색" autocomplete="off"></label>
+      <div class="chips">${Object.keys(VT).map((t, i) => `<button class="${i ? '' : 'on'}">${t}<em>${VT[t]}</em></button>`).join('')}</div></div>`;
+    const items = V.vocab.map((v, i) => [v, i]).sort((a, b) => (a[0].first < b[0].first ? 1 : a[0].first > b[0].first ? -1 : b[1] - a[1])).map((x) => x[0]);
+    let last = '';
+    for (const v of items) {
+      if (v.first !== last) { h += `<div class="vd">${dayTitle(v.first)}</div>`; last = v.first; }
+      h += `<button class="vr"><b>${esc(v.term)}</b><span>${esc(v.ko)}</span></button>`;
+    }
+    pv.innerHTML = h + '<div class="tail"></div>';
+  })();
+
+  /* ═════════════ 나눔 단추 ═════════════ */
+  const seg = $('#seg');
+  const panes = [$('#pg'), $('#pn'), $('#pv')];
+  let segI = 0;
+  function setSeg(i, instant) {
+    if (i === segI && !instant) return;
+    const from = segI;
+    segI = i;
+    if (sheetMode) closeSheet();
+    seg.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === i));
+    const th = seg.querySelector('.th');
+    const x = (w) => `translateX(${w * 100}%)`;
+    th.style.transform = x(i);
+    if (!instant) K.spring(th, [{ transform: x(from) }, { transform: x(i) }], 'quick');
+    panes.forEach((p, j) => (p.hidden = j !== i));
+    G.active = i === 0;
+    if (i === 0) S.dirty = true;
+    if (!instant) {
+      const dir = i > from ? 1 : -1;
+      ML.a(panes[i], [{ opacity: 0, transform: `translateX(${dir * 14}px)` }, { opacity: 1, transform: 'none' }], { duration: 260, easing: OUT });
+    }
+  }
+  seg.addEventListener('click', (ev) => { const b = ev.target.closest('button'); if (b) setSeg(+b.dataset.i); });
+
+  /* ═════════════ 해금 ═════════════ */
+  const seedOf = (s) => {
+    let h = 2166136261;
+    for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+    let a = h >>> 0;
+    return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  };
+  function lineFor(id, c) {
+    try {
+      const r = Latti.lines.choose('unlock', Object.assign({ date: V.today, hour: 8 }, c), { rng: seedOf(id), dry: true });
+      return r ? r.text : '';
+    } catch (e) { return ''; }
+  }
+  const ORD = ['', '첫', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
+  const ordinal = (n) => (n < ORD.length ? `${ORD[n]} 번째` : `${n}번째`);
+
+  let gen = 0;
+  const later = (ms, g) => ML.wait(ms).then(() => g === gen);
+  function clearScenes() { gen++; scr.querySelectorAll('.scene').forEach((e) => e.remove()); }
+  function scene(cls, html) { const el = document.createElement('div'); el.className = 'scene ' + cls; el.innerHTML = html; scr.append(el); return el; }
+  function tween(ms, fn, o = {}) {
+    const g = gen;
+    return new Promise((res) => {
+      const t0 = performance.now() + (o.delay || 0) / ML.rate;
+      const ease = o.ease || ((t) => t);
+      const dur = ML.reduce ? 1 : ms;
+      const step = (now) => {
+        if (g !== gen) return res();
+        if (now >= t0) { const p = clamp(((now - t0) * ML.rate) / dur, 0, 1); fn(ease(p)); if (p >= 1) return res(); }
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  function runView(U) {
+    const g = gen;
+    const loop = (now) => { if (g !== gen || !U.cv.isConnected) return; if (U.dirty) { U.dirty = false; draw(U, now); } requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+  function splash() {
+    const sp = scene('splash', '<b class="wm">Latticework</b>');
+    ML.a(sp.querySelector('.wm'), [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: E.out });
+    return sp;
+  }
+  function backToMap() {
+    setSeg(0, true);
+    if (G.sel) closeSheet();
+    if (G.which !== 'now') { useSet('now'); press('now'); }
+    G.fly = null; S.enter = null;
+    Object.assign(cam, rootFit(S));
+    S.dirty = true;
+  }
+  function leave(el, focusId) {
+    gen++;
+    ML.a(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease' }).finished.then(() => el.remove()).catch(() => el.remove());
+    if (focusId) setTimeout(() => flyTo(nodeFit(S.M.N.get(focusId)), { min: 700 }), 160);
+  }
+  // 흰 말풍선 자리: 새 노드 위나 아래, 점을 가장 적게 덮는 곳
+  function placeBubble(U, bub, n, avoid) {
+    const X = (x) => (x - U.cam.x) * U.cam.k + U.W / 2, Y = (y) => (y - U.cam.y) * U.cam.k + U.H / 2;
+    const w = bub.offsetWidth, h = bub.offsetHeight;
+    const nx = X(n.x), ny = Y(n.y);
+    let best = null;
+    for (const [dir, dy] of [['up', -1], ['dn', 1]]) {
+      for (const shift of [0, -0.3, 0.3, -0.45, 0.45]) {
+        const left = clamp(nx - w / 2 + shift * w, 12, U.W - 12 - w);
+        const top = dy < 0 ? ny - 16 - h : ny + 16;
+        if (top < 8 || top + h > U.H - 8) continue;
+        let cost = Math.abs(shift) * 2 + (dy > 0 ? 0.5 : 0);
+        for (const d of U.dots) if (d.x > left - 4 && d.x < left + w + 4 && d.y > top - 4 && d.y < top + h + 4) cost += avoid.has(d.n.id) ? 50 : 1;
+        if (!best || cost < best.cost) best = { cost, left, top, dir };
+      }
+    }
+    if (!best) best = { left: clamp(nx - w / 2, 12, U.W - 12 - w), top: clamp(ny - 16 - h, 8, U.H - h - 8), dir: 'up' };
+    bub.className = 'bub ' + best.dir;
+    bub.style.left = best.left + 'px';
+    bub.style.top = best.top + 'px';
+    bub.style.setProperty('--tx', clamp(nx - best.left, 14, w - 14) + 'px');
+    bub.style.transformOrigin = `${clamp(nx - best.left, 14, w - 14)}px ${best.dir === 'up' ? '100%' : '0%'}`;
+  }
+  // 가지가 자라는 순서: 링크가 뻗고 그 끝에서 점이 켜진다
+  async function growPath(U, ids, delay = 0, step = 300) {
+    const jobs = [];
+    ids.forEach((id, i) => {
+      const t = delay + i * step;
+      jobs.push(tween(380, (p) => { U.link.set(id, p); U.dirty = true; }, { delay: t, ease: easeOut }));
+      jobs.push(tween(300, (p) => { U.reveal.set(id, p); U.dirty = true; }, { delay: t + 300, ease: easeOut }));
+    });
+    await Promise.all(jobs);
+  }
+
+  /* ── 학문 해금: 시작 화면 다음, 부채꼴이 비켜서며 새 자리가 열린다 ── */
+  async function major() {
+    clearScenes();
+    const g = gen;
+    backToMap();
+    const sp = splash();
+    const Ma = build(SETS.now), Mb = build(SETS.now, { exclude: ['n:stat'] });
+    const d = Ma.N.get('n:stat');
+    const sub = subtree(d);
+    const ids = sub.map((n) => n.id);
+    const u = V.unlocks.find((x) => x.nodeId === 'n:stat') || { id: 'ul-stat', nth: Ma.discs.length, byName: '' };
+    const prev = Ma.discs.filter((x) => x.born < d.born).map((x) => x.born).sort().pop();
+    const gap = prev ? Math.round((dt(d.born) - dt(prev)) / DAY) : 0;
+    const line = lineFor(u.id, { field: d.ko, n: u.nth, first: u.byName, gap, rank: 'discipline' });
+    const cs = sub.filter((x) => x.kind === 'concept').map((x) => esc(x.ko)).join(' · ');
+    const el = scene('unlock', `<div class="ust"><canvas></canvas><div class="bub">${esc(line)}</div></div>
+      <div class="ucopy"><div class="k" style="color:${ink(d.color)}">${ordinal(u.nth)} 학문</div><h1>${esc(d.ko)} 부문을<br>해금했어요!</h1><div class="fl">${cs}</div></div>
+      <div class="ubtns"><button class="tbtn ghost" data-k="next">계속</button><button class="tbtn" data-k="go" style="background:${d.color}">보러 가기</button></div>`);
+    const cvs = el.querySelector('canvas');
+    const U = makeView(cvs, { labels: 1, inner: false });
+    U.resize(390, 470);
+    U.M = Ma;
+    U.fitW = 390; U.fitH = 560;
+    Object.assign(U.cam, { x: 0, y: 0, k: kFit(U, Ma.RF) });
+    U.mo = { from: polarOf(Mb), e: 0 };
+    U.reveal = new Map(ids.map((id) => [id, 0]));
+    U.link = new Map(ids.map((id) => [id, 0]));
+    let dimV = 1;
+    U.dim = (n) => (n.kind !== 'root' && n.disc === d ? 1 : dimV);
+    place(Ma, U.mo);
+    const copy = el.querySelector('.ucopy'), btns = el.querySelector('.ubtns'), bub = el.querySelector('.bub');
+    copy.style.opacity = 0; btns.style.opacity = 0;
+    el.querySelectorAll('.tbtn').forEach((b) => K.press(b));
+    el.querySelector('[data-k="next"]').addEventListener('click', () => leave(el));
+    el.querySelector('[data-k="go"]').addEventListener('click', () => leave(el, 'n:stat'));
+    cvs.style.opacity = 0;
+    runView(U);
+    if (!(await later(850, g))) return;
+    ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease' }).finished.then(() => sp.remove()).catch(() => sp.remove());
+    ML.a(cvs, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: 80, easing: 'ease', fill: 'forwards' });
+    if (!(await later(560, g))) return;
+    // 1. 부채꼴이 비켜서며 자리가 열린다 (원 둘레를 따라)
+    await tween(820, (e) => { U.mo.e = e; dimV = 1 - 0.5 * e; U.dirty = true; }, { ease: easeIO });
+    if (g !== gen) return;
+    U.mo = null; place(Ma, null);
+    // 2. 가운데 점에서 학문, 분과, 개념 순으로 뻗는다
+    U.halo = { n: d, r: 54, a: 0 };
+    tween(900, (p) => { U.halo.a = p; U.dirty = true; }, { delay: 420, ease: easeOut });
+    await growPath(U, ids, 0, 330);
+    if (g !== gen) return;
+    // 3. 글과 말풍선, 단추
+    copy.style.opacity = '';
+    copy.querySelectorAll('.k, h1').forEach((x, i) => ML.a(x, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 70, easing: E.out, fill: 'backwards' }));
+    ML.a(copy.querySelector('.fl'), [{ opacity: 0 }, { opacity: 1 }], { duration: 360, delay: 260, easing: 'ease', fill: 'backwards' });
+    if (line) {
+      placeBubble(U, bub, d, new Set(ids));
+      K.spring(bub, [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'scale(1)' }], 'quick', { delay: 380 });
+    }
+    btns.style.opacity = '';
+    ML.a(btns, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 480, easing: E.out, fill: 'backwards' });
+  }
+
+  /* ── 분과 해금: 홈 맨 위 띠. 띠 안 조각에서 새 가지가 뻗는다 ── */
+  async function minor() {
+    clearScenes();
+    const g = gen;
+    backToMap();
+    const sp = splash();
+    const M = build(SETS.now);
+    const b = M.N.get('n:fin-valuation'), d = b.disc;
+    const sub = subtree(b);
+    const ids = sub.map((n) => n.id);
+    const u = V.unlocks.find((x) => x.nodeId === b.id) || { id: 'ul-b', byName: '' };
+    const line = lineFor(u.id, { field: b.ko, parent: d.ko, first: u.byName, rank: 'branch' });
+    const today = V.days[V.days.length - 1];
+    const Tk = [
+      ['뉴스', today.newsRead, V.rules.quota.news, 'var(--blue-weak)'],
+      ['영단어', today.vocNew.length + today.vocReviewed, V.rules.quota.voc, '#f7edfa'],
+      ['Latticework', today.latSolved, V.rules.quota.lat, 'var(--green-weak)'],
+    ];
+    const el = scene('grey home', `<div class="view"><div class="hd"><b>Latticework</b><span class="pill">연속 <b class="num">${V.totals.streak}일</b></span></div>
+      <div class="stack">
+        <div class="bandw"><div class="band"><span class="sn"><canvas></canvas></span>
+          <span class="tx"><span class="k" style="color:${ink(d.color)}">${esc(d.ko)}</span><b>${esc(b.ko)}</b>${line ? `<span class="ln">${esc(line)}</span>` : ''}
+            <span class="bb"><button class="sb" data-k="next">계속</button><button class="sb" data-k="go" style="background:${mix(d.color, 0.12)};color:${ink(d.color)}">보러 가기</button></span></span></div></div>
+        <div class="box"><div class="bh"><b>오늘</b><span class="num">0/3</span></div>
+          ${Tk.map(([nm, c, of, bg]) => `<div class="task"><span class="ic" style="background:${bg}"></span><span class="nm">${nm}</span><span class="tr"></span><span class="ct num">${c}/${of}</span></div>`).join('')}
+          <button class="tbtn">시작하기</button></div>
+        <div class="box"><div class="bh"><b>오늘의 뉴스</b><span>${md(V.today)}</span></div>
+          ${V.newsToday.map((x) => `<div class="hl"><span class="d"></span><b>${esc(x.headline)}</b></div>`).join('')}</div>
+      </div></div>${tabs('home')}`);
+    const w = el.querySelector('.bandw'), inner = w.firstElementChild;
+    const cvs = el.querySelector('.sn canvas');
+    const U = makeView(cvs, { labels: 0, inner: false, dotK: 1 });
+    U.resize(88, 88);
+    U.M = M;
+    U.fitW = 390; U.fitH = 630;
+    // 조각: 가운데 점, 학문, 새 분과와 그 개념이 다 들어오게
+    const pts = [M.root, d].concat(sub);
+    const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+    const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by0 = Math.min(...ys), by1 = Math.max(...ys);
+    const kk = Math.min(70 / Math.max(1, bx1 - bx0), 70 / Math.max(1, by1 - by0));
+    Object.assign(U.cam, { x: (bx0 + bx1) / 2, y: (by0 + by1) / 2, k: kk });
+    U.reveal = new Map(ids.map((id) => [id, 0]));
+    U.link = new Map(ids.map((id) => [id, 0]));
+    U.dim = (n) => (n.kind === 'root' || n === d || ids.includes(n.id) ? 1 : n.disc === d ? 0.55 : 0.3);
+    runView(U);
+    el.style.zIndex = 31;
+    w.style.height = '0px';
+    el.querySelectorAll('.tbtn, .sb').forEach((x) => K.press(x));
+    el.querySelector('[data-k="next"]').addEventListener('click', () => {
+      ML.a(w, [{ height: w.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0, marginBottom: '-12px' }], { duration: 300, easing: E.sheet, fill: 'forwards' });
+    });
+    el.querySelector('[data-k="go"]').addEventListener('click', () => leave(el, b.id));
+    if (!(await later(850, g))) return;
+    ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease' }).finished.then(() => sp.remove()).catch(() => sp.remove());
+    if (!(await later(420, g))) return;
+    const h = inner.offsetHeight;
+    ML.a(w, [{ height: '0px', marginBottom: '-12px' }, { height: h + 'px', marginBottom: '0px' }], { duration: 440, easing: E.sheet, fill: 'backwards' });
+    w.style.height = 'auto';
+    ML.a(inner, [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: 80, easing: E.out, fill: 'backwards' });
+    await growPath(U, ids, 520, 300);
+  }
+
+  /* ═════════════ 시작 ═════════════ */
+  resize();
+  useSet('now');
+  enter();
+  requestAnimationFrame(frame);
+
+  let bNow, bFut;
+  ML.bar({
+    title: '지식 탭 · 방사 나무',
+    home: '../index.html',
+    replay: () => { clearScenes(); setSeg(0); if (G.sel) closeSheet(); enter(); },
+    extra: [
+      ['지금', () => { clearScenes(); if (G.which === 'now') return; setSeg(0); useSet('now', { morph: true }); flyTo(rootFit(S), { min: 700 }); press('now'); }],
+      ['6개월 뒤', () => { clearScenes(); if (G.which === 'future') return; setSeg(0); useSet('future', { morph: true }); flyTo(rootFit(S), { min: 700 }); press('future'); }],
+      ['학문 해금', () => major()],
+      ['분과 해금', () => minor()],
+    ],
+  });
+  const btns = [...document.querySelectorAll('.lab-bar button')];
+  bNow = btns.find((b) => b.textContent === '지금');
+  bFut = btns.find((b) => b.textContent === '6개월 뒤');
+  function press(w) { bNow.setAttribute('aria-pressed', String(w === 'now')); bFut.setAttribute('aria-pressed', String(w === 'future')); }
+  press('now');
+
+  // 시험용 손잡이
+  window.KG = {
+    S, G, cam, setSeg, select, closeSheet, major, minor, enter,
+    useSet: (w, morph) => { useSet(w, { morph }); if (!morph) Object.assign(cam, rootFit(S)); else flyTo(rootFit(S)); S.dirty = true; press(w); },
+    fly: (id) => flyTo(nodeFit(S.M.N.get(id))),
+    jump: (id) => { const t = nodeFit(S.M.N.get(id)); Object.assign(cam, t); S.dirty = true; },
+    screen: (id) => { const n = S.M.N.get(id); return { x: (n.x - cam.x) * cam.k + S.W / 2, y: (n.y - cam.y) * cam.k + S.H / 2 }; },
+    timing: () => { const t0 = performance.now(); for (let i = 0; i < 20; i++) draw(S, performance.now()); return (performance.now() - t0) / 20; },
+  };
+})();
+</script>
+</body>
+</html>

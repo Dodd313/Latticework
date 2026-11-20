@@ -186,10 +186,10 @@
     <ul>
       <li>각 카드 맨 위에 작은 Latti(30px)가 있고, 카드가 맨 위에 자리를 잡는 순간 한 번 깜빡이며 말풍선이 나옵니다. 뒤에 깔린 카드에서는 말하지 않습니다. 한 장에 한 마디입니다.</li>
       <li>말풍선 자리는 미리 잡아 두어(보이지 않는 같은 크기의 풍선) 말이 나올 때 아래 내용이 밀리지 않습니다.</li>
-      <li>상황 키: 1장 <code>recap.streak</code>, 2장 <code>recap.lat</code>, 3장 <code>recap.voc</code>, 4장 <code>recap.news</code>, 5장 <code>recap.close</code>. 월간은 <code>mrecap.*</code>. 빈칸에는 이번 주 실제 값(완료한 날, 연속, 새 개념 수, 학문 수, 개념끼리 이어진 수, 가장 최근 개념, 새 표현 수, 기사 수, 경험치, 레벨)을 넣습니다.</li>
-      <li>주간 마지막 장 <code>recap.close</code> 와 월간 <code>mrecap.*</code> 도 latti-lines.json 에 있습니다. 모두 <code>Latti.lines.lint</code> 를 통과하고 22자 이하입니다. "다음 주에도 만나요"는 첫 장보다 마지막 장에 맞아 <code>recap.close</code> 로 옮겼습니다.</li>
+      <li>상황 키: 1장 <code>recap.streak</code>, 2장 <code>recap.lat</code>, 3장 <code>recap.voc</code>, 4장 <code>recap.news</code>, 5장 <code>recap.close</code>. 월간은 <code>mrecap.*</code>. 빈칸에는 이번 주 실제 값(완료한 날, 연속, 새 개념 수, 학문 수, 가장 최근 개념, 새 표현 수, 기사 수, 경험치, 레벨)을 넣습니다.</li>
+      <li>주간 마지막 장 <code>recap.close</code> 와 월간 <code>mrecap.*</code> 도 latti-lines.json 에 있습니다. 모두 <code>Latti.lines.lint</code> 를 통과합니다(9차부터 짧은 문장 둘까지, 합쳐 40자 이하). "다음 주에도 만나요"는 첫 장보다 마지막 장에 맞아 <code>recap.close</code> 로 옮겼습니다.</li>
       <li>아침 작업이 쓴 오늘 문구 가운데 리뷰 카드용 줄은, 첫 낱말(조사를 떼고)이 그 기간의 실제 개념 이름, 헤드라인, 표현 가운데 하나에 있을 때만 씁니다. 예시 파일의 "엔비디아 주간", "쿠팡부터 앤트로픽까지" 는 data.js 의 이번 주 헤드라인에 없어 빠지고, "파마-프렌치까지 왔어요" 는 이번 주 새 개념이라 남습니다.</li>
-      <li>문구 파일의 <code>recap.voc</code> 는 영단어 전체를 "단어" 라고 부릅니다. 이 카드가 단어와 구문을 나누므로 <code>{weekWords}</code> 에는 단어 종류의 수(13)를 넣고, 누계를 "단어" 로 부르는 두 줄(<code>recap.voc.03</code>, <code>.06</code>)은 쓰지 않습니다.</li>
+      <li>문구 파일의 <code>recap.voc</code> 는 영단어 전체를 "단어" 라고 부릅니다. 이 카드가 단어와 구문을 나누므로 <code>{weekWords}</code> 에는 단어 종류의 수(13)를 넣고, 누계를 "단어" 로 부르는 줄(<code>{wordsTotal}</code> 이 든 줄)은 쓰지 않습니다.</li>
       <li>레벨이 오른 주에는 마지막 장의 말이 레벨 줄(2단계)로 기울고 표정이 cheer 입니다.</li>
     </ul>
 
@@ -349,14 +349,15 @@
       weekConcepts: S.newConcepts, newConcepts: S.newConcepts, weekFields: M.active.length, fields: M.active.length,
       topField: M.top.ko, topFieldN: M.top.newConcepts, weekLinks: M.weekLinks, newest: M.newest,
       weekWords: S.vocab['단어'], words: S.vocab.new, wordsTotal: V.totals.vocabTypes['단어'], vocTotal: V.totals.vocab, word: wordPick.length ? wordPick[wordPick.length - 1].term : null,
-      weekRead: S.news.read, read: S.news.read, quizRight: S.weeklyQuiz ? S.weeklyQuiz.correct : 0, wq: S.weeklyQuiz ? S.weeklyQuiz.count || 1 : 0,
+      weekRead: S.news.read, read: S.news.read, newsDays: M.newsDays, quizRight: S.weeklyQuiz ? S.weeklyQuiz.correct : 0, wq: S.weeklyQuiz ? S.weeklyQuiz.count || 1 : 0,
       solved: S.latSolved, days: S.activeDays, xpS: fmt(S.xp), level: M.lv1, levelUp: M.lv1 > M.lv0,
       newField: M.newDisc ? M.newDisc.ko : null, hasNewField: !!M.newDisc,
     };
   }
 
   /** 말풍선 자리 잡기: 보이지 않는 같은 풍선을 먼저 넣어 둔다. */
-  const ghost = (text, size) => `<span class="lt-say ${size} ghost"><span class="lt-t">${esc(text)}</span></span>`;
+  // 자리 잡이도 Latti.html 로 같은 마크업을 쓴다. 두 문장 줄이 문장 경계에서 접히는 모양까지 같아야 높이가 맞는다.
+  const ghost = (text, size) => `<span class="lt-say ${size} ghost"><span class="lt-t">${Latti.html ? Latti.html(text) : esc(text)}</span></span>`;
 
   // ---------- 1장: 기간과 완료한 날
   function cardPeriod(M, W, line) {
@@ -553,7 +554,8 @@
   function cardNews(M, W, line) {
     const S = M.S;
     const week = M.mode === 'week';
-    const wdays = M.dates.filter((d) => dowMon(d) < 5 && d <= V.today);
+    const wdays = M.dates.filter((d) => dowMon(d) < 5 && d <= V.today && d >= (V.newsStart || ''));
+    const few = week || wdays.length <= 7; // 뉴스가 시작된 지 얼마 안 된 달은 주간과 같은 칸 크기
     const cols = wdays.map((d) => {
       const n = DAY[d] ? DAY[d].newsRead : 0;
       const td = d === V.today && n < 2;
@@ -567,11 +569,11 @@
     const shownH = hls.slice(0, cap);
     const wqHtml = wq
       ? `<div class="qrow" style="margin:16px 0 0"><span class="sn">종합 퀴즈</span><b>${Math.round((wq.correct / wq.total) * 100)}%<small>${wq.correct}/${wq.total}</small></b></div>`
-      : `<button class="tbtn weak qbtn" data-quiz type="button">종합 퀴즈</button>`;
+      : week ? `<button class="tbtn weak qbtn" data-quiz type="button">종합 퀴즈</button>` : '';
     const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
       <div class="ttl">뉴스</div>
       <div class="hero"><div><span class="sn">읽은 기사</span><span class="sv"><span data-hero data-final="${fmt(S.news.read)}">0</span></span></div><div><span class="sn">읽은 날</span><span class="sv md"><span data-to="${M.newsDays}">0</span><small>일</small></span></div></div>
-      <div class="np ${week ? '' : 'dense'}" style="grid-template-columns:repeat(${wdays.length}, minmax(0,1fr));margin-top:16px;${week ? `width:${Math.min(W, wdays.length * 30 + (wdays.length - 1) * 8)}px;column-gap:8px` : ''}">${cols.join('')}</div>
+      <div class="np ${few ? '' : 'dense'}" style="grid-template-columns:repeat(${wdays.length}, minmax(0,1fr));margin-top:16px;${few ? `width:${Math.min(W, wdays.length * 30 + (wdays.length - 1) * 8)}px;column-gap:8px` : ''}">${cols.join('')}</div>
       <div class="fl" style="min-height:24px;max-height:28px"></div>
       <div class="qrow"><span class="sn">저녁 퀴즈</span><b><span data-acc>0</span>%<small>${dq.correct}/${dq.total}</small></b></div>
       <div class="segbar ${dq.total > 20 ? 'dense' : ''}">${Array.from({ length: dq.total }, (_, i) => `<i><b style="background:${i < dq.correct ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div>
@@ -753,6 +755,7 @@
       const gh = host.querySelector('.ghost');
       Latti.mount(host, { size: big ? 76 : 30, side: big ? 'bottom' : 'right', mood: 'idle' });
       if (gh) host.append(gh); // mount 이 지운 자리 잡이를 되돌린다
+      if (gh && Latti.fitLines) Latti.fitLines(gh); // 진짜 말풍선과 같은 줄 수로 자리를 잡는다
       fit(s.querySelector('.in'));
       // 옆에 다른 숫자가 있는 큰 숫자는 다 셌을 때의 폭을 미리 잡아, 세는 동안 옆 숫자가 밀리지 않게 한다.
       s.querySelectorAll('[data-final]').forEach((n) => {

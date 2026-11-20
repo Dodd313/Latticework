@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, Easing, Linking, Platform, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { HEAT_RING, heatColor, heatInk } from './heat';
-import { EASE_OUT, EASE_SHEET, NATIVE_DRIVER, motionOff, spring, usePop } from './motion';
+import { EASE_OUT, EASE_SHEET, MView, NATIVE_DRIVER, Tween, WEB, lerp, motionOff, spring, tweenStop, usePop, webShake, webTween } from './motion';
 import { FONT_SANS, TYPE, Theme, TypeStep, useTheme } from './theme';
 
 // ─────────────────────────────────────────────────────────────
@@ -523,6 +523,7 @@ export type LipTone = 'blue' | 'green' | 'red' | 'orange' | 'off' | 'ghost';
 export function LipButton({ label, onPress, tone = 'blue', disabled, style, a11yLabel, children }: { label?: string; onPress?: () => void; tone?: LipTone; disabled?: boolean; style?: StyleProp<ViewStyle>; a11yLabel?: string; children?: React.ReactNode }) {
   const t = useTheme();
   const shake = useRef(new Animated.Value(0)).current;
+  const box = useRef<any>(null);
   const m: Record<LipTone, [string, string, string]> = {
     blue: [t.blue, t.blueLip, '#ffffff'],
     green: [t.green, t.greenLip, '#ffffff'],
@@ -535,13 +536,16 @@ export function LipButton({ label, onPress, tone = 'blue', disabled, style, a11y
   const off = tone === 'off';
   const press = () => {
     if (off && !motionOff()) {
-      shake.setValue(0);
-      Animated.timing(shake, { toValue: 1, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: NATIVE_DRIVER }).start();
+      if (WEB) webShake(box, LIP_SHAKE[0], LIP_SHAKE[1], 300, Easing.out(Easing.quad));
+      else {
+        shake.setValue(0);
+        Animated.timing(shake, { toValue: 1, duration: 300, easing: Easing.out(Easing.quad), useNativeDriver: NATIVE_DRIVER }).start();
+      }
     }
     onPress?.();
   };
   return (
-    <Animated.View style={[{ alignSelf: 'stretch', transform: [{ translateX: shake.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, -6, 5, -2, 0] }) }] }, style]}>
+    <MView ref={box} style={[{ alignSelf: 'stretch' }, WEB ? null : { transform: [{ translateX: shake.interpolate({ inputRange: LIP_SHAKE[0], outputRange: LIP_SHAKE[1] }) }] }, style]}>
       <Pressable onPress={press} disabled={disabled} accessibilityRole="button" accessibilityLabel={a11yLabel ?? label} accessibilityState={{ disabled: !!disabled || off }} style={{ height: 56 }}>
         {({ pressed }) => (
           <>
@@ -563,9 +567,13 @@ export function LipButton({ label, onPress, tone = 'blue', disabled, style, a11y
           </>
         )}
       </Pressable>
-    </Animated.View>
+    </MView>
   );
 }
+const LIP_SHAKE: [number[], number[]] = [
+  [0, 0.25, 0.5, 0.75, 1],
+  [0, -6, 5, -2, 0],
+];
 
 // ─────────────────────────────────────────────────────────────
 // 선택지
@@ -698,12 +706,23 @@ export function ProgressBar({
   const v = Math.max(0, Math.min(1, value || 0));
   const w = useRef(new Animated.Value(grow && !motionOff() ? 0 : v)).current;
   const first = useRef(true);
-  useEffect(() => {
+  // 웹: 같은 스프링으로 폭을 브라우저가 옮긴다. React 는 끝 폭을 그려 두고, 끊기면 지금 폭에서 이어 간다.
+  const fill = useRef<any>(null);
+  const tw = useRef<Tween | null>(null);
+  const shown = useRef(grow && !motionOff() ? 0 : v);
+  (WEB ? useLayoutEffect : useEffect)(() => {
     if (first.current && !grow) {
       first.current = false;
       return;
     }
     first.current = false;
+    if (WEB) {
+      const from = tw.current ? tweenStop(tw.current, shown.current) : shown.current;
+      shown.current = v;
+      if (motionOff() || from === v) return;
+      tw.current = webTween(fill, { spring: 'medium' }, (x) => ({ width: `${Math.max(0, Math.min(1, x)) * 100}%` }), { from, to: v, delay });
+      return;
+    }
     const a = spring(w, v, 'medium', { delay, native: false });
     a.start();
     return () => a.stop();
@@ -717,11 +736,12 @@ export function ProgressBar({
       accessibilityValue={{ min: 0, max: 100, now: Math.round(v * 100) }}
       style={[{ height, borderRadius: r, backgroundColor: track ?? t.line, overflow: 'hidden' }, style]}
     >
-      <Animated.View
-        style={[SOFT, { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: r, overflow: 'hidden', backgroundColor: color ?? (hot ? t.orange : t.blue), width: w.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'], extrapolate: 'clamp' }) }]}
+      <MView
+        ref={fill}
+        style={[SOFT, { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: r, overflow: 'hidden', backgroundColor: color ?? (hot ? t.orange : t.blue), width: WEB ? `${v * 100}%` : w.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'], extrapolate: 'clamp' }) }]}
       >
         {showBand ? <View style={{ position: 'absolute', top: height / 4, left: 8, right: 8, height: height / 4, borderRadius: height / 8, backgroundColor: 'rgba(255,255,255,0.3)' }} /> : null}
-      </Animated.View>
+      </MView>
     </View>
   );
 }
@@ -733,9 +753,21 @@ export function ProgressBar({
 export function Ring({ value, size = 148, stroke = 12, color, track, children, duration = 900, delay = 100, a11yLabel }: { value: number; size?: number; stroke?: number; color?: string; track?: string; children?: React.ReactNode; duration?: number; delay?: number; a11yLabel?: string }) {
   const t = useTheme();
   const target = Math.max(0, Math.min(1, value || 0));
-  const [k, setK] = useState(motionOff() ? target : 0);
+  const [k, setK] = useState(motionOff() || WEB ? target : 0);
   const from = useRef(motionOff() ? target : 0);
-  useEffect(() => {
+  const box = useRef<any>(null);
+  const r = (size - stroke) / 2 - 4;
+  const C = 2 * Math.PI * r;
+  (WEB ? useLayoutEffect : useEffect)(() => {
+    if (WEB) {
+      // 웹: 끝 모양을 그려 두고, 그리기 전에 원의 stroke-dashoffset 을 브라우저 움직임으로 0 에서 채운다.
+      const start = from.current;
+      from.current = target;
+      const arc = (box.current as HTMLElement | null)?.querySelectorAll?.('circle')[1];
+      if (motionOff() || !arc || start === target) return;
+      const tw = webTween(arc, { duration, easing: EASE_OUT }, (x) => ({ strokeDashoffset: String(C * (1 - x)), opacity: x > 0 ? 1 : 0 }), { from: start, to: target, delay });
+      return () => tw?.anim.cancel();
+    }
     if (motionOff()) {
       setK(target);
       return;
@@ -752,10 +784,8 @@ export function Ring({ value, size = 148, stroke = 12, color, track, children, d
       a.removeListener(id);
     };
   }, [target]);
-  const r = (size - stroke) / 2 - 4;
-  const C = 2 * Math.PI * r;
   return (
-    <View accessibilityRole="image" accessibilityLabel={a11yLabel} style={{ width: size, height: size }}>
+    <View ref={box} accessibilityRole="image" accessibilityLabel={a11yLabel} style={{ width: size, height: size }}>
       <View style={{ position: 'absolute', left: 0, top: 0, width: size, height: size, transform: [{ rotate: '-90deg' }] }}>
         <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={track ?? t.p.grey100} strokeWidth={stroke} fill="none" />
@@ -773,7 +803,7 @@ export type StatTone = 'yellow' | 'green' | 'blue' | 'orange';
  * 결과 카드: 바깥은 색(테두리 2), 머리에 아이콘, 안쪽 흰 패널(모서리 14, 높이 56)에 굵은 숫자.
  * lead 를 주면 숫자 앞에 아이콘(예: bolt)을 둔다.
  */
-export function StatCard({ tone, icon, label, value, lead, a11yLabel, style }: { tone: StatTone; icon: IconName | React.ReactNode; label?: string; value: React.ReactNode; lead?: IconName; a11yLabel?: string; style?: StyleProp<ViewStyle> }) {
+export function StatCard({ tone, icon, label, value, num, lead, a11yLabel, style }: { tone: StatTone; icon: IconName | React.ReactNode; label?: string; value?: React.ReactNode; /** 숫자 글자 안에 넣을 요소(예: 세어 올라가는 Count) */ num?: React.ReactNode; lead?: IconName; a11yLabel?: string; style?: StyleProp<ViewStyle> }) {
   const t = useTheme();
   const m: Record<StatTone, [string, string, string]> = {
     yellow: [t.yellow, t.onYellow, t.orangeText],
@@ -794,9 +824,9 @@ export function StatCard({ tone, icon, label, value, lead, a11yLabel, style }: {
       </View>
       <View style={{ height: 56, borderRadius: 14, backgroundColor: t.card, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         {lead ? <Icon name={lead} size={18} color={t.yellow} /> : null}
-        {typeof value === 'string' || typeof value === 'number' ? (
+        {num != null || typeof value === 'string' || typeof value === 'number' ? (
           <T s={20} w="700" c={ink} mono lh={1.45}>
-            {value}
+            {num ?? value}
           </T>
         ) : (
           value
@@ -931,15 +961,11 @@ export function EmptyState({ title, body }: { title: string; body?: string }) {
 /** 읽음 상태 점(8). 안 읽은 기사는 파랑, 읽은 기사는 회색. 높이는 17px 글자 첫 줄에 맞춘다. */
 export function ReadMark({ read, lineHeight = 25.5 }: { read: boolean; lineHeight?: number }) {
   const t = useTheme();
-  const scale = usePop(read);
+  const pop = usePop(read);
   return (
-    <Animated.View
-      accessibilityRole="image"
-      accessibilityLabel={read ? '읽음' : '읽지 않음'}
-      style={{ width: 8, height: lineHeight, alignItems: 'center', justifyContent: 'center', flexShrink: 0, transform: [{ scale }] }}
-    >
+    <MView ref={pop.ref} accessibilityRole="image" accessibilityLabel={read ? '읽음' : '읽지 않음'} style={[{ width: 8, height: lineHeight, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }, pop.style]}>
       <View style={[SOFT, { width: 8, height: 8, borderRadius: 4, backgroundColor: read ? t.p.grey300 : t.blue }]} />
-    </Animated.View>
+    </MView>
   );
 }
 
@@ -966,43 +992,43 @@ export function DayMark({
   a11yLabel?: string;
 }) {
   const t = useTheme();
-  const scale = usePop(status);
+  const pop = usePop(status);
   const filled = status === 'done';
   const ring = today && !filled;
   const week = variant === 'week';
   const d = size ?? (week ? 30 : 36);
   if (week) {
     return (
-      <Animated.View
+      <MView
+        ref={pop.ref}
         accessibilityRole="image"
         accessibilityLabel={a11yLabel ?? label}
-        style={{
-          width: d,
-          height: d,
-          borderRadius: d / 2,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: filled ? heatColor(extra) : ring ? t.card : t.p.grey100,
-          borderWidth: ring ? 2 : 0,
-          borderColor: ring ? HEAT_RING : 'transparent',
-          transform: [{ scale }],
-        }}
+        style={[
+          {
+            width: d,
+            height: d,
+            borderRadius: d / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: filled ? heatColor(extra) : ring ? t.card : t.p.grey100,
+            borderWidth: ring ? 2 : 0,
+            borderColor: ring ? HEAT_RING : 'transparent',
+          },
+          pop.style,
+        ]}
       >
         {filled ? <Icon name="check" size={Math.round(d * 0.47)} color={heatInk(extra)} sw={3.2} /> : null}
-      </Animated.View>
+      </MView>
     );
   }
   const fg = filled ? heatInk(extra) : status === 'future' ? t.p.grey300 : status === 'none' ? t.faint : t.deck;
   return (
-    <Animated.View
-      accessibilityLabel={a11yLabel}
-      style={{ width: d, height: d, borderRadius: d / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: filled ? heatColor(extra) : 'transparent', transform: [{ scale }] }}
-    >
+    <MView ref={pop.ref} accessibilityLabel={a11yLabel} style={[{ width: d, height: d, borderRadius: d / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: filled ? heatColor(extra) : 'transparent' }, pop.style]}>
       {ring ? <View aria-hidden style={{ position: 'absolute', left: -4, top: -4, right: -4, bottom: -4, borderRadius: d / 2 + 4, borderWidth: 2, borderColor: HEAT_RING }} /> : null}
       <T s={d >= 34 ? 15 : 13} w={filled || today ? '700' : '600'} c={fg} mono lh={1.2}>
         {label}
       </T>
-    </Animated.View>
+    </MView>
   );
 }
 
@@ -1014,7 +1040,9 @@ export function DayMark({
  * 아래에서 올라오는 시트. 화면 맨 바깥(스크롤 밖) 에 두고 open 으로 연다.
  * 바깥 어두운 곳을 누르면 onClose. 흰 바탕, 위 모서리 20, 손잡이 36×4.
  */
-export function Sheet({ open, onClose, children, label = '닫기', style }: { open: boolean; onClose: () => void; children: React.ReactNode; label?: string; style?: StyleProp<ViewStyle> }) {
+type SheetProps = { open: boolean; onClose: () => void; children: React.ReactNode; label?: string; style?: StyleProp<ViewStyle> };
+
+function SheetNative({ open, onClose, children, label = '닫기', style }: SheetProps) {
   const t = useTheme();
   const [shown, setShown] = useState(open);
   const [h, setH] = useState(600);
@@ -1055,6 +1083,61 @@ export function Sheet({ open, onClose, children, label = '닫기', style }: { op
   );
 }
 
+/**
+ * 웹: 같은 움직임(열기 380ms 시트 곡선, 닫기 240ms)을 브라우저에 맡긴다. 시트 높이만큼 내려간 자리는 translateY(100%) 로 둔다.
+ * 열리는 중에 닫거나 닫히는 중에 다시 열면 지금 자리에서 이어 간다.
+ */
+function SheetWeb({ open, onClose, children, label = '닫기', style }: SheetProps) {
+  const t = useTheme();
+  const [shown, setShown] = useState(open);
+  const scrim = useRef<any>(null);
+  const panel = useRef<any>(null);
+  const tw = useRef<[Tween | null, Tween | null]>([null, null]);
+  const pos = useRef(0);
+  if (open && !shown) setShown(true);
+  useLayoutEffect(() => {
+    if (!shown) return;
+    const from = tw.current[0] ? tweenStop(tw.current[0], pos.current) : pos.current;
+    tw.current[1]?.anim.cancel();
+    const to = open ? 1 : 0;
+    pos.current = to;
+    if (motionOff() || from === to) {
+      tw.current = [null, null];
+      if (!open) setShown(false);
+      return;
+    }
+    const curve = open ? { duration: 380, easing: EASE_SHEET } : { duration: 240, easing: EASE_OUT };
+    const fill: FillMode = open ? 'backwards' : 'forwards';
+    const a = webTween(panel, curve, (x) => ({ transform: `translateY(${(1 - x) * 100}%)` }), { from, to, fill });
+    const b = webTween(scrim, curve, (x) => ({ opacity: x }), { from, to, fill });
+    tw.current = [a, b];
+    if (!open && a) a.anim.onfinish = () => setShown(false);
+    else if (!open) setShown(false);
+  }, [open, shown]);
+  if (!shown) return null;
+  return (
+    <View style={[StyleSheet.absoluteFill, { zIndex: 30 }]}>
+      <View ref={scrim} style={[StyleSheet.absoluteFill, { backgroundColor: t.scrim }]}>
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={label} style={StyleSheet.absoluteFill} />
+      </View>
+      <View
+        ref={panel}
+        accessibilityViewIsModal
+        style={[{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: t.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 12, paddingHorizontal: 20, paddingBottom: 28 }, style]}
+      >
+        <View aria-hidden style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: t.p.grey300, alignSelf: 'center', marginBottom: 16 }} />
+        {children}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * 아래에서 올라오는 시트. 화면 맨 바깥(스크롤 밖) 에 두고 open 으로 연다.
+ * 바깥 어두운 곳을 누르면 onClose. 흰 바탕, 위 모서리 20, 손잡이 36×4.
+ */
+export const Sheet = WEB ? SheetWeb : SheetNative;
+
 /** 앱 표식: 파랑 둥근 사각형(88, 모서리 24) 안에 흰 칸 3×3. */
 export function AppMark({ size = 88 }: { size?: number }) {
   const t = useTheme();
@@ -1073,7 +1156,7 @@ export function AppMark({ size = 88 }: { size?: number }) {
 }
 
 /** 시작 화면: 표식과 이름이 0.3초 동안 나타나 잠시 머문 뒤 사라지고 onDone. 화면 맨 바깥에 둔다. */
-export function Splash({ onDone }: { onDone: () => void }) {
+function SplashNative({ onDone }: { onDone: () => void }) {
   const t = useTheme();
   const all = useRef(new Animated.Value(1)).current;
   const mark = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
@@ -1103,6 +1186,48 @@ export function Splash({ onDone }: { onDone: () => void }) {
     </Animated.View>
   );
 }
+
+/** 웹: 같은 시간과 곡선을 브라우저에 맡긴다. */
+function SplashWeb({ onDone }: { onDone: () => void }) {
+  const t = useTheme();
+  const all = useRef<any>(null);
+  const mark = useRef<any>(null);
+  const word = useRef<any>(null);
+  useLayoutEffect(() => {
+    if (motionOff()) {
+      const id = setTimeout(onDone, 400);
+      return () => clearTimeout(id);
+    }
+    const a = webTween(mark, { duration: 300, easing: EASE_OUT }, (v) => ({ opacity: v, transform: `scale(${0.96 + 0.04 * v})` }));
+    const b = webTween(word, { duration: 300, easing: EASE_OUT }, (v) => ({ opacity: v, transform: `translateY(${4 * (1 - v)}px)` }), { delay: 80 });
+    let c: Tween | null = null;
+    const id = setTimeout(() => {
+      c = webTween(all, { duration: 200, easing: Easing.linear }, (v) => ({ opacity: v }), { from: 1, to: 0, fill: 'forwards' });
+      if (c) c.anim.onfinish = () => onDone();
+      else onDone();
+    }, 820);
+    return () => {
+      clearTimeout(id);
+      a?.anim.cancel();
+      b?.anim.cancel();
+      if (c) c.anim.onfinish = null;
+    };
+  }, []);
+  return (
+    <View ref={all} style={[StyleSheet.absoluteFill, { zIndex: 50, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', gap: 16 }]}>
+      <View ref={mark}>
+        <AppMark />
+      </View>
+      <View ref={word}>
+        <T s={24} w="800" lh={1.4}>
+          Latticework
+        </T>
+      </View>
+    </View>
+  );
+}
+
+export const Splash = WEB ? SplashWeb : SplashNative;
 
 export const VERDICT_LABEL = { hit: '적중', miss: '빗나감', open: '미확인' } as const;
 

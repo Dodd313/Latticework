@@ -10,7 +10,7 @@ import { StudyScreen } from './src/screens/Study';
 import { ReviewScreen } from './src/screens/Review';
 import { SettingsScreen } from './src/screens/Settings';
 import { TodayScreen } from './src/screens/Today';
-import { StoreProvider } from './src/store';
+import { StoreDefer, StoreProvider } from './src/store';
 import { Splash } from './src/ui';
 import { ThemeProvider, useTheme } from './src/theme';
 
@@ -166,11 +166,13 @@ function Shell() {
   const top = stack[stack.length - 1]?.route;
   // 탭 화면은 한 번 만든 요소를 계속 쓴다. 탭을 바꾸거나 화면을 쌓아도 보이지 않는 탭까지 다시 그리지 않는다.
   const screens = useMemo(() => ({ today: <TodayScreen />, archive: <ArchiveScreen />, review: <ReviewScreen /> }), []);
+  const topId = stack.length ? stack[stack.length - 1].id : 0;
 
   const layer = (name: TabName) =>
     visited[name] ? (
       <TabLayer key={name} active={tab === name}>
-        {screens[name]}
+        {/* 안쪽 화면이 덮고 있거나 가려진 탭은 기록이 바뀌어도 맨 위 화면을 먼저 그린 뒤에 다시 그린다. */}
+        <StoreDefer defer={tab !== name || topId !== 0}>{screens[name]}</StoreDefer>
       </TabLayer>
     ) : null;
 
@@ -185,7 +187,9 @@ function Shell() {
               {layer('review')}
               {stack.map(({ id, route, closing }) => (
                 <StackLayer key={id} id={id} closing={closing} onClosed={finishPop} bg={t.card}>
-                  <RouteScreen route={route} />
+                  <StoreDefer defer={id !== topId}>
+                    <RouteScreen route={route} />
+                  </StoreDefer>
                 </StackLayer>
               ))}
             </View>

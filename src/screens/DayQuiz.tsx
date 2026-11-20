@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, View } from 'react-native';
 import { korean } from '../dates';
-import { NATIVE_DRIVER, Rise, motionOff, spring } from '../motion';
+import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, webTween } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -38,7 +38,15 @@ function QuizHeader({ s }: { s: QuizState }) {
   const nav = useNav();
   const hot = s.combo >= 2;
   const pop = useRef(new Animated.Value(hot ? 1 : 0)).current;
+  const chip = useRef<any>(null);
+  // 웹: 칩이 나타나는 순간(그리기 전) 같은 스프링을 브라우저에 건다.
+  useLayoutEffect(() => {
+    if (!WEB || !hot || motionOff()) return;
+    const tw = webTween(chip, { spring: 'bounce' }, (v) => ({ opacity: Math.max(0, Math.min(1, (v - 0.6) / 0.4)), transform: `scale(${v})` }), { from: 0.6, to: 1 });
+    return () => tw?.anim.cancel();
+  }, [s.combo]);
   useEffect(() => {
+    if (WEB) return;
     if (!hot) {
       pop.setValue(0);
       return;
@@ -59,9 +67,9 @@ function QuizHeader({ s }: { s: QuizState }) {
         {`${s.correct}/${s.total}`}
       </T>
       {hot ? (
-        <Animated.View pointerEvents="none" style={{ position: 'absolute', left: 56, top: 2, opacity: pop.interpolate({ inputRange: [0.6, 1], outputRange: [0, 1], extrapolate: 'clamp' }), transform: [{ scale: pop }] }}>
+        <MView ref={chip} pointerEvents="none" style={[{ position: 'absolute', left: 56, top: 2 }, WEB ? null : { opacity: pop.interpolate({ inputRange: [0.6, 1], outputRange: [0, 1], extrapolate: 'clamp' }), transform: [{ scale: pop }] }]}>
           <Chip tone="hot" label={`×${s.combo}`} />
-        </Animated.View>
+        </MView>
       ) : null}
     </View>
   );
@@ -146,12 +154,19 @@ function DayQuizBody({ review }: { review: Review }) {
   const [footH, setFootH] = useState(96);
   const [panelH, setPanelH] = useState(0);
   const scroll = useRef<any>(null);
-  const slide = useRef(new Animated.Value(0)).current;
+  const slide = useRef(new Animated.Value(WEB ? 1 : 0)).current;
+  const panel = useRef<any>(null);
+  // 웹: 판이 그려지기 전에 같은 스프링을 건다. 판 높이만큼 내려간 자리는 translateY(100%) 다.
+  useLayoutEffect(() => {
+    if (!WEB || !r || motionOff()) return;
+    const tw = webTween(panel, { spring: 'quick' }, (v) => ({ transform: `translateY(${(1 - v) * 100}%)` }));
+    return () => tw?.anim.cancel();
+  }, [s.at, !!r]);
 
   // 답하면 풀이 판이 아래에서 올라온다(quick 스프링). 단추는 제자리에 있다.
   useEffect(() => {
     if (!r) return;
-    if (motionOff()) {
+    if (motionOff() || WEB) {
       slide.setValue(1);
     } else {
       slide.setValue(0);
@@ -182,8 +197,9 @@ function DayQuizBody({ review }: { review: Review }) {
       </ScrollView>
 
       {r ? (
-        <Animated.View
+        <MView
           key={s.at}
+          ref={panel}
           onLayout={(e) => setPanelH(e.nativeEvent.layout.height)}
           style={{
             position: 'absolute',
@@ -195,11 +211,11 @@ function DayQuizBody({ review }: { review: Review }) {
             paddingHorizontal: 16,
             paddingBottom: footH + 8,
             backgroundColor: r === 'right' ? t.greenWeak : t.redWeak,
-            transform: [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: [panelH || 400, 0] }) }],
+            ...(WEB ? null : { transform: [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: [panelH || 400, 0] }) }] }),
           }}
         >
           <QuizFeedback s={s} big />
-        </Animated.View>
+        </MView>
       ) : null}
 
       <View onLayout={(e) => setFootH(e.nativeEvent.layout.height)} style={{ zIndex: 2, paddingTop: 12, paddingHorizontal: 16, paddingBottom: 22 }}>

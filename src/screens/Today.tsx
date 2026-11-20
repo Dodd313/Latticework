@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { cheerHome, seedOf } from '../cheer';
 import { addDays, weekdaysOf } from '../dates';
-import { EASE_OUT, NATIVE_DRIVER, Pulse, Rise, motionOff } from '../motion';
+import { EASE_OUT, MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, webTween } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { quotesFor } from '../quotes';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
@@ -57,6 +57,27 @@ function QuoteBlock({ today }: { today: string }) {
   const by = useSlide();
   const busy = useRef(false);
   const q = list[i % list.length];
+  // 웹: 나가기(140ms)와 들어오기(260ms, 이름은 40ms 뒤)를 브라우저에 맡긴다. 문장이 바뀐 장면을 그리기 전에 들어오기를 건다.
+  const textRef = useRef<any>(null);
+  const byRef = useRef<any>(null);
+  const outs = useRef<(Animation | undefined)[]>([]);
+  const entering = useRef(false);
+  useLayoutEffect(() => {
+    if (!WEB || !entering.current) return;
+    entering.current = false;
+    const frame = (v: number) => ({ opacity: v, transform: `translateX(${12 * (1 - v)}px)` });
+    const a = webTween(textRef, { duration: 260, easing: EASE_OUT }, frame);
+    const b = webTween(byRef, { duration: 260, easing: EASE_OUT }, frame, { delay: 40 });
+    outs.current.forEach((x) => x?.cancel());
+    outs.current = [];
+    if (!b) busy.current = false;
+    else b.anim.onfinish = () => (busy.current = false);
+    return () => {
+      a?.anim.cancel();
+      b?.anim.cancel();
+      busy.current = false;
+    };
+  }, [i]);
 
   const next = () => {
     if (busy.current) return;
@@ -66,6 +87,19 @@ function QuoteBlock({ today }: { today: string }) {
       return;
     }
     busy.current = true;
+    if (WEB) {
+      const frame = (v: number) => ({ opacity: 1 - v, transform: `translateX(${-12 * v}px)` });
+      const a = webTween(textRef, { duration: 140, easing: EASE_OUT }, frame, { fill: 'forwards' });
+      const b = webTween(byRef, { duration: 140, easing: EASE_OUT }, frame, { fill: 'forwards' });
+      outs.current = [a?.anim, b?.anim];
+      const done = () => {
+        entering.current = true;
+        step();
+      };
+      if (a) a.anim.onfinish = done;
+      else done();
+      return;
+    }
     const out = (s: Slide) => Animated.parallel([ease(s.op, 0, 140), ease(s.x, -12, 140)]);
     const into = (s: Slide, delay: number) => Animated.parallel([ease(s.op, 1, 260, delay), ease(s.x, 0, 260, delay)]);
     Animated.parallel([out(text), out(by)]).start(() => {
@@ -81,16 +115,16 @@ function QuoteBlock({ today }: { today: string }) {
   return (
     <Tap onPress={next} press="none" label={`${q.text} ${q.by}`} style={{ paddingTop: 6, paddingHorizontal: 24, paddingBottom: 18 }}>
       <QuoteMark color={t.p.blue200} />
-      <Animated.View style={text.style}>
+      <MView ref={textRef} style={WEB ? null : text.style}>
         <T s={19} w="600" lh={29 / 19} c={t.body} style={{ letterSpacing: -0.4 }}>
           {q.text}
         </T>
-      </Animated.View>
-      <Animated.View style={[{ marginTop: 12, paddingRight: 96 }, by.style]}>
+      </MView>
+      <MView ref={byRef} style={[{ marginTop: 12, paddingRight: 96 }, WEB ? null : by.style]}>
         <T s={14} w="600" c={t.sub} style={{ letterSpacing: 0 }}>
           {q.by}
         </T>
-      </Animated.View>
+      </MView>
       <View aria-hidden style={{ position: 'absolute', right: 24, bottom: 24, flexDirection: 'row', gap: 4 }}>
         {list.map((_, k) => (
           <View key={k} style={[DOT_EASE, { width: k === i ? 12 : 5, height: 5, borderRadius: 3, backgroundColor: k === i ? t.sub : t.p.grey300 }]} />

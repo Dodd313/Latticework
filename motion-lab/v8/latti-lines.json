@@ -115,7 +115,7 @@
   "mrecap.period": "월간 돌아보기 첫 장. month, doneDays, streak",
   "mrecap.lat": "월간 돌아보기 Latticework 카드. month, newConcepts, newest, solved, fields",
   "mrecap.voc": "월간 돌아보기 영단어 카드. month, words, vocTotal, word",
-  "mrecap.news": "월간 돌아보기 뉴스 카드. read, wq(주간 종합 퀴즈 횟수)",
+  "mrecap.news": "월간 돌아보기 뉴스 카드. read, wq(주간 종합 퀴즈 횟수), newsDays(기사를 읽은 날 수)",
   "mrecap.close": "월간 돌아보기 마지막 장. month, xpS, solved, level, levelUp",
   "unlock.missed": "14일 넘게 못 본 해금을 묶은 한 장. n",
   "unlock.more": "학문 카드 3장 뒤 \"외 N개\" 한 장. n"
@@ -2510,12 +2510,18 @@
   {
    "id": "mrecap.news.01",
    "s": "mrecap.news",
-   "t": "한 달 동안 기사 {read}건 읽었어요. 경제가 좀 가까워졌죠?"
+   "t": "한 달 동안 기사 {read}건 읽었어요. 경제가 좀 가까워졌죠?",
+   "when": {
+    "newsDays": ">=10"
+   }
   },
   {
    "id": "mrecap.news.02",
    "s": "mrecap.news",
-   "t": "한 달 경제 흐름을 따라왔어요. 제일 놀란 기사는 뭐였어요?"
+   "t": "한 달 경제 흐름을 따라왔어요. 제일 놀란 기사는 뭐였어요?",
+   "when": {
+    "newsDays": ">=10"
+   }
   },
   {
    "id": "mrecap.news.03",
@@ -2539,7 +2545,10 @@
   {
    "id": "mrecap.news.06",
    "s": "mrecap.news",
-   "t": "한 달 내내 뉴스를 챙겼어요. 같이 읽어서 좋았어요."
+   "t": "한 달 내내 뉴스를 챙겼어요. 같이 읽어서 좋았어요.",
+   "when": {
+    "newsDays": ">=10"
+   }
   },
   {
    "id": "mrecap.close.01",

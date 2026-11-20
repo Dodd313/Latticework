@@ -27,7 +27,12 @@
   font-family: var(--font, system-ui); font-size: 15px; line-height: 22px; font-weight: 600; letter-spacing: -0.2px;
   word-break: keep-all; overflow-wrap: anywhere; text-align: left;
 }
-.lt-say .lt-t { display: block; }
+.lt-say .lt-t { display: block; text-wrap: balance; }
+/* 문장 하나가 한 덩이. 두 문장이 한 줄에 들어가면 한 줄, 아니면 문장 사이에서 접힌다.
+   한 문장이 혼자 넘치면 그 안에서 고르게(balance) 접힌다. */
+.lt-say .lt-u { display: inline-block; max-width: 100%; text-wrap: balance; vertical-align: top; }
+/* 첫 문장이 길어 덩이로는 세 줄이 될 때: 덩이를 풀어 이어 흐른다(Latti.fitLines). */
+.lt-say .lt-t.flow .lt-u { display: inline; }
 .lt-say::before { content: ''; position: absolute; width: 10px; height: 10px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
 .lt-say.at-right::before { left: -3px; top: calc(50% - 5px); }
 .lt-say.at-left::before { right: -3px; top: calc(50% - 5px); }
@@ -46,6 +51,7 @@
 
 /* 떠 있는 말풍선: 표식 자리를 밀지 않는다 */
 .lt-say.float { position: absolute; width: max-content; max-width: 300px; text-align: center; z-index: 2; }
+.lt-say.float.l { max-width: 330px; }
 .lt-say.float.at-top { bottom: calc(100% + 14px); left: 50%; translate: -50% 0; }
 .lt-say.float.at-bottom { top: calc(100% + 14px); left: 50%; translate: -50% 0; }
 .lt-say.float.at-right { left: calc(100% + 12px); top: 50%; translate: 0 -50%; }

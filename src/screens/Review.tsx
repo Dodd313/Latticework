@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { cheerQuiz, seedOf } from '../cheer';
 import { addDays, isWeekend, todayKST, weekTitle, weekdaysOf } from '../dates';
-import { NATIVE_DRIVER, Rise, motionOff, spring } from '../motion';
+import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, webTween } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
 import { useTheme } from '../theme';
@@ -111,20 +111,27 @@ export function QuizQuestion({ s, big }: { s: QuizState; big?: boolean }) {
 /** 맞힘, 틀림 표시: 흰 동그라미 안 체크(초록) 또는 X(빨강). 튀어 오르며 나타난다. */
 function ResultIcon({ right }: { right: boolean }) {
   const t = useTheme();
-  const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
-  useEffect(() => {
+  const v = useRef(new Animated.Value(motionOff() || WEB ? 1 : 0)).current;
+  const ref = useRef<any>(null);
+  (WEB ? useLayoutEffect : useEffect)(() => {
+    if (WEB) {
+      // 웹: 같은 스프링을 브라우저에 맡긴다.
+      const tw = motionOff() ? null : webTween(ref, { spring: 'bounce' }, (x) => ({ transform: `scale(${0.4 + 0.6 * x})` }), { delay: 60 });
+      return () => tw?.anim.cancel();
+    }
     const a = spring(v, 1, 'bounce', { delay: 60, native: NATIVE_DRIVER });
     a.start();
     return () => a.stop();
   }, []);
   return (
-    <Animated.View
+    <MView
+      ref={ref}
       accessibilityRole="image"
       accessibilityLabel={right ? '정답' : '오답'}
-      style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', flexShrink: 0, transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] }}
+      style={[{ width: 32, height: 32, borderRadius: 16, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }, WEB ? null : { transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] }]}
     >
       {right ? <Icon name="check" size={20} color={t.green} sw={3.4} /> : <Icon name="x" size={18} color={t.red} sw={3.4} />}
-    </Animated.View>
+    </MView>
   );
 }
 
