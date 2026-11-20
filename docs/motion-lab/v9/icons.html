@@ -97,14 +97,14 @@
   .live .m-spin { transform-box: view-box; transform-origin: 50px 53.1px; animation: mSpin 4.4s infinite; }
   @keyframes mSpin { 0%, 64% { transform: rotate(0deg); animation-timing-function: var(--spring); } 100% { transform: rotate(120deg); } }
 
-  .live .m-node { transform-box: fill-box; transform-origin: center; animation: mNode 3.2s infinite; animation-delay: calc(var(--i) * 110ms); }
-  @keyframes mNode { 0% { transform: scale(1); animation-timing-function: var(--out); } 7% { transform: scale(1.34); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 20%, 100% { transform: scale(1); } }
+  .live .m-hop { transform-box: fill-box; transform-origin: 50% 100%; animation: mHop 3.6s infinite; }
+  @keyframes mHop { 0%, 62% { transform: translateY(0) scale(1, 1); animation-timing-function: var(--out); } 66% { transform: translateY(0) scale(1.08, 0.9); animation-timing-function: var(--out); } 76% { transform: translateY(-16%) scale(0.96, 1.04); animation-timing-function: var(--in); } 85% { transform: translateY(0) scale(1.06, 0.92); animation-timing-function: var(--spring); } 100% { transform: translateY(0) scale(1, 1); } }
 
   .live .m-lit { animation: mWink 4s infinite; }
   @keyframes mWink { 0%, 78% { opacity: 1; animation-timing-function: steps(1, end); } 79%, 83% { opacity: 0.14; animation-timing-function: var(--out); } 90%, 100% { opacity: 1; } }
 
-  .live .m-breath { transform-box: view-box; transform-origin: 50px 50px; animation: mBreath 3.8s infinite; }
-  @keyframes mBreath { 0%, 66% { transform: scale(1); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 76% { transform: scale(0.9); animation-timing-function: var(--spring); } 100% { transform: scale(1); } }
+  .live .m-slide { animation: mSlide 3.8s infinite; }
+  @keyframes mSlide { 0%, 60% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 74% { transform: translate(5px, 5px); animation-timing-function: var(--spring); } 100% { transform: translate(0, 0); } }
 
   .live .m-y { transform-box: view-box; transform-origin: 50px 51px; animation: mFlip 5.2s infinite; }
   @keyframes mFlip { 0%, 36% { transform: rotate(0deg); animation-timing-function: var(--spring); } 50%, 86% { transform: rotate(60deg); animation-timing-function: var(--spring); } 100% { transform: rotate(120deg); } }

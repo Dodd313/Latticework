@@ -44,24 +44,23 @@
       },
     },
     {
-      id: 'ell',
-      name: '마디 L',
-      idea: '다섯 마디를 이어 Latticework 의 L 을 세웠어요. 한 마디에서 다음 마디로 이어 가는 공부예요.',
-      motion: '맨 위 마디부터 끝 마디까지 차례로 한 번씩 부풀어요. 신호가 지나가듯이요.',
+      id: 'corner',
+      name: 'L 한 칸',
+      idea: '예전 격자에서 세 칸이 남아 L 이 되고, 남은 한 칸은 동그란 점이 됐어요. 오늘 새로 들어온 개념 하나예요.',
+      motion: '동그란 칸이 통 튀어 올랐다가 제자리에 내려앉아요.',
       options: [
         { key: 'a', label: '파랑', tile: { bg: B500, fg: W }, mark: { fg: B500 } },
-        { key: 'b', label: '옅은 줄기', tile: { bg: B500, fg: W, a1: '#90c2ff' }, mark: { fg: B500, a1: '#90c2ff' } },
+        { key: 'b', label: '노란 점', tile: { bg: B500, fg: W, a1: '#ffd158' }, mark: { fg: B500, a1: '#ffc342' } },
       ],
       draw(p, c) {
-        const r = c.small ? 9 : 7.5;
-        const sw = c.small ? 6.5 : 5;
-        const X = [31, 52, 73];
-        const Y = [27, 48, 69];
-        const nodes = [[X[0], Y[0]], [X[0], Y[1]], [X[0], Y[2]], [X[1], Y[2]], [X[2], Y[2]]];
-        const bar = p.a1 || p.fg;
-        let body = `<path d="M${X[0]} ${Y[0]}V${Y[2]}H${X[2]}" fill="none" stroke="${bar}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`;
-        nodes.forEach(([x, y], i) => (body += `<circle class="m-node" style="--i:${i}" cx="${x}" cy="${y}" r="${r}" fill="${p.fg}"/>`));
-        return { defs: '', body };
+        const s = c.small ? 25 : 22;
+        const g = c.small ? 5 : 6;
+        const o = 50 - s - g / 2;
+        const q = o + s + g;
+        const rx = f(s * 0.3);
+        const sq = (x, y) => `<rect x="${f(x)}" y="${f(y)}" width="${s}" height="${s}" rx="${rx}" fill="${p.fg}"/>`;
+        const dot = `<circle class="m-hop" cx="${f(q + s / 2)}" cy="${f(o + s / 2)}" r="${f(s / 2)}" fill="${p.a1 || p.fg}"/>`;
+        return { defs: '', body: sq(o, o) + sq(o, q) + sq(q, q) + dot };
       },
     },
     {
@@ -82,37 +81,27 @@
       },
     },
     {
-      id: 'weave',
-      name: '엮은 띠',
-      idea: '비스듬한 띠 네 개가 한 번씩 위아래를 바꿔 지나가요. 정원의 격자 울타리, lattice 그 자체예요.',
-      motion: '짜임이 살짝 조였다가 풀려요.',
+      id: 'overlap',
+      name: '겹친 칸',
+      idea: '두 칸이 비스듬히 겹치고, 겹친 자리만 가장 진해요. 두 학문이 만나는 곳에서 생각이 생겨요.',
+      motion: '아래 칸이 살짝 물러났다가 다시 포개져요. 겹친 자리가 작아졌다가 다시 커져요.',
       options: [
-        { key: 'a', label: '파랑', tile: { bg: B500, fg: W }, mark: { fg: B500 } },
-        { key: 'b', label: '두 빛 띠', tile: { bg: B500, fg: W, a1: '#c9e2ff' }, mark: { fg: B500, a1: '#90c2ff' } },
+        { key: 'a', label: '파랑', tile: { bg: B500, fg: W, s1: 'rgba(255,255,255,.5)', s2: 'rgba(255,255,255,.5)' }, mark: { fg: '#1b64da', s1: '#90c2ff', s2: '#90c2ff' } },
+        { key: 'b', label: '흰 바탕', tile: { bg: W, fg: '#1b64da', s1: B500, s2: '#90c2ff', edge: true }, mark: { fg: '#1b64da', s1: B500, s2: '#90c2ff' } },
       ],
       draw(p, c) {
-        const bw = c.small ? 13 : 11;
-        const g = c.small ? 3.2 : 2.6;
-        const P = [39, 61];
-        const lo = 26;
-        const len = 48;
-        const H = (y, e = 0) => ({ x: lo - e, y: y - bw / 2 - e, w: len + 2 * e, h: bw + 2 * e });
-        const V = (x, e = 0) => ({ x: x - bw / 2 - e, y: lo - e, w: bw + 2 * e, h: len + 2 * e });
-        const rect = (r, extra) => `<rect x="${f(r.x)}" y="${f(r.y)}" width="${f(r.w)}" height="${f(r.h)}" rx="${f(bw / 2)}" ${extra}/>`;
-        const bands = {
-          h1: { r: H(P[0]), under: V(P[1], g), col: p.fg },
-          h2: { r: H(P[1]), under: V(P[0], g), col: p.fg },
-          v1: { r: V(P[0]), under: H(P[0], g), col: p.a1 || p.fg },
-          v2: { r: V(P[1]), under: H(P[1], g), col: p.a1 || p.fg },
-        };
-        let defs = '';
-        let body = '';
-        Object.entries(bands).forEach(([k, b]) => {
-          const m = `${c.uid}w${k}`;
-          defs += `<mask id="${m}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/>${rect(b.under, 'fill="#000"')}</mask>`;
-          body += rect(b.r, `fill="${b.col}" mask="url(#${m})"`);
-        });
-        return { defs, body: `<g class="m-breath"><g transform="rotate(45 50 50)">${body}</g></g>` };
+        const S = c.small ? 42 : 39;
+        const d = 22;
+        const a = 50 - (S + d) / 2;
+        const rx = f(S * 0.28);
+        const r = (x, extra) => `<rect x="${f(x)}" y="${f(x)}" width="${S}" height="${S}" rx="${rx}" ${extra}/>`;
+        const id = `${c.uid}ov`;
+        const defs = `<clipPath id="${id}" clipPathUnits="userSpaceOnUse">${r(a, '')}</clipPath>`;
+        const body =
+          r(a, `fill="${p.s1 || p.fg}"`) +
+          `<g class="m-slide">${r(a + d, `fill="${p.s2 || p.fg}"`)}</g>` +
+          `<g clip-path="url(#${id})"><g class="m-slide">${r(a + d, `fill="${p.fg}"`)}</g></g>`;
+        return { defs, body };
       },
     },
     {

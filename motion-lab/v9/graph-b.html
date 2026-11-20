@@ -130,7 +130,7 @@
   .band .tx { flex: 1; min-width: 0; }
   .band .tx .k { display: block; font-size: 13px; line-height: 19px; font-weight: 700; }
   .band .tx b { display: block; font-size: 18px; line-height: 26px; font-weight: 700; letter-spacing: -0.3px; color: var(--grey900); }
-  .band .ln { position: relative; display: inline-block; max-width: 100%; margin-top: 6px; padding: 5px 10px; border-radius: 12px; background: var(--grey100); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: top; }
+  .band .ln { position: relative; max-width: 100%; margin-top: 6px; padding: 5px 10px; border-radius: 12px; background: var(--grey100); font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey700); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align: top; }
   .band .bb { display: flex; gap: 6px; margin-top: 10px; }
   .band .sb { height: 32px; padding: 0 12px; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 600; background: var(--grey100); color: var(--grey700); }
 
@@ -214,7 +214,7 @@
 
     <h3>확인한 것과 못 한 것</h3>
     <ul>
-      <li>390×800에서 Playwright로 첫 화면, 재무학 확대, CAPM 소우주 안, 개념 시트, 6개월 뒤와 경제학 소우주, 학문 해금(진행 중과 끝), 분과 해금 띠를 찍어 확인했습니다. 콘솔 오류는 글꼴 CDN 하나뿐입니다.</li>
+      <li>390×800에서 Playwright로 첫 화면, 재무학 확대, CAPM 소우주로 날아가는 도중과 안, 개념 시트, 6개월 뒤와 경제학 소우주, 학문 해금 끝 화면, 분과 해금 띠를 찍어 확인했습니다. 학문 해금의 중간 장면(부채꼴이 벌어지고 가지가 뻗는 동안)은 스크린숏이 아니라 시간별 상태 값으로만 확인했습니다(0.5초 시작 화면, 1.5초 지도, 3.5초 글). 콘솔 오류는 글꼴 CDN 하나뿐입니다.</li>
       <li>실제 아이폰의 두 손가락 확대와 60fps는 확인하지 못했습니다. 그리기는 움직일 때만 하고, 노드 250개 남짓에서 한 프레임이 데스크톱에서 1~2ms입니다.</li>
     </ul>
   </section>
@@ -529,7 +529,7 @@
       F.z = k / F.kf;
       if (F.isRoot) { F.tin = 1; continue; }
       if (!S.inner) { F.tin = 0; continue; }
-      const zf = smooth(0.3, 0.75, F.z);
+      const zf = smooth(0.35, 0.8, F.z);
       const ds = Math.hypot(X(F.cx) - W / 2, Y(F.cy) - H / 2) / half;
       const dw = Math.hypot(cam.x - F.cx, cam.y - F.cy) / (F.s * F.R);
       const pf = Math.max(1 - smooth(0.75, 1.1, ds), 1 - smooth(1.15, 1.5, dw));
@@ -546,7 +546,6 @@
     // 보이는 것 모으기
     const its = [];
     for (const F of M.frames) {
-      if (F.vis < 0.004 && !(F.parent && F.parent.vis > 0.004)) continue;
       for (const n of F.items) {
         let a = F.vis;
         const la = F.vis;
@@ -560,7 +559,7 @@
         let r = baseR(n) * gz(z) * S.dotK;
         if (n.kind === 'concept') r = Math.min(r, Math.max(0.9, n.gap * F.R * F.s * k * 0.4));
         r *= 0.5 + 0.5 * easeOut(rv);
-        its.push({ n, F, x: X(n.x), y: Y(n.y), r, a0: a * m, a: a * m * rv, la: (n.inner ? Math.max(la, n.inner.vis) : la) * m * rv, rv, lk: LK(n) });
+        its.push({ n, F, x: X(n.x), y: Y(n.y), r, a0: a * m, ln: (n.inner ? Math.max(F.vis, !F.isRoot && n.ring === 1 ? F.parent.vis : 0) : a) * m, a: a * m * rv, la: (n.inner ? Math.max(la, n.inner.vis) : la) * m * rv, rv, lk: LK(n) });
       }
     }
 
@@ -577,7 +576,7 @@
     ctx.lineCap = 'round';
     for (const it of its) {
       const n = it.n, F = it.F;
-      if (it.lk <= 0 || it.a0 < 0.01) continue;
+      if (it.lk <= 0 || it.ln < 0.01) continue;
       const P = bez(S, F, n.parent, n, it.lk);
       const xs = [P[0], P[2], P[4], P[6]], ys = [P[1], P[3], P[5], P[7]];
       if (Math.max(...xs) < -4 || Math.min(...xs) > W + 4 || Math.max(...ys) < -4 || Math.min(...ys) > H + 4) continue;
@@ -586,7 +585,7 @@
       if (F.isRoot && n.ring === 1) { col = '#8b95a1'; al = 0.34; lw = 1; }
       else { col = n.color; al = 0.5 - 0.32 * dT; lw = 1.05 - 0.35 * dT; }
       if (!F.isRoot && n.ring === 1 && F.tin < 0.5) { al = Math.max(al, 0.42); lw = 0.8; }
-      ctx.globalAlpha = it.a0 * al;
+      ctx.globalAlpha = it.ln * al;
       ctx.strokeStyle = col;
       ctx.lineWidth = lw;
       ctx.beginPath(); ctx.moveTo(P[0], P[1]); ctx.bezierCurveTo(P[2], P[3], P[4], P[5], P[6], P[7]); ctx.stroke();
@@ -701,10 +700,11 @@
       }
       const key = n.id + (L.center ? '#c' : '');
       const st = S.sticky.get(key);
-      if (st != null && st < C.length) C = [C[st]].concat(C);
+      const ord = C.map((_, i) => i);
+      if (st != null && st < C.length) { ord.splice(st, 1); ord.unshift(st); }
       const Rl = Fr.R * Fr.s * k - 3;
       let pick = -1, box = null;
-      for (let i = 0; i < C.length; i++) {
+      for (const i of ord) {
         const b = [C[i][0], C[i][1], C[i][0] + w, C[i][1] + h];
         if (b[0] < 4 || b[2] > W - 4 || b[1] < 2 || b[3] > H - 2) continue;
         let bad = false;
@@ -719,8 +719,7 @@
         pick = i; box = b; break;
       }
       if (pick < 0) continue;
-      const orig = st != null && st < C.length ? (pick === 0 ? st : pick - 1 >= st ? pick : pick - 1) : pick;
-      S.sticky.set(key, orig);
+      S.sticky.set(key, pick);
       boxes.push(box);
       txt(s, box[0], box[1] + h / 2 + 0.5, font, LCOL[kind], L.a, 'left');
     }
@@ -732,7 +731,7 @@
         const isSel = S.sel === n.id;
         if (S.labels < 9 && !isSel) continue;
         const sp = n.gap * F.R * F.s * k;
-        const need = (F.L === 1 ? smooth(0.7, 0.9, F.z) : smooth(1.7, 1.9, F.z)) * smooth(12, 14, sp);
+        const need = (F.L === 1 ? smooth(0.45, 0.7, F.z) : smooth(1.7, 1.9, F.z)) * smooth(12, 14, sp);
         const a = isSel ? it.a : it.la * need;
         if (a < 0.04) continue;
         if (it.x < -20 || it.x > W + 20 || it.y < -20 || it.y > H + 20) continue;
@@ -742,7 +741,8 @@
         const ang = Math.atan2(n.y - F.cy, n.x - F.cx);
         const flip = Math.cos(ang) < 0;
         const font = isSel ? F_.sel : F_.concept;
-        const s = fitText(font, n.ko, 108);
+        const room = W / 2 - F.R * F.s * k - it.r - 14;
+        const s = fitText(font, n.ko, F.L === 1 ? clamp(room, 56, 108) : 108);
         ctx.save();
         ctx.translate(it.x, it.y);
         ctx.rotate(flip ? ang + Math.PI : ang);
@@ -1227,7 +1227,9 @@
         const top = dy < 0 ? ny - 16 - h : ny + 16;
         if (top < 8 || top + h > U.H - 8) continue;
         let cost = Math.abs(shift) * 2 + (dy > 0 ? 0.5 : 0);
-        for (const d of U.dots) if (d.x > left - 4 && d.x < left + w + 4 && d.y > top - 4 && d.y < top + h + 4) cost += avoid.has(d.n.id) ? 50 : 1;
+        for (const d of U.dots) if (d.x > left - 4 && d.x < left + w + 4 && d.y > top - 4 && d.y < top + h + 4) cost += avoid.has(d.n.id) ? 50 : d.n.kind === 'disc' ? 8 : 1;
+        const cx0 = X(0), cy0 = Y(0);
+        if (cx0 > left - 10 && cx0 < left + w + 10 && cy0 > top - 10 && cy0 < top + h + 10) cost += 20;
         if (!best || cost < best.cost) best = { cost, left, top, dir };
       }
     }
@@ -1342,7 +1344,7 @@
       </div></div>${tabs('home')}`);
     const w = el.querySelector('.bandw'), inner = w.firstElementChild;
     const cvs = el.querySelector('.sn canvas');
-    const U = makeView(cvs, { labels: 0, inner: false, dotK: 1 });
+    const U = makeView(cvs, { labels: 0, inner: false, dotK: 1.5 });
     U.resize(88, 88);
     U.M = M;
     U.fitW = 390; U.fitH = 630;
@@ -1354,7 +1356,7 @@
     Object.assign(U.cam, { x: (bx0 + bx1) / 2, y: (by0 + by1) / 2, k: kk });
     U.reveal = new Map(ids.map((id) => [id, 0]));
     U.link = new Map(ids.map((id) => [id, 0]));
-    U.dim = (n) => (n.kind === 'root' || n === d || ids.includes(n.id) ? 1 : n.disc === d ? 0.55 : 0.3);
+    U.dim = (n) => (n.kind === 'root' || n === d || ids.includes(n.id) ? 1 : n.disc === d ? 0.7 : 0.4);
     runView(U);
     el.style.zIndex = 31;
     w.style.height = '0px';

@@ -107,8 +107,8 @@
   .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   .bub { position: absolute; left: 0; top: 0; z-index: 2; padding: 7px 12px; border-radius: 14px; background: #fff; color: var(--grey800); font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: -0.2px; white-space: nowrap; filter: drop-shadow(0 1px 1px rgba(0, 23, 51, .05)) drop-shadow(0 4px 12px rgba(0, 23, 51, .10)); opacity: 0; }
   .bub::before { content: ''; position: absolute; width: 9px; height: 9px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
-  .bub.at-bottom::before { left: calc(50% - 4.5px); top: -3px; }
-  .bub.at-top::before { left: calc(50% - 4.5px); bottom: -3px; }
+  .bub.at-bottom::before { left: calc(var(--tx, 50%) - 4.5px); top: -3px; }
+  .bub.at-top::before { left: calc(var(--tx, 50%) - 4.5px); bottom: -3px; }
   .bub.at-right::before { left: -3px; top: calc(50% - 4.5px); }
   .bub.at-left::before { right: -3px; top: calc(50% - 4.5px); }
   .ucopy { position: absolute; left: 24px; right: 24px; top: 486px; }
@@ -1340,7 +1340,9 @@
     let best = null;
     for (const side of ['top', 'right', 'left', 'bottom']) {
       const gap = 16;
-      const rc = side === 'top' ? [DX - bw / 2, DY - gap - bh, DX + bw / 2, DY - gap] : side === 'bottom' ? [DX - bw / 2, DY + gap + 18, DX + bw / 2, DY + gap + 18 + bh]
+      // 위아래 말풍선은 화면 안으로 옆걸음하고 꼬리만 점을 가리킨다
+      const bx = clamp(DX - bw / 2, 12, 378 - bw);
+      const rc = side === 'top' ? [bx, DY - gap - bh, bx + bw, DY - gap] : side === 'bottom' ? [bx, DY + gap + 18, bx + bw, DY + gap + 18 + bh]
         : side === 'right' ? [DX + gap, DY - bh / 2, DX + gap + bw, DY + bh / 2] : [DX - gap - bw, DY - bh / 2, DX - gap, DY + bh / 2];
       let v = { top: 0, right: 8, left: 8, bottom: 12 }[side];
       if (rc[0] < 10 || rc[2] > 380 || rc[1] < 10 || rc[3] > 430) v += 1e6;
@@ -1348,6 +1350,7 @@
       if (!best || v < best.v) best = { side, rc, v };
     }
     bub.classList.add('at-' + best.side);
+    if (best.side === 'top' || best.side === 'bottom') bub.style.setProperty('--tx', clamp(DX - best.rc[0], 14, bw - 14) + 'px');
     bub.style.transform = `translate(${best.rc[0]}px, ${best.rc[1]}px)`;
     S.chrome = [best.rc.map((v, i) => v + [-4, -4, 4, 4][i])];
     // 켜지는 순간: 고리 하나가 퍼진다
@@ -1358,7 +1361,8 @@
     copy.querySelectorAll('.k, h2').forEach((x, i) => ML.a(x, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: i * 70, easing: E.out }));
     ML.a(copy.querySelector('.fl'), [{ opacity: 0 }, { opacity: 1 }], { duration: 360, delay: 260, easing: 'ease' });
     if (!(await later(380, g))) return;
-    const so = { top: '50% 100%', bottom: '50% 0%', right: '0% 50%', left: '100% 50%' }[best.side];
+    const tx0 = clamp(DX - best.rc[0], 14, bw - 14);
+    const so = { top: `${tx0}px 100%`, bottom: `${tx0}px 0%`, right: '0% 50%', left: '100% 50%' }[best.side];
     bub.style.transformOrigin = so;
     ML.a(bub, [{ opacity: 0, transform: `translate(${best.rc[0]}px, ${best.rc[1]}px) scale(.9)` }, { opacity: 1, transform: `translate(${best.rc[0]}px, ${best.rc[1]}px) scale(1)` }], { duration: 300, easing: E.out });
     if (!(await later(200, g))) return;
