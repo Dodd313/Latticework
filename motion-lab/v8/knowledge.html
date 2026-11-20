@@ -145,6 +145,8 @@
       <li><b>흔들림 없음</b>: 힘 시뮬레이션을 쓰지 않습니다. 위치는 데이터에서 한 번에 계산하고, 같은 데이터면 늘 같은 자리입니다. 움직이는 것은 카메라뿐입니다.</li>
       <li><b>보이는 단계</b>: 처음 화면은 학문, 분과, 주제, 분과에 바로 붙은 개념 점까지. 주제 아래 개념은 그 주제로 확대해야 나타납니다(taxonomy.json appUse.graph). 이름도 배율에 따라 학문, 분과, 주제, 개념 순으로 나타나고, 겹치면 낮은 계급 이름부터 숨습니다.</li>
       <li><b>분과가 하나인 학문</b>은 이름을 "논리학 · 추론과 논증"처럼 접어 두 줄로 씁니다.</li>
+      <li><b>이름 자리</b>: 부모에서 멀어지는 쪽(바깥)을 먼저 보고, 아래, 위, 대각선, 반쯤 옆으로 비킨 자리까지 후보로 둡니다. 부모 쪽(안쪽)에는 두지 않습니다. 다른 노드의 이름처럼 읽히기 때문입니다. 큰 노드, Latti, 위에 뜬 단추(위치 표시, 전체 보기)는 피하고, 작은 개념 점은 덜 덮는 자리를 고릅니다. 이름끼리는 한 글자 폭쯤 띄웁니다. 맞는 자리가 없으면 그 배율에서는 이름을 숨깁니다.</li>
+      <li><b>소우주로 들어갈 때 배율</b>: 고리가 아니라 안쪽 그림을 화면 폭에 맞춥니다. 고리는 위아래 호만 보이고, 분과가 9개인 경제학 안에서도 분과 이름이 모두 들어갑니다.</li>
       <li><b>소우주 접기</b>: 데이터의 <code>collapse.collapsed</code>를 그대로 따릅니다(7개 초과면 접고 5개 이하면 풂). 지금은 자본배분, 지수모형, CAPM이 소우주이고, 6개월 뒤에는 경제학(학문 전체), 확률과 확률분포, 추론과 논증, 휴리스틱과 편향이 더해집니다. 소우주 안의 소우주도 같은 방식으로 들어갑니다.</li>
     </ul>
 
@@ -507,7 +509,8 @@
   function nodeFit(n) {
     if (n.kind === 'root') return rootFit();
     const f = fpWorld(n);
-    let k = Math.min(W / 2 - 22, H / 2 - 54) / (f.glyph ? f.r * 0.9 : f.r);
+    // 소우주는 테두리가 아니라 안쪽 그림(테두리의 0.8)을 화면 폭에 맞춘다. 테두리는 위아래로만 보여도 된다.
+    let k = f.glyph ? Math.min(W / 2 - 14, H / 2 - 40) / (f.r * 0.84) : Math.min(W / 2 - 22, H / 2 - 54) / f.r;
     // 작은 노드로 날아갈 때 원이 화면을 채우지 않게: 이름이 다 보이는 배율에서 멈춘다.
     k = Math.min(k, n.collapsed ? 3.2 / (n.sc * n.inS) : 2.3 / n.sc);
     return { x: f.x, y: f.y + 8 / k, k };
@@ -636,7 +639,7 @@
       G.drawn.set(n.id, it);
       E.push({ x1: PX, y1: PY, x2: X, y2: Y, r1: PR, r2: R, a: a * 0.9, c: '#e5e8eb', w: 1.25 });
       const la = a * (1 - smooth(0.2, 0.45, open)) * Math.max(lodLabel(n.kind, z), n.kind === 'disc' ? 1 : smooth(0.3, 0.45, z));
-      if (la > 0.02) LB.push({ n, text: n.ko, font: n.kind === 'disc' ? F.disc : F.glyph, color: n.kind === 'disc' ? '#191f28' : '#333d4b', x: X, Y, R, off: n.kind === 'disc' ? 20 : 17, force: n.kind === 'disc', a: la, pri: n.kind === 'disc' ? 100 : 60 + R / 10 });
+      if (la > 0.02) LB.push({ n, text: n.ko, font: n.kind === 'disc' ? F.disc : F.glyph, color: n.kind === 'disc' ? '#191f28' : '#333d4b', x: X, Y, R, off: n.kind === 'disc' ? 20 : 17, force: n.kind === 'disc', a: la, pri: n.kind === 'disc' ? 100 : 60 + R / 10, px: n.kind === 'disc' ? null : PX, py: PY });
       if (R > 4) {
         const cr = n.lr * 0.9 * zin * L.s;
         if (open < 1) {
@@ -675,7 +678,7 @@
       if (la > 0.02) {
         const font = F[n.kind];
         const pri = n.kind === 'branch' ? 70 : n.kind === 'topic' ? 50 : 20 + (n.amount || 0) / 10;
-        LB.push({ n, text: n.ko, font, color: n.kind === 'concept' ? '#4e5968' : n.kind === 'topic' ? '#4e5968' : '#333d4b', x: X, Y, R, off: n.kind === 'concept' ? 14 : 16, up, a: la, pri });
+        LB.push({ n, text: n.ko, font, color: n.kind === 'concept' ? '#4e5968' : n.kind === 'topic' ? '#4e5968' : '#333d4b', x: X, Y, R: R + (n.id === G.sel ? 6 : 0), off: n.kind === 'concept' ? 14 : 16, up: up || undefined, a: la, pri, px: PX, py: PY });
       }
     }
     n.kids.forEach((k) => visit(k, n, X, Y, R, A * L.a, false, now));
@@ -828,27 +831,29 @@
   }
   function drawLabels(dim, hot) {
     const placed = [];
-    const hitAny = (r) => placed.some((p) => !(r[2] < p[0] || r[0] > p[2] || r[3] < p[1] || r[1] > p[3]));
-    // 노드 원도 장애물이다. 이름이 남의 노드를 덮지 않게.
-    const obs = [];
-    if (G.latti.a > 0.1) obs.push({ n: null, r: [G.latti.x - G.latti.r - 2, G.latti.y - G.latti.r - 2, G.latti.x + G.latti.r + 2, G.latti.y + G.latti.r + 2] });
+    const ov = (r, o) => Math.max(0, Math.min(r[2], o[2]) - Math.max(r[0], o[0])) * Math.max(0, Math.min(r[3], o[3]) - Math.max(r[1], o[1]));
+    // 단단한 장애물: Latti, 큰 노드, 위에 뜬 단추. 무른 장애물: 개념 점과 소우주 안 작은 점.
+    const hard = [], soft = [];
+    if (G.latti.a > 0.1) hard.push({ n: null, r: [G.latti.x - G.latti.r - 3, G.latti.y - G.latti.r - 3, G.latti.x + G.latti.r + 3, G.latti.y + G.latti.r + 3] });
+    if (G.chrome) G.chrome.forEach((r) => hard.push({ n: null, r }));
     for (const it of ND) {
-      if (it.a < 0.3 || it.st === 'mini') continue;
+      if (it.a < 0.3) continue;
+      if (it.st === 'mini') { if (it.r >= 1.2) soft.push({ n: it.n, r: [it.x - it.r - 1.5, it.y - it.r - 1.5, it.x + it.r + 1.5, it.y + it.r + 1.5] }); continue; }
       if (it.st === 'glyph' && it.open > 0.3) continue;
       if (it.st === 'center' && it.r > 120) continue;
-      const q = it.st === 'concept' ? it.r + (it.n.due ? 3 : 0) : it.r * 0.85;
+      if (it.st === 'concept') { const q = it.r + (it.n.id === G.sel ? 8 : it.n.due ? 4.5 : 1.5); soft.push({ n: it.n, r: [it.x - q, it.y - q, it.x + q, it.y + q] }); continue; }
+      const q = it.r * 0.9 + 1;
       if (q < 2.5) continue;
-      obs.push({ n: it.n, r: [it.x - q, it.y - q, it.x + q, it.y + q], dot: it.st === 'concept' });
+      hard.push({ n: it.n, r: [it.x - q, it.y - q, it.x + q, it.y + q] });
     }
-    const ov = (r, o) => Math.max(0, Math.min(r[2], o[2]) - Math.max(r[0], o[0])) * Math.max(0, Math.min(r[3], o[3]) - Math.max(r[1], o[1]));
-    // 개념 점은 개념과 주제 이름만 피한다. 학문과 분과 이름은 작은 점 위에 흰 테두리로 얹어도 읽힌다.
-    const hitObs = (r, n) => obs.some((o) => o.n !== n && (!o.dot || n.kind === 'concept' || n.kind === 'topic') && ov(r, o.r) > 0);
-    const cost = (r, n) => obs.reduce((s, o) => s + (o.n !== n ? ov(r, o.r) * (o.n ? 1 : 50) : 0), 0) + placed.reduce((s, p) => s + ov(r, p) * 20, 0);
+    const sum = (arr, r, n) => arr.reduce((s, o) => s + (o.n !== n ? ov(r, o.r) : 0), 0);
     const L = LB.slice().sort((a, b) => (hot ? (hot.has(b.n.id) ? 1000 : 0) - (hot.has(a.n.id) ? 1000 : 0) : 0) + b.pri - a.pri);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
     const shown = new Set();
+    const EDGE = 10;
+    const D = Math.SQRT1_2;
     for (const l of L) {
       if (l.Y < -40 || l.Y > H + 40 || l.x < -200 || l.x > W + 200) continue;
       if (l.a < 0.3 && !l.force) continue;
@@ -859,22 +864,69 @@
       const w2 = l.sub ? textW(F.disc2, l.sub) + (subFresh ? 10 : 0) : 0;
       const half = Math.max(lw, w2) / 2;
       const extra = l.sub ? 16 : 0;
+      const box = (cx, y) => [cx - half - 2, y - 13, cx + half + 2, y + 4 + extra];
       const at = (side) => {
-        if (side === 'right' || side === 'left') {
-          const cx = side === 'right' ? l.x + l.R + 6 + half : l.x - l.R - 6 - half;
-          if (cx - half < 2 || cx + half > W - 2) return null;
-          const y = l.Y + 5 - extra / 2;
-          return { y, cx, r: [cx - half - 2, y - 13, cx + half + 2, y + 4 + extra] };
+        const g = 5;
+        switch (side) {
+          case 'right': case 'left': {
+            const cx = side === 'right' ? l.x + l.R + g + half : l.x - l.R - g - half;
+            const y = l.Y + 5 - extra / 2;
+            return { y, cx, r: box(cx, y) };
+          }
+          case 'br': case 'bl': case 'tr': case 'tl': {
+            const sxn = side[1] === 'r' ? 1 : -1, syn = side[0] === 'b' ? 1 : -1;
+            const ex = l.x + sxn * (l.R * D + 3), ey = l.Y + syn * (l.R * D + 3);
+            const cx = ex + sxn * half;
+            const y = syn > 0 ? ey + 12 : ey - 4 - extra;
+            return { y, cx, r: box(cx, y) };
+          }
+          default: {
+            const y = side.startsWith('below') ? l.Y + l.R + l.off : l.Y - l.R - 8 - extra;
+            // 긴 이름은 반쯤 옆으로 비켜 앉을 수 있다
+            const slide = side.endsWith('<') ? -half * 0.5 : side.endsWith('>') ? half * 0.5 : 0;
+            // 가장자리에서 잘리지 않게 조금 안쪽으로 민다
+            const cx = l.x > -half && l.x < W + half ? clamp(l.x + slide, half + EDGE, W - half - EDGE) : l.x;
+            if (Math.abs(cx - l.x) > half * 0.8) return null;
+            return { y, cx, r: box(cx, y) };
+          }
         }
-        const y = side === 'below' ? l.Y + l.R + l.off : l.Y - l.R - 8 - extra;
-        // 화면 가장자리에서 잘리지 않게 안쪽으로 민다
-        const cx = l.x > -half && l.x < W + half ? clamp(l.x, half + 6, W - half - 6) : l.x;
-        return { y, cx, r: [cx - half - 2, y - 13, cx + half + 2, y + 4 + extra] };
       };
-      const order = l.up ? ['above', 'below', 'right', 'left'] : ['below', 'above', 'right', 'left'];
-      let pick = null;
-      for (const side of order) { const c = at(side); if (c && !hitAny(c.r) && !hitObs(c.r, l.n)) { pick = c; break; } }
-      if (!pick && (l.force || fresh || subFresh)) { let best = Infinity; for (const side of order) { const c = at(side); if (!c) continue; const v = cost(c.r, l.n); if (v < best) { best = v; pick = c; } } }
+      // 바깥쪽(부모 반대쪽)을 먼저 본다. 방사형 배치에서 이름끼리 덜 부딪힌다.
+      let order;
+      if (l.px != null && Math.hypot(l.x - l.px, l.Y - l.py) > 1) {
+        const ux = (l.x - l.px) / Math.hypot(l.x - l.px, l.Y - l.py), uy = (l.Y - l.py) / Math.hypot(l.x - l.px, l.Y - l.py);
+        // 부모 쪽(안쪽)에 붙은 이름은 다른 노드 이름처럼 읽혀서 쓰지 않는다
+        if (Math.abs(ux) > 0.82) order = ux > 0 ? ['right', 'below', 'above', 'br', 'tr'] : ['left', 'below', 'above', 'bl', 'tl'];
+        else if (Math.abs(ux) < 0.3) order = uy > 0 ? ['below', 'br', 'bl', 'right', 'left'] : ['above', 'tr', 'tl', 'right', 'left'];
+        else if (uy > 0) order = ux > 0 ? ['below', 'br', 'right', 'bl'] : ['below', 'bl', 'left', 'br'];
+        else order = ux > 0 ? ['above', 'tr', 'right', 'tl'] : ['above', 'tl', 'left', 'tr'];
+        if (l.n.kind === 'concept' || !l.n.kids.length) order.push(uy > 0 ? 'above' : 'below');
+        if (l.up) order = ['above', ...order.filter((s) => s !== 'above')];
+      } else order = l.up ? ['above', 'below', 'right', 'left', 'tr', 'tl', 'br', 'bl'] : ['below', 'above', 'right', 'left', 'br', 'bl', 'tr', 'tl'];
+      order = [...order, 'below<', 'below>', 'above<', 'above>'];
+      const inScreen = (r) => r[0] >= EDGE - 2 && r[2] <= W - EDGE + 2 && r[1] >= 2 && r[3] <= H - 2;
+      const softMax = l.n.kind === 'concept' ? 14 : Infinity;
+      let pick = null, best = Infinity;
+      order.forEach((side, i) => {
+        const c = at(side);
+        if (!c || !inScreen(c.r)) return;
+        // 이름끼리는 한 글자 폭쯤 띄운다. 붙으면 한 줄로 읽힌다.
+        if (placed.some((p) => ov([c.r[0] - 7, c.r[1] - 1, c.r[2] + 7, c.r[3] + 1], p) > 0)) return;
+        if (sum(hard, c.r, l.n) > 0) return;
+        const sv = sum(soft, c.r, l.n);
+        if (sv > softMax) return;
+        const v = sv * 2 + i * 14;
+        if (v < best) { best = v; pick = c; }
+      });
+      if (!pick && (l.force || fresh || subFresh)) {
+        for (const side of order) {
+          const c = at(side);
+          if (!c) continue;
+          if (!inScreen(c.r)) continue;
+          const v = sum(hard, c.r, l.n) * 50 + placed.reduce((s, p) => s + ov(c.r, p) * 20, 0) + sum(soft, c.r, l.n);
+          if (v < best) { best = v; pick = c; }
+        }
+      }
       if (!pick) continue;
       placed.push(pick.r);
       shown.add(l.n.id);
@@ -1119,10 +1171,23 @@
     crumbKey = key;
     const cr = $('#crumb');
     $('#fitb').hidden = !away;
-    if (!path.length) { cr.hidden = true; return; }
+    if (!path.length) { cr.hidden = true; chrome(); return; }
     const show = path.length > 3 ? path.slice(-3) : path;
-    $('#cs').innerHTML = show.map((n, i) => `${i ? '<span class="sl">/</span>' : ''}<button class="c" data-id="${n.id}">${esc(i < show.length - 1 ? n.short : n.ko)}</button>`).join('');
+    // 지도에 쓴 이름 그대로. 길어서 넘칠 때만 앞 단계를 짧은 이름으로.
+    const long = show.reduce((s, n) => s + n.ko.length, 0) > 17;
+    $('#cs').innerHTML = show.map((n, i) => `${i ? '<span class="sl">/</span>' : ''}<button class="c" data-id="${n.id}">${esc(long && i < show.length - 1 ? n.short : n.ko)}</button>`).join('');
     if (cr.hidden) { cr.hidden = false; K.spring(cr, [{ opacity: 0, transform: 'translateY(-6px) scale(.96)' }, { opacity: 1, transform: 'none' }], 'quick'); }
+    chrome();
+  }
+  // 위에 뜬 단추 자리. 이름이 그 밑에 깔리지 않게 한다.
+  function chrome() {
+    const cr = $('#crumb');
+    const out = [];
+    if (!cr.hidden) out.push([4, 2, 12 + cr.offsetWidth + 8, 54]);
+    if (!$('#fitb').hidden) out.push([W - 56, 2, W, 54]);
+    if (!$('#when').hidden) out.push([W / 2 - 60, 6, W / 2 + 60, 50]);
+    const k = JSON.stringify(out);
+    if (k !== G.chromeKey) { G.chromeKey = k; G.chrome = out; G.dirty = true; }
   }
   $('#cs').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-id]');

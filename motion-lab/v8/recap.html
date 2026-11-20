@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>주간 리뷰 · 8차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<link rel="stylesheet" href="latti.css">
+<style>
+  :root { --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple500: #a234c7; --purple600: #9128b4; --purple-weak: #f7edfa; --yellow-weak: #fff9e7; }
+  .scr { background: var(--grey100) !important; overflow: hidden; user-select: none; -webkit-user-select: none; cursor: pointer; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* 시작 화면: 7차와 같다 */
+  .splash { position: absolute; inset: 0; z-index: 200; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; cursor: default; }
+  .icon { width: 88px; height: 88px; border-radius: 24px; background: var(--blue500); display: grid; grid-template-columns: repeat(3, 20px); gap: 5px; align-content: center; justify-content: center; }
+  .icon i { width: 20px; height: 20px; border-radius: 6px; background: #fff; }
+  .splash b { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+  /* 위쪽: 진행 막대, 제목, 닫기 */
+  .prog { position: absolute; top: 10px; left: 20px; right: 20px; height: 3px; display: flex; gap: 4px; z-index: 30; }
+  .prog i { position: relative; flex: 1; border-radius: 2px; background: rgba(0, 23, 51, 0.1); overflow: hidden; }
+  .prog i b { position: absolute; inset: 0; border-radius: inherit; background: var(--grey800); transform-origin: left; transform: scaleX(0); }
+  .top { position: absolute; top: 16px; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 24px; z-index: 30; }
+  .top b { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+  .x { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--grey500); transition: background-color 0.1s; }
+  .x.down { background: var(--dim-press); }
+
+  /* 카드 더미 */
+  .deck { position: absolute; left: 0; right: 0; top: 76px; bottom: 0; }
+  .slot { position: absolute; left: 20px; right: 20px; top: 0; transform-origin: 50% 100%; will-change: transform; }
+  .card { position: absolute; inset: 0; border-radius: 24px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 23, 51, 0.03), 0 6px 22px rgba(0, 23, 51, 0.07); overflow: hidden; }
+  .veil { position: absolute; inset: 0; background: var(--grey50); pointer-events: none; z-index: 6; opacity: 0; }
+  .in { position: absolute; inset: 0; padding: 20px 24px 24px; display: flex; flex-direction: column; }
+
+  /* Latti 줄: 카드 맨 위 */
+  .lt { display: flex; align-items: flex-start; gap: 8px; flex: none; min-height: 32px; }
+  .lt .lt-say { margin-top: 0; }
+  .lt .ghost { visibility: hidden; }
+  .lt.big { align-items: center; }
+
+  /* 카드 안 공통 */
+  .ttl { margin-top: 18px; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.4px; flex: none; }
+  /* 이름 줄과 숫자 줄을 따로 맞춘다: 크기가 다른 숫자도 이름은 같은 높이, 숫자는 같은 기준선 */
+  .hero { margin-top: 16px; flex: none; display: grid; grid-auto-flow: column; grid-template-rows: auto auto; justify-content: start; column-gap: 28px; align-items: baseline; }
+  .hero > div { display: contents; }
+  .sn { display: block; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--grey600); }
+  .sv { display: flex; align-items: baseline; margin-top: 2px; font-size: 52px; line-height: 60px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .sv small { font-size: 22px; font-weight: 700; color: var(--grey400); letter-spacing: -0.4px; margin-left: 3px; }
+  .sv.md { font-size: 34px; line-height: 44px; letter-spacing: -0.8px; }
+  .sv.md small { font-size: 18px; }
+  .fl { flex: 1 1 0; min-height: 16px; max-height: 40px; }
+  .grow { flex: 1 1 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
+  .two > div { background: var(--grey50); border-radius: 16px; padding: 14px 16px; }
+  .two b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .two b small { font-size: 15px; font-weight: 600; color: var(--grey500); margin-left: 2px; }
+
+  /* 띠 달력: 7차 카드 넘기기와 같다 */
+  .wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 6px; flex: none; }
+  .wd span { text-align: center; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .wd span.td { color: var(--grey900); font-weight: 700; }
+  .grid { position: relative; flex: none; }
+  .grid > * { position: absolute; }
+  .band { overflow: hidden; z-index: 1; }
+  .band .layer { position: absolute; inset: 0; }
+  .dn { display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--grey700); font-variant-numeric: tabular-nums; z-index: 3; }
+  .band .dn { position: absolute; top: 0; font-weight: 700; }
+  .dn.fut { color: var(--grey300); }
+  .ring { border-radius: 50%; z-index: 2; box-shadow: inset 0 0 0 2px #fe9800; }
+  .ex { z-index: 3; text-align: center; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--grey500); font-variant-numeric: tabular-nums; opacity: 0; }
+
+  /* Latticework: 학문, 분과, 세부 항목 */
+  .disc { flex: none; }
+  .dr { margin-top: 18px; }
+  .dr:first-child { margin-top: 0; }
+  .dh { display: flex; align-items: center; gap: 8px; height: 26px; }
+  .dh .dot { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .dh .nm { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; }
+  .dh .ct { margin-left: auto; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .dh .ct small { font-size: 13px; font-weight: 600; color: var(--grey500); margin-left: 2px; }
+  .dbar { position: relative; height: 6px; margin: 6px 0 2px 18px; border-radius: 3px; background: var(--grey100); overflow: hidden; }
+  .dbar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; transform-origin: left; transform: scaleX(0); }
+  .br { margin: 10px 0 0 18px; }
+  .bh { display: flex; align-items: baseline; gap: 6px; }
+  .bh .nm { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--grey700); }
+  .bh .ct { margin-left: auto; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .items { margin-top: 3px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 19px; font-weight: 500; color: var(--grey500); }
+  .items .g { display: flex; flex-wrap: wrap; gap: 0 10px; }
+  .items .g > * { white-space: nowrap; }
+  .items b { display: inline-flex; align-items: center; gap: 2px; font-weight: 700; color: var(--grey600); }
+  .items b .spark { margin-left: 1px; }
+  .items em { font-style: normal; font-weight: 600; color: var(--grey600); margin-left: 3px; font-variant-numeric: tabular-nums; }
+  .dr.idle .nm, .dr.idle .ct { color: var(--grey400); }
+  .spark { display: inline-flex; flex: none; }
+
+  /* 영단어 */
+  .stk { position: relative; height: 16px; flex: none; }
+  .stk i { position: absolute; top: 0; bottom: 0; border-radius: 6px; transform-origin: left; transform: scaleX(0); }
+  .lbls { position: relative; height: 52px; margin-top: 10px; flex: none; }
+  .lbls > div { position: absolute; top: 0; opacity: 0; }
+  .lbls span { display: block; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--grey600); white-space: nowrap; }
+  .lbls b { display: block; font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .terms { flex: none; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 14px; line-height: 21px; font-weight: 500; }
+  .terms span { opacity: 0; color: var(--grey500); }
+  .terms span.ph { color: var(--purple300); }
+  .terms span.more { color: var(--grey400); font-weight: 600; }
+
+  /* 뉴스 */
+  .np { display: grid; gap: 6px; flex: none; }
+  .np .c { display: grid; gap: 4px; }
+  .np .c i { position: relative; aspect-ratio: 1; border-radius: 8px; background: var(--grey100); overflow: hidden; }
+  .np .c i b { position: absolute; inset: 0; border-radius: inherit; background: var(--blue500); transform: scale(0); }
+  .np .c i.td { box-shadow: inset 0 0 0 2px var(--blue200); background: #fff; }
+  .np .c span { text-align: center; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .np .c span.td { color: var(--grey900); font-weight: 700; }
+  .np.dense { gap: 3px; }
+  .np.dense .c { gap: 3px; }
+  .np.dense .c i { border-radius: 3px; }
+  .qrow { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; flex: none; }
+  .qrow b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .qrow b small { font-size: 15px; font-weight: 600; color: var(--grey500); margin-left: 6px; }
+  .segbar { display: flex; gap: 3px; height: 10px; flex: none; }
+  .segbar.dense { gap: 2px; }
+  .segbar i { position: relative; flex: 1; border-radius: 5px; background: var(--grey100); overflow: hidden; }
+  .segbar i b { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); }
+  .qbtn { min-height: 48px; margin-top: 14px; border-radius: 14px; font-size: 16px; flex: none; }
+  .hl { flex: none; margin-top: 2px; }
+  .hl div { display: flex; gap: 10px; font-size: 13px; line-height: 21px; font-weight: 500; color: var(--grey500); opacity: 0; }
+  .hl div em { flex: none; width: 34px; font-style: normal; color: var(--grey400); font-variant-numeric: tabular-nums; }
+  .hl div span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hl div.more em { visibility: hidden; }
+  .hl div.more span { color: var(--grey400); font-weight: 600; }
+
+  /* 마지막 장 */
+  .lv { display: flex; align-items: baseline; font-size: 52px; line-height: 60px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .lv small { font-size: 22px; font-weight: 700; color: var(--grey400); letter-spacing: -0.4px; margin-right: 6px; }
+  .lv .n { display: inline-block; transform-origin: 50% 80%; }
+  .chip { display: inline-flex; align-items: center; gap: 3px; height: 30px; padding: 0 10px; border-radius: 10px; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lv .chip { align-self: center; margin-left: 12px; letter-spacing: 0; }
+  .xpn { display: flex; justify-content: flex-end; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .pbar .fill { transition: none; }
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); flex: none; border-top: 1px solid var(--grey100); padding-top: 16px; }
+  .three div { text-align: center; }
+  .three div + div { border-left: 1px solid var(--grey100); }
+  .three span { display: block; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--grey500); }
+  .three b { display: block; margin-top: 2px; font-size: 20px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .three b small { font-size: 13px; font-weight: 600; color: var(--grey500); margin-left: 1px; }
+
+  .notes ol { padding-left: 18px; margin: 0; }
+  .notes li { margin: 4px 0; }
+  .notes code { font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>주간 리뷰</h2>
+    <p>주말이나 월말에 앱을 처음 열면 시작 화면 다음에 홈 대신 카드 한 더미가 놓입니다. 7차 카드 넘기기의 모양을 그대로 두고, 넘기는 방법만 화면을 누르는 것으로 바꿨습니다. 어디를 눌러도 맨 위 카드가 들려 왼쪽 위로 빠지고, 뒤 카드가 앞으로 올라와 자리를 잡습니다. 끌기와 던지기는 없습니다.</p>
+    <p class="tip">위쪽 "주간" 과 "월간" 으로 두 리뷰를 바꿔 보세요. 휴대폰 화면 아무 곳이나 누르면 다음 장입니다. 왼쪽 가장자리(폭의 18%)를 누르면 앞 장으로 돌아갑니다. 키보드 오른쪽, 왼쪽 화살표와 스페이스도 됩니다. 자료는 <code>v8/data.js</code>(window.V8)의 <code>week.this</code> 와 <code>month.this</code> 를 그대로 씁니다. Latti 의 말은 <code>latti-lines.json</code> 에서 열 때마다 새로 고릅니다.</p>
+
+    <h3>장 구성</h3>
+    <table class="spec">
+      <tr><th>1</th><td>기간과 완료한 날. 7차의 불꽃 띠가 마친 날을 따라 왼쪽에서 오른쪽으로 그려지고, 하루를 지날 때마다 큰 숫자가 하나씩 오릅니다. 띠 아래 숫자는 그날의 추가 학습 문제 수이고 띠의 짙기와 같은 색입니다. 오늘은 테두리, 아직 오지 않은 날은 옅은 숫자입니다. 기간 첫날 전날도 마친 날이면(연속이 지난주부터 이어짐) 띠의 왼쪽이 카드 가장자리까지 늘어나 흐려집니다. 아래 두 칸은 추가 학습 합계와 연속 일수입니다.</td></tr>
+      <tr><th>2</th><td>Latticework. 푼 문제와 새 개념. 학문마다 한 줄(학문 색 네모, 이름, 푼 문제 수, 같은 색 막대). 그 아래 분과마다 새로 들어온 지식 수를 학문 색 "+n" 으로, 그 밑에 실제로 배운 주제와 개념 이름을 옅게 적습니다. 주제가 있으면 주제 이름(APT)을 앞에 굵게 둡니다. 이번 기간에 새로 생긴 학문, 분과, 주제 옆에는 작은 별이 붙습니다. 움직임이 없던 학문은 회색 한 줄로만 남습니다. 월간처럼 이름이 너무 많으면 주제 이름과 수(CAPM 8)로 접습니다.</td></tr>
+      <tr><th>3</th><td>영단어. 새로 익힌 수 하나를 크게. 단어와 구문 두 조각의 막대가 왼쪽부터 자라고, 각 조각 바로 아래에 이름과 수가 같은 보라로 붙습니다. 그 아래 이번 주에 익힌 표현을 그대로 흘려 적습니다. 단어는 회색, 구문은 연보라로 막대 조각과 같은 색입니다. 다 못 적는 달은 단어와 구문을 비율대로 골라 적고 나머지는 "+n" 입니다. 맨 아래 두 칸은 복습 수와 모은 영단어 전체. 덱 이름은 어디에도 없습니다.</td></tr>
+      <tr><th>4</th><td>뉴스. 평일마다 두 칸, 읽은 칸이 차례로 파랗게 찹니다(오늘 칸은 테두리). 저녁 퀴즈는 문제마다 한 칸, 맞힌 칸 초록. 이번 주 종합 퀴즈를 아직 안 풀었으면 "종합 퀴즈" 단추가 놓이고, 이 단추를 눌러도 카드는 넘어가지 않습니다. 풀었으면 그 자리에 점수 줄이 놓입니다(월간 예시). 아래는 이번 주 읽은 헤드라인 목록. 주제 칩, 기억 상태는 없습니다.</td></tr>
+      <tr><th>5</th><td>마무리. 큰 Latti 가 이번 주 실제 숫자로 한 마디 합니다. 경험치 막대가 차고 끝에 닿으면 레벨 숫자가 튀며 바뀌고 새 레벨만큼 다시 찹니다. 맨 아래 세 숫자(문제, 영단어, 기사)와 "계속".</td></tr>
+    </table>
+
+    <h3>넘기는 움직임</h3>
+    <table class="spec">
+      <tr><th>누름</th><td>손가락이 닿는 순간 맨 위 카드가 0.985배로 살짝 눌립니다. 종이 카드를 짚는 느낌입니다.</td></tr>
+      <tr><th>들기</th><td>떼면 카드가 먼저 14px 떠오르며 1.025배로 커지고 그림자가 짙어집니다(전체의 24%, 부드럽게 멈추는 곡선). 이어서 왼쪽 위로 12도 기울며 가속해 빠집니다. 전체 520ms.</td></tr>
+      <tr><th>앉기</th><td>뒤 카드는 120ms 늦게 출발해 0.94배, 12px 아래 자리에서 앞으로 올라오며 Toss 스프링(medium, 2% 넘침)으로 자리를 잡습니다. 그 뒤 카드도 한 칸씩 따라 올라옵니다. 가려 두었던 내용은 올라오면서 드러나고 숫자도 그때부터 셉니다. Latti 는 카드가 자리를 잡은 뒤에 말합니다.</td></tr>
+      <tr><th>돌아가기</th><td>왼쪽 가장자리를 누르면 빠졌던 카드가 같은 길로 되돌아와 더미 위에 내려앉습니다. 이미 본 카드의 숫자는 다시 세지 않습니다.</td></tr>
+      <tr><th>빠르게</th><td>움직이는 중에 또 누르면 진행 중인 움직임을 끝 모습으로 바로 맞추고 다음 넘김을 시작합니다. 누른 만큼 정확히 넘어갑니다.</td></tr>
+      <tr><th>끝</th><td>마지막 장에서는 눌러도 넘어가지 않고 카드가 눌렸다 튀어 돌아옵니다. "계속" 이나 오른쪽 위 닫기로 나갑니다. 나가면 더미가 0.96배로 줄며 사라지고 홈으로 이어집니다.</td></tr>
+      <tr><th>위치</th><td>맨 위의 가는 조각 막대. 지나온 장은 진하게 차 있고, 넘길 때마다 다음 조각이 왼쪽부터 찹니다.</td></tr>
+    </table>
+
+    <h3>Latti</h3>
+    <ul>
+      <li>각 카드 맨 위에 작은 Latti(30px)가 있고, 카드가 맨 위에 자리를 잡는 순간 한 번 깜빡이며 말풍선이 나옵니다. 뒤에 깔린 카드에서는 말하지 않습니다. 한 장에 한 마디입니다.</li>
+      <li>말풍선 자리는 미리 잡아 두어(보이지 않는 같은 크기의 풍선) 말이 나올 때 아래 내용이 밀리지 않습니다.</li>
+      <li>상황 키: 1장 <code>recap.streak</code>, 2장 <code>recap.lat</code>, 3장 <code>recap.voc</code>, 4장 <code>recap.news</code>, 5장 <code>recap.close</code>. 월간은 <code>mrecap.*</code>. 빈칸에는 이번 주 실제 값(완료한 날, 연속, 새 개념 수, 학문 수, 개념끼리 이어진 수, 가장 최근 개념, 새 표현 수, 기사 수, 경험치, 레벨)을 넣습니다.</li>
+      <li><code>recap.close</code> 와 <code>mrecap.*</code> 는 문구 파일에 아직 없어서 이 페이지가 <code>Latti.lines.use</code> 로 25줄을 덧붙입니다. 모두 <code>Latti.lines.lint</code> 를 통과하고 22자 이하입니다. <code>recap.streak.03</code>("다음 주에도 만나요")은 첫 장보다 마지막 장에 맞아 <code>recap.close</code> 로 옮겨 씁니다.</li>
+      <li>아침 작업이 쓴 오늘 문구 가운데 리뷰 카드용 줄은, 첫 낱말(조사를 떼고)이 그 기간의 실제 개념 이름, 헤드라인, 표현 가운데 하나에 있을 때만 씁니다. 예시 파일의 "엔비디아 주간", "쿠팡부터 앤트로픽까지" 는 data.js 의 이번 주 헤드라인에 없어 빠지고, "파마-프렌치까지 왔어요" 는 이번 주 새 개념이라 남습니다.</li>
+      <li>문구 파일의 <code>recap.voc</code> 는 영단어 전체를 "단어" 라고 부릅니다. 이 카드가 단어와 구문을 나누므로 <code>{weekWords}</code> 에는 단어 종류의 수(13)를 넣고, 누계를 "단어" 로 부르는 두 줄(<code>recap.voc.03</code>, <code>.06</code>)은 쓰지 않습니다.</li>
+      <li>레벨이 오른 주에는 마지막 장의 말이 레벨 줄(2단계)로 기울고 표정이 cheer 입니다.</li>
+    </ul>
+
+    <h3>언제 나오는가</h3>
+    <ol>
+      <li>앱을 열 때마다 시작 화면이 사라지기 직전에 확인합니다. 하루의 경계는 기기 시간 자정입니다.</li>
+      <li><b>주간</b>: 그 주(월요일 시작) 토요일 0시 이후 처음 열 때. 범위는 월요일부터 여는 날까지. 그 주에 열지 않고 다음 주에 처음 열면 지난주 전체를 보여 줍니다.</li>
+      <li><b>월간</b>: 그 달 마지막 날 0시 이후 처음 열 때. 주간과 겹치면 월간만 보여 주고 그 주 리뷰는 본 것으로 처리합니다.</li>
+      <li><b>해금과 겹칠 때</b>: 리뷰 날 본 적 없는 큰 해금(학문)이 있으면 해금 카드가 이 더미의 첫 장이 됩니다(해금 화면은 따로 뜨지 않음). 분과 해금은 2장의 작은 별로만 보입니다. 해금 카드의 그림은 <code>unlock.html</code> 의 지도 장면을 카드 크기로 줄여 씁니다(이 페이지에는 아직 넣지 않음).</li>
+      <li>한 기간에 한 번만 나옵니다. 첫 장이 그려지면 본 것으로 기록합니다. 마친 날이 0일이고 읽은 기사도 0건이면 나오지 않습니다.</li>
+      <li>이 페이지의 예시는 data.js 그대로, 11월 20일(금) 아침에 연 순간입니다. 실제로는 다음 날인 토요일에 처음 나오므로 그때는 20일이 지난날로, 21일이 오늘 테두리로 바뀝니다.</li>
+    </ol>
+
+    <h3>레퍼런스</h3>
+    <ul>
+      <li>Instagram 스토리와 Spotify Wrapped: 화면을 눌러 넘기기, 위쪽 조각 막대, 왼쪽을 누르면 뒤로</li>
+      <li>iOS 위젯 Smart Stack, Apple Wallet: 뒤 카드가 줄어든 채 아래로 비어져 나와 "더 있다" 를 보여 줌</li>
+      <li>Apple Fitness 주간 요약, 토스 월간 리포트: 한 장에 숫자 하나를 크게, 아래에 근거</li>
+      <li>Duolingo 주간 리포트의 Duo: 리포트 장마다 캐릭터가 한 마디</li>
+      <li>7차 카드 넘기기(띠 달력, 레벨 막대, 더미 모양), 8차 Latti 키트</li>
+    </ul>
+
+    <h3>좋은 점</h3>
+    <ul>
+      <li>넘기는 법을 배울 필요가 없습니다. 어디를 눌러도 다음 장이라 7차의 "한 번 밀리는 알림" 같은 장치가 필요 없어졌습니다.</li>
+      <li>들렸다 빠지는 움직임이 실제 카드를 한 장 집어 치우는 느낌이라, 스토리처럼 화면이 바뀌기만 하는 것보다 "한 장을 끝냈다" 가 손에 남습니다.</li>
+      <li>2장이 이번 주에 무엇을 배웠는지를 학문, 분과, 이름 세 단계로 보여 줍니다. 분류 체계의 세 계급이 설명 없이 들여쓰기와 굵기로 읽힙니다.</li>
+      <li>뉴스는 기억 상태나 주제 없이 읽은 칸, 퀴즈 칸, 헤드라인 목록만 남겨 "읽고 끝" 이라는 설계 그대로입니다.</li>
+      <li>Latti 의 말이 실제 숫자를 담아 매번 다르게 나오므로, 같은 리뷰 형식이 매주 반복돼도 덜 기계적으로 느껴집니다.</li>
+    </ul>
+
+    <h3>아쉬운 점</h3>
+    <ul>
+      <li>읽다가 화면을 무심코 누르면 넘어갑니다. 헤드라인이나 개념 이름을 손가락으로 따라 읽는 사람에게는 불편할 수 있습니다. 대신 왼쪽 가장자리로 바로 돌아올 수 있습니다.</li>
+      <li>왼쪽 가장자리 뒤로 가기는 스토리에 익숙하지 않으면 발견하기 어렵고, 반대로 "어디를 눌러도 다음" 이라는 규칙에 예외를 만듭니다. 빼도 되는 기능입니다.</li>
+      <li>카드 높이가 모두 같아서 내용이 적은 주(1장, 5장)는 아래가 비어 보입니다. 내용이 많은 달은 2장과 3장이 이름을 접어야 합니다.</li>
+      <li>2장의 "+n" 은 새로 들어온 개념 수입니다. 이번 예시처럼 소유자가 메모로 넣고 아직 한 문제도 풀지 않은 개념(t통계량, EBITDA, WACC)도 셉니다. 넣은 것과 공부한 것을 나눌지는 정해야 합니다.</li>
+      <li>푼 문제의 정답률은 data.js 에 주간 단위로 없어 넣지 못했습니다.</li>
+    </ul>
+
+    <h3>실제 앱에 필요한 자료</h3>
+    <ul>
+      <li>기간 요약 하나(<code>week.this</code> 모양): 완료한 날, 날마다 추가 학습 수, 연속, 학문별 푼 문제, 분과별 새 개념, 새 개념 id, 새 표현과 종류, 읽은 기사와 헤드라인, 저녁 퀴즈와 종합 퀴즈, 경험치. 지금 store.tsx 에는 학문과 분과가 없으므로 개념마다 <code>path</code>(학문부터 직속 부모까지)가 있어야 합니다.</li>
+      <li>노드의 <code>createdAt</code>: 작은 별을 붙이려면 필요합니다.</li>
+      <li>리뷰를 본 기록: Firestore 사용자 문서에 <code>recaps: { "2026-W47": 시각 }</code>. 해금과 같은 곳에 둡니다.</li>
+      <li>레벨 식: 지금 앱의 <code>levelOf(xp) = floor(sqrt(xp / 60)) + 1</code> 을 그대로 썼습니다. 이번 주 경험치 1,209 로 17에서 18이 됩니다.</li>
+      <li>Latti 문구: <code>recap.close</code> 와 월간 <code>mrecap.*</code> 를 문구 파일에 넣고, 아침 작업이 리뷰용 오늘 문구를 쓸 때는 data 의 실제 이름만 쓰게 지시해야 합니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="data.js"></script>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="latti.js"></script>
+<script>
+(async function () {
+  const V = window.V8;
+  const phone = document.getElementById('phone');
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const outC = (p) => 1 - Math.pow(1 - p, 3);
+  const inOutC = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+  const fmt = (v) => Math.round(v).toLocaleString('ko-KR');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  // ---------- 불꽃색: src/heat.ts 와 같은 식 (7차와 같다)
+  const STOPS = [[0, [255, 195, 66]], [0.33, [254, 152, 0]], [0.66, [237, 103, 0]], [1, [228, 41, 57]]];
+  const mix = (x) => {
+    const t = clamp(x / 30);
+    for (let i = 1; i < STOPS.length; i++) {
+      if (t <= STOPS[i][0]) {
+        const k = (t - STOPS[i - 1][0]) / (STOPS[i][0] - STOPS[i - 1][0]);
+        return STOPS[i - 1][1].map((v, j) => Math.round(v + (STOPS[i][1][j] - v) * k));
+      }
+    }
+    return STOPS[STOPS.length - 1][1];
+  };
+  const heat = (x) => `rgb(${mix(x).join(',')})`;
+  const lum = (c) => { const l = c.map((v) => { const x = v / 255; return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+  const ratio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  const ink = (x) => { const f = mix(x); const d = f.map((v, j) => v * 0.18 + [0, 12, 30][j] * 0.82); const lf = lum(f); return ratio(lf, 1) > ratio(lf, lum(d)) ? '#fff' : 'rgba(0,12,30,.82)'; };
+
+  const ICON = {
+    spark: (c, s = 12) => `<svg class="spark" viewBox="0 0 12 12" width="${s}" height="${s}" aria-hidden="true"><path d="M6 0.6C6.5 3.6 8.4 5.5 11.4 6C8.4 6.5 6.5 8.4 6 11.4C5.5 8.4 3.6 6.5 0.6 6C3.6 5.5 5.5 3.6 6 0.6Z" fill="${c}"/></svg>`,
+  };
+
+  // ---------- 레벨: src/study.ts levelOf 와 같은 식
+  const levelOf = (xp) => Math.floor(Math.sqrt(xp / 60)) + 1;
+  const lvStart = (L) => 60 * (L - 1) * (L - 1);
+  const lvRange = (L) => lvStart(L + 1) - lvStart(L);
+
+  // ---------- 날짜
+  const D0 = (s) => new Date(s + 'T00:00:00Z');
+  const ymd = (d) => d.toISOString().slice(0, 10);
+  const dayN = (s) => +s.slice(8, 10);
+  const monN = (s) => +s.slice(5, 7);
+  const dowMon = (s) => (D0(s).getUTCDay() + 6) % 7; // 월 0 ... 일 6
+  const range = (a, b) => { const out = []; for (let d = D0(a); ymd(d) <= b; d.setUTCDate(d.getUTCDate() + 1)) out.push(ymd(d)); return out; };
+  const DAY = Object.fromEntries(V.days.map((d) => [d.date, d]));
+  const NODE = Object.fromEntries(V.tree.nodes.map((n) => [n.id, n]));
+  const CONCEPT = Object.fromEntries(V.tree.concepts.map((c) => [c.id, c]));
+
+  // ---------- 기간 모델: data.js 의 요약 + 날짜별 기록
+  function model(mode) {
+    const S = mode === 'week' ? V.week.this : V.month.this;
+    const dates = range(S.start, S.end);
+    const xp1 = V.totals.xp;
+    const xp0 = xp1 - S.xp;
+    const inP = (d) => d >= S.start && d <= S.end;
+    const vocNew = V.vocab.filter((v) => inP(v.first));
+    const newNodes = new Set(V.tree.nodes.filter((n) => inP(n.createdAt)).map((n) => n.id));
+    const newSet = new Set(S.newConceptIds);
+    const weekLinks = V.tree.links.filter((l) => newSet.has(l.a) || newSet.has(l.b)).length;
+    const doneDates = dates.filter((d) => DAY[d] && DAY[d].done);
+    const extra = doneDates.reduce((t, d) => t + (DAY[d].extra || 0), 0);
+    const newsDays = dates.filter((d) => DAY[d] && DAY[d].newsRead > 0).length;
+    const newest = S.newConceptIds.length ? CONCEPT[S.newConceptIds[S.newConceptIds.length - 1]].name : null;
+    const newDisc = V.tree.nodes.find((n) => n.rank === 'discipline' && inP(n.createdAt));
+    const active = S.perDiscipline.filter((p) => p.solved > 0 || p.newConcepts > 0);
+    const top = S.perDiscipline.slice().sort((a, b) => b.solved - a.solved)[0];
+    const headlines = V.news.filter((n) => inP(n.date)).map((n) => ({ date: n.date, h: n.headline }));
+    return {
+      mode, S, dates, xp0, xp1, vocNew, newNodes, weekLinks, doneDates, extra, newsDays, newest, newDisc, active, top, headlines,
+      lv0: levelOf(xp0), lv1: levelOf(xp1),
+      chrome: mode === 'week' ? '이번 주' : S.label,
+      title: mode === 'week' ? `${monN(S.start)}월 ${dayN(S.start)}일 ~ ${dayN(S.end)}일` : `${S.start.slice(0, 4)}년 ${monN(S.start)}월`,
+    };
+  }
+
+  // ---------- Latti 문구
+  // 리뷰 마지막 장과 월간 리뷰는 문구 파일에 상황 키가 없어 여기서 덧붙인다. 모두 Latti.lines.lint 통과, 22자 이하.
+  const EXTRA = [
+    ['recap.close', '{solved}문제 풀고 {words}개를 익혔어요', 0],
+    ['recap.close', '이번 주 경험치가 {xpS} 늘었어요', 0],
+    ['recap.close', '{days}일 동안 {solved}문제를 풀었어요', 0],
+    ['recap.close', '기사 {read}건까지, 알찬 한 주였어요', 0],
+    ['recap.close', '새 개념 {newConcepts}개, 다음 주도 기대돼요', 0, { newConcepts: '>=1' }],
+    ['recap.close', '{newField|이} 열린 한 주였어요', 1, { hasNewField: true }],
+    ['recap.close', '레벨 {level}, 한 주 만에 올랐어요', 2, { levelUp: true }],
+    ['recap.close', '이번 주에 레벨 {level|이} 됐어요', 2, { levelUp: true }],
+    ['mrecap.period', '{month}엔 {doneDays}일을 채웠어요', 0],
+    ['mrecap.period', '{month} 한 달, {doneDays}일 함께했어요', 0],
+    ['mrecap.period', '연속 {streak}일째로 달을 넘겨요', 1, { streak: '>=7' }],
+    ['mrecap.lat', '{month}에 개념 {newConcepts}개를 익혔어요', 0],
+    ['mrecap.lat', '{newest}까지 왔어요', 0],
+    ['mrecap.lat', '한 달에 {solved}문제, 단단해요', 0],
+    ['mrecap.lat', '{fields}개 학문을 오갔어요', 1, { fields: '>=2' }],
+    ['mrecap.voc', '{month}에 {words}개를 새로 만났어요', 0],
+    ['mrecap.voc', '모은 영단어가 {vocTotal}개예요', 0],
+    ['mrecap.voc', '{word}, 이제 익숙하죠?', 0],
+    ['mrecap.news', '한 달 동안 기사 {read}건 읽었어요', 0],
+    ['mrecap.news', '한 달 경제 흐름을 따라왔어요', 0],
+    ['mrecap.news', '종합 퀴즈 {wq}번 모두 풀었어요', 1, { wq: '>=1' }],
+    ['mrecap.close', '{month}에 경험치 {xpS|을} 모았어요', 0],
+    ['mrecap.close', '{solved}문제로 채운 한 달이었어요', 0],
+    ['mrecap.close', '다음 달에도 만나요', 0],
+    ['mrecap.close', '한 달 새 레벨 {level|이} 됐어요', 2, { levelUp: true }],
+  ].map(([s, t, p, when], i) => Object.assign({ id: `recap.x.${String(i + 1).padStart(2, '0')}`, s, t, p }, when ? { when } : {}));
+
+  let RAW = null;
+  try { RAW = await fetch('latti-lines.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)); } catch (e) { RAW = null; }
+
+  /** 문구 준비. 아침 작업의 리뷰용 오늘 문구는 그 기간 실제 자료에 근거가 있을 때만 쓴다. */
+  function prepLines(M) {
+    const corpus = [...M.S.newConceptNames, ...M.headlines.map((x) => x.h), ...M.vocNew.map((v) => v.term)].join(' ');
+    const grounded = (t) => {
+      if (/\{/.test(t)) return true;
+      const w = t.split(/\s+/)[0].replace(/(까지|부터|에서|이랑|랑|은|는|이|가|을|를|의|도|만)$/, '');
+      return w.length >= 2 && corpus.includes(w);
+    };
+    const j = RAW ? JSON.parse(JSON.stringify(RAW)) : { bank: [] };
+    if (j.today && j.today.lines) j.today.lines = j.today.lines.filter((l) => !String(l.s).startsWith('recap.') || grounded(l.t));
+    // "다음 주에도 만나요" 는 첫 장보다 마지막 장의 말이다.
+    (j.bank || []).forEach((l) => { if (l.id === 'recap.streak.03') l.s = 'recap.close'; });
+    // 화면이 단어와 구문을 나누므로, 영단어 전체를 "단어" 라고 부르는 누계 줄은 쓰지 않는다. 주간 수는 단어 종류 수를 넣는다(ctxOf).
+    j.bank = (j.bank || []).filter((l) => !(l.s === 'recap.voc' && /\{wordsTotal/.test(l.t)));
+    Latti.lines.use(j, { bank: EXTRA });
+  }
+
+  function ctxOf(M) {
+    const S = M.S;
+    const wordPick = M.vocNew.filter((v) => v.type === '단어' && v.term.length <= 10);
+    return {
+      date: V.today, hour: 9,
+      weekDays: S.doneDays, doneDays: S.doneDays, streak: S.streak, month: S.label,
+      weekConcepts: S.newConcepts, newConcepts: S.newConcepts, weekFields: M.active.length, fields: M.active.length,
+      topField: M.top.ko, topFieldN: M.top.newConcepts, weekLinks: M.weekLinks, newest: M.newest,
+      weekWords: S.vocab['단어'], words: S.vocab.new, wordsTotal: V.totals.vocabTypes['단어'], vocTotal: V.totals.vocab, word: wordPick.length ? wordPick[wordPick.length - 1].term : null,
+      weekRead: S.news.read, read: S.news.read, quizRight: S.weeklyQuiz ? S.weeklyQuiz.correct : 0, wq: S.weeklyQuiz ? S.weeklyQuiz.count || 1 : 0,
+      solved: S.latSolved, days: S.activeDays, xpS: fmt(S.xp), level: M.lv1, levelUp: M.lv1 > M.lv0,
+      newField: M.newDisc ? M.newDisc.ko : null, hasNewField: !!M.newDisc,
+    };
+  }
+
+  /** 말풍선 자리 잡기: 보이지 않는 같은 풍선을 먼저 넣어 둔다. */
+  const ghost = (text, size) => `<span class="lt-say ${size} ghost"><span class="lt-t">${esc(text)}</span></span>`;
+
+  // ---------- 1장: 기간과 완료한 날
+  function cardPeriod(M, W, line) {
+    const week = M.mode === 'week';
+    const CW = W / 7;
+    const firstCol = dowMon(M.dates[0]);
+    const rows = week ? 1 : Math.ceil((firstCol + M.dates.length) / 7);
+    const S = week ? 42 : 34;
+    const RH = week ? S : S + 6;
+    const at = (d) => { const i = M.dates.indexOf(d); return { cx: ((firstCol + i) % 7) * CW + CW / 2, cy: Math.floor((firstCol + i) / 7) * RH + RH / 2, row: Math.floor((firstCol + i) / 7) }; };
+    const done = (d) => !!(DAY[d] && DAY[d].done);
+    const ex = (d) => (DAY[d] ? DAY[d].extra || 0 : 0);
+    const runs = [];
+    let r = null;
+    M.dates.forEach((d, i) => {
+      if (done(d) && r && at(d).row === at(r.b).row && M.dates.indexOf(r.b) === i - 1) r.b = d;
+      else if (done(d)) runs.push((r = { a: d, b: d }));
+      else r = null;
+    });
+    // 기간 첫날 전날도 마친 날이면, 띠의 왼쪽 끝을 카드 가장자리까지 늘려 흐리게 한다(연속이 이전부터 이어짐).
+    const prev = (() => { const d = D0(M.dates[0]); d.setUTCDate(d.getUTCDate() - 1); return ymd(d); })();
+    const bands = runs.map((rn) => {
+      const A = at(rn.a);
+      const B = at(rn.b);
+      const tail = rn.a === M.dates[0] && DAY[prev] && DAY[prev].done ? A.cx - S / 2 + 24 : 0;
+      const w = B.cx - A.cx + S + tail;
+      const ds = M.dates.slice(M.dates.indexOf(rn.a), M.dates.indexOf(rn.b) + 1);
+      const stops = ds.map((d) => `${heat(ex(d))} ${(((at(d).cx - A.cx + S / 2 + tail) / w) * 100).toFixed(1)}%`);
+      const bg = ds.length > 1 || tail ? `linear-gradient(90deg, ${tail ? `${heat(ex(prev))} 0%, ` : ''}${stops.join(', ')})` : heat(ex(rn.a));
+      const mask = tail ? `-webkit-mask-image:linear-gradient(90deg, transparent 0, #000 ${tail}px);mask-image:linear-gradient(90deg, transparent 0, #000 ${tail}px);` : '';
+      return `<div class="band" data-w="${w}" data-t="${tail}" data-n="${ds.length}" data-a="${rn.a}" style="left:${A.cx - S / 2 - tail}px;top:${A.cy - S / 2}px;width:${w}px;height:${S}px;border-radius:${tail ? `0 ${S / 2}px ${S / 2}px 0` : `${S / 2}px`};opacity:0;${mask}clip-path:inset(0 ${w - S - tail}px 0 0 round ${S / 2}px)">
+        <div class="layer" style="background:${bg}"></div><div class="layer" style="background:linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 55%)"></div>
+        ${ds.map((d) => `<span class="dn" style="left:${at(d).cx - A.cx + S / 2 - CW / 2 + tail}px;width:${CW}px;height:${S}px;color:${ink(ex(d))}">${dayN(d)}</span>`).join('')}</div>`;
+    });
+    const loose = M.dates.filter((d) => !done(d)).map((d) => {
+      const p = at(d);
+      const td = d === V.today;
+      return `${td ? `<span class="ring" style="left:${p.cx - S / 2}px;top:${p.cy - S / 2}px;width:${S}px;height:${S}px"></span>` : ''}<span class="dn ${d > V.today ? 'fut' : ''}" style="left:${p.cx - CW / 2}px;top:${p.cy - RH / 2}px;width:${CW}px;height:${RH}px;${td ? 'color:var(--grey900);font-weight:700' : ''}">${dayN(d)}</span>`;
+    });
+    const exs = week ? M.doneDates.map((d) => `<span class="ex" data-d="${d}" style="left:${at(d).cx - CW / 2}px;top:${S + 8}px;width:${CW}px;color:${ex(d) >= 8 ? heat(ex(d)) : 'var(--orange700)'}">+${ex(d)}</span>`) : [];
+    const gridH = rows * RH + (week ? 30 : 0);
+    const wdToday = M.dates.includes(V.today) && week ? dowMon(V.today) : -1;
+    const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
+      <div class="ttl">${M.title}</div>
+      <div class="hero"><div><span class="sn">완료한 날</span><span class="sv"><span data-hero>0</span><small>/${M.dates.length}</small></span></div></div>
+      <div class="grow" style="min-height:20px"></div>
+      <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x, i) => `<span class="${i === wdToday ? 'td' : ''}">${x}</span>`).join('')}</div>
+      <div class="grid" style="height:${gridH}px">${bands.join('')}${loose.join('')}${exs.join('')}</div>
+      <div class="grow" style="min-height:20px"></div>
+      <div class="two"><div><span class="sn">추가 학습</span><b><span data-to="${M.extra}">0</span><small>문제</small></b></div><div><span class="sn">연속</span><b><span data-to="${M.S.streak}">0</span><small>일</small></b></div></div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const rs = [...el.querySelectorAll('.band')].map((b) => ({ b, w: +b.dataset.w, t: +b.dataset.t, n: +b.dataset.n, a: b.dataset.a }));
+      let t = 0;
+      rs.forEach((x) => { x.t0 = t; x.dur = 240 + (x.n - 1) * 90; t += x.dur * 0.62; });
+      const T = rs.length ? rs[rs.length - 1].t0 + rs[rs.length - 1].dur : 0;
+      const shown = new Set();
+      await tween(T, (ms) => {
+        let cnt = 0;
+        rs.forEach((x) => {
+          const p = clamp((ms - x.t0) / x.dur);
+          if (p <= 0) return;
+          const e = inOutC(p);
+          const cw = S + x.t + (x.w - S - x.t) * e;
+          x.b.style.opacity = clamp(p / 0.1);
+          x.b.style.clipPath = `inset(0 ${x.w - cw}px 0 0 round ${S / 2}px)`;
+          const k = Math.min(x.n, 1 + Math.floor((cw - S - x.t) / CW + 0.35));
+          cnt += k;
+          const i0 = M.dates.indexOf(x.a);
+          for (let j = 0; j < k; j++) {
+            const d = M.dates[i0 + j];
+            if (shown.has(d)) continue;
+            shown.add(d);
+            const e2 = el.querySelector(`.ex[data-d="${d}"]`);
+            if (e2) ML.a(e2, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 260, easing: OUT });
+          }
+        });
+        hero.textContent = cnt;
+      }, g);
+      if (g !== gen) return;
+      hero.textContent = M.doneDates.length;
+      el.querySelectorAll('.two [data-to]').forEach((x, k) => ML.count(x, 0, +x.dataset.to, 620 + k * 80, fmt));
+    };
+    return { html, play };
+  }
+
+  // ---------- 2장: Latticework
+  function cardLat(M, W, line) {
+    const S = M.S;
+    const month = M.mode === 'month';
+    const discs = S.perDiscipline.slice().sort((a, b) => b.solved - a.solved || b.newConcepts - a.newConcepts);
+    const maxSolved = Math.max(1, ...discs.map((d) => d.solved));
+    const budget = month ? 46 : 120; // 분과 하나 밑 이름 글자 수
+    const items = (branchId, color) => {
+      const cs = S.newConceptIds.map((id) => CONCEPT[id]).filter((c) => c.path[1] === branchId);
+      const groups = [];
+      cs.forEach((c) => {
+        const key = c.path.length > 2 ? c.path[2] : '';
+        let gp = groups.find((x) => x.key === key);
+        if (!gp) groups.push((gp = { key, cs: [] }));
+        gp.cs.push(c);
+      });
+      const full = groups.map((gp) => (gp.key ? NODE[gp.key].short : '') + gp.cs.map((c) => c.name).join('')).join('').length;
+      const sp = (id) => (M.newNodes.has(id) ? ICON.spark(color, 10) : '');
+      if (full <= budget) {
+        return groups.map((gp) => `<div class="g">${gp.key ? `<b>${esc(NODE[gp.key].short)}${sp(gp.key)}</b>` : ''}${gp.cs.map((c) => `<span>${esc(c.name)}</span>`).join('')}</div>`).join('');
+      }
+      // 접기: 주제는 이름과 수로, 주제 밖 개념은 이름으로
+      return `<div class="g">${groups.flatMap((gp) => (gp.key ? [`<span><b>${esc(NODE[gp.key].short)}${sp(gp.key)}</b><em>${gp.cs.length}</em></span>`] : gp.cs.map((c) => `<span>${esc(c.name)}</span>`))).join('')}</div>`;
+    };
+    const rowsHtml = discs.map((d) => {
+      const idle = !d.solved && !d.newConcepts;
+      const brs = S.perBranch.filter((b) => b.disc === d.id && b.newConcepts > 0);
+      return `<div class="dr ${idle ? 'idle' : ''}">
+        <div class="dh"><span class="dot" style="background:${idle ? 'var(--grey300)' : d.color}"></span><span class="nm">${esc(d.ko)}</span>${M.newNodes.has(d.id) ? ICON.spark(d.color, 12) : ''}<span class="ct num"><span data-to="${d.solved}">0</span><small>문제</small></span></div>
+        ${idle ? '' : `<div class="dbar"><i style="width:${Math.max(d.solved ? 2 : 0, (d.solved / maxSolved) * 100)}%;background:${d.color}"></i></div>`}
+        ${brs.map((b) => `<div class="br"><div class="bh"><span class="nm">${esc(b.ko)}</span>${M.newNodes.has(b.id) ? ICON.spark(d.color, 10) : ''}<span class="ct" style="color:${d.color}">+${b.newConcepts}</span></div><div class="items">${items(b.id, d.color)}</div></div>`).join('')}
+      </div>`;
+    }).join('');
+    const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
+      <div class="ttl">Latticework</div>
+      <div class="hero"><div><span class="sn">푼 문제</span><span class="sv"><span data-hero data-final="${fmt(S.latSolved)}">0</span></span></div><div><span class="sn">새 개념</span><span class="sv"><span data-new>0</span></span></div></div>
+      <div class="fl" style="max-height:28px"></div>
+      <div class="disc">${rowsHtml}</div>
+      <div class="grow"></div>`;
+    const play = async (el, g) => {
+      ML.count(el.querySelector('[data-hero]'), 0, S.latSolved, 700, fmt);
+      ML.count(el.querySelector('[data-new]'), 0, S.newConcepts, 700, fmt);
+      el.querySelectorAll('.dr').forEach((r, k) => {
+        ML.a(r, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 380, delay: 120 + k * 80, easing: OUT });
+        const bar = r.querySelector('.dbar i');
+        if (bar) ML.a(bar, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 640, delay: 220 + k * 80, easing: OUT });
+        const ct = r.querySelector('[data-to]');
+        setTimeout(() => g === gen && ML.count(ct, 0, +ct.dataset.to, 640, fmt), (220 + k * 80) / ML.rate);
+        r.querySelectorAll('.br').forEach((b, j) => ML.a(b, [{ opacity: 0 }, { opacity: 1 }], { duration: 320, delay: 360 + k * 80 + j * 70, easing: 'ease' }));
+        r.querySelectorAll('.spark').forEach((s, j) => K.spring(s, [{ transform: 'scale(0) rotate(-45deg)' }, { transform: 'scale(1) rotate(0)' }], 'bounce', { delay: 620 + k * 80 + j * 60 }));
+      });
+    };
+    return { html, play };
+  }
+
+  // ---------- 3장: 영단어
+  function cardVoc(M, W, line) {
+    const S = M.S;
+    const vw = S.vocab['단어'];
+    const vp = S.vocab['구문'];
+    const tot = vw + vp;
+    const G = 3;
+    const usable = W - (vw && vp ? G : 0);
+    const segs = [[vw, 'var(--purple500)', '단어', 'var(--purple600)'], [vp, 'var(--purple200)', '구문', 'var(--purple300)']].filter((s) => s[0] > 0);
+    let x = 0;
+    const sg = segs.map(([v, c, k, tc]) => { const w = (v / tot) * usable; const s = { x, w, c, k, v, tc }; x += w + G; return s; });
+    // 오른쪽 조각의 이름이 왼쪽과 겹치면 오른쪽 끝에 붙인다.
+    const lblPos = (s, i) => (i && W - s.x < 56 ? `right:0;text-align:right` : `left:${s.x}px`);
+    const cap = M.mode === 'week' ? 40 : 34;
+    const terms = M.vocNew.filter((v) => v.type === '단어').concat(M.vocNew.filter((v) => v.type === '구문'));
+    const capW = Math.min(vw, Math.round((cap * vw) / Math.max(1, tot)));
+    const shown = terms.length > cap ? M.vocNew.filter((v) => v.type === '단어').slice(0, capW).concat(M.vocNew.filter((v) => v.type === '구문').slice(0, cap - capW)) : terms;
+    const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
+      <div class="ttl">영단어</div>
+      <div class="hero"><div><span class="sn">새로 익힘</span><span class="sv"><span data-hero>0</span></span></div></div>
+      <div class="fl" style="max-height:24px"></div>
+      <div class="stk">${sg.map((s) => `<i style="left:${s.x}px;width:${s.w}px;background:${s.c}"></i>`).join('')}</div>
+      <div class="lbls">${sg.map((s, i) => `<div style="${lblPos(s, i)}"><span>${s.k}</span><b data-to="${s.v}" style="color:${s.tc}">0</b></div>`).join('')}</div>
+      <div class="fl" style="max-height:24px"></div>
+      <div class="terms" data-total="${terms.length}" data-ratio="${vw / Math.max(1, tot)}">${shown.map((v) => `<span class="${v.type === '구문' ? 'ph' : ''}">${esc(v.term)}</span>`).join('')}${terms.length > shown.length ? `<span class="more num">+${terms.length - shown.length}</span>` : ''}</div>
+      <div class="grow" style="min-height:20px"></div>
+      <div class="two"><div><span class="sn">복습</span><b><span data-to="${S.vocab.reviewed}">0</span><small>번</small></b></div><div><span class="sn">모은 영단어</span><b><span data-to="${V.totals.vocab}">0</span><small>개</small></b></div></div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const is = [...el.querySelectorAll('.stk i')];
+      const T = 900;
+      el.querySelectorAll('.two [data-to]').forEach((x, k) => ML.count(x, 0, +x.dataset.to, 700 + k * 80, fmt));
+      await tween(T, (ms) => {
+        const e = outC(ms / T);
+        const head = e * W;
+        is.forEach((i, k) => { const s = sg[k]; i.style.transform = `scaleX(${clamp((head - s.x) / s.w)})`; });
+        hero.textContent = fmt(e * tot);
+      }, g);
+      if (g !== gen) return;
+      hero.textContent = fmt(tot);
+      el.querySelectorAll('.lbls > div').forEach((x2, k) => {
+        ML.a(x2, [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: k * 90, easing: OUT });
+        const b = x2.querySelector('b');
+        setTimeout(() => ML.count(b, 0, +b.dataset.to, 520), (k * 90) / ML.rate);
+      });
+      if (!(await later(200, g))) return;
+      el.querySelectorAll('.terms span').forEach((s, k) => ML.a(s, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: k * 18, easing: OUT }));
+    };
+    return { html, play };
+  }
+
+  // ---------- 4장: 뉴스
+  function cardNews(M, W, line) {
+    const S = M.S;
+    const week = M.mode === 'week';
+    const wdays = M.dates.filter((d) => dowMon(d) < 5 && d <= V.today);
+    const cols = wdays.map((d) => {
+      const n = DAY[d] ? DAY[d].newsRead : 0;
+      const td = d === V.today && n < 2;
+      return `<div class="c">${[0, 1].map((k) => `<i class="${td && k >= n ? 'td' : ''}">${k < n ? '<b></b>' : ''}</i>`).join('')}${week ? `<span class="${d === V.today ? 'td' : ''}">${'월화수목금'[dowMon(d)]}</span>` : ''}</div>`;
+    });
+    const dq = S.dailyQuiz;
+    const acc = dq.total ? Math.round((dq.correct / dq.total) * 100) : 0;
+    const wq = S.weeklyQuiz;
+    const cap = 14; // 카드에 남는 자리만큼은 fit() 가 뒤에서부터 덜어 낸다
+    const hls = M.headlines.slice().reverse();
+    const shownH = hls.slice(0, cap);
+    const wqHtml = wq
+      ? `<div class="qrow" style="margin:16px 0 0"><span class="sn">종합 퀴즈</span><b>${Math.round((wq.correct / wq.total) * 100)}%<small>${wq.correct}/${wq.total}</small></b></div>`
+      : `<button class="tbtn weak qbtn" data-quiz type="button">종합 퀴즈</button>`;
+    const html = `<div class="lt" data-lt>${ghost(line, 's')}</div>
+      <div class="ttl">뉴스</div>
+      <div class="hero"><div><span class="sn">읽은 기사</span><span class="sv"><span data-hero data-final="${fmt(S.news.read)}">0</span></span></div><div><span class="sn">읽은 날</span><span class="sv md"><span data-to="${M.newsDays}">0</span><small>일</small></span></div></div>
+      <div class="np ${week ? '' : 'dense'}" style="grid-template-columns:repeat(${wdays.length}, minmax(0,1fr));margin-top:16px;${week ? `width:${Math.min(W, wdays.length * 30 + (wdays.length - 1) * 8)}px;column-gap:8px` : ''}">${cols.join('')}</div>
+      <div class="fl" style="min-height:24px;max-height:28px"></div>
+      <div class="qrow"><span class="sn">저녁 퀴즈</span><b><span data-acc>0</span>%<small>${dq.correct}/${dq.total}</small></b></div>
+      <div class="segbar ${dq.total > 20 ? 'dense' : ''}">${Array.from({ length: dq.total }, (_, i) => `<i><b style="background:${i < dq.correct ? 'var(--green500)' : 'var(--red300)'}"></b></i>`).join('')}</div>
+      ${wqHtml}
+      <div class="fl" style="min-height:22px;max-height:24px"></div>
+      <div class="hl" data-total="${hls.length}">${shownH.map((x) => `<div><em>${monN(x.date)}.${dayN(x.date)}</em><span>${esc(x.h)}</span></div>`).join('')}${hls.length > cap ? `<div class="more"><em></em><span class="num">+${hls.length - cap}</span></div>` : ''}</div>
+      <div class="grow"></div>`;
+    const play = async (el, g) => {
+      const hero = el.querySelector('[data-hero]');
+      const tiles = [...el.querySelectorAll('.np b')];
+      const step = tiles.length > 12 ? 24 : 60;
+      tiles.forEach((b, k) => K.spring(b, [{ transform: 'scale(0)' }, { transform: 'scale(1)' }], 'rapid', { delay: k * step }));
+      ML.count(el.querySelector('.hero [data-to]'), 0, M.newsDays, tiles.length * step + 200, fmt);
+      await tween(tiles.length * step, (ms) => (hero.textContent = Math.min(S.news.read, Math.floor(ms / step) + 1)), g);
+      if (g !== gen) return;
+      hero.textContent = S.news.read;
+      const segs = [...el.querySelectorAll('.segbar b')];
+      const s2 = segs.length > 20 ? 14 : 40;
+      segs.forEach((b, k) => ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 260, delay: k * s2, easing: OUT }));
+      ML.count(el.querySelector('[data-acc]'), 0, acc, segs.length * s2 + 200);
+      const qb = el.querySelector('[data-quiz]');
+      if (qb) K.spring(qb, [{ opacity: 0, transform: 'scale(.94)' }, { opacity: 1, transform: 'scale(1)' }], 'medium', { delay: 200 });
+      if (!(await later(260, g))) return;
+      el.querySelectorAll('.hl div').forEach((s, k) => ML.a(s, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: k * 40, easing: OUT }));
+    };
+    return { html, play };
+  }
+
+  // ---------- 5장: 마무리
+  function cardClose(M, W, line) {
+    const S = M.S;
+    const l0 = M.lv0;
+    const l1 = M.lv1;
+    const x0 = M.xp0 - lvStart(l0);
+    const x1 = M.xp1 - lvStart(l1);
+    const html = `<div class="grow"></div>
+      <div class="lt big" data-lt data-side="bottom" style="flex-direction:column;gap:16px">${ghost(line, 'l')}</div>
+      <div style="height:48px;flex:none"></div>
+      <div style="flex:none">
+        <div class="lv"><small>Lv</small><span class="n roll" data-lv>${l0}</span><span class="chip" data-xpc style="opacity:0;background:var(--yellow-weak);color:var(--orange700)"><span>+<span data-xp>0</span> XP</span></span></div>
+        <div class="pbar" style="margin-top:14px"><i class="fill" data-fill style="transform:scaleX(${x0 / lvRange(l0)})"></i></div>
+        <div class="xpn"><span data-xpn>${fmt(x0)} / ${fmt(lvRange(l0))}</span></div>
+      </div>
+      <div class="grow"></div>
+      <div class="three"><div><span>문제</span><b>${fmt(S.latSolved)}</b></div><div><span>영단어</span><b>${fmt(S.vocab.new)}</b></div><div><span>기사</span><b>${fmt(S.news.read)}</b></div></div>
+      <div style="height:20px;flex:none"></div>
+      <button class="tbtn" data-go type="button">계속</button>`;
+    const play = async (el, g) => {
+      const xpc = el.querySelector('[data-xpc]');
+      if (!(await later(500, g))) return;
+      K.spring(xpc, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce');
+      const xpEl = el.querySelector('[data-xp]');
+      const fill = el.querySelector('[data-fill]');
+      const lvEl = el.querySelector('[data-lv]');
+      const xpn = el.querySelector('[data-xpn]');
+      const legs = [];
+      for (let l = l0; l < l1; l++) legs.push({ l, a: l === l0 ? x0 / lvRange(l) : 0, b: 1 });
+      legs.push({ l: l1, a: l1 === l0 ? x0 / lvRange(l1) : 0, b: x1 / lvRange(l1) });
+      const total = legs.reduce((t, x) => t + (x.b - x.a), 0) || 1;
+      const ms = (x) => 220 + x * 620;
+      let gained = 0;
+      for (const leg of legs) {
+        const dur = ms(leg.b - leg.a);
+        const base = gained;
+        await tween(dur, (t) => {
+          const e = leg.l === l1 ? outC(t / dur) : inOutC(t / dur);
+          const f = leg.a + (leg.b - leg.a) * e;
+          fill.style.transform = `scaleX(${f})`;
+          xpn.textContent = `${fmt(f * lvRange(leg.l))} / ${fmt(lvRange(leg.l))}`;
+          xpEl.textContent = fmt(((base + (leg.b - leg.a) * e) / total) * S.xp);
+        }, g);
+        if (g !== gen) return;
+        gained += leg.b - leg.a;
+        if (leg.l < l1) {
+          ML.roll(lvEl, String(leg.l + 1), 1, 300);
+          K.spring(lvEl, [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], 'bounce');
+          ML.a(fill, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease', fill: 'none' });
+          if (!(await later(180, g))) return;
+          fill.style.transform = 'scaleX(0)';
+        }
+      }
+      xpEl.textContent = fmt(S.xp);
+      xpn.textContent = `${fmt(x1)} / ${fmt(lvRange(l1))}`;
+    };
+    return { html, play, big: true };
+  }
+
+  // ---------- 상태
+  let MODE = 'week';
+  let gen = 0;
+  let M = null;
+  let CARDS = [];
+  let slots = [];
+  let segs = [];
+  let cur = 0;
+  let played = new Set();
+  let exiting = false;
+  let ready = false;
+  let CH = 680;
+  const PEEK = 12;
+
+  /** 경과 시간을 넘겨 주는 움직임. "느리게" 단추를 반영한다. */
+  const tween = (dur, fn, g) => new Promise((res) => {
+    if (ML.reduce || dur <= 0) { fn(dur); return res(); }
+    let last = null;
+    let el = 0;
+    const step = (now) => {
+      if (g !== gen) return res();
+      if (last === null) last = now;
+      el += (now - last) * ML.rate;
+      last = now;
+      if (el >= dur) { fn(dur); return res(); }
+      fn(el);
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+  const later = async (ms, g) => { await ML.wait(ms); return g === gen; };
+
+  // 카드 자리. r 은 맨 위에서 몇 번째인가(음수는 이미 넘긴 카드).
+  const GONE = 'translate3d(-125%, -90px, 0) rotate(-12deg) scale(1.02)';
+  const LIFT = 'translate3d(0, -14px, 0) rotate(-1.5deg) scale(1.025)';
+  const pose = (r) => {
+    if (r < 0) return GONE;
+    const q = Math.min(r, 2);
+    return `translate3d(0, ${PEEK * q}px, 0) rotate(0deg) scale(${(1 - 0.06 * q).toFixed(3)})`;
+  };
+  const SH0 = '0 0 0 1px rgba(0, 23, 51, 0.03), 0 6px 22px rgba(0, 23, 51, 0.07)';
+  const SH1 = '0 0 0 1px rgba(0, 23, 51, 0.03), 0 18px 44px rgba(0, 23, 51, 0.16)';
+
+  function setStatic(k) {
+    const s = slots[k];
+    const r = k - cur;
+    s.getAnimations().forEach((a) => a.cancel());
+    s.style.transform = pose(r);
+    s.style.opacity = r >= 3 ? 0 : 1;
+    s.style.visibility = r < 0 ? 'hidden' : 'visible';
+    s.style.zIndex = 100 - k;
+    const inn = s.querySelector('.in');
+    const veil = s.querySelector('.veil');
+    inn.getAnimations().forEach((a) => a.cancel());
+    veil.getAnimations().forEach((a) => a.cancel());
+    inn.style.opacity = r === 0 ? 1 : 0;
+    veil.style.opacity = r <= 0 ? 0 : Math.min(r, 2) * 0.35;
+    s.setAttribute('aria-hidden', String(r !== 0));
+  }
+
+  function build() {
+    M = model(MODE);
+    prepLines(M);
+    const ctx = ctxOf(M);
+    const P = MODE === 'week' ? 'recap.' : 'mrecap.';
+    const say = (sit, alt) => Latti.lines.pick(sit, ctx) || (alt && Latti.lines.pick(alt, ctx)) || '';
+    const H = phone.clientHeight;
+    const SW = phone.clientWidth - 40;
+    CH = Math.max(460, H - 76 - PEEK * 2 - 20);
+    const W = SW - 48;
+    const L = {
+      period: say(MODE === 'week' ? 'recap.streak' : 'mrecap.period'),
+      lat: say(P + 'lat'), voc: say(P + 'voc'), news: say(P + 'news'), close: say(P + 'close'),
+    };
+    CARDS = [
+      Object.assign(cardPeriod(M, W, L.period), { line: L.period }),
+      Object.assign(cardLat(M, W, L.lat), { line: L.lat }),
+      Object.assign(cardVoc(M, W, L.voc), { line: L.voc }),
+      Object.assign(cardNews(M, W, L.news), { line: L.news }),
+      Object.assign(cardClose(M, W, L.close), { line: L.close }),
+    ];
+    const N = CARDS.length;
+    phone.innerHTML = `<div class="scr" id="scr">
+      <div class="prog" id="prog">${CARDS.map(() => '<i><b></b></i>').join('')}</div>
+      <div class="top" id="top"><b>${M.chrome}</b><button class="x" id="x" type="button" aria-label="닫기">${K.close(24)}</button></div>
+      <div class="deck" id="deck">${CARDS.map((c, k) => `<div class="slot" style="height:${CH}px"><div class="card"><div class="in" role="group" aria-label="${k + 1}/${N}">${c.html}</div><div class="veil"></div></div></div>`).join('')}</div></div>`;
+    slots = [...phone.querySelectorAll('.slot')];
+    segs = [...phone.querySelectorAll('#prog b')];
+    slots.forEach((s, k) => {
+      const host = s.querySelector('[data-lt]');
+      const big = !!CARDS[k].big;
+      const gh = host.querySelector('.ghost');
+      Latti.mount(host, { size: big ? 76 : 30, side: big ? 'bottom' : 'right', mood: 'idle' });
+      if (gh) host.append(gh); // mount 이 지운 자리 잡이를 되돌린다
+      fit(s.querySelector('.in'));
+      // 옆에 다른 숫자가 있는 큰 숫자는 다 셌을 때의 폭을 미리 잡아, 세는 동안 옆 숫자가 밀리지 않게 한다.
+      s.querySelectorAll('[data-final]').forEach((n) => {
+        const f = n.dataset.final;
+        const digits = f.replace(/[^0-9]/g, '').length;
+        const commas = f.length - digits;
+        n.style.display = 'inline-block';
+        n.style.minWidth = `calc(${digits}ch + ${commas * 0.3}em)`;
+      });
+    });
+    const x = phone.querySelector('#x');
+    K.press(x);
+    x.addEventListener('click', exit);
+    const cont = phone.querySelector('[data-go]');
+    K.press(cont);
+    cont.addEventListener('click', exit);
+    const qb = phone.querySelector('[data-quiz]');
+    if (qb) K.press(qb);
+    bindTap();
+  }
+
+  /** 카드에 다 들어가지 않으면 옅은 목록(표현, 헤드라인)을 뒤에서부터 줄이고 "+n" 을 고친다. */
+  function fit(inn) {
+    const over = () => inn.scrollHeight > inn.clientHeight + 1;
+    const more = (box, n) => {
+      let m = box.querySelector('.more');
+      if (!n) { if (m) m.remove(); return; }
+      if (!m) {
+        m = document.createElement(box.classList.contains('hl') ? 'div' : 'span');
+        m.className = 'more';
+        if (box.classList.contains('hl')) m.innerHTML = '<em></em><span class="num"></span>';
+        else m.classList.add('num');
+        box.append(m);
+      }
+      (m.querySelector('span') || m).textContent = '+' + n;
+    };
+    const terms = inn.querySelector('.terms');
+    if (terms) {
+      const ratio = +terms.dataset.ratio;
+      const total = +terms.dataset.total;
+      let guard = 200;
+      while (over() && guard--) {
+        const ws = [...terms.querySelectorAll('span:not(.more):not(.ph)')];
+        const ps = [...terms.querySelectorAll('span.ph')];
+        if (ws.length + ps.length <= 6) break;
+        const victim = ps.length && (ws.length / (ws.length + ps.length) < ratio || !ws.length) ? ps[ps.length - 1] : ws[ws.length - 1];
+        victim.remove();
+        more(terms, total - (ws.length + ps.length - 1));
+      }
+    }
+    const hl = inn.querySelector('.hl');
+    if (hl) {
+      const total = +hl.dataset.total;
+      let guard = 60;
+      while (over() && guard--) {
+        const rows = [...hl.querySelectorAll('div:not(.more)')];
+        if (rows.length <= 3) break;
+        rows[rows.length - 1].remove();
+        more(hl, total - (rows.length - 1));
+      }
+    }
+  }
+
+  /** 카드가 맨 위에 자리를 잡은 뒤: Latti 가 말하고 숫자가 움직인다. 한 번만. */
+  function arrive(k, g) {
+    if (played.has(k)) return;
+    played.add(k);
+    const c = CARDS[k];
+    const host = slots[k].querySelector('[data-lt]');
+    const gh = host.querySelector('.ghost');
+    setTimeout(() => {
+      if (g !== gen) return;
+      if (gh) gh.remove();
+      if (!host.isConnected) return;
+      if (c.line) {
+        const lvUp = M.lv1 > M.lv0;
+        Latti.say(host, c.line, c.big ? { side: 'bottom', size: 'l', tone: 'grey', stay: true, mood: lvUp ? 'cheer' : 'happy' } : { side: 'right', size: 's', tone: 'grey', stay: true });
+      }
+    }, (k ? 360 : 80) / ML.rate);
+    c.play(slots[k].querySelector('.in'), g);
+  }
+
+  function paintProg(animIdx, dir) {
+    segs.forEach((b, i) => {
+      b.getAnimations().forEach((a) => a.cancel());
+      b.style.transform = `scaleX(${i <= cur ? 1 : 0})`;
+    });
+    if (animIdx == null) return;
+    const b = segs[animIdx];
+    if (dir > 0) ML.a(b, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 360, delay: 80, easing: OUT });
+    else ML.a(b, [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0)' }], { duration: 240, easing: ML.ease.inOut });
+  }
+
+  const S_MED = TDS_SPRING.medium;
+  const S_QUICK = TDS_SPRING.quick;
+
+  function next() {
+    if (!ready || exiting) return;
+    if (cur >= slots.length - 1) return nudge();
+    slots.forEach((_, k) => setStatic(k));
+    const k0 = cur;
+    cur++;
+    const g = gen;
+    const leaving = slots[k0];
+    const card = leaving.querySelector('.card');
+    card.getAnimations().forEach((a) => a.cancel());
+    // 들기: 떠오르며 커지고, 이어서 왼쪽 위로 기울며 빠진다.
+    ML.a(leaving, [
+      { transform: pose(0), easing: 'cubic-bezier(.2,.8,.3,1)' },
+      { transform: LIFT, offset: 0.24, easing: 'cubic-bezier(.5,0,.75,.2)' },
+      { transform: GONE },
+    ], { duration: 520, fill: 'forwards' });
+    ML.a(card, [{ boxShadow: SH0, transform: 'scale(.985)' }, { boxShadow: SH1, transform: 'scale(1)', offset: 0.24 }, { boxShadow: SH1, transform: 'scale(1)' }], { duration: 520, easing: 'ease-out', fill: 'none' });
+    ML.a(leaving.querySelector('.in'), [{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0.4 }], { duration: 520, fill: 'forwards' });
+    leaving.style.zIndex = 200;
+    // 앉기: 뒤 카드가 한 칸씩 앞으로.
+    for (let k = cur; k < Math.min(slots.length, cur + 3); k++) {
+      const s = slots[k];
+      const r = k - cur;
+      const dl = 120 + r * 50;
+      ML.a(s, [{ transform: pose(r + 1), opacity: r + 1 >= 3 ? 0 : 1 }, { transform: pose(r), opacity: 1 }], { duration: S_MED.ms, easing: S_MED.ease, delay: dl, fill: 'both' });
+      const veil = s.querySelector('.veil');
+      ML.a(veil, [{ opacity: Math.min(r + 1, 2) * 0.35 }, { opacity: r ? Math.min(r, 2) * 0.35 : 0 }], { duration: 300, delay: dl, easing: 'ease', fill: 'both' });
+      if (r === 0) ML.a(s.querySelector('.in'), [{ opacity: 0 }, { opacity: 1 }], { duration: 280, delay: dl, easing: 'ease', fill: 'both' });
+    }
+    paintProg(cur, 1);
+    const k1 = cur;
+    setTimeout(() => { if (g === gen && cur === k1) arrive(k1, g); }, 120 / ML.rate);
+  }
+
+  function back() {
+    if (!ready || exiting) return;
+    if (cur <= 0) return nudge();
+    slots.forEach((_, k) => setStatic(k));
+    const was = cur;
+    const pc = slots[was].querySelector('.card');
+    pc.getAnimations().forEach((a) => a.cancel());
+    cur--;
+    const s = slots[cur];
+    s.style.visibility = 'visible';
+    s.style.zIndex = 200;
+    s.querySelector('.in').style.opacity = 1;
+    // 빠졌던 길을 되짚어 내려앉는다.
+    ML.a(s, [
+      { transform: GONE, easing: 'cubic-bezier(.25,.8,.35,1)' },
+      { transform: LIFT, offset: 0.7, easing: 'cubic-bezier(.3,0,.3,1)' },
+      { transform: pose(0) },
+    ], { duration: 500, fill: 'both' }).finished.then(() => { if (slots[cur] === s) s.style.zIndex = 100 - cur; }).catch(() => {});
+    for (let k = was; k < Math.min(slots.length, was + 3); k++) {
+      const t = slots[k];
+      const r = k - cur;
+      ML.a(t, [{ transform: pose(r - 1) }, { transform: pose(r), opacity: r >= 3 ? 0 : 1 }], { duration: S_QUICK.ms + 120, easing: S_QUICK.ease, delay: 160, fill: 'both' });
+      ML.a(t.querySelector('.in'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160, delay: 120, easing: 'ease', fill: 'both' });
+      ML.a(t.querySelector('.veil'), [{ opacity: Math.min(r - 1, 2) * 0.35 }, { opacity: Math.min(r, 2) * 0.35 }], { duration: 300, delay: 160, easing: 'ease', fill: 'both' });
+    }
+    paintProg(was, -1);
+    // 빠르게 넘겨 건너뛴 카드라면 돌아왔을 때 처음 보여 준다.
+    const g = gen;
+    const k1 = cur;
+    setTimeout(() => { if (g === gen && cur === k1) arrive(k1, g); }, 260 / ML.rate);
+  }
+
+  /** 더 갈 곳이 없을 때: 눌렸던 카드가 튀어 돌아온다. */
+  function nudge() {
+    const card = slots[cur].querySelector('.card');
+    K.spring(card, [{ transform: 'scale(.975)' }, { transform: 'scale(1)' }], 'bounce');
+  }
+
+  function bindTap() {
+    const scr = phone.querySelector('#scr');
+    let down = null;
+    scr.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || exiting || !ready || e.target.closest('button')) return;
+      down = { x: e.clientX, y: e.clientY, t: performance.now() };
+      const card = slots[cur].querySelector('.card');
+      K.spring(card, [{ transform: 'scale(1)' }, { transform: 'scale(.985)' }], 'quick');
+    });
+    scr.addEventListener('pointercancel', () => { down = null; nudge(); });
+    scr.addEventListener('click', (e) => {
+      if (e.target.closest('button') || exiting || !ready) return;
+      const r = scr.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      // 손가락이 많이 움직였으면(스크롤하려던 것) 넘기지 않는다.
+      if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) { down = null; return nudge(); }
+      down = null;
+      if (x < r.width * 0.18) back();
+      else next();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // 단추에 초점이 있으면 스페이스는 그 단추의 몫이다(종합 퀴즈가 카드를 넘기면 안 된다).
+    if (e.key === ' ' && e.target.closest && e.target.closest('button')) return;
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') back();
+  });
+
+  async function exit() {
+    if (exiting) return;
+    exiting = true;
+    const g = gen;
+    const deck = phone.querySelector('#deck');
+    ML.a(deck, [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.96)' }], { duration: 260, easing: ML.ease.in });
+    ML.a(phone.querySelector('#top'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+    ML.a(phone.querySelector('#prog'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' });
+    await ML.wait(280);
+    if (g === gen && !window.NO_LEAVE) location.href = '../v5/app.html?nosplash=1';
+  }
+
+  /** 시작 화면: 7차와 같다. 아이콘과 이름이 0.3초 동안 나타나고 0.5초 머문다. */
+  async function splash(g) {
+    const sp = document.createElement('div');
+    sp.className = 'splash';
+    sp.innerHTML = `<div class="icon">${'<i></i>'.repeat(9)}</div><b>Latticework</b>`;
+    phone.querySelector('.scr').append(sp);
+    ML.a(sp.querySelector('.icon'), [{ opacity: 0, transform: 'scale(.96)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, easing: OUT });
+    ML.a(sp.querySelector('b'), [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 80, easing: OUT });
+    await ML.wait(820);
+    if (g !== gen) return;
+    await ML.done(ML.a(sp, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' }));
+    sp.remove();
+  }
+
+  async function start(withSplash) {
+    gen++;
+    const g = gen;
+    ML.clear(phone);
+    exiting = false;
+    ready = false;
+    played = new Set();
+    cur = 0;
+    build();
+    slots.forEach((_, k) => setStatic(k));
+    paintProg();
+    const top = phone.querySelector('#top');
+    const prog = phone.querySelector('#prog');
+    const deck = phone.querySelector('#deck');
+    [deck, top, prog].forEach((x) => (x.style.opacity = 0));
+    if (withSplash) await splash(g);
+    if (g !== gen) return;
+    [deck, top, prog].forEach((x) => (x.style.opacity = ''));
+    // 더미가 아래에서 올라오고, 겹쳐 있던 뒤 카드가 펼쳐지며 아래로 비어져 나온다.
+    ML.a(deck, [{ opacity: 0, transform: 'translateY(28px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 460, easing: OUT });
+    ML.a(top, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: 'ease' });
+    ML.a(prog, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 160, easing: 'ease' });
+    slots.slice(1, 3).forEach((s, i) => ML.a(s, [{ transform: pose(0) }, { transform: pose(i + 1) }], { duration: S_MED.ms, easing: S_MED.ease, delay: 160 + i * 50, fill: 'backwards' }));
+    ML.a(segs[0], [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 360, delay: 200, easing: OUT });
+    if (!(await later(280, g))) return;
+    ready = true;
+    arrive(0, g);
+  }
+
+  ML.bar({
+    title: '주간 리뷰',
+    replay: () => start(true),
+    home: '../index.html',
+    extra: [['주간', () => { MODE = 'week'; mark(); start(true); }], ['월간', () => { MODE = 'month'; mark(); start(true); }]],
+  });
+  const modeBtns = [...document.querySelectorAll('.lab-bar button')].slice(0, 2);
+  const mark = () => { modeBtns[0].setAttribute('aria-pressed', String(MODE === 'week')); modeBtns[1].setAttribute('aria-pressed', String(MODE === 'month')); };
+  mark();
+  window.RECAP = { next, back, get cur() { return cur; }, set mode(m) { MODE = m; mark(); start(false); } };
+  start(true);
+})();
+</script>
+</body>
+</html>
