@@ -22,7 +22,7 @@
   /** 폭죽. 기쁜 순간에만 쓴다(레벨 업, 연속 기록 고비). */
   LW.confetti = (host, x, y, n = 44, spread = 1) => {
     if (ML.reduce) return;
-    const colors = ['#3182f6', '#12b76a', '#ffb020', '#ff7a1a', '#7b61ff', '#f04452'];
+    const colors = ['#3182f6', '#03b26c', '#ffc342', '#fe9800', '#a234c7', '#f04452']; // Toss 팔레트 500 단계
     for (let i = 0; i < n; i++) {
       const el = document.createElement('i');
       const w = 5 + Math.random() * 4;

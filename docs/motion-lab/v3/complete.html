@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>학습 완료 · Motion Lab 3차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .body { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 72px 16px 0; }
+  .hero { position: relative; width: 200px; height: 170px; display: flex; align-items: center; justify-content: center; }
+  .icon { position: relative; width: 116px; height: 116px; border-radius: 32px; background: var(--blue500); box-shadow: 0 6px 0 var(--blue-lip); display: grid; grid-template-columns: repeat(3, 26px); gap: 6px; align-content: center; justify-content: center; }
+  .icon i { width: 26px; height: 26px; border-radius: 7px; background: #fff; }
+  .icon i.g { background: var(--green300); }
+  .spark { position: absolute; opacity: 0; }
+  h1 { margin: 22px 0 6px; font-size: 30px; line-height: 40px; font-weight: 700; letter-spacing: -0.6px; }
+  .sub { margin: 0; font-size: 17px; line-height: 25.5px; color: var(--grey600); }
+  .stats { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 36px; }
+  .lv { width: 100%; margin-top: 16px; padding: 14px 16px; border-radius: 16px; background: var(--grey100); display: flex; flex-direction: column; gap: 10px; }
+  .lv .r { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: var(--grey600); }
+  .lv .r b { color: var(--grey900); font-weight: 700; }
+  .lv .pbar { height: 12px; }
+  .lv .pbar .fill { background: var(--yellow500); }
+  .lv .pbar .fill::after { top: 3px; height: 3px; }
+  .foot { flex: none; padding: 12px 16px 28px; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>학습 완료</h2>
+    <p>마지막 문제를 마치면 나오는 화면입니다. 오늘 할당량을 모두 채운 날이면 "계속" 을 눌렀을 때 바로 연속 학습 장면으로 넘어갑니다.</p>
+    <h3>결과 카드 구조</h3>
+    <table class="spec">
+      <tr><th>부분</th><th>값</th></tr>
+      <tr><td>바깥</td><td>색 판, 모서리 16, 안쪽 여백 2</td></tr>
+      <tr><td>머리</td><td>12px 굵게, 가운데. 노란 판 위 글자는 80% 검정, 나머지는 흰색</td></tr>
+      <tr><td>몸</td><td>흰 판, 높이 56, 모서리 14, 아이콘과 값 20px 굵게</td></tr>
+      <tr><td>색</td><td>경험치 yellow500 · 정답률 green500 · 최다 연속 blue500</td></tr>
+    </table>
+    <p>듀오링고의 결과 카드와 같은 짜임입니다. 바깥 색 판 안에 흰 판이 한 겹 들어앉아 테두리처럼 보입니다. 듀오링고의 걸린 시간 칸은 기록하지 않기로 했으니 최다 연속 정답으로 바꿨습니다.</p>
+    <h3>움직임</h3>
+    <ul>
+      <li>아이콘이 bounce 스프링으로 튀어 오르고, 격자 칸이 맞힌 문제 수만큼 초록으로 바뀝니다. 별이 네 곳에서 반짝입니다.</li>
+      <li>카드는 70ms 간격으로 올라오고 숫자는 0 에서부터 셉니다.</li>
+      <li>경험치 막대가 차오르고, "계속" 은 처음부터 누를 수 있습니다.</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="springs.js"></script>
+<script src="kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const star = (s, c) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}"><path d="M12 1.5c.8 5.6 4.9 9.7 10.5 10.5-5.6.8-9.7 4.9-10.5 10.5C11.2 16.9 7.1 12.8 1.5 12 7.1 11.2 11.2 7.1 12 1.5z" fill="${c}"/></svg>`;
+
+  async function render() {
+    ML.clear(phone);
+    phone.innerHTML = `<div class="scr"><div class="body">
+        <div class="hero" id="hero"><div class="icon" id="icon">${Array.from({ length: 9 }, () => '<i></i>').join('')}</div>
+          <span class="spark" style="left:6px;top:24px">${star(26, 'var(--yellow400)')}</span><span class="spark" style="right:10px;top:6px">${star(20, 'var(--blue300)')}</span>
+          <span class="spark" style="right:0;bottom:30px">${star(28, 'var(--yellow500)')}</span><span class="spark" style="left:22px;bottom:8px">${star(16, 'var(--green300)')}</span></div>
+        <h1 id="h1">학습 완료!</h1><p class="sub" id="sub">Latticework 5문제를 마쳤어요</p>
+        <div class="stats" id="stats">
+          <div class="stat xp"><div class="h">경험치</div><div class="v">${K.bolt(20)}<span class="num" id="v1">0</span></div></div>
+          <div class="stat acc"><div class="h">정답률</div><div class="v"><span class="num" id="v2">0</span>%</div></div>
+          <div class="stat cmb"><div class="h">최다 연속</div><div class="v"><span class="num" id="v3">0</span>개</div></div>
+        </div>
+        <div class="lv" id="lv"><div class="r"><span>레벨 <b>3</b></span><span class="num" id="xpn">140 / 240</span></div><div class="pbar"><span class="fill" id="xf" style="transform:scaleX(.583)"></span></div></div>
+      </div>
+      <div class="foot"><button class="lbtn" id="go"><span class="lbl">계속</span></button></div></div>`;
+    K.press(phone.querySelector('#go'));
+    phone.querySelector('#go').addEventListener('click', () => {
+      ML.done(ML.a(phone.querySelector('.scr'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160 })).then(() => (location.href = 'streak.html'));
+    });
+    const els = ['#h1', '#sub', '#stats', '#lv', '.foot'].map((s) => phone.querySelector(s));
+    els.forEach((e) => (e.style.opacity = 0));
+    const icon = phone.querySelector('#icon');
+    K.spring(icon, [{ transform: 'scale(0) rotate(-10deg)' }, { transform: 'scale(1) rotate(0)' }], 'bounce');
+    phone.querySelectorAll('.spark').forEach((s, k) => ML.a(s, [{ opacity: 0, transform: 'scale(0) rotate(-45deg)' }, { opacity: 1, transform: 'scale(1.15) rotate(0)', offset: 0.45 }, { opacity: 1, transform: 'scale(1) rotate(0)' }], { duration: 520, delay: 380 + k * 90, easing: ML.ease.out }));
+    const tiles = [...icon.querySelectorAll('i')];
+    [0, 4, 8, 2, 6].slice(0, 4).forEach((n, k) => setTimeout(() => {
+      tiles[n].classList.add('g');
+      K.spring(tiles[n], [{ transform: 'scale(.6)' }, { transform: 'scale(1)' }], 'bounce');
+    }, (520 + k * 110) / ML.rate));
+    await ML.wait(260);
+    els.forEach((e) => (e.style.opacity = ''));
+    K.spring(els[0], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], 'quick');
+    K.spring(els[1], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], 'quick', { delay: 50 });
+    const cards = phone.querySelectorAll('.stat');
+    cards.forEach((c, k) => K.spring(c, [{ opacity: 0, transform: 'translateY(20px) scale(.94)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], 'medium', { delay: 160 + k * 70 }));
+    K.spring(els[3], [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }], 'quick', { delay: 380 });
+    ML.a(els[4], [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 300 });
+    await ML.wait(320);
+    ML.count(phone.querySelector('#v1'), 0, 50, 700);
+    ML.count(phone.querySelector('#v2'), 0, 80, 700);
+    await ML.count(phone.querySelector('#v3'), 0, 4, 600);
+    ML.count(phone.querySelector('#xpn'), 140, 190, 600, (v) => `${Math.round(v)} / 240`);
+    K.spring(phone.querySelector('#xf'), [{ transform: 'scaleX(.583)' }, { transform: 'scaleX(.792)' }], 'medium');
+  }
+
+  ML.bar({ title: '학습 완료', replay: render, home: '../index.html' });
+  render();
+})();
+</script>
+</body>
+</html>

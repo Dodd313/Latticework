@@ -1,0 +1,88 @@
+/* 3차 시안 공통.
+   색: Toss 디자인 시스템 공식 패키지(@toss/tds-colors 0.1.0)의 값만 쓴다.
+   연한 색과 눌림 색은 같은 시스템(@toss/tds-mobile 2.5.1)의 규칙으로 계산했다.
+     연한 바탕 = 300 단계를 흰 바탕 위 15%  (Toss 버튼의 weak 규칙)
+     글자 = 600 단계                         (같은 규칙)
+     눌림 턱 = 채움색의 밝기(OKLCH L)에서 0.134 낮춘 색 (Toss 버튼의 gradientColor 규칙)
+   구조: 듀오링고 공개 가이드(design.duolingo.com)의 보기 칸, 결과 판, 진행 막대, 결과 카드, 연속 기록 화면. */
+:root {
+  --grey50: #f9fafb; --grey100: #f2f4f6; --grey200: #e5e8eb; --grey300: #d1d6db; --grey400: #b0b8c1;
+  --grey500: #8b95a1; --grey600: #6b7684; --grey700: #4e5968; --grey800: #333d4b; --grey900: #191f28;
+  --blue50: #e8f3ff; --blue100: #c9e2ff; --blue200: #90c2ff; --blue300: #64a8ff; --blue400: #4593fc; --blue500: #3182f6; --blue600: #2272eb; --blue700: #1b64da;
+  --green50: #f0faf6; --green100: #aeefd5; --green200: #76e4b8; --green300: #3fd599; --green400: #15c47e; --green500: #03b26c; --green600: #02a262; --green700: #029359;
+  --red50: #ffeeee; --red100: #ffd4d6; --red200: #feafb4; --red300: #fb8890; --red500: #f04452; --red600: #e42939; --red700: #d22030;
+  --orange50: #fff3e0; --orange100: #ffe0b0; --orange200: #ffcd80; --orange300: #ffbd51; --orange400: #ffa927; --orange500: #fe9800; --orange600: #fb8800; --orange700: #f57800; --orange800: #ed6700; --orange900: #e45600;
+  --yellow50: #fff9e7; --yellow100: #ffefbf; --yellow200: #ffe69b; --yellow300: #ffdd78; --yellow400: #ffd158; --yellow500: #ffc342; --yellow600: #ffb331; --yellow700: #faa131;
+  --dim-press: rgba(0, 0, 0, 0.07);
+  /* 계산한 색 */
+  --blue-weak: #e8f2ff;   /* blue300 15% */
+  --green-weak: #e2f9f0;  /* green300 15% */
+  --red-weak: #feedee;    /* red300 15% */
+  --orange-weak: #fff5e5; /* orange300 15% */
+  --blue-lip: #0057c8;    /* blue500 L-0.134 */
+  --green-lip: #008845;   /* green500 L-0.134 */
+  --red-lip: #bf002b;     /* red500 L-0.134 */
+  --orange-lip: #d06e00;  /* orange500 L-0.134 */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+}
+.st3 { font-family: var(--font); color: var(--grey900); -webkit-font-smoothing: antialiased; }
+.st3 .scr { position: absolute; inset: 0; display: flex; flex-direction: column; background: #fff; }
+.st3 .num, .st3 .tab { font-variant-numeric: tabular-nums; }
+/* Toss 글자 크기 단계: t1 30/40, t2 26/35, t3 22/31, t4 20/29, t5 17/25.5, t6 15/22.5, t7 13/19.5 */
+.t1 { font-size: 30px; line-height: 40px; }
+.t2 { font-size: 26px; line-height: 35px; }
+.t3 { font-size: 22px; line-height: 31px; }
+.t4 { font-size: 20px; line-height: 29px; }
+.t5 { font-size: 17px; line-height: 25.5px; }
+.t6 { font-size: 15px; line-height: 22.5px; }
+.t7 { font-size: 13px; line-height: 19.5px; }
+.b { font-weight: 700; }
+.sb { font-weight: 600; }
+
+/* 단추 1: 홈의 Toss 단추. xlarge 규격 그대로(높이 56, 모서리 16, 17px). 누르면 0.96배와 7% 어둡게. */
+.tbtn { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 56px; padding: 2px 28px; border-radius: 16px; background: var(--blue500); color: rgba(255, 255, 255, 0.95); font-family: var(--font); font-size: 17px; font-weight: 600; overflow: hidden; }
+.tbtn::after { content: ''; position: absolute; inset: 0; background: rgb(0, 0, 0); opacity: 0; transition: opacity 0.1s; }
+.tbtn.down::after { opacity: 0.07; }
+.tbtn.weak { background: var(--blue-weak); color: var(--blue600); }
+
+/* 단추 2: 학습 안의 턱 있는 단추. 얼굴 52 + 턱 4. 누르면 얼굴이 턱만큼 내려간다(듀오링고). */
+.lbtn { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-bottom: 4px; border-radius: 16px; font-family: var(--font); font-size: 17px; font-weight: 700; letter-spacing: -0.2px; color: #fff; background: var(--blue500); box-shadow: 0 4px 0 var(--blue-lip); transition: transform 0.08s, box-shadow 0.08s, background-color 0.12s; }
+.lbtn.down { transform: translateY(4px); box-shadow: 0 0 0 var(--blue-lip); }
+.lbtn.green { background: var(--green500); box-shadow: 0 4px 0 var(--green-lip); }
+.lbtn.green.down { box-shadow: 0 0 0 var(--green-lip); }
+.lbtn.red { background: var(--red500); box-shadow: 0 4px 0 var(--red-lip); }
+.lbtn.red.down { box-shadow: 0 0 0 var(--red-lip); }
+.lbtn.off { background: var(--grey200); color: var(--grey400); box-shadow: 0 4px 0 var(--grey200); }
+.lbtn.ghost { background: #fff; color: var(--grey600); box-shadow: inset 0 0 0 2px var(--grey200), 0 4px 0 var(--grey200); }
+.lbtn .lbl { position: relative; display: inline-block; }
+
+/* 보기 칸: 테두리 2, 아래 턱 4, 모서리 16. 듀오링고 보기 칸 구조. */
+.tile { position: relative; display: flex; align-items: center; gap: 14px; width: 100%; min-height: 60px; padding: 12px 16px; border: 2px solid var(--grey200); border-bottom-width: 4px; border-radius: 16px; background: #fff; color: var(--grey800); font-family: var(--font); font-size: 17px; line-height: 25.5px; font-weight: 600; text-align: left; transition: transform 0.08s, border-color 0.12s, background-color 0.12s, color 0.12s; }
+.tile .key { flex: none; width: 28px; height: 28px; border: 2px solid var(--grey200); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--grey500); transition: border-color 0.12s, color 0.12s; }
+.tile .tx { flex: 1; }
+.tile.down { transform: translateY(2px); border-bottom-width: 2px; margin-bottom: 2px; }
+.tile.on { border-color: var(--blue200); background: var(--blue50); color: var(--blue600); }
+.tile.on .key { border-color: var(--blue200); color: var(--blue600); }
+.tile.ok { border-color: var(--green200); background: var(--green-weak); color: var(--green600); }
+.tile.ok .key { border-color: var(--green200); color: var(--green600); }
+.tile.no { border-color: var(--red200); background: var(--red-weak); color: var(--red600); }
+.tile.no .key { border-color: var(--red200); color: var(--red600); }
+.tile.dim { opacity: 0.5; }
+
+/* 진행 막대: 높이 16, 둥근 끝, 위쪽 1/4 에 밝은 띠. */
+.pbar { position: relative; height: 16px; border-radius: 8px; background: var(--grey200); overflow: hidden; }
+.pbar .fill { position: absolute; inset: 0; border-radius: 8px; background: var(--blue500); transform-origin: left; transform: scaleX(0); transition: background-color 0.3s; }
+.pbar .fill.hot { background: var(--orange500); }
+.pbar .fill::after { content: ''; position: absolute; top: 4px; left: 8px; right: 8px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); }
+
+/* 결과 카드: 바깥은 색, 안쪽 흰 판은 모서리 14. */
+.stat { border-radius: 16px; padding: 2px; display: flex; flex-direction: column; }
+.stat .h { font-size: 12px; line-height: 18px; font-weight: 700; text-align: center; padding: 3px 0 4px; color: #fff; }
+.stat .v { height: 56px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 20px; font-weight: 700; }
+.stat.xp { background: var(--yellow500); } .stat.xp .h { color: rgba(0, 12, 30, 0.8); } .stat.xp .v { color: var(--orange700); }
+.stat.acc { background: var(--green500); } .stat.acc .v { color: var(--green600); }
+.stat.cmb { background: var(--blue500); } .stat.cmb .v { color: var(--blue600); }
+
+.roll { position: relative; display: inline-block; overflow: hidden; vertical-align: bottom; }
+.roll > span { display: inline-block; }
+.phone.clean::after { display: none; }
