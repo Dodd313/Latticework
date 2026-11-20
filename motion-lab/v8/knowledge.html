@@ -72,6 +72,7 @@
   .srch label { display: flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border-radius: 12px; background: var(--grey100); color: var(--grey400); }
   .srch input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-family: var(--font); font-size: 16px; font-weight: 500; color: var(--grey900); }
   .srch input::placeholder { color: var(--grey400); }
+  .srch input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
   .srch .cnt { font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
   .chips { display: flex; gap: 8px; margin-top: 10px; }
   .chips button { height: 34px; padding: 0 14px; border-radius: 17px; background: var(--grey100); font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--grey700); display: inline-flex; align-items: center; gap: 5px; transition: background-color .2s, color .2s; }
@@ -87,7 +88,7 @@
   .wk-h .sc em { font-style: normal; font-size: 15px; font-weight: 700; color: var(--grey800); font-variant-numeric: tabular-nums; }
   .wk-h .qb { height: 30px; padding: 0 12px; border-radius: 15px; background: var(--blue-weak); color: var(--blue600); font-family: var(--font); font-size: 13px; font-weight: 700; }
   .nr { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 6px 20px; }
-  .nr .d { width: 40px; flex: none; font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .nr .d { width: 50px; flex: none; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
   .nr .h { flex: 1; min-width: 0; font-size: 16px; line-height: 23px; font-weight: 500; color: var(--grey800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nr.down, .vr.down { background: var(--grey50); }
   .nr mark, .vr mark { background: none; color: var(--blue600); }
@@ -140,9 +141,9 @@
     <h3>배치 규칙</h3>
     <ul>
       <li><b>풍선 트리</b>: 노드마다 자식을 자기 둘레에, 부모 반대쪽 약 255도 부채꼴 안에 놓습니다. 자식 하위 트리의 외접원이 서로 겹치지 않을 만큼만 띄웁니다. 그래서 어느 노드로 확대해도 그 노드가 가운데에 있는 작은 그래프가 됩니다.</li>
-      <li><b>학문의 방향</b>: 숨은 참조 목록의 영역 각도(생각의 도구 0도=위, 사회 90도=오른쪽, 자연 180도=아래, 사람과 문화 225도)에 영역 안 순서로 ±32도를 더한 방위가 학문의 자리입니다. 해금 순서와 무관하게 늘 같은 쪽에 생기고, 겹칠 때만 최소한으로 밀어냅니다. 그래서 새 학문이 생겨도 기존 학문이 크게 움직이지 않습니다.</li>
+      <li><b>학문의 방향</b>: 숨은 참조 목록의 영역 각도(taxonomy.json domains: 생각의 도구 0도=오른쪽, 사회 90도=아래, 자연 180도=왼쪽, 사람과 문화 225도=왼쪽 위)에 영역 안 순서로 ±32도를 더한 방위가 학문의 자리입니다. 해금 순서와 무관하게 늘 같은 쪽에 생기고, 겹칠 때만 밀어내는데 큰 학문은 덜 움직이고 작은 학문이 비켜 줍니다. 그래서 새 학문이 생겨도 큰 덩어리의 자리는 거의 그대로입니다.</li>
       <li><b>흔들림 없음</b>: 힘 시뮬레이션을 쓰지 않습니다. 위치는 데이터에서 한 번에 계산하고, 같은 데이터면 늘 같은 자리입니다. 움직이는 것은 카메라뿐입니다.</li>
-      <li><b>보이는 단계</b>: 처음 화면은 학문, 분과, 주제, 분과에 바로 붙은 개념 점까지. 주제 아래 개념은 그 주제로 확대해야 나타납니다(taxonomy.json appUse.graph). 이름도 배율에 따라 학문 → 분과 → 주제 → 개념 순으로 나타나고, 겹치면 낮은 계급 이름부터 숨습니다.</li>
+      <li><b>보이는 단계</b>: 처음 화면은 학문, 분과, 주제, 분과에 바로 붙은 개념 점까지. 주제 아래 개념은 그 주제로 확대해야 나타납니다(taxonomy.json appUse.graph). 이름도 배율에 따라 학문, 분과, 주제, 개념 순으로 나타나고, 겹치면 낮은 계급 이름부터 숨습니다.</li>
       <li><b>분과가 하나인 학문</b>은 이름을 "논리학 · 추론과 논증"처럼 접어 두 줄로 씁니다.</li>
       <li><b>소우주 접기</b>: 데이터의 <code>collapse.collapsed</code>를 그대로 따릅니다(7개 초과면 접고 5개 이하면 풂). 지금은 자본배분, 지수모형, CAPM이 소우주이고, 6개월 뒤에는 경제학(학문 전체), 확률과 확률분포, 추론과 논증, 휴리스틱과 편향이 더해집니다. 소우주 안의 소우주도 같은 방식으로 들어갑니다.</li>
     </ul>
@@ -180,13 +181,16 @@
 
     <h3>솔직한 약점</h3>
     <ul>
-      <li>지금 데이터는 재무학 하나가 39개로 압도적이라 첫 화면이 오른쪽으로 쏠립니다. 학문이 늘면 나아지지만, 그전까지는 균형이 아쉽습니다.</li>
+      <li>지금 데이터는 재무학 하나가 42개 중 39개라 첫 화면이 한쪽으로 쏠리고 위아래 여백이 남습니다. 학문이 늘면 나아지지만(6개월 뒤 화면), 그전까지는 균형이 아쉽습니다.</li>
+      <li>자리는 흔들리지 않지만 완전히 고정은 아닙니다. 학문이 새로 생겨 부채꼴이 겹치면 이웃이 비켜 납니다. 지금에서 6개월 뒤로 가면 재무학이 Latti 기준 139도에서 72도로 돕니다(바꿀 때 0.6초 동안 미끄러지듯 옮김). 학문을 늘 정해진 방위에 못 박으면 작은 학문이 큰 학문 바깥으로 멀리 밀려나서, 지금은 조금 비켜 주는 쪽을 골랐습니다.</li>
       <li>첫 화면 배율에서는 주제 이름이 숨습니다. 확대해야 읽힙니다. 지도로서는 맞지만 처음 보는 사람은 탐색이 필요합니다.</li>
       <li>소프트웨어 학문 색과 복습 신호가 둘 다 주황입니다. 고리(복습)와 채움(학문)으로 나눴지만, 소프트웨어 개념이 복습 대상이 되면 덜 또렷합니다. 학문 색표를 정할 때 주황 계열을 학문 색에서 빼는 것을 권합니다.</li>
       <li>개념이 수백 개가 되면 학문 하나의 풍선이 매우 커집니다. 분과가 소우주로 접히며 버티지만, 접힘 기준 7이 실제로 편한지는 써 봐야 압니다.</li>
       <li>캔버스 그림이라 화면 읽기 프로그램이 노드를 읽지 못합니다. 실제 앱에는 같은 트리를 목록으로 읽어 주는 접근성 층이 필요합니다.</li>
       <li>기사 본문은 시드 데이터에 없어서 기사 시트에는 제목과 기록만 있습니다.</li>
       <li>"새로 열림" 표시를 본 기록은 이 시안에서는 메모리에만 둡니다. 다시 열면 돌아옵니다.</li>
+      <li>Latti 표식은 크기를 바꾸는 API가 없어서, 확대할 때 <code>--lt-s</code> 같은 CSS 변수를 직접 고쳐 크기를 맞춥니다. latti.js에 <code>Latti.size(el, px)</code>가 있으면 깔끔합니다.</li>
+      <li>6개월 뒤 데이터의 개념에는 <code>due, retrievability, solved, studied</code>가 없어서 <code>last, stability</code>로 직접 셈합니다(인출 확률 1/(1+t/9S), 다음 복습 last+S일, 푼 양은 reps×3). 지금 데이터와 필드를 맞추면 이 계산이 필요 없습니다.</li>
     </ul>
 
     <h3>실제 앱에 필요한 데이터</h3>
@@ -202,7 +206,7 @@
 
     <h3>확인한 것과 못 한 것</h3>
     <ul id="checks">
-      <li>390×800 화면에서 Playwright로 그래프 첫 화면, 소우주 안, 6개월 뒤, 성장 재생 중간, 개념 시트, 뉴스, 단어장, 낱말 카드를 찍어 확인했습니다.</li>
+      <li>390×800 화면에서 Playwright로 그래프 첫 화면, 소우주로 날아가는 도중과 안, 개념 시트와 관계 칩 이동, 뒤로와 전체 단추, Latti 누르기, 6개월 뒤와 바꾸는 도중, 경제학·휴리스틱과 편향 소우주, 성장 재생 중간, 뉴스(검색, 기사 시트), 단어장(칩, 검색, 낱말 카드)을 찍어 확인했습니다. 콘솔 오류는 글꼴 CDN 하나뿐입니다.</li>
       <li>실제 아이폰에서 두 손가락 확대와 60fps는 확인하지 못했습니다. 그리기는 움직일 때만 하고, 노드 250개 남짓에서 한 프레임 그리기는 데스크톱에서 1ms 안팎입니다.</li>
       <li>이 환경에서는 Pretendard를 받지 못해 대체 글꼴로 그려졌습니다.</li>
     </ul>
@@ -315,7 +319,7 @@
   function build(set) {
     const T = set.tree;
     const N = new Map();
-    const root = { id: 'root', kind: 'root', kids: [], parent: null, born: '0000-00-00', count: T.concepts.length };
+    const root = { id: 'root', kind: 'root', kids: [], parent: null, born: '2000-01-01', count: T.concepts.length };
     N.set('root', root);
     T.nodes.forEach((x) => N.set(x.id, { id: x.id, kind: RANK[x.rank], ko: x.ko, short: x.short || x.ko, en: x.en, raw: x, kids: [], parentId: x.parent || 'root', born: x.createdAt, count: x.conceptCount }));
     T.concepts.forEach((c) => {
@@ -430,7 +434,8 @@
           const b = (j + 1) % m;
           const tb = t[b] + (b === 0 ? 2 * Math.PI : 0);
           const ov = t[j] + ww[j] / 2 - (tb - ww[b] / 2);
-          if (ov > 1e-5) { t[j] -= ov / 2; t[b] += ov / 2; moved = true; }
+          // 큰 학문은 덜 움직이고 작은 학문이 비켜 준다
+          if (ov > 1e-5) { const sw = ww[j] + ww[b]; t[j] -= (ov * ww[b]) / sw; t[b] += (ov * ww[j]) / sw; moved = true; }
         }
         if (!moved) break;
       }
@@ -502,7 +507,9 @@
   function nodeFit(n) {
     if (n.kind === 'root') return rootFit();
     const f = fpWorld(n);
-    const k = Math.min(W / 2 - 22, H / 2 - 54) / (f.glyph ? f.r * 0.9 : f.r);
+    let k = Math.min(W / 2 - 22, H / 2 - 54) / (f.glyph ? f.r * 0.9 : f.r);
+    // 작은 노드로 날아갈 때 원이 화면을 채우지 않게: 이름이 다 보이는 배율에서 멈춘다.
+    k = Math.min(k, n.collapsed ? 3.2 / (n.sc * n.inS) : 2.3 / n.sc);
     return { x: f.x, y: f.y + 8 / k, k };
   }
   const kLimits = () => { const f = rootFit(); return [f.k * 0.55, 7 / G.M.minSc]; };
@@ -629,7 +636,7 @@
       G.drawn.set(n.id, it);
       E.push({ x1: PX, y1: PY, x2: X, y2: Y, r1: PR, r2: R, a: a * 0.9, c: '#e5e8eb', w: 1.25 });
       const la = a * (1 - smooth(0.2, 0.45, open)) * Math.max(lodLabel(n.kind, z), n.kind === 'disc' ? 1 : smooth(0.3, 0.45, z));
-      if (la > 0.02) LB.push({ n, text: n.ko, font: n.kind === 'disc' ? F.disc : F.glyph, color: n.kind === 'disc' ? '#191f28' : '#333d4b', x: X, y: Y + R + (n.kind === 'disc' ? 20 : 17), a: la, pri: n.kind === 'disc' ? 100 : 60 + R / 10 });
+      if (la > 0.02) LB.push({ n, text: n.ko, font: n.kind === 'disc' ? F.disc : F.glyph, color: n.kind === 'disc' ? '#191f28' : '#333d4b', x: X, Y, R, off: n.kind === 'disc' ? 20 : 17, force: n.kind === 'disc', a: la, pri: n.kind === 'disc' ? 100 : 60 + R / 10 });
       if (R > 4) {
         const cr = n.lr * 0.9 * zin * L.s;
         if (open < 1) {
@@ -644,7 +651,7 @@
           ND.push(c);
           if (open > 0.5) G.drawn.set(n.id, c);
           const lc = oa * smooth(0.55, 0.8, open) * lodLabel('center', zin);
-          if (lc > 0.02) LB.push({ n, text: n.ko, font: F.center, color: '#191f28', x: X, y: Y + cr + 19, a: lc, pri: 95 });
+          if (lc > 0.02) LB.push({ n, text: n.ko, font: F.center, color: '#191f28', x: X, Y, R: cr, off: 19, force: true, a: lc, pri: 95 });
           n.kids.forEach((k) => visit(k, n, X, Y, cr, oa, false, now));
         }
       }
@@ -661,14 +668,14 @@
     if (n.kind === 'disc') {
       const one = n.kids.filter((k) => k.kind === 'branch');
       const fold = one.length === 1 ? one[0] : null;
-      LB.push({ n, text: n.ko, font: F.disc, color: '#191f28', x: X, y: up ? Y - R - (fold ? 25 : 9) : Y + R + 19, a, pri: 100, sub: fold ? fold.ko : null, subNode: fold });
+      LB.push({ n, text: n.ko, font: F.disc, color: '#191f28', x: X, Y, R, off: 19, up, force: true, a, pri: 100, sub: fold ? fold.ko : null, subNode: fold });
     } else {
       const folded = n.kind === 'branch' && par.kind === 'disc' && par.kids.filter((k) => k.kind === 'branch').length === 1;
       const la = folded ? 0 : a * lodLabel(n.kind, z);
       if (la > 0.02) {
         const font = F[n.kind];
         const pri = n.kind === 'branch' ? 70 : n.kind === 'topic' ? 50 : 20 + (n.amount || 0) / 10;
-        LB.push({ n, text: n.ko, font, color: n.kind === 'concept' ? '#4e5968' : n.kind === 'topic' ? '#4e5968' : '#333d4b', x: X, y: up ? Y - R - 8 : Y + R + (n.kind === 'concept' ? 14 : 16), a: la, pri });
+        LB.push({ n, text: n.ko, font, color: n.kind === 'concept' ? '#4e5968' : n.kind === 'topic' ? '#4e5968' : '#333d4b', x: X, Y, R, off: n.kind === 'concept' ? 14 : 16, up, a: la, pri });
       }
     }
     n.kids.forEach((k) => visit(k, n, X, Y, R, A * L.a, false, now));
@@ -725,7 +732,7 @@
         }
       }
       if (sel && n.id === sel.id && it.st === 'concept') {
-        ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(it.x, it.y, it.r + 5, 0, Math.PI * 2); ctx.lineWidth = 2; ctx.strokeStyle = '#191f28'; ctx.stroke();
+        ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(it.x, it.y, it.r + (n.due ? 7 : 5), 0, Math.PI * 2); ctx.lineWidth = 2; ctx.strokeStyle = '#191f28'; ctx.stroke();
       }
     }
     // 4. 복습 신호: 개념이 보이면 그 개념에, 아니면 보이는 가장 깊은 조상에
@@ -737,7 +744,7 @@
       dueAt.set(it, true);
     }
     for (const it of dueAt.keys()) {
-      if (it.a < 0.2) continue;
+      if (it.a < 0.2 || G.grow) continue;
       const ang = -Math.PI / 4;
       const x = it.x + Math.cos(ang) * it.r, y = it.y + Math.sin(ang) * it.r;
       ctx.globalAlpha = it.a * dim(it.n);
@@ -765,12 +772,12 @@
     return null;
   }
   // 연결선은 배율이 낮을수록 굵은 단위(학문)로 묶는다.
-  const LINK_Z = { concept: 1.45, topic: 0.95, branch: 0.62, disc: 0 };
+  const LINK_Z = { concept: 1.6, topic: 1.25, branch: 1.0, disc: 0 };
   function linkRep(n) {
     for (let p = n; p; p = p.parent) {
       const it = G.drawn.get(p.id);
       if (!it || it.a < 0.45) continue;
-      if (it.st === 'glyph' || it.st === 'center' || cam.k * p.sc >= (LINK_Z[p.kind] || 0)) return it;
+      if (it.st === 'center' || cam.k * p.sc >= (LINK_Z[p.kind] || 0)) return it;
     }
     return null;
   }
@@ -798,12 +805,16 @@
       const mx = (ra.x + rb.x) / 2, my = (ra.y + rb.y) / 2;
       const cx0 = G.latti.x, cy0 = G.latti.y;
       if ((mx - cx0) * nx + (my - cy0) * ny < 0) { nx = -nx; ny = -ny; }
-      const bend = Math.min(0.14 * d, 46);
+      let bend = Math.min(0.14 * d, 46);
+      const ux0 = dx / d, uy0 = dy / d;
+      const tp = (cx0 - ra.x) * ux0 + (cy0 - ra.y) * uy0;
+      if (tp > 0 && tp < d) { const dist = -((cx0 - mx) * nx + (cy0 - my) * ny); bend = Math.max(bend, 2 * (G.latti.r + 26 - dist)); }
       const qx = mx + nx * bend, qy = my + ny * bend;
       const ux = (qx - ra.x), uy = (qy - ra.y), ul = Math.hypot(ux, uy);
       const vx = (qx - rb.x), vy = (qy - rb.y), vl = Math.hypot(vx, vy);
       const x1 = ra.x + (ux / ul) * (ra.r + 3), y1 = ra.y + (uy / ul) * (ra.r + 3);
       const x2 = rb.x + (vx / vl) * (rb.r + 3), y2 = rb.y + (vy / vl) * (rb.r + 3);
+      if (![x1, y1, x2, y2, qx, qy].every(Number.isFinite)) { if (!G.nanLogged) { G.nanLogged = 1; console.warn('nan link', ra.n.id, rb.n.id, ra.x, ra.y, ra.r, rb.x, rb.y, rb.r, bend); } continue; }
       const ca = ra.n.color, cb = rb.n.color;
       let stroke;
       if (ca !== cb) { stroke = ctx.createLinearGradient(x1, y1, x2, y2); stroke.addColorStop(0, ca); stroke.addColorStop(1, cb); }
@@ -817,47 +828,81 @@
   }
   function drawLabels(dim, hot) {
     const placed = [];
-    // Latti 자리
-    if (G.latti.a > 0.1) placed.push([G.latti.x - G.latti.r - 2, G.latti.y - G.latti.r - 2, G.latti.x + G.latti.r + 2, G.latti.y + G.latti.r + 2]);
+    const hitAny = (r) => placed.some((p) => !(r[2] < p[0] || r[0] > p[2] || r[3] < p[1] || r[1] > p[3]));
+    // 노드 원도 장애물이다. 이름이 남의 노드를 덮지 않게.
+    const obs = [];
+    if (G.latti.a > 0.1) obs.push({ n: null, r: [G.latti.x - G.latti.r - 2, G.latti.y - G.latti.r - 2, G.latti.x + G.latti.r + 2, G.latti.y + G.latti.r + 2] });
+    for (const it of ND) {
+      if (it.a < 0.3 || it.st === 'mini') continue;
+      if (it.st === 'glyph' && it.open > 0.3) continue;
+      if (it.st === 'center' && it.r > 120) continue;
+      const q = it.st === 'concept' ? it.r + (it.n.due ? 3 : 0) : it.r * 0.85;
+      if (q < 2.5) continue;
+      obs.push({ n: it.n, r: [it.x - q, it.y - q, it.x + q, it.y + q], dot: it.st === 'concept' });
+    }
+    const ov = (r, o) => Math.max(0, Math.min(r[2], o[2]) - Math.max(r[0], o[0])) * Math.max(0, Math.min(r[3], o[3]) - Math.max(r[1], o[1]));
+    // 개념 점은 개념과 주제 이름만 피한다. 학문과 분과 이름은 작은 점 위에 흰 테두리로 얹어도 읽힌다.
+    const hitObs = (r, n) => obs.some((o) => o.n !== n && (!o.dot || n.kind === 'concept' || n.kind === 'topic') && ov(r, o.r) > 0);
+    const cost = (r, n) => obs.reduce((s, o) => s + (o.n !== n ? ov(r, o.r) * (o.n ? 1 : 50) : 0), 0) + placed.reduce((s, p) => s + ov(r, p) * 20, 0);
     const L = LB.slice().sort((a, b) => (hot ? (hot.has(b.n.id) ? 1000 : 0) - (hot.has(a.n.id) ? 1000 : 0) : 0) + b.pri - a.pri);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
+    const shown = new Set();
     for (const l of L) {
-      if (l.y < -20 || l.y > H + 20 || l.x < -200 || l.x > W + 200) continue;
+      if (l.Y < -40 || l.Y > H + 40 || l.x < -200 || l.x > W + 200) continue;
+      if (l.a < 0.3 && !l.force) continue;
       const w = textW(l.font, l.text);
       const fresh = l.n.fresh && !G.visited.has(l.n.id);
       const subFresh = l.subNode && l.subNode.fresh && !G.visited.has(l.subNode.id);
       const lw = w + (fresh ? 10 : 0);
-      let x0 = l.x - lw / 2, x1 = l.x + lw / 2, y0 = l.y - 14, y1 = l.y + 4;
-      let w2 = 0;
-      if (l.sub) { w2 = textW(F.disc2, l.sub) + (subFresh ? 10 : 0); x0 = Math.min(x0, l.x - w2 / 2); x1 = Math.max(x1, l.x + w2 / 2); y1 += 16; }
-      if (placed.some((p) => !(x1 < p[0] || x0 > p[2] || y1 < p[1] || y0 > p[3]))) continue;
-      placed.push([x0 - 3, y0 - 1, x1 + 3, y1 + 1]);
-      const a = l.a * dim(l.n);
-      ctx.globalAlpha = a;
+      const w2 = l.sub ? textW(F.disc2, l.sub) + (subFresh ? 10 : 0) : 0;
+      const half = Math.max(lw, w2) / 2;
+      const extra = l.sub ? 16 : 0;
+      const at = (side) => {
+        if (side === 'right' || side === 'left') {
+          const cx = side === 'right' ? l.x + l.R + 6 + half : l.x - l.R - 6 - half;
+          if (cx - half < 2 || cx + half > W - 2) return null;
+          const y = l.Y + 5 - extra / 2;
+          return { y, cx, r: [cx - half - 2, y - 13, cx + half + 2, y + 4 + extra] };
+        }
+        const y = side === 'below' ? l.Y + l.R + l.off : l.Y - l.R - 8 - extra;
+        // 화면 가장자리에서 잘리지 않게 안쪽으로 민다
+        const cx = l.x > -half && l.x < W + half ? clamp(l.x, half + 6, W - half - 6) : l.x;
+        return { y, cx, r: [cx - half - 2, y - 13, cx + half + 2, y + 4 + extra] };
+      };
+      const order = l.up ? ['above', 'below', 'right', 'left'] : ['below', 'above', 'right', 'left'];
+      let pick = null;
+      for (const side of order) { const c = at(side); if (c && !hitAny(c.r) && !hitObs(c.r, l.n)) { pick = c; break; } }
+      if (!pick && (l.force || fresh || subFresh)) { let best = Infinity; for (const side of order) { const c = at(side); if (!c) continue; const v = cost(c.r, l.n); if (v < best) { best = v; pick = c; } } }
+      if (!pick) continue;
+      placed.push(pick.r);
+      shown.add(l.n.id);
+      if (l.subNode) shown.add(l.subNode.id);
+      const y = pick.y;
+      ctx.globalAlpha = l.a * dim(l.n);
       ctx.font = l.font;
-      const tx = l.x + (fresh ? 5 : 0);
-      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.strokeText(l.text, tx, l.y);
-      ctx.fillStyle = l.color; ctx.fillText(l.text, tx, l.y);
-      if (fresh) { ctx.beginPath(); ctx.arc(tx - w / 2 - 7, l.y - 4.5, 3, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill(); }
+      const tx = pick.cx + (fresh ? 5 : 0);
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.strokeText(l.text, tx, y);
+      ctx.fillStyle = l.color; ctx.fillText(l.text, tx, y);
+      if (fresh) { ctx.beginPath(); ctx.arc(tx - w / 2 - 7, y - 4.5, 3, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill(); }
       if (l.sub) {
         ctx.font = F.disc2;
-        const sxp = l.x + (subFresh ? 5 : 0);
-        ctx.strokeText(l.sub, sxp, l.y + 16);
-        ctx.fillStyle = '#8b95a1'; ctx.fillText(l.sub, sxp, l.y + 16);
-        if (subFresh) { ctx.beginPath(); ctx.arc(sxp - textW(F.disc2, l.sub) / 2 - 7, l.y + 12, 2.6, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill(); }
+        const sxp = pick.cx + (subFresh ? 5 : 0);
+        ctx.strokeText(l.sub, sxp, y + 16);
+        ctx.fillStyle = '#8b95a1'; ctx.fillText(l.sub, sxp, y + 16);
+        if (subFresh) { ctx.beginPath(); ctx.arc(sxp - textW(F.disc2, l.sub) / 2 - 7, y + 12, 2.6, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill(); }
       }
     }
     // 이름이 숨은 새 노드는 테두리 왼쪽 위에 점
     for (const it of ND) {
       const n = it.n;
-      if (!n.fresh || G.visited.has(n.id) || it.st === 'mini' || it.a < 0.3) continue;
-      if (LB.some((l) => (l.n === n || l.subNode === n) && placed.length)) continue;
+      if (!n.fresh || G.visited.has(n.id) || shown.has(n.id) || it.st === 'mini' || it.a < 0.3) continue;
       const ang = (-3 * Math.PI) / 4;
+      const x = it.x + Math.cos(ang) * it.r, y = it.y + Math.sin(ang) * it.r;
       ctx.globalAlpha = it.a;
-      ctx.beginPath(); ctx.arc(it.x + Math.cos(ang) * it.r, it.y + Math.sin(ang) * it.r, 4.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
-      ctx.beginPath(); ctx.arc(it.x + Math.cos(ang) * it.r, it.y + Math.sin(ang) * it.r, 3, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 4.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fillStyle = BLUE; ctx.fill();
     }
   }
 
@@ -877,7 +922,7 @@
     }
     lh.style.transform = `translate(${(L.x - size / 2).toFixed(1)}px, ${(L.y - size / 2).toFixed(1)}px)`;
     lh.style.opacity = L.a;
-    lh.style.visibility = L.x < -80 || L.x > W + 80 || L.y < -80 || L.y > H + 80 ? 'hidden' : 'visible';
+    lh.style.display = L.x < -80 || L.x > W + 80 || L.y < -80 || L.y > H + 80 ? 'none' : '';
   }
   function lattiSay() {
     const M = G.M;
@@ -1114,7 +1159,7 @@
     const today = G.M.today;
     const kv = m.studied
       ? [['반복', `${n.raw.reps}회`], ['기억', `${Math.round(m.R * 100)}%`], ['다음 복습', dueText(m.due, today), n.due]]
-      : [['반복', '0회'], ['추가', md(n.born)], ['다음 복습', dueText(m.due, today), n.due]];
+      : [['반복', '0회'], ['기억', '0%'], ['다음 복습', dueText(m.due, today), n.due]];
     const rel = n.rel.map((id) => G.M.N.get(id)).filter(Boolean);
     return `<p class="path">${esc(pathText(n))}</p><h3>${esc(n.ko)}</h3>${n.en && n.en !== n.ko ? `<p class="en">${esc(n.en)}</p>` : ''}
       <div class="kv">${kv.map(([a, b, d]) => `<div><span>${a}</span><b class="${d ? 'due' : ''}">${b}</b></div>`).join('')}</div>
@@ -1178,7 +1223,7 @@
     markPath(n);
     openSheet(conceptHtml(n), 'concept', { clear: true });
     // 개념이 시트 위 남은 자리의 가운데에 오도록. 이름이 보이는 배율까지 다가간다.
-    const zNeed = 2.6;
+    const zNeed = 2.05;
     const k = Math.max(cam.k, zNeed / n.sc);
     const visH = H - (G.sheetH - 64);
     const ty = Math.max(90, visH / 2);

@@ -20,7 +20,9 @@
   .flyer { position: absolute; left: 0; top: 0; z-index: 20; pointer-events: none; transform-origin: 0 0; }
 
   /* 그래프 무대: 해금 화면과 지식 탭이 같은 것을 쓴다 */
-  .stage { position: absolute; left: 0; right: 0; top: 0; height: 500px; overflow: hidden; }
+  .stage { position: absolute; left: 0; right: 0; top: 0; height: 500px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 calc(100% - 56px), transparent calc(100% - 8px)); mask-image: linear-gradient(#000 calc(100% - 56px), transparent calc(100% - 8px)); }
+  .scene.know .stage { -webkit-mask-image: none; mask-image: none; }
+  .world text { paint-order: stroke; stroke: rgba(255, 255, 255, .92); stroke-width: 4px; stroke-linejoin: round; }
   .world { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; will-change: transform; }
   .world svg { position: absolute; left: -1200px; top: -1200px; overflow: visible; font-family: var(--font); }
   .lhost { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 2; will-change: transform; }
@@ -105,7 +107,7 @@
     <h3>보여 주는 것</h3>
     <table class="spec">
       <tr><th>계급</th><th>방식</th><th>지금 데이터</th></tr>
-      <tr><td>학문</td><td>전체 화면. 지도의 그 부분만 확대해 보여 주고, Latti 에서 새 노드로 선이 그려진 뒤 노드가 돋아나 학문 색으로 켜짐. 같은 묶음의 분과는 바깥쪽 작은 빛, 그 개념은 점</td><td>통계학 (네 번째 학문, t통계량) + 통계적 추론</td></tr>
+      <tr><td>학문</td><td>전체 화면. 지도의 그 부분만 확대해 보여 주고, Latti 에서 새 노드로 선이 그려진 뒤 노드가 연한 원으로 돋아나 학문 색으로 켜지고 은은한 빛이 남음. 같은 묶음의 분과와 그 개념이 지식 탭과 같은 모양으로 뒤따라 돋음</td><td>통계학 (네 번째 학문, t통계량) + 통계적 추론</td></tr>
       <tr><td>분과</td><td>전체 화면 없음. 홈 맨 위 띠 하나와 지식 탭의 점. 띠 안에 같은 그림의 작은 조각(부모 학문에서 새 분과가 돋아남)</td><td>밸류에이션 (재무학, EBITDA와 WACC)</td></tr>
       <tr><td>주제, 개념</td><td>화면 없음. 지식 지도에서 반짝임만</td><td>APT (11월 17일, 이미 봄)</td></tr>
     </table>
@@ -139,17 +141,18 @@
 
     <h3>강점</h3>
     <ul>
-      <li>설명 없이 읽힙니다. 이미 있는 학문은 흐리고, 새 것만 색이 꽉 찹니다. 크기는 개념 수, 위치는 실제 지식 지도의 자리와 같아서 "보러 가기" 를 누르면 같은 그림이 그대로 지식 탭이 됩니다.</li>
+      <li>설명 없이 읽힙니다. 이미 있는 지도는 흐리고, 새 것만 또렷하고 빛이 남습니다. 노드 모양, 크기, 자리는 지식 탭(knowledge.html)과 같은 계산이라 "보러 가기" 를 누르면 같은 그림이 그대로 지식 탭이 됩니다.</li>
       <li>앱 아이콘이 날아가 지도 가운데 Latti 가 되는 이음새 하나로 스플래시와 해금이 끊기지 않습니다.</li>
-      <li>배치가 안정적입니다. 학문은 생긴 순서대로 영역 방향 가까이의 빈자리를 차지하고, 한 번 정한 자리는 뒤에 생긴 학문 때문에 바뀌지 않습니다.</li>
+      <li>지도 배치는 knowledge.html 의 풍선 트리 배치 코드(build, arrange, rootAngles, place)를 그대로 옮겨 씁니다. 학문 방향은 숨은 참조 목록(영역과 순서)에서 오고 해금 순서와 무관합니다.</li>
       <li>대기열 규칙(놓친 해금 1장, 학문 3장, 외 N개, 분과는 띠)이 데이터만 보고 정해집니다. 이 페이지의 <code>plan()</code> 이 그 규칙입니다.</li>
     </ul>
 
     <h3>약점 (솔직하게)</h3>
     <ul>
-      <li>지식 탭(knowledge.html)이 아직 없어서 노드 모양은 latti.html 의 지식 그래프 장면을 따랐습니다. 지식 탭 쪽 배치나 노드 모양이 바뀌면 이 화면도 같이 바꿔야 합니다. 같은 그리기 함수를 함께 써야 어긋나지 않습니다.</li>
-      <li>분과는 학문 카드 안에서 작은 노드 하나로만 보입니다. 이미 있던 분과(자본시장이론 등)는 그리지 않으니, 지식 탭이 분과를 어떻게 그리는지 정해지면 맞춰야 합니다.</li>
-      <li>학문이 늘수록(6개월 뒤 7개) 넓게 본 지도는 개념 점 고리가 겹칩니다. 놓친 해금 카드는 크기를 줄여 보여 주므로 이름표를 숨깁니다. 이름은 아래 흐린 목록으로 대신합니다.</li>
+      <li>배치 코드를 knowledge.html 에서 복사해 왔습니다(지식 탭은 캔버스, 이 화면은 SVG). 지식 탭이 바뀌면 이 화면도 같이 바꿔야 어긋나지 않습니다. 실제 앱에서는 배치와 노드 모양을 한 모듈로 묶어 두 화면이 함께 써야 합니다.</li>
+      <li>지식 탭의 이름표 규칙은 Latti 자리와 겹치는 이름을 숨깁니다. 지금 데이터에서 통계학 이름이 그렇게 숨습니다(지식 탭에서도 안 보임). 해금 화면에서는 새 학문 이름만 노드 오른쪽에 따로 붙였습니다. 지식 탭에도 같은 예외가 필요해 보입니다.</li>
+      <li>배치가 해금 순서와 무관해서, 새 학문이 생기면 옆 학문들이 조금씩 자리를 비켜 줍니다. 해금 화면은 새 지도로 그리므로 지난번에 본 지도와 몇 픽셀 다를 수 있습니다.</li>
+      <li>6개월 뒤처럼 넓게 본 지도는 이름이 작아 잘 읽히지 않습니다. 이름은 아래 흐린 목록으로 대신합니다.</li>
       <li>"외 N개" 카드는 지금 데이터로 만들 수 없어(14일 안에 학문 4개가 생긴 적이 없음) 화면으로 확인하지 못했습니다. 규칙과 코드만 있습니다.</li>
       <li>"?!" 로 끝나는 해금 문구는 지금 lint 를 통과하지 못합니다(위 문구 참고).</li>
       <li>data.js 의 <code>future.unlocks</code> 는 11월 19일 해금(통계학, 통계적 추론, 밸류에이션) 시각이 06:10 으로, 지금 데이터 <code>unlocks</code> 의 21:40 과 다릅니다. 06:10 이면 lastOpen(07:48) 전이라 이미 본 것이 됩니다. 이 페이지는 같은 id 면 지금 데이터의 시각을 따르게 우회했습니다.</li>
@@ -159,7 +162,7 @@
     <ul>
       <li><code>unlocks[]</code>: id, nodeId, rank, kind(major, minor, sparkle), at, batch, by(첫 개념 id), byName, nth(학문만). 지금 data.js 와 같은 모양.</li>
       <li>본 기록: Firestore 사용자 문서 <code>unlocks.seen[id] = 본 시각</code>, <code>unlocks.lastLines</code>(최근에 쓴 문구 id). localStorage 는 캐시.</li>
-      <li>학문 노드의 지도 자리: <code>angle</code>, <code>ring</code> 을 노드가 생길 때 한 번 정해 저장. 지금은 화면에서 계산하지만, 저장해 두어야 기기와 판이 달라도 같은 자리.</li>
+      <li>지식 탭과 같은 숨은 참조(영역 방위와 영역 안 학문 순서). 배치는 기기에서 계산하므로 저장할 필요는 없습니다.</li>
       <li>학문의 <code>domain</code>(방향), <code>color</code>, 개념의 <code>first</code>(그날 해금을 연 개념 목록을 만들 때).</li>
       <li>마지막으로 연 시각 <code>lastOpen</code>: 14일 넘은 해금을 놓친 해금으로 묶는 기준.</li>
     </ul>
@@ -217,54 +220,387 @@
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   };
+  let NOW = '2026-11-20T08:02:00+09:00';
   const lineFor = (sit, id, c) => {
-    const r = Latti.lines.choose(sit, Object.assign({ date: NOW.slice(0, 10), hour: 8 }, c), { rng: seedOf(id + roll), dry: true });
+    const r = Latti.lines.choose(sit, Object.assign({ date: NOW.slice(0, 10), hour: 8 }, c), { rng: seedOf(id), dry: true });
     return r ? r.text : null;
   };
-  let roll = '';
 
-  /* ───────── 색 ───────── */
-  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const mix = (a, b, t) => '#' + rgb(a).map((v, i) => Math.round(v + (rgb(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
-  const pal = (c) => ({ c, weak: mix(c, '#ffffff', 0.88), ink: mix(c, '#000000', 0.22), soft: mix(c, '#ffffff', 0.55) });
+  /* ───────── 지식 지도 배치: knowledge.html 의 풍선 트리 배치를 그대로 옮겼다(같은 자리, 같은 크기) ───────── */
+  const KG = (() => {
+  const DAY = 864e5;
+  const dt = (s) => Date.parse(s.slice(0, 10) + 'T00:00:00Z');
+  const ymd = (ms) => new Date(ms).toISOString().slice(0, 10);
 
-  /* ───────── 데이터: 어느 시점의 트리 ───────── */
-  let NOW = '2026-11-20T08:02:00+09:00';
-  function treeAt(src, date) {
-    const nodes = src.nodes.filter((n) => n.createdAt <= date);
-    const concepts = src.concepts.filter((c) => c.first <= date);
-    const discs = nodes.filter((n) => n.rank === 'discipline').map((d) => Object.assign({}, d, { n: concepts.filter((c) => c.disc === d.id).length }));
-    discs.sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
-    return { nodes, concepts, discs, byId: Object.fromEntries(nodes.map((n) => [n.id, n])) };
+  // 숨은 참조: 영역의 방위(도, 위에서 시계 방향)와 영역 안 학문 순서. 화면에는 그리지 않는다.
+  const REF = {
+    formal: { ang: 0, list: ['stat', 'math', 'logic', 'cs'] },
+    social: { ang: 90, list: ['fin', 'econ', 'acct', 'mgmt', 'psy'] },
+    natural: { ang: 180, list: ['phys', 'chem', 'bio', 'earth'] },
+    humanities: { ang: 225, list: ['phil'] },
+    life: { ang: 270, list: [] },
+    engineering: { ang: 315, list: [] },
+  };
+  function bearing(n) {
+    const d = REF[n.raw.domain] || REF.formal;
+    const slug = n.id.slice(2);
+    let i = d.list.indexOf(slug);
+    const m = Math.max(d.list.length, 1);
+    if (i < 0) i = (m - 1) / 2;
+    const off = m > 1 ? (i - (m - 1) / 2) * (64 / (m - 1)) : 0;
+    return ((d.ang + off) * Math.PI) / 180;
   }
 
-  /* 학문 자리: 생긴 순서대로, 영역 방향에서 가장 가까운 빈자리. 한 번 정한 자리는 바뀌지 않는다. */
-  const DOMAIN = { formal: 0, social: 90, natural: 180, humanities: 225, engineering: 315, life: 270 };
-  const R1 = 188, R2 = 292, MINSEP = 124, STEP = 20;
-  const rOf = (n) => (13 + Math.sqrt(Math.max(1, n)) * 3.6) * 1.1;
-  function layout(discs) {
-    const placed = [];
-    const out = {};
-    for (const d of discs) {
-      const base = DOMAIN[d.domain] ?? 0;
-      const cands = [];
-      for (let k = 0; k <= 9; k++) for (const sg of k ? [1, -1] : [1]) for (const [ring, Rr] of [[1, R1], [2, R2]]) cands.push({ a: base + sg * k * STEP, Rr, cost: k * STEP + (ring === 2 ? 30 : 0) });
-      cands.sort((p, q) => p.cost - q.cost);
-      let got = null;
-      for (const c of cands) {
-        const t = (c.a * Math.PI) / 180;
-        const x = Math.cos(t) * c.Rr, y = -Math.sin(t) * c.Rr;
-        if (placed.every((p) => Math.hypot(p.x - x, p.y - y) >= MINSEP)) { got = { a: t, x, y }; break; }
-      }
-      placed.push(got);
-      out[d.id] = got;
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (c, t) => { const [r, g, b] = hex(c); return `rgb(${Math.round(255 + (r - 255) * t)},${Math.round(255 + (g - 255) * t)},${Math.round(255 + (b - 255) * t)})`; };
+  const rgba = (c, a) => { const [r, g, b] = hex(c); return `rgba(${r},${g},${b},${a})`; };
+  const ORANGE = '#fe9800';
+  const BLUE = '#3182f6';
+
+  const RANK = { discipline: 'disc', branch: 'branch', topic: 'topic' };
+  function rad(n) {
+    switch (n.kind) {
+      case 'root': return 30;
+      case 'disc': return 15 + 3 * Math.sqrt(n.count);
+      case 'branch': return 9 + 2.2 * Math.sqrt(n.count);
+      case 'topic': return 7 + 1.8 * Math.sqrt(n.count);
+      default: return 3.2 + 0.5 * Math.sqrt(n.amount);
     }
+  }
+  const glyphR = (n) => rad(n) * 1.2 + 8;
+
+  function memOf(c, today) {
+    if (!c.reps) return { studied: false, R: null, S: 0, due: c.due || today, strength: 0 };
+    let R = c.retrievability;
+    if (R == null) R = 1 / (1 + (dt(today) - dt(c.last)) / DAY / (9 * c.stability));
+    const due = c.due || ymd(dt(c.last) + Math.round(c.stability) * DAY);
+    const strength = clamp(R * (Math.log(1 + c.stability) / Math.log(1 + 90)), 0, 1);
+    return { studied: true, R, S: c.stability, due, strength };
+  }
+
+  /** 데이터 한 벌을 노드 지도로. 위치는 여기서 한 번만 계산한다. */
+  function build(set) {
+    const T = set.tree;
+    const N = new Map();
+    const root = { id: 'root', kind: 'root', kids: [], parent: null, born: '0000-00-00', count: T.concepts.length };
+    N.set('root', root);
+    T.nodes.forEach((x) => N.set(x.id, { id: x.id, kind: RANK[x.rank], ko: x.ko, short: x.short || x.ko, en: x.en, raw: x, kids: [], parentId: x.parent || 'root', born: x.createdAt, count: x.conceptCount }));
+    T.concepts.forEach((c) => {
+      const amount = c.solved != null ? c.solved : (c.reps || 0) * 3;
+      N.set(c.id, { id: c.id, kind: 'concept', ko: c.name, en: c.en, raw: c, kids: [], parentId: c.node, born: c.first, amount, mem: memOf(c, set.today), rel: [] });
+    });
+    for (const n of N.values()) if (n.id !== 'root') { n.parent = N.get(n.parentId); n.parent.kids.push(n); }
+    const order = (a, b) => (a.born < b.born ? -1 : a.born > b.born ? 1 : a.id < b.id ? -1 : 1);
+    for (const n of N.values()) n.kids.sort(order);
+    // 학문 색과 소속
+    for (const n of N.values()) {
+      let d = n;
+      while (d.parent && d.parent.kind !== 'root') d = d.parent;
+      n.disc = n.kind === 'root' ? null : d;
+      n.color = n.disc ? n.disc.raw.color : BLUE;
+    }
+    const col = new Set((set.collapse.collapsed || []).map((c) => c.nodeId));
+    for (const n of N.values()) n.collapsed = col.has(n.id);
+    // 관계
+    const links = T.links.filter((l) => N.has(l.a) && N.has(l.b));
+    links.forEach((l) => { N.get(l.a).rel.push(l.b); N.get(l.b).rel.push(l.a); });
+    // 오늘 복습
+    for (const n of N.values()) if (n.kind === 'concept') n.due = n.mem.due <= set.today;
+    // 새로 열림
+    const fresh = new Set(set.unlocks.filter((u) => !u.seen).map((u) => u.nodeId));
+    for (const n of N.values()) n.fresh = fresh.has(n.id);
+    const M = { N, root, links, today: set.today, set };
+    layout(M);
+    return M;
+  }
+
+  /* 배치: 풍선 트리. 노드마다 자식을 자기 둘레에, 부모 반대쪽 부채꼴 안에 둔다. */
+  const GAP = { root: 34, center: 12, disc: 14, branch: 11, topic: 8 };
+  const SPAN = Math.PI * 1.42;
+  const GA = 0.07;
+  function measure(n) {
+    n.lr = rad(n);
+    if (n.collapsed) {
+      n.gr = glyphR(n);
+      const Rin = arrange(n, true);
+      n.inS = (0.8 * n.gr) / Rin;
+      n.fp = { ox: 0, oy: 0, rho: n.gr + 7 };
+      return;
+    }
+    if (!n.kids.length) {
+      n.fp = { ox: 0, oy: 0, rho: n.lr + (n.kind === 'concept' ? 3 : 6) };
+      return;
+    }
+    arrange(n, false);
+  }
+  function arrange(n, center) {
+    n.kids.forEach(measure);
+    const kids = n.kids;
+    const m = kids.length;
+    if (!m) { if (!n.collapsed) n.fp = { ox: 0, oy: 0, rho: n.lr + 6 }; return n.lr + 6; }
+    const gap = center ? (n.kind === 'root' ? GAP.root : GAP.center) : GAP[n.kind];
+    const D = kids.map((k) => n.lr + gap + k.fp.rho);
+    const span = center ? Math.PI * 2 : SPAN;
+    const need = (f) => kids.reduce((s, k, i) => s + 2 * Math.asin(Math.min(1, k.fp.rho / (D[i] * f))), 0) + GA * (center ? m : m - 1);
+    let f = 1;
+    for (let it = 0; need(f) > span && it < 400; it++) f *= 1.03;
+    const Df = D.map((d) => d * f);
+    const w = kids.map((k, i) => 2 * Math.asin(Math.min(1, k.fp.rho / Df[i])) + GA);
+    let th;
+    if (n.kind === 'root') th = rootAngles(kids, w);
+    else if (center) {
+      const slack = (Math.PI * 2 - w.reduce((a, b) => a + b, 0)) / m;
+      let a = -Math.PI / 2 - (w[0] + slack) / 2;
+      th = w.map((wi) => { const t = a + (wi + slack) / 2; a += wi + slack; return t; });
+    } else {
+      const tot = w.reduce((a, b) => a + b, 0);
+      let a = -tot / 2;
+      th = w.map((wi) => { const t = a + wi / 2; a += wi; return t; });
+    }
+    kids.forEach((k, i) => {
+      const t = th[i], c = Math.cos(t), s = Math.sin(t);
+      const { ox, oy } = k.fp;
+      k.la = t;
+      k.fcx = Df[i] * c;
+      k.fcy = Df[i] * s;
+      k.px = k.fcx - (ox * c - oy * s);
+      k.py = k.fcy - (ox * s + oy * c);
+    });
+    if (center) {
+      let R = n.lr + 6;
+      kids.forEach((k, i) => (R = Math.max(R, Df[i] + k.fp.rho)));
+      if (!n.collapsed) n.fp = { ox: 0, oy: 0, rho: R };
+      return R;
+    }
+    let x0 = -n.lr - 6, x1 = n.lr + 6, y0 = x0, y1 = x1;
+    kids.forEach((k) => { x0 = Math.min(x0, k.fcx - k.fp.rho); x1 = Math.max(x1, k.fcx + k.fp.rho); y0 = Math.min(y0, k.fcy - k.fp.rho); y1 = Math.max(y1, k.fcy + k.fp.rho); });
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    let R = Math.hypot(cx, cy) + n.lr + 6;
+    kids.forEach((k) => (R = Math.max(R, Math.hypot(k.fcx - cx, k.fcy - cy) + k.fp.rho)));
+    n.fp = { ox: cx, oy: cy, rho: R };
+    return R;
+  }
+  /** 학문은 숨은 참조 방위에 두고, 겹치면 양옆으로 반씩 밀어낸다. 해금 순서와 무관하다. */
+  function rootAngles(kids, w) {
+    const m = kids.length;
+    const pref = kids.map(bearing);
+    const norm = (a) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const ord = kids.map((_, i) => i).sort((a, b) => norm(pref[a] + Math.PI / 2) - norm(pref[b] + Math.PI / 2));
+    const t = ord.map((i) => pref[i]);
+    // 위에서 시계 방향으로 이어지게 펼친다
+    for (let j = 1; j < m; j++) while (t[j] < t[j - 1]) t[j] += 2 * Math.PI;
+    const ww = ord.map((i) => w[i]);
+    if (m > 1) {
+      for (let it = 0; it < 800; it++) {
+        let moved = false;
+        for (let j = 0; j < m; j++) {
+          const b = (j + 1) % m;
+          const tb = t[b] + (b === 0 ? 2 * Math.PI : 0);
+          const ov = t[j] + ww[j] / 2 - (tb - ww[b] / 2);
+          if (ov > 1e-5) { t[j] -= ov / 2; t[b] += ov / 2; moved = true; }
+        }
+        if (!moved) break;
+      }
+    }
+    const out = new Array(m);
+    ord.forEach((i, j) => (out[i] = t[j]));
     return out;
+  }
+  function place(n, x, y, dir, sc, depth) {
+    n.x = n.tx = x; n.y = n.ty = y; n.dir = dir; n.sc = sc; n.depth = depth;
+    if (n.collapsed) {
+      const s2 = sc * n.inS;
+      n.kids.forEach((k) => place(k, x + k.px * s2, y + k.py * s2, k.la, s2, depth + 1));
+      return;
+    }
+    const c = Math.cos(dir), s = Math.sin(dir);
+    n.kids.forEach((k) => place(k, x + (k.px * c - k.py * s) * sc, y + (k.px * s + k.py * c) * sc, dir + k.la, sc, depth + 1));
+  }
+  function layout(M) {
+    const r = M.root;
+    r.lr = rad(r);
+    arrange(r, true);
+    r.kids.forEach((k) => (k.la = k.la)); // 각도는 절대값
+    place(r, 0, 0, 0, 1, 0);
+    // 처음 화면 상자: 소우주 안은 빼고, 이름 자리를 아래에 둔다.
+    let x0 = -40, x1 = 40, y0 = -40, y1 = 40;
+    const walk = (n) => {
+      const rr = n.collapsed ? n.gr * n.sc : n.lr * n.sc;
+      x0 = Math.min(x0, n.x - rr - 8); x1 = Math.max(x1, n.x + rr + 8);
+      y0 = Math.min(y0, n.y - rr - 8); y1 = Math.max(y1, n.y + rr + 26);
+      if (!n.collapsed) n.kids.forEach(walk);
+    };
+    r.kids.forEach(walk);
+    M.box = { x0, x1, y0, y1 };
+    let minSc = 1;
+    for (const n of M.N.values()) if (n.sc) minSc = Math.min(minSc, n.sc * (n.collapsed ? n.inS : 1));
+    M.minSc = minSc;
+  }
+  return { build, mix, rgba, rad, glyphR, ORANGE, BLUE };
+  })();
+
+
+  const { mix, rgba } = KG;
+  const pal = (c) => ({ c, weak: mix(c, 0.16), ink: (() => { const h = [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)); return `rgb(${h.map((v) => Math.round(v * 0.78)).join(',')})`; })(), soft: mix(c, 0.45) });
+
+  /* ───────── 데이터: 어느 시점의 지도 ───────── */
+  // date 시점의 트리를 knowledge.html 과 같은 방법으로 배치한다. 7개 넘게 달린 노드는 접는다(소우주).
+  function model(src, date, unlocks, lastOpen) {
+    const nodes = src.nodes.filter((n) => n.createdAt <= date);
+    const ids = new Set(nodes.map((n) => n.id));
+    // 주제는 개념이 3개 모여야 생긴다. 그 전의 개념은 경로에서 이미 있는 가장 깊은 노드에 둔다.
+    const concepts = src.concepts.filter((c) => c.first <= date).map((c) => {
+      const home = [...c.path].reverse().find((id) => ids.has(id));
+      return home && home !== c.node ? Object.assign({}, c, { node: home, path: c.path.slice(0, c.path.indexOf(home) + 1) }) : c;
+    }).filter((c) => ids.has(c.node));
+    const kids = (id) => nodes.filter((n) => n.parent === id).length + concepts.filter((c) => c.node === id).length;
+    const collapsed = nodes.filter((n) => kids(n.id) > (V.tree.collapse.over || 7)).map((n) => ({ nodeId: n.id }));
+    const cids = new Set(concepts.map((c) => c.id));
+    const tree = { nodes: nodes.map((n) => Object.assign({}, n, { conceptCount: concepts.filter((c) => c.path.includes(n.id)).length })), concepts, links: src.links.filter((l) => cids.has(l.a) && cids.has(l.b)) };
+    const M = KG.build({ tree, collapse: { collapsed }, today: date, unlocks: unlocks.map((u) => Object.assign({}, u, { seen: u.at <= lastOpen })) });
+    M.date = date;
+    M.discs = M.root.kids.slice();
+    return M;
+  }
+  const subtree = (n) => { const out = []; const w = (x) => { out.push(x); x.kids.forEach(w); }; w(n); return out; };
+
+  /* ───────── 그리기: knowledge.html 과 같은 노드 모양을 SVG 로 ───────── */
+  const KW = (s) => [...s].reduce((w, ch) => w + (/[가-힣]/.test(ch) ? 0.98 : /[A-Z0-9]/.test(ch) ? 0.66 : 0.55), 0);
+  function buildWorld(M) {
+    let E1 = '', N1 = '', T1 = '';
+    const LB = [];
+    const info = new Map();
+    const dId = (n) => (n.disc ? n.disc.id : n.id);
+    const edge = (n, x1, y1, r1, x2, y2, r2, color, w, op) => {
+      const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy);
+      if (d < r1 + r2 + 1) return;
+      const ux = dx / d, uy = dy / d;
+      E1 += `<line data-n="${n.id}" data-d="${dId(n)}" x1="${R(x1 + ux * (r1 + 1.5))}" y1="${R(y1 + uy * (r1 + 1.5))}" x2="${R(x2 - ux * (r2 + 1.5))}" y2="${R(y2 - uy * (r2 + 1.5))}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"${op != null ? ` stroke-opacity="${op}"` : ''}/>`;
+    };
+    const dot = (n, x, y, r, c, mini) => {
+      const m = n.mem;
+      if (mini) return `<circle class="nd" data-n="${n.id}" data-d="${dId(n)}" cx="${R(x)}" cy="${R(y)}" r="${R(r)}" fill="${n.kind === 'concept' ? (m.studied ? mix(c, 0.3 + 0.7 * m.strength) : mix(c, 0.25)) : c}"/>`;
+      let s = `<g class="nd" data-n="${n.id}" data-d="${dId(n)}">`;
+      if (m.studied) s += `<circle cx="${R(x)}" cy="${R(y)}" r="${R(r)}" fill="${mix(c, 0.22 + 0.78 * m.strength)}"/>`;
+      else s += `<circle cx="${R(x)}" cy="${R(y)}" r="${R(r)}" fill="#fff" stroke="${c}" stroke-width="1.6"/>`;
+      if (n.due) s += `<circle cx="${R(x)}" cy="${R(y)}" r="${R(r + 3.2)}" fill="none" stroke="${KG.ORANGE}" stroke-width="1.8"/>`;
+      return s + '</g>';
+    };
+    function visit(n, par, PX, PY, PR, mini) {
+      const X = n.x, Y = n.y, c = n.color;
+      if (mini) {
+        const rr = Math.max(n.kind === 'concept' ? 0.9 : 1.3, n.lr * n.sc);
+        info.set(n.id, { x: X, y: Y, r: rr, mini: true, n });
+        edge(n, PX, PY, PR, X, Y, rr, mix(c, 0.35), 0.7, 0.55);
+        N1 += dot(n, X, Y, rr, c, true);
+        n.kids.forEach((k) => visit(k, n, X, Y, rr, true));
+        return;
+      }
+      if (n.collapsed) {
+        const Rg = n.gr * n.sc;
+        info.set(n.id, { x: X, y: Y, r: Rg, glyph: true, n });
+        edge(n, PX, PY, PR, X, Y, Rg, '#e5e8eb', 1.25);
+        N1 += `<g class="nd" data-n="${n.id}" data-d="${dId(n)}"><circle cx="${R(X)}" cy="${R(Y)}" r="${R(Rg)}" fill="${rgba(c, 0.07)}" stroke="${rgba(c, 0.9)}" stroke-width="1.5"/><circle cx="${R(X)}" cy="${R(Y)}" r="${R(Rg + 3.5)}" fill="none" stroke="${rgba(c, 0.22)}" stroke-width="1"/></g>`;
+        LB.push({ n, text: n.ko, size: 13, weight: 600, color: '#333d4b', x: X, y: Y + Rg + 17, pri: 60 + Rg / 10 });
+        const cr = Math.max(1.6, n.lr * 0.9 * n.inS * n.sc);
+        N1 += `<circle class="nd" data-n="${n.id}" data-d="${dId(n)}" cx="${R(X)}" cy="${R(Y)}" r="${R(cr)}" fill="${c}"/>`;
+        n.kids.forEach((k) => visit(k, n, X, Y, cr, true));
+        return;
+      }
+      const r = n.lr * n.sc;
+      info.set(n.id, { x: X, y: Y, r, n });
+      edge(n, PX, PY, PR, X, Y, r, '#e5e8eb', n.kind === 'concept' ? 1 : 1.25);
+      if (n.kind === 'disc') N1 += `<circle class="nd body" data-n="${n.id}" data-d="${dId(n)}" cx="${R(X)}" cy="${R(Y)}" r="${R(r)}" fill="${c}" stroke="${c}" stroke-width="0"/>`;
+      else if (n.kind === 'branch') N1 += `<circle class="nd" data-n="${n.id}" data-d="${dId(n)}" cx="${R(X)}" cy="${R(Y)}" r="${R(r)}" fill="${mix(c, 0.16)}" stroke="${c}" stroke-width="1.75"/>`;
+      else if (n.kind === 'topic') N1 += `<circle class="nd" data-n="${n.id}" data-d="${dId(n)}" cx="${R(X)}" cy="${R(Y)}" r="${R(r)}" fill="#fff" stroke="${mix(c, 0.6)}" stroke-width="1.5"/>`;
+      else N1 += dot(n, X, Y, r, c, false);
+      const up = n.kind !== 'concept' && n.kids.length && Math.sin(n.dir) > 0.45;
+      if (n.kind === 'disc') {
+        const br = n.kids.filter((k) => k.kind === 'branch');
+        const fold = br.length === 1 ? br[0] : null;
+        LB.push({ n, text: n.ko, size: 15, weight: 700, color: '#191f28', x: X, y: up ? Y - r - (fold ? 25 : 9) : Y + r + 19, pri: 100, sub: fold ? fold.ko : null, subNode: fold });
+      } else if (n.kind !== 'concept') {
+        const folded = n.kind === 'branch' && par.kind === 'disc' && par.kids.filter((k) => k.kind === 'branch').length === 1;
+        if (!folded) LB.push({ n, text: n.ko, size: n.kind === 'branch' ? 13 : 12.5, weight: 600, color: n.kind === 'branch' ? '#333d4b' : '#4e5968', x: X, y: up ? Y - r - 8 : Y + r + 16, pri: n.kind === 'branch' ? 70 : 50 });
+      }
+      n.kids.forEach((k) => visit(k, n, X, Y, r, false));
+    }
+    const rootR = 30;
+    M.root.kids.forEach((k) => visit(k, M.root, 0, 0, rootR, false));
+    // 이름: 겹치면 낮은 계급부터 숨긴다(지식 탭과 같은 규칙). Latti 자리는 비운다.
+    const placed = [[-rootR - 2, -rootR - 2, rootR + 2, rootR + 2]];
+    LB.sort((a, b) => b.pri - a.pri).forEach((l) => {
+      const w = KW(l.text) * l.size;
+      let x0 = l.x - w / 2, x1 = l.x + w / 2, y0 = l.y - 14, y1 = l.y + 4;
+      if (l.sub) { const w2 = KW(l.sub) * 12; x0 = Math.min(x0, l.x - w2 / 2); x1 = Math.max(x1, l.x + w2 / 2); y1 += 16; }
+      if (placed.some((p) => !(x1 < p[0] || x0 > p[2] || y1 < p[1] || y0 > p[3]))) return;
+      placed.push([x0 - 3, y0 - 1, x1 + 3, y1 + 1]);
+      const id = l.n.id, dd = dId(l.n);
+      T1 += `<text class="lb" data-n="${id}" data-d="${dd}" x="${R(l.x)}" y="${R(l.y)}" text-anchor="middle" font-size="${l.size}" font-weight="${l.weight}" fill="${l.color}">${esc(l.text)}</text>`;
+      if (l.sub) T1 += `<text class="lb" data-n="${l.subNode.id}" data-d="${dd}" x="${R(l.x)}" y="${R(l.y + 16)}" text-anchor="middle" font-size="12" font-weight="500" fill="#8b95a1">${esc(l.sub)}</text>`;
+      info.get(id).label = { x0, x1, y0, y1 };
+    });
+    const world = document.createElement('div');
+    world.className = 'world';
+    world.innerHTML = `<svg width="2400" height="2400" viewBox="-1200 -1200 2400 2400" aria-hidden="true"><defs></defs><g class="LH"></g><g class="LE">${E1}</g><g class="LN">${N1}</g><g class="LT">${T1}</g></svg>`;
+    const svg = world.firstChild;
+    return {
+      el: world, svg, M, info,
+      els: (id) => [...svg.querySelectorAll(`[data-n="${id}"]`)],
+      ofDisc: (id) => [...svg.querySelectorAll(`[data-d="${id}"]`)],
+    };
+  }
+
+  const setOp = (els, o) => els.forEach((e) => (e.style.opacity = o));
+  // 학문 하나를 흐리게/숨김/보통으로. 숨긴 새 노드(hidden)는 건드리지 않는다.
+  function discState(W, id, how, hidden) {
+    setOp(W.ofDisc(id).filter((e) => !hidden || !hidden.has(e.dataset.n)), how === 'faint' ? 0.3 : how === 'hide' ? 0 : 1);
+  }
+  function addHalo(W, n, r) {
+    const id = 'h' + n.id.replace(/\W/g, '');
+    const defs = W.svg.querySelector('defs');
+    if (!defs.querySelector('#' + id)) defs.insertAdjacentHTML('beforeend', `<radialGradient id="${id}"><stop offset="0" stop-color="${n.color}" stop-opacity=".24"/><stop offset=".5" stop-color="${n.color}" stop-opacity=".08"/><stop offset="1" stop-color="${n.color}" stop-opacity="0"/></radialGradient>`);
+    const I = W.info.get(n.id);
+    W.svg.querySelector('.LH').insertAdjacentHTML('beforeend', `<circle class="halo" data-h="${n.id}" cx="${R(I.x)}" cy="${R(I.y)}" r="${R(r)}" fill="url(#${id})"/>`);
+    const h = W.svg.querySelector(`.halo[data-h="${n.id}"]`);
+    ML.a(h, [{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease', fill: 'forwards' });
+    return h;
+  }
+  function ping(W, n) {
+    const I = W.info.get(n.id);
+    W.svg.querySelector('.LH').insertAdjacentHTML('beforeend', `<circle class="pg bud" cx="${R(I.x)}" cy="${R(I.y)}" r="${R(I.r)}" fill="none" stroke="${n.color}" stroke-width="2"/>`);
+    const p = W.svg.querySelector('.LH .pg:last-child');
+    ML.a(p, [{ opacity: 0.55, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(1.9)' }], { duration: 760, easing: E.out, fill: 'forwards' }).finished.then(() => p.remove()).catch(() => {});
+  }
+
+  /* 노드가 자라는 순서: 깊이 순, 같은 깊이는 생긴 순. 선이 뻗고 노드가 돋는다. */
+  function grow(W, ids, t0 = 0, o = {}) {
+    const step = o.step || 300, sib = o.sib || 70;
+    const ns = ids.map((id) => W.M.N.get(id)).filter(Boolean);
+    const d0 = Math.min(...ns.map((n) => n.depth));
+    const byDepth = {};
+    ns.forEach((n) => (byDepth[n.depth] = byDepth[n.depth] || []).push(n));
+    let end = t0;
+    Object.keys(byDepth).sort((a, b) => a - b).forEach((dk) => {
+      byDepth[dk].sort((a, b) => (a.born < b.born ? -1 : 1)).forEach((n, i) => {
+        const t = t0 + (dk - d0) * step + Math.min(i, 8) * sib;
+        const els = W.els(n.id);
+        els.forEach((e) => (e.style.opacity = ''));
+        els.filter((e) => e.tagName === 'line').forEach((e) => lineDraw(e, t, 300));
+        els.filter((e) => e.classList.contains('nd')).forEach((e) => {
+          e.classList.add('bud');
+          pop(e, t + 200, n.kind === 'concept' ? 'medium' : 'bounce');
+        });
+        els.filter((e) => e.classList.contains('lb')).forEach((e) => fade(e, t + 300, 260));
+        end = Math.max(end, t + 500);
+      });
+    });
+    return end;
   }
 
   /* ───────── 해금 대기열: 어떤 카드를 어떤 순서로 ───────── */
-  // unseen: 아직 못 본 해금. now 기준 14일 넘은 것은 놓친 해금 1장으로. 학문 카드는 3장까지, 넘으면 외 N개.
-  function plan(unseen, now, tree) {
+  // 14일 넘은 것은 놓친 해금 1장으로. 학문 카드는 3장까지, 넘으면 외 N개. 분과는 같은 묶음 학문 카드 안의 빛이거나 홈 띠.
+  function plan(unseen, now) {
     const day = (s) => new Date(s).getTime();
     const old = [], fresh = [];
     unseen.filter((u) => u.kind !== 'sparkle').forEach((u) => ((day(now) - day(u.at)) / 864e5 > 14 ? old : fresh).push(u));
@@ -278,135 +614,26 @@
     return { cards, bands };
   }
 
-  /* ───────── 그리기: 지식 지도 한 장 ───────── */
-  // vis: discId 마다 'faint' | 'hide' | 'on'. lights: 이 장면에서 돋아나는 분과 { discId: [branch node] }
-  // 분과는 학문에서 바깥으로 뻗되 옆으로 조금 휜다: 좌우에 있는 학문은 아래로, 위아래에 있는 학문은 오른쪽으로.
-  const bendOf = (a) => (Math.cos(a) > 0.2 ? -0.55 : Math.cos(a) < -0.2 ? 0.55 : Math.sin(a) > 0 ? -0.55 : 0.55);
-  function buildWorld(T, pos, opt = {}) {
-    const lights = opt.lights || {};
-    const lightConcepts = new Set();
-    const brPos = {};
-    Object.entries(lights).forEach(([did, brs]) => {
-      const p = pos[did];
-      const d = T.discs.find((x) => x.id === did);
-      const r = rOf(d.n);
-      const reach = d.n > 1 ? r + 12 + Math.ceil(d.n / 14) * 11 + 26 : r + 50;
-      brs.forEach((b, i) => {
-        const t = p.a + bendOf(p.a) * (1 + i * 0.9);
-        const bx = p.x + Math.cos(t) * reach, by = p.y - Math.sin(t) * reach;
-        const cs = T.concepts.filter((c) => c.path.includes(b.nodeId));
-        cs.forEach((c) => lightConcepts.add(c.id));
-        const dots = cs.map((c, k) => {
-          const tt = t + (k - (cs.length - 1) / 2) * 0.42;
-          return { c, x: bx + Math.cos(tt) * 26, y: by - Math.sin(tt) * 26 };
-        });
-        // 이름표: 좌우에 있는 학문이면 가운데(Latti) 쪽, 위아래에 있는 학문이면 학문 반대쪽
-        const left = Math.abs(Math.cos(p.a)) > 0.2 ? p.x > 0 : bx < p.x;
-        brPos[b.nodeId] = { b, did, x: bx, y: by, dots, left, ko: (T.byId[b.nodeId] || {}).ko || b.ko };
-      });
-    });
-    let links = '', bodies = '';
-    T.discs.forEach((d) => {
-      const p = pos[d.id];
-      const P = pal(d.color);
-      const r = rOf(d.n);
-      const L = Math.hypot(p.x, p.y);
-      const ux = p.x / L, uy = p.y / L;
-      const x0 = ux * 36, y0 = uy * 36, x1 = p.x - ux * r, y1 = p.y - uy * r;
-      links += `<g class="g-l" data-id="${d.id}"><line class="lk" x1="${R(x0)}" y1="${R(y0)}" x2="${R(x1)}" y2="${R(y1)}" stroke="var(--grey300)" stroke-width="1.5"/></g>`;
-      // 개념 점: 학문 둘레의 고리. 지금 돋아나는 분과의 개념은 그 분과 쪽에 따로 둔다.
-      const cs = T.concepts.filter((c) => c.disc === d.id && !lightConcepts.has(c.id));
-      let dots = '';
-      const n = cs.length;
-      if (n === 1) {
-        const t = p.a;
-        const x = p.x + Math.cos(t) * (r + 13), y = p.y - Math.sin(t) * (r + 13);
-        dots += `<circle cx="${R(x)}" cy="${R(y)}" r="3.4" fill="${P.c}" fill-opacity=".55"/>`;
-      } else if (n > 1) {
-        const caps = [12, 16, 20, 24, 28];
-        let k = 0, ri = 0;
-        while (k < n) {
-          const m = Math.min(caps[ri], n - k);
-          const rr = r + 12 + ri * 11;
-          for (let j = 0; j < m; j++, k++) {
-            const t = p.a + Math.PI + ((j + (ri % 2) * 0.5) / m) * Math.PI * 2;
-            const x = p.x + Math.cos(t) * rr, y = p.y - Math.sin(t) * rr;
-            const fresh = cs[k].first >= V.weekStart;
-            dots += `<line x1="${R(p.x)}" y1="${R(p.y)}" x2="${R(x)}" y2="${R(y)}" stroke="${P.c}" stroke-opacity=".12"/><circle cx="${R(x)}" cy="${R(y)}" r="${fresh ? 4 : 3.2}" fill="${P.c}" fill-opacity="${fresh ? 1 : 0.5}"/>`;
-          }
-          ri++;
-        }
-      }
-      const fs = r > 28 ? 18 : 14;
-      const ly = p.y - r - (n > 1 ? 12 + Math.ceil(n / 12) * 11 + 6 : 12);
-      bodies += `<g class="g-d" data-id="${d.id}">
-        <circle class="halo" cx="${R(p.x)}" cy="${R(p.y)}" r="${R(r + 64)}" fill="url(#halo-${d.id.slice(2)})" opacity="0"/>
-        <g class="dots">${dots}</g>
-        <circle class="ping bud" cx="${R(p.x)}" cy="${R(p.y)}" r="${R(r)}" fill="none" stroke="${P.c}" stroke-width="2" opacity="0"/>
-        <g class="nd bud"><circle class="body" cx="${R(p.x)}" cy="${R(p.y)}" r="${R(r)}" fill="${P.weak}" stroke="${P.c}" stroke-width="2"/>
-        <text class="cnt" x="${R(p.x)}" y="${R(p.y + fs * 0.36)}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${P.ink}">${d.n}</text></g>
-        <text class="lb" x="${R(p.x)}" y="${R(ly)}" text-anchor="middle" font-size="15" font-weight="700" fill="var(--grey700)">${esc(d.ko)}</text>
-      </g>`;
-    });
-    // 돋아나는 분과: 작은 노드와 그 개념 점
-    let brs = '';
-    Object.values(brPos).forEach((q) => {
-      const d = T.discs.find((x) => x.id === q.did);
-      const P = pal(d.color);
-      const p = pos[q.did];
-      const r = rOf(d.n);
-      const L = Math.hypot(q.x - p.x, q.y - p.y);
-      const ux = (q.x - p.x) / L, uy = (q.y - p.y) / L;
-      const right = q.left;
-      brs += `<g class="g-b" data-id="${q.b.nodeId}" data-disc="${q.did}">
-        <line class="lk" x1="${R(p.x + ux * r)}" y1="${R(p.y + uy * r)}" x2="${R(q.x - ux * 8)}" y2="${R(q.y - uy * 8)}" stroke="${P.c}" stroke-opacity=".5" stroke-width="1.5"/>
-        ${q.dots.map((t) => `<line class="dk" x1="${R(q.x)}" y1="${R(q.y)}" x2="${R(t.x)}" y2="${R(t.y)}" stroke="${P.c}" stroke-opacity=".25"/>`).join('')}
-        ${q.dots.map((t) => `<circle class="dt bud" cx="${R(t.x)}" cy="${R(t.y)}" r="4" fill="${P.c}"/>`).join('')}
-        <circle class="bn bud" cx="${R(q.x)}" cy="${R(q.y)}" r="8" fill="#fff" stroke="${P.c}" stroke-width="2.5"/>
-        <text class="bl" x="${R(q.x + (right ? -14 : 14))}" y="${R(q.y + 5)}" text-anchor="${right ? 'end' : 'start'}" font-size="13" font-weight="600" fill="${P.ink}">${esc(q.ko)}</text>
-      </g>`;
-    });
-    const defs = T.discs.map((d) => `<radialGradient id="halo-${d.id.slice(2)}"><stop offset="0" stop-color="${d.color}" stop-opacity=".22"/><stop offset=".55" stop-color="${d.color}" stop-opacity=".07"/><stop offset="1" stop-color="${d.color}" stop-opacity="0"/></radialGradient>`).join('');
-    const world = document.createElement('div');
-    world.className = 'world';
-    world.innerHTML = `<svg width="2400" height="2400" viewBox="-1200 -1200 2400 2400" aria-hidden="true"><defs>${defs}</defs><g class="L-links">${links}</g><g class="L-br">${brs}</g><g class="L-body">${bodies}</g></svg>`;
-    const q = (sel) => world.querySelector(sel);
-    return {
-      el: world,
-      T, pos, brPos,
-      d: (id) => ({ l: q(`.g-l[data-id="${id}"]`), b: q(`.g-d[data-id="${id}"]`) }),
-      br: (id) => q(`.g-b[data-id="${id}"]`),
-    };
-  }
-
-  function vis(W, id, how) {
-    const { l, b } = W.d(id);
-    const o = how === 'hide' ? 0 : how === 'faint' ? 0.28 : 1;
-    [l, b].forEach((g) => g && (g.style.opacity = o));
-    if (b) b.querySelector('.lb').setAttribute('fill', how === 'faint' ? 'var(--grey500)' : 'var(--grey700)');
-  }
-
   /* ───────── 카메라 ───────── */
-  // 화면 좌표 = (x, y) + s * 세계 좌표. Latti 는 늘 세계의 (0,0). Latti 표식은 크기를 거의 유지한다.
+  // 화면 = (x, y) + s * 세계. Latti 는 세계의 (0,0). Latti 크기는 지식 탭처럼 배율을 따라가되 2/3 아래로는 줄지 않는다.
+  const markScale = (s) => clamp(s, 0.667, 1);
   function setCam(S, c) {
     S.cam = c;
     S.world.style.transform = `translate(${c.x}px, ${c.y}px) scale(${c.s})`;
     S.lhost.style.transform = `translate(${c.x}px, ${c.y}px)`;
-    if (S.mark) S.mark.style.transform = `scale(${clamp(c.s, 0.7, 1)})`;
+    if (S.mark) S.mark.style.transform = `scale(${markScale(c.s)})`;
   }
   function moveCam(S, c, dur = 850, delay = 0) {
     const a = S.cam;
-    const opt = { duration: dur, delay, easing: E.inOut, fill: 'none' };
-    const an = ML.a(S.world, [{ transform: `translate(${a.x}px, ${a.y}px) scale(${a.s})` }, { transform: `translate(${c.x}px, ${c.y}px) scale(${c.s})` }], Object.assign({}, opt, { fill: 'backwards' }));
-    ML.a(S.lhost, [{ transform: `translate(${a.x}px, ${a.y}px)` }, { transform: `translate(${c.x}px, ${c.y}px)` }], Object.assign({}, opt, { fill: 'backwards' }));
-    if (S.mark) ML.a(S.mark, [{ transform: `scale(${clamp(a.s, 0.7, 1)})` }, { transform: `scale(${clamp(c.s, 0.7, 1)})` }], Object.assign({}, opt, { fill: 'backwards' }));
+    const opt = { duration: dur, delay, easing: E.inOut, fill: 'backwards' };
+    const an = ML.a(S.world, [{ transform: `translate(${a.x}px, ${a.y}px) scale(${a.s})` }, { transform: `translate(${c.x}px, ${c.y}px) scale(${c.s})` }], opt);
+    ML.a(S.lhost, [{ transform: `translate(${a.x}px, ${a.y}px)` }, { transform: `translate(${c.x}px, ${c.y}px)` }], opt);
+    if (S.mark) ML.a(S.mark, [{ transform: `scale(${markScale(a.s)})` }, { transform: `scale(${markScale(c.s)})` }], opt);
     setCam(S, c);
     return ML.done(an);
   }
-  // 새 학문을 볼 때: 무대 가운데에 Latti 와 새 노드 사이를 두되, Latti 말풍선 자리를 남긴다.
-  function focusCam(P, H, extra = []) {
-    const pts = [P, ...extra];
-    // Latti 는 가로 140~250, 세로 120~H-130 안에 둔다(말풍선 자리). 새 노드와 분과가 무대 안에 들도록 필요하면 조금 물러선다.
+  // 새 학문을 볼 때: Latti 와 새 노드 사이를 무대 가운데에. Latti 는 말풍선 자리를 위해 가로 140~250 에 둔다.
+  function focusCam(P, H, pts) {
     let s = 1;
     pts.forEach((p) => {
       if (p.x < 0) s = Math.min(s, 212 / -p.x);
@@ -414,27 +641,31 @@
       if (p.y < 0) s = Math.min(s, (H - 174) / -p.y);
       if (p.y > 0) s = Math.min(s, (H - 150) / p.y);
     });
-    s = Math.max(0.72, s);
+    s = Math.max(0.7, Math.min(1.25, s));
     let x = clamp(195 - P.x * s * 0.56, 140, 250);
-    let y = clamp(H / 2 - P.y * s * 0.56 + 34, 120, H - 130);
+    let y = clamp(H / 2 - P.y * s * 0.56 + 20, 120, H - 130);
     pts.forEach((p) => {
-      if (x + s * p.x > 352) x -= x + s * p.x - 352;
-      if (x + s * p.x < 38) x += 38 - (x + s * p.x);
-      if (y + s * p.y > H - 30) y -= y + s * p.y - (H - 30);
-      if (y + s * p.y < 44) y += 44 - (y + s * p.y);
+      if (x + s * p.x > 362) x -= x + s * p.x - 362;
+      if (x + s * p.x < 28) x += 28 - (x + s * p.x);
+      if (y + s * p.y > H - 24) y -= y + s * p.y - (H - 24);
+      if (y + s * p.y < 36) y += 36 - (y + s * p.y);
     });
     return { x, y, s };
   }
-  function fitCam(W, ids, box) {
-    let x0 = -40, x1 = 40, y0 = -40, y1 = 40;
+  function ptsOf(W, ids) {
+    const out = [];
     ids.forEach((id) => {
-      const p = W.pos[id];
-      const d = W.T.discs.find((q) => q.id === id);
-      const r = rOf(d.n) + 30;
-      x0 = Math.min(x0, p.x - r); x1 = Math.max(x1, p.x + r); y0 = Math.min(y0, p.y - r); y1 = Math.max(y1, p.y + r);
+      const I = W.info.get(id);
+      if (!I) return;
+      out.push({ x: I.x - I.r, y: I.y - I.r }, { x: I.x + I.r, y: I.y + I.r });
+      if (I.label) out.push({ x: I.label.x0, y: I.label.y0 }, { x: I.label.x1, y: I.label.y1 + 16 });
     });
-    const s = Math.min((box.w - 30) / (x1 - x0), (box.h - 40) / (y1 - y0), 1);
-    return { x: box.w / 2 - s * (x0 + x1) / 2, y: box.h / 2 - s * (y0 + y1) / 2, s };
+    return out;
+  }
+  function fitCam(M, box) {
+    const b = M.box;
+    const s = Math.min((box.w - 30) / (b.x1 - b.x0), (box.h - 30) / (b.y1 - b.y0), 1);
+    return { x: box.w / 2 - (s * (b.x0 + b.x1)) / 2, y: box.h / 2 - (s * (b.y0 + b.y1)) / 2, s };
   }
 
   /* ───────── 장면 공통 ───────── */
@@ -456,20 +687,19 @@
     if (oldEl) ML.a(oldEl, [{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease' }).finished.then(() => oldEl.remove()).catch(() => oldEl.remove());
     ML.a(newEl, [{ opacity: 0 }, { opacity: 1 }], { duration: d, delay: 40, easing: 'ease' });
   }
-  const lineDraw = (el, delay, dur = 480) => {
+  function lineDraw(el, delay, dur = 480) {
     if (!el) return null;
     const L = Math.hypot(el.x2.baseVal.value - el.x1.baseVal.value, el.y2.baseVal.value - el.y1.baseVal.value);
     el.style.strokeDasharray = `${L} ${L}`;
-    return ML.a(el, [{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: dur, delay, easing: E.out });
-  };
-  const pop = (el, delay, name = 'bounce') => el && K.spring(el, [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], name, { delay });
-  const rise = (el, delay) => el && ML.a(el, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 420, delay, easing: E.out });
-  const fade = (el, delay, dur = 300) => el && ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: dur, delay, easing: 'ease' });
+    return ML.a(el, [{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: dur, delay, easing: E.out, fill: 'backwards' });
+  }
+  const pop = (el, delay, name = 'bounce') => el && K.spring(el, [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], name, { delay, fill: 'backwards' });
+  const rise = (el, delay) => el && ML.a(el, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 420, delay, easing: E.out, fill: 'backwards' });
+  const fade = (el, delay, dur = 300) => el && ML.a(el, [{ opacity: 0 }, { opacity: 1 }], { duration: dur, delay, easing: 'ease', fill: 'backwards' });
 
   const ORD = ['', '첫', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉', '열'];
   const ordinal = (n) => (n < ORD.length ? `${ORD[n]} 번째` : `${n}번째`);
   const md = (s) => `${+s.slice(5, 7)}월 ${+s.slice(8, 10)}일`;
-  const conceptsOf = (T, nodeId, date) => T.concepts.filter((c) => c.path.includes(nodeId) && c.first === date.slice(0, 10));
 
   const ICON = {
     home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
@@ -520,302 +750,211 @@
   }
 
   /* ───────── 2. 큰 해금 화면 ───────── */
-  // 하나의 지도 위에서 카드마다 카메라를 옮긴다.
-  function makeStage(T, pos, lights, turn) {
-    const el = scene('unlock', `<div class="stage"></div><div class="udots"></div><div class="ucopy"></div><div class="ubtns"></div>`);
-    const st = el.querySelector('.stage');
-    const W = buildWorld(T, pos, { lights, turn });
+  function mountStage(host, M, H) {
+    const st = document.createElement('div');
+    st.className = 'stage';
+    host.prepend(st);
+    const W = buildWorld(M);
     st.append(W.el);
     const lhost = document.createElement('div');
     lhost.className = 'lhost';
     lhost.innerHTML = '<span class="lc"><span class="lt"></span></span>';
     st.append(lhost);
     const lt = lhost.querySelector('.lt');
-    Latti.mount(lt, { size: 64, shape: 'circle', side: 'bottom' });
-    const S = { el, st, W, world: W.el, lhost, lt, mark: lt.querySelector('.lt-mark'), H: 500, cam: { x: 195, y: 235, s: 1 } };
-    return S;
+    Latti.mount(lt, { size: 60, shape: 'circle', side: 'bottom' });
+    return { el: host, st, W, world: W.el, lhost, lt, mark: lt.querySelector('.lt-mark'), H, cam: { x: 195, y: H / 2, s: 1 } };
   }
 
-  function sideFor(S, cam, P, text) {
-    // 말풍선이 새 선을 가리지 않는 쪽
+  function sideFor(cam, P, text) {
+    // 말풍선이 새 선을 가리지 않는 쪽(위/아래)
     const w = [...text].length * 15.6 + 30;
-    const Lx = cam.x, Ly = cam.y;
-    const segHits = (y0, y1) => {
-      let hit = 0;
-      for (let t = 0.15; t <= 1; t += 0.05) {
+    const Lx = cam.x, Ly = cam.y, rr = 30 * markScale(cam.s);
+    const hits = (y0, y1) => {
+      let h = 0;
+      for (let t = 0.1; t <= 1; t += 0.05) {
         const x = Lx + P.x * cam.s * t, y = Ly + P.y * cam.s * t;
-        if (x > Lx - w / 2 && x < Lx + w / 2 && y > y0 && y < y1) hit++;
+        if (x > Lx - w / 2 && x < Lx + w / 2 && y > y0 && y < y1) h++;
       }
-      return hit;
+      return h;
     };
-    const top = segHits(Ly - 32 - 14 - 44, Ly - 32 - 6);
-    const bot = segHits(Ly + 32 + 6, Ly + 32 + 14 + 44);
-    return bot <= top ? 'bottom' : 'top';
+    return hits(Ly + rr + 6, Ly + rr + 60) <= hits(Ly - rr - 60, Ly - rr - 6) ? 'bottom' : 'top';
   }
+  const dotsHtml = (n, i) => (n > 1 ? Array.from({ length: n }, (_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('') : '');
 
-  function dotsHtml(n, i) {
-    return n > 1 ? Array.from({ length: n }, (_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('') : '';
+  function setCopy(S, html, btnColor) {
+    const copy = S.el.querySelector('.ucopy');
+    copy.innerHTML = html;
+    const btns = S.el.querySelector('.ubtns');
+    btns.innerHTML = `<button class="tbtn ghost" data-k="next">계속</button><button class="tbtn" data-k="go"${btnColor ? ` style="background:${btnColor}"` : ''}>보러 가기</button>`;
+    btns.querySelectorAll('.tbtn').forEach((b) => K.press(b));
+    [copy, btns].forEach((x) => (x.style.opacity = 0));
+    return { copy, btns };
+  }
+  async function showCopy(S, copy, btns, line, side, g, t = 0) {
+    copy.style.opacity = '';
+    copy.querySelectorAll('.k, h1').forEach((x, k) => rise(x, t + k * 70));
+    fade(copy.querySelector('.fl'), t + 480, 360);
+    await later(t + 480, g);
+    if (line) Latti.say(S.lt, line, { float: true, side, stay: true });
+    btns.style.opacity = '';
+    rise(btns, 120);
+    await later(320, g);
   }
 
   async function playMajor(S, card, i, n, g) {
-    const W = S.W, T = W.T;
+    const W = S.W, M = W.M;
     const u = card.item;
-    const d = T.discs.find((x) => x.id === u.nodeId);
-    const P = W.pos[d.id];
+    const d = M.N.get(u.nodeId);
     const pc = pal(d.color);
-    const brs = card.lights.map((b) => W.brPos[b.nodeId]).filter(Boolean);
-    const extra = brs.flatMap((q) => [q, ...q.dots, { x: q.x + (q.left ? -1 : 1) * (14 + [...q.ko].length * 13.5), y: q.y }]);
-    const cam = focusCam(P, S.H, extra);
+    const ids = subtree(d).map((x) => x.id);
+    const P = { x: d.x, y: d.y };
     S.el.querySelector('.udots').innerHTML = dotsHtml(n, i);
-
-    // 글
-    const prev = T.discs.filter((x) => x.createdAt < d.createdAt).map((x) => x.createdAt).sort().pop();
-    const gap = prev ? Math.round((new Date(d.createdAt) - new Date(prev)) / 864e5) : 0;
-    const items = conceptsOf(T, d.id, u.at);
+    const prev = M.discs.filter((x) => x.born < d.born).map((x) => x.born).sort().pop();
+    const gap = prev ? Math.round((new Date(d.born) - new Date(prev)) / 864e5) : 0;
+    const items = subtree(d).filter((x) => x.kind === 'concept' && x.born === u.at.slice(0, 10));
     const line = lineFor('unlock.major', u.id, { field: d.ko, n: u.nth, first: u.byName, gap, rank: 'discipline' });
-    const copy = S.el.querySelector('.ucopy');
-    copy.innerHTML = `<div class="k" style="color:${pc.ink}">${ordinal(u.nth)} 학문</div><h1>${esc(d.ko)} 부문을<br>해금했어요!</h1>
-      <div class="fl">${items.map((c) => `<i>${esc(c.name)}</i>`).join('')}</div>`;
-    const btns = S.el.querySelector('.ubtns');
-    btns.innerHTML = `<button class="tbtn ghost" data-k="next">계속</button><button class="tbtn" data-k="go" style="background:${pc.c}">보러 가기</button>`;
-    btns.querySelectorAll('.tbtn').forEach((b) => K.press(b));
-    [copy, btns].forEach((x) => (x.style.opacity = 0));
+    const { copy, btns } = setCopy(S, `<div class="k" style="color:${pc.ink}">${ordinal(u.nth)} 학문</div><h1>${esc(d.ko)} 부문을<br>해금했어요!</h1>
+      <div class="fl">${items.map((c) => `<i>${esc(c.ko)}</i>`).join('')}</div>`, d.color);
 
-    // 지도: 새 노드는 숨겨 두고 카메라부터
-    const nd = W.d(d.id);
-    vis(W, d.id, 'on');
-    const link = nd.l.querySelector('.lk');
-    const body = nd.b.querySelector('.nd');
-    const circle = nd.b.querySelector('.body');
-    const cnt = nd.b.querySelector('.cnt');
-    const lb = nd.b.querySelector('.lb');
-    const dotsG = nd.b.querySelector('.dots');
-    [body, lb, dotsG].forEach((x) => (x.style.opacity = 0));
-    link.style.opacity = 0;
-    brs.forEach((q) => (W.br(q.b.nodeId).style.opacity = 0));
-
-    await moveCam(S, cam, 900, 0).then(() => null);
-    if (g !== gen) return;
-    // 선이 뻗고, 노드가 돋아나고, 켜진다
-    link.style.opacity = 1;
-    link.setAttribute('stroke', pc.soft);
-    link.setAttribute('stroke-width', '2');
-    lineDraw(link, 0, 420);
-    await later(360, g);
-    body.style.opacity = '';
-    pop(body, 0);
-    fade(lb, 160, 260);
-    lb.style.opacity = '';
-    lb.setAttribute('fill', pc.ink);
-    await later(420, g);
-    // 켜짐: 색이 꽉 차고, 둘레가 한 번 퍼지고, 은은한 빛이 남는다
-    ML.a(circle, [{ fill: pc.weak }, { fill: pc.c }], { duration: 280, easing: 'ease', fill: 'forwards' });
-    ML.a(cnt, [{ fill: pc.ink }, { fill: '#ffffff' }], { duration: 280, easing: 'ease', fill: 'forwards' });
-    const ping = nd.b.querySelector('.ping');
-    ML.a(ping, [{ opacity: 0.55, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(1.9)' }], { duration: 760, easing: E.out, fill: 'none' });
-    ML.a(nd.b.querySelector('.halo'), [{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease', fill: 'forwards' });
-    Latti.mood(S.lt, 'cheer');
-    dotsG.style.opacity = '';
-    fade(dotsG, 200, 300);
-    // 같은 묶음의 분과: 바깥쪽 작은 빛
-    brs.forEach((q, k) => {
-      const gb = W.br(q.b.nodeId);
-      gb.style.opacity = 1;
-      const base = 260 + k * 200;
-      lineDraw(gb.querySelector('.lk'), base, 300);
-      gb.querySelectorAll('.dk').forEach((x) => lineDraw(x, base + 360, 200));
-      const bn = gb.querySelector('.bn');
-      pop(bn, base + 240);
-      ML.a(bn, [{ fill: '#ffffff' }, { fill: pc.c }], { duration: 260, delay: base + 520, easing: 'ease', fill: 'forwards' });
-      gb.querySelectorAll('.dt').forEach((x, j) => pop(x, base + 460 + j * 70, 'medium'));
-      fade(gb.querySelector('.bl'), base + 380, 260);
-    });
-    copy.style.opacity = '';
-    copy.querySelectorAll('.k, h1').forEach((x, k) => rise(x, k * 70));
-    fade(copy.querySelector('.fl'), 520, 360);
-    await later(520, g);
-    if (line) Latti.say(S.lt, line, { float: true, side: sideFor(S, cam, P, line), stay: true, delay: 0 });
-    btns.style.opacity = '';
-    rise(btns, 120);
-    await later(300, g);
-    S.cur = { type: 'major', disc: d.id, cam };
-  }
-
-  async function playMissed(S, card, i, n, g) {
-    const W = S.W, T = W.T;
-    S.el.querySelector('.udots').innerHTML = dotsHtml(n, i);
-    const items = card.items.slice().sort((a, b) => (a.at < b.at ? -1 : 1));
-    const majors = items.filter((u) => u.kind === 'major');
-    const cam = fitCam(W, T.discs.map((x) => x.id), { w: 390, h: S.H });
-    const line = lineFor('unlock.missed', items.map((x) => x.id).join('+'), { n: items.length });
-    const copy = S.el.querySelector('.ucopy');
-    copy.innerHTML = `<div class="k" style="color:var(--grey500)">${md(items[0].at)}부터</div><h1>놓친 해금<br>${items.length}개</h1>
-      <div class="fl">${items.map((u) => `<i style="${u.kind === 'major' ? 'color:var(--grey500);font-weight:600' : ''}">${esc(u.ko)}</i>`).join('')}</div>`;
-    const btns = S.el.querySelector('.ubtns');
-    btns.innerHTML = `<button class="tbtn ghost" data-k="next">계속</button><button class="tbtn" data-k="go">보러 가기</button>`;
-    btns.querySelectorAll('.tbtn').forEach((b) => K.press(b));
-    [copy, btns].forEach((x) => (x.style.opacity = 0));
-    // 넓게 볼 때는 이름표를 숨긴다(작아서 읽히지 않는다). 이름은 아래 흐린 목록에.
-    S.world.querySelectorAll('.lb').forEach((x) => (x.style.opacity = 0));
-    majors.forEach((u) => {
-      const nd = W.d(u.nodeId);
-      nd.l.style.opacity = 1;
-      nd.b.style.opacity = 1;
-      nd.l.querySelector('.lk').style.opacity = 0;
-      nd.b.querySelector('.nd').style.opacity = 0;
-      nd.b.querySelector('.dots').style.opacity = 0;
-    });
+    // 지식 탭 규칙으로 이름이 가려졌으면(Latti 자리와 겹침) 이 화면에서는 노드 옆에 둔다
+    const Id = W.info.get(d.id);
+    if (!Id.label) {
+      W.svg.querySelector('.LT').insertAdjacentHTML('beforeend', `<text class="lb" data-n="${d.id}" data-d="${d.id}" x="${R(Id.x + Id.r + 9)}" y="${R(Id.y + 5.5)}" font-size="15" font-weight="700" fill="#191f28" style="opacity:0">${esc(d.ko)}</text>`);
+      Id.label = { x0: Id.x + Id.r + 9, x1: Id.x + Id.r + 9 + KW(d.ko) * 15, y0: Id.y - 10, y1: Id.y + 6 };
+    }
+    const cam = focusCam(P, S.H, ptsOf(W, ids));
     await moveCam(S, cam, 900);
     if (g !== gen) return;
-    for (const [k, u] of majors.entries()) {
-      const nd = W.d(u.nodeId);
-      const pc = pal(T.byId[u.nodeId].color);
-      const lk = nd.l.querySelector('.lk');
-      lk.style.opacity = 1;
-      lk.setAttribute('stroke', pc.soft);
-      lineDraw(lk, k * 260, 360);
-      const body = nd.b.querySelector('.nd');
-      body.style.opacity = '';
-      pop(body, k * 260 + 300);
-      const dg = nd.b.querySelector('.dots');
-      dg.style.opacity = '';
-      fade(dg, k * 260 + 420, 400);
-      ML.a(nd.b.querySelector('.halo'), [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: k * 260 + 420, easing: 'ease', fill: 'forwards' });
-    }
+    // 학문: 선이 뻗고, 연한 원으로 돋아나, 학문 색으로 켜진다
+    const end = grow(W, ids, 0);
+    const body = W.svg.querySelector(`.LN .body[data-n="${d.id}"]`);
+    ML.a(body, [{ fill: pc.weak, strokeWidth: 2 }, { fill: pc.weak, strokeWidth: 2, offset: 0.6 }, { fill: d.color, strokeWidth: 0 }], { duration: 900, easing: 'ease', fill: 'backwards' });
+    await later(760, g);
+    ping(W, d);
+    addHalo(W, d, (W.info.get(d.id).r + 70));
+    Latti.mood(S.lt, 'cheer');
+    await showCopy(S, copy, btns, line, sideFor(cam, P, line || ''), g, Math.max(0, end - 900));
+    S.cur = { type: 'major', node: d.id, cam };
+  }
+
+  async function playMissed(S, card, i, n, g, hiddenNow) {
+    const W = S.W, M = W.M;
+    S.el.querySelector('.udots').innerHTML = dotsHtml(n, i);
+    const items = card.items.slice().sort((a, b) => (a.at < b.at ? -1 : 1));
+    const cam = fitCam(M, { w: 390, h: S.H });
+    const line = lineFor('unlock.missed', items.map((x) => x.id).join('+'), { n: items.length });
+    const { copy, btns } = setCopy(S, `<div class="k" style="color:var(--grey500)">${md(items[0].at)}부터</div><h1>놓친 해금<br>${items.length}개</h1>
+      <div class="fl">${items.map((u) => `<i style="${u.kind === 'major' ? 'color:var(--grey600);font-weight:600' : ''}">${esc(u.ko)}</i>`).join('')}</div>`);
+    // 넓게 볼 때는 개념 이름을 숨긴다. 이름은 아래 흐린 목록에.
+    await moveCam(S, cam, 900);
+    if (g !== gen) return;
+    // 그동안 생긴 노드가 생긴 날짜 순서로 돋는다(1.6초 안에)
+    const ns = [...hiddenNow].map((id) => M.N.get(id)).filter(Boolean).sort((a, b) => (a.born < b.born ? -1 : 1));
+    const t0 = ns.length ? new Date(ns[0].born).getTime() : 0, t1 = ns.length ? new Date(ns[ns.length - 1].born).getTime() : 1;
+    ns.forEach((x) => {
+      const t = ((new Date(x.born).getTime() - t0) / Math.max(1, t1 - t0)) * 1500;
+      const els = W.els(x.id);
+      els.forEach((e) => (e.style.opacity = ''));
+      els.filter((e) => e.tagName === 'line').forEach((e) => lineDraw(e, t, 260));
+      els.filter((e) => e.classList.contains('nd')).forEach((e) => { e.classList.add('bud'); pop(e, t + 120, 'medium'); });
+      els.filter((e) => e.classList.contains('lb')).forEach((e) => fade(e, t + 200, 260));
+      if (x.kind === 'disc') setTimeout(() => g === gen && addHalo(W, x, W.info.get(x.id).r + 60), (t + 200) / ML.rate);
+    });
+    hiddenNow.clear();
     Latti.mood(S.lt, 'happy');
-    copy.style.opacity = '';
-    copy.querySelectorAll('.k, h1').forEach((x, k) => rise(x, 300 + k * 70));
-    fade(copy.querySelector('.fl'), 800, 360);
-    await later(majors.length * 260 + 500, g);
-    if (line) Latti.say(S.lt, line, { float: true, side: 'bottom', stay: true });
-    btns.style.opacity = '';
-    rise(btns, 100);
-    await later(300, g);
+    await showCopy(S, copy, btns, line, 'bottom', g, 900);
     S.cur = { type: 'missed', cam };
   }
 
   async function settle(S) {
-    // 다음 카드 전에: 지금 켜진 노드는 보통 노드로 돌아가고 흐려진다
-    const W = S.W;
     Latti.hush(S.lt);
     const copy = S.el.querySelector('.ucopy'), btns = S.el.querySelector('.ubtns');
     await Promise.all([ML.done(ML.a(copy, [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: 'translateX(-16px)' }], { duration: 200, easing: E.in, fill: 'forwards' })), ML.done(ML.a(btns, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' }))]);
     copy.getAnimations().forEach((a) => a.cancel());
     btns.getAnimations().forEach((a) => a.cancel());
-    W.T.discs.forEach((d) => {
-      const nd = W.d(d.id);
-      if (nd.b.style.opacity !== '0') vis(W, d.id, 'faint');
-      const h = nd.b.querySelector('.halo');
-      if (+getComputedStyle(h).opacity > 0) ML.a(h, [{ opacity: getComputedStyle(h).opacity }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
-    });
-    S.world.querySelectorAll('.g-b').forEach((x) => x.style.opacity !== '0' && (x.style.opacity = 0.28));
+    // 방금 켜진 것도 이제 이미 본 것: 흐리게
+    S.W.M.discs.forEach((d) => discState(S.W, d.id, 'faint', S.hidden));
+    S.W.svg.querySelectorAll('.halo').forEach((h) => ML.a(h, [{ opacity: getComputedStyle(h).opacity }, { opacity: 0 }], { duration: 400, fill: 'forwards' }));
   }
 
   /* 지식 탭으로: 같은 지도가 그대로 지식 탭이 된다 */
-  async function toKnowledge(S, focusId, g) {
-    const W = S.W, T = W.T;
+  async function toKnowledge(S, focusId) {
+    const W = S.W, M = W.M;
     Latti.hush(S.lt);
-    const k = scene('know', `<div class="ghd"><b>지식</b><span>개념<em class="num">${T.concepts.length}</em>학문<em class="num">${T.discs.length}</em></span></div>${tabs('graph')}`);
+    const nC = [...M.N.values()].filter((x) => x.kind === 'concept').length;
+    const k = scene('know', `<div class="ghd"><b>지식</b><span>개념<em class="num">${nC}</em>학문<em class="num">${M.discs.length}</em></span></div>${tabs('graph')}`);
     k.style.background = 'transparent';
     k.style.zIndex = 4;
     k.style.pointerEvents = 'none';
     fade(k.querySelector('.ghd'), 80, 260);
     ML.a(k.querySelector('.tabs'), [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 380, delay: 60, easing: E.sheet });
-    ML.a(S.el.querySelector('.ucopy'), [{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' });
-    ML.a(S.el.querySelector('.ubtns'), [{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' });
-    ML.a(S.el.querySelector('.udots'), [{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' });
-    // 무대를 지식 탭 크기로 넓힌다
+    ['.ucopy', '.ubtns', '.udots'].forEach((q) => ML.a(S.el.querySelector(q), [{ opacity: 1 }, { opacity: 0 }], { duration: 180, fill: 'forwards' }));
     const H2 = 800 - 64 - 64;
     ML.a(S.st, [{ top: '0px', height: S.H + 'px' }, { top: '64px', height: H2 + 'px' }], { duration: 520, easing: E.sheet, fill: 'forwards' });
-    const c0 = S.cam;
-    setCam(S, { x: c0.x, y: c0.y - 64, s: c0.s });
-    S.cam = { x: c0.x, y: c0.y - 64, s: c0.s };
-    T.discs.forEach((d) => vis(W, d.id, 'on'));
-    S.world.querySelectorAll('.lb').forEach((x) => (x.style.opacity = ''));
-    S.world.querySelectorAll('.g-b').forEach((x) => (x.style.opacity = 1));
-    S.world.querySelectorAll('.halo').forEach((h) => {
+    setCam(S, { x: S.cam.x, y: S.cam.y - 64, s: S.cam.s });
+    // 남은 새 노드(분과 띠로 알릴 것 포함)도 지식 탭에는 다 있다
+    S.hidden.forEach((id) => W.els(id).forEach((e) => fade(e, 200, 400)));
+    S.hidden.forEach((id) => setOp(W.els(id), ''));
+    S.hidden.clear();
+    M.discs.forEach((d) => setOp(W.ofDisc(d.id), 1));
+    S.W.svg.querySelectorAll('.halo').forEach((h) => {
       const o = +getComputedStyle(h).opacity;
       if (o > 0) ML.a(h, [{ opacity: o }, { opacity: 0.5 }], { duration: 500, fill: 'forwards' });
     });
     let cam;
     if (focusId) {
-      const P = W.pos[focusId];
-      cam = { x: 195 - P.x * 0.8, y: H2 / 2 - P.y * 0.8 + 20, s: 1 };
-    } else cam = fitCam(W, T.discs.map((x) => x.id), { w: 390, h: H2 });
+      const n = M.N.get(focusId);
+      const ids = subtree(n).map((x) => x.id);
+      const pts = ptsOf(W, ids).concat([{ x: 0, y: 0 }]);
+      const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+      const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by0 = Math.min(...ys), by1 = Math.max(...ys);
+      const s = clamp(Math.min(330 / (bx1 - bx0), (H2 - 120) / (by1 - by0)), 0.7, 1.15);
+      cam = { x: 195 - (s * (bx0 + bx1)) / 2, y: H2 / 2 - (s * (by0 + by1)) / 2, s };
+    } else cam = fitCam(M, { w: 390, h: H2 });
     await moveCam(S, cam, 700);
-    if (cam.s > 0.8) S.world.querySelectorAll('.lb').forEach((x) => (x.style.opacity = ''));
     state = { name: 'know', ready: true, next: null };
   }
 
   /* ───────── 3. 홈과 분과 띠 ───────── */
-  function snippet(T, pos, band) {
-    // 부모 학문에서 새 분과가 돋아나는 조각. 지식 지도와 같은 노드 모양.
-    const W = 96, H = 96;
-    const d = T.byId[band.disc];
-    const dd = T.discs.find((x) => x.id === band.disc);
-    const P = pos[band.disc];
-    const pc = pal(d.color);
-    const r = rOf(dd.n);
-    const t = P.a + bendOf(P.a);
-    const reach = dd.n > 1 ? r + 12 + Math.ceil(dd.n / 14) * 11 + 26 : r + 50;
-    const bx = P.x + Math.cos(t) * reach, by = P.y - Math.sin(t) * reach;
-    const s = 0.44;
-    const cx = P.x * 0.45 + bx * 0.55, cy = P.y * 0.45 + by * 0.55 - 12;
-    const X = (x) => R(W / 2 + (x - cx) * s), Y = (y) => R(H / 2 + (y - cy) * s);
-    const L = Math.hypot(P.x, P.y), ux = P.x / L, uy = P.y / L;
-    const bl = Math.hypot(bx - P.x, by - P.y), bux = (bx - P.x) / bl, buy = (by - P.y) / bl;
-    const cs = T.concepts.filter((c) => c.path.includes(band.nodeId));
-    let dots = '';
-    const others = T.concepts.filter((c) => c.disc === band.disc && !c.path.includes(band.nodeId)).length;
-    for (let j = 0; j < Math.min(others, 28); j++) {
-      const rr = r + 12 + (j >= 12 ? 11 : 0);
-      const m = j < 12 ? 12 : 16;
-      const tt = P.a + Math.PI + (((j < 12 ? j : j - 12) + (j >= 12 ? 0.5 : 0)) / m) * Math.PI * 2;
-      dots += `<circle cx="${X(P.x + Math.cos(tt) * rr)}" cy="${Y(P.y - Math.sin(tt) * rr)}" r="1.7" fill="${pc.c}" fill-opacity=".45"/>`;
-    }
-    const cdots = cs.map((c, k) => {
-      const tt = t + (k - (cs.length - 1) / 2) * 0.42;
-      return { x: bx + Math.cos(tt) * 26, y: by - Math.sin(tt) * 26 };
-    });
-    // Latti: 가운데 원과 흰 칸 3x3
-    const lx = X(0), ly = Y(0), lr = 32 * s;
+  // 띠 안의 조각: 같은 지도를 작게 잘라 보여 준다. 부모 학문에서 새 분과가 돋아난다.
+  function snippet(W, band) {
+    const M = W.M;
+    const b = M.N.get(band.nodeId);
+    const p = b.parent;
+    const Ib = W.info.get(b.id), Ip = W.info.get(p.id);
+    const s = 0.95, S0 = 96;
+    const sub = subtree(b).map((x) => W.info.get(x.id)).filter(Boolean);
+    const mx = sub.reduce((t, q) => t + q.x, 0) / sub.length, my = sub.reduce((t, q) => t + q.y, 0) / sub.length;
+    const cx = Ip.x * 0.22 + mx * 0.78, cy = Ip.y * 0.22 + my * 0.78;
+    const vb = [cx - S0 / 2 / s, cy - S0 / 2 / s, S0 / s, S0 / s];
+    // Latti: 가운데 원과 흰 칸 3x3 (조각 안에 들어올 때만 보인다)
     let cells = '';
-    const cell = lr * 0.36, gap = lr * 0.1;
+    const cell = 30 * 0.36, gap = 30 * 0.1;
     for (let i = 0; i < 9; i++) {
       const ox = ((i % 3) - 1) * (cell + gap), oy = (((i / 3) | 0) - 1) * (cell + gap);
-      cells += `<rect x="${R(lx + ox - cell / 2)}" y="${R(ly + oy - cell / 2)}" width="${R(cell)}" height="${R(cell)}" rx="${R(cell * 0.3)}" fill="#fff"/>`;
+      cells += `<rect x="${R(ox - cell / 2)}" y="${R(oy - cell / 2)}" width="${R(cell)}" height="${R(cell)}" rx="${R(cell * 0.3)}" fill="#fff"/>`;
     }
-    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">
-      <line x1="${X(ux * 36)}" y1="${Y(uy * 36)}" x2="${X(P.x - ux * r)}" y2="${Y(P.y - uy * r)}" stroke="var(--grey300)" stroke-width="1.2"/>
-      <circle cx="${lx}" cy="${ly}" r="${R(lr)}" fill="var(--blue500)"/>${cells}
-      <g>${dots}</g>
-      <circle class="halo" cx="${X(bx)}" cy="${Y(by)}" r="22" fill="url(#bh)" opacity="0"/>
-      <defs><radialGradient id="bh"><stop offset="0" stop-color="${pc.c}" stop-opacity=".3"/><stop offset="1" stop-color="${pc.c}" stop-opacity="0"/></radialGradient></defs>
-      <circle cx="${X(P.x)}" cy="${Y(P.y)}" r="${R(r * s)}" fill="${pc.weak}" stroke="${pc.c}" stroke-width="1.5"/>
-      <text x="${X(P.x)}" y="${R(+Y(P.y) + 4.5)}" text-anchor="middle" font-size="12" font-weight="700" fill="${pc.ink}">${dd.n}</text>
-      <line class="lk" x1="${X(P.x + bux * r)}" y1="${Y(P.y + buy * r)}" x2="${X(bx - bux * 8)}" y2="${Y(by - buy * 8)}" stroke="${pc.c}" stroke-opacity=".6" stroke-width="1.5"/>
-      ${cdots.map((q) => `<line class="dk" x1="${X(bx)}" y1="${Y(by)}" x2="${X(q.x)}" y2="${Y(q.y)}" stroke="${pc.c}" stroke-opacity=".3"/>`).join('')}
-      ${cdots.map((q) => `<circle class="dt bud" cx="${X(q.x)}" cy="${Y(q.y)}" r="2.6" fill="${pc.c}"/>`).join('')}
-      <circle class="bn bud" cx="${X(bx)}" cy="${Y(by)}" r="5.5" fill="#fff" stroke="${pc.c}" stroke-width="2"/>
-    </svg>`;
+    const svgInner = W.svg.innerHTML.replace(/<g class="LT">[\s\S]*?<\/g>/, '');
+    const hid = 'sh' + b.id.replace(/\W/g, '');
+    const halo = `<defs><radialGradient id="${hid}"><stop offset="0" stop-color="${b.color}" stop-opacity=".22"/><stop offset="1" stop-color="${b.color}" stop-opacity="0"/></radialGradient></defs><circle class="sh" cx="${R(mx)}" cy="${R(my)}" r="46" fill="url(#${hid})"/>`;
+    return `<svg width="${S0}" height="${S0}" viewBox="${vb.map(R).join(' ')}" aria-hidden="true">${halo}${svgInner}<circle r="30" fill="var(--blue500)"/>${cells}</svg>`;
   }
 
-  async function home(T, pos, bands, g, from) {
-    const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+  async function home(M, bands, g, from) {
     const today = V.days[V.days.length - 1];
-    const wk = V.days.filter((x) => x.date >= V.weekStart);
     const Tk = [
-      { nm: '뉴스', c: today.newsRead, of: 2, bg: 'var(--blue-weak)', ic: ICON.news },
+      { nm: '뉴스', c: today.newsRead, of: V.rules.quota.news, bg: 'var(--blue-weak)', ic: ICON.news },
       { nm: '영단어', c: today.vocNew.length + today.vocReviewed, of: V.rules.quota.voc, bg: '#f7edfa', ic: ICON.voc },
       { nm: 'Latticework', c: today.latSolved, of: V.rules.quota.lat, bg: 'var(--green-weak)', ic: ICON.lat },
     ];
+    const W = buildWorld(M);
     const bandHtml = bands.map((b) => {
-      const d = T.byId[b.disc];
-      const cs = conceptsOf(T, b.nodeId, b.at);
+      const d = M.N.get(b.disc);
+      const cs = subtree(M.N.get(b.nodeId)).filter((x) => x.kind === 'concept' && x.born === b.at.slice(0, 10));
       const line = lineFor('unlock.minor', b.id, { field: b.ko, parent: d.ko, first: b.byName, rank: 'branch' });
       return `<div class="bandw" data-id="${b.id}"><div class="band" data-node="${b.nodeId}" data-disc="${b.disc}">
-        <span class="sn">${snippet(T, pos, b)}</span>
-        <span class="tx"><span class="k" style="color:${pal(d.color).ink}">${esc(d.ko)}</span><b>${esc(b.ko)}</b><span class="ln">${esc(line || '')}</span><span class="fi">${cs.map((c) => esc(c.name)).join(' · ')}</span></span>
+        <span class="sn">${snippet(W, b)}</span>
+        <span class="tx"><span class="k" style="color:${pal(d.color).ink}">${esc(d.ko)}</span><b>${esc(b.ko)}</b><span class="ln">${esc(line || '')}</span><span class="fi">${cs.map((c) => esc(c.ko)).join(' · ')}</span></span>
         <button class="cl" aria-label="닫기">${K.x(16, 'currentColor', 2.4)}</button></div></div>`;
     }).join('');
     const el = scene('grey home', `<div class="view"><div class="hd"><b>Latticework</b><span class="pill">연속 <b class="num">${V.totals.streak}일</b></span></div>
@@ -829,7 +968,13 @@
     fadeSwap(from, el, 260);
     state = { name: 'home', ready: true, next: null };
     const ws = [...el.querySelectorAll('.bandw')];
-    ws.forEach((w) => (w.style.height = '0px'));
+    // 조각 안: 새 분과와 그 개념은 숨겨 두었다가 돋게 한다
+    ws.forEach((w, k) => {
+      w.style.height = '0px';
+      const sv = w.querySelector('svg');
+      const ids = subtree(M.N.get(bands[k].nodeId)).map((x) => x.id);
+      ids.forEach((id) => sv.querySelectorAll(`[data-n="${id}"]`).forEach((e) => (e.style.opacity = 0)));
+    });
     if (!(await later(320, g))) return;
     for (const [k, w] of ws.entries()) {
       const inner = w.firstElementChild;
@@ -837,15 +982,12 @@
       ML.a(w, [{ height: '0px', marginBottom: '-12px' }, { height: h + 'px', marginBottom: '0px' }], { duration: 420, delay: k * 120, easing: E.sheet, fill: 'backwards' });
       w.style.height = 'auto';
       ML.a(inner, [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 360, delay: 80 + k * 120, easing: E.out, fill: 'backwards' });
-      const sv = inner.querySelector('svg');
-      const base = 420 + k * 120;
-      lineDraw(sv.querySelector('.lk'), base, 380);
-      sv.querySelectorAll('.dk').forEach((x) => lineDraw(x, base + 520, 220));
-      const bn = sv.querySelector('.bn');
-      pop(bn, base + 300);
-      ML.a(bn, [{ fill: '#ffffff' }, { fill: bn.getAttribute('stroke') }], { duration: 260, delay: base + 620, easing: 'ease', fill: 'forwards' });
-      sv.querySelectorAll('.dt').forEach((x, j) => pop(x, base + 560 + j * 80, 'medium'));
-      ML.a(sv.querySelector('.halo'), [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: base + 620, easing: 'ease', fill: 'forwards' });
+      const sv = w.querySelector('svg');
+      const fakeW = { M, els: (id) => [...sv.querySelectorAll(`[data-n="${id}"]`)] };
+      const b = M.N.get(bands[k].nodeId);
+      const ids = subtree(b).map((x) => x.id);
+      const tEnd = grow(fakeW, ids, 480 + k * 120, { step: 320 });
+      fade(sv.querySelector('.sh'), tEnd - 200, 600);
       K.press(inner, false);
       inner.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -853,40 +995,31 @@
           ML.a(w, [{ height: w.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0, marginBottom: '-12px' }], { duration: 300, easing: E.sheet, fill: 'forwards' });
           return;
         }
-        knowledgeFromBand(T, pos, bands, inner.dataset.disc, el);
+        knowledgeFromBand(M, bands[k], el);
       });
     }
     el.querySelectorAll('.tbtn').forEach((b) => K.press(b));
   }
 
-  async function knowledgeFromBand(T, pos, bands, discId, from) {
-    const g = ++gen;
-    const lights = {};
-    bands.forEach((b) => (lights[b.disc] = (lights[b.disc] || []).concat([b])));
-    const el = scene('know', `<div class="stage" style="top:64px;height:672px"></div><div class="ghd"><b>지식</b><span>개념<em class="num">${T.concepts.length}</em>학문<em class="num">${T.discs.length}</em></span></div>${tabs('graph')}`);
-    const W = buildWorld(T, pos, { lights });
-    const st = el.querySelector('.stage');
-    st.append(W.el);
-    const lhost = document.createElement('div');
-    lhost.className = 'lhost';
-    lhost.innerHTML = '<span class="lc"><span class="lt"></span></span>';
-    st.append(lhost);
-    const lt = lhost.querySelector('.lt');
-    Latti.mount(lt, { size: 60, shape: 'circle' });
-    const S = { el, st, W, world: W.el, lhost, lt, mark: lt.querySelector('.lt-mark'), H: 672, cam: { x: 195, y: 336, s: 1 } };
-    const P = pos[discId];
-    const Bs = bands.filter((b) => b.disc === discId).map((b) => W.brPos[b.nodeId]);
-    const C = Bs.length ? { x: (P.x + Bs[0].x) / 2, y: (P.y + Bs[0].y) / 2 } : P;
-    const to = { x: clamp(195 - C.x, 60, 330), y: clamp(230 - C.y, 60, 612), s: 1 };
-    setCam(S, { x: to.x + C.x * 0.15, y: to.y + C.y * 0.15, s: 0.85 });
-    Bs.forEach((q) => q && W.br(q.b.nodeId).querySelector('.bn').setAttribute('fill', pal(T.byId[discId].color).c));
+  async function knowledgeFromBand(M, band, from) {
+    gen++;
+    const nC = [...M.N.values()].filter((x) => x.kind === 'concept').length;
+    const el = scene('know', `<div class="ghd"><b>지식</b><span>개념<em class="num">${nC}</em>학문<em class="num">${M.discs.length}</em></span></div>${tabs('graph')}`);
+    const S = mountStage(el, M, 672);
+    S.st.style.top = '64px';
+    S.st.style.height = '672px';
+    const b = M.N.get(band.nodeId);
+    const ids = subtree(b).map((x) => x.id).concat([b.parent.id]);
+    const pts = ptsOf(S.W, ids).concat([{ x: 0, y: 0 }]);
+    const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+    const bx0 = Math.min(...xs), bx1 = Math.max(...xs), by0 = Math.min(...ys), by1 = Math.max(...ys);
+    const s = clamp(Math.min(330 / (bx1 - bx0), 540 / (by1 - by0)), 0.7, 1.15);
+    const to = { x: 195 - (s * (bx0 + bx1)) / 2, y: 336 - (s * (by0 + by1)) / 2, s };
+    setCam(S, { x: to.x + 0.08 * (195 - to.x), y: to.y + 0.08 * (336 - to.y), s: s * 0.88 });
     fadeSwap(from, el, 240);
     await moveCam(S, to, 700, 80);
-    Bs.forEach((q) => {
-      if (!q) return;
-      const bn = W.br(q.b.nodeId).querySelector('.bn');
-      K.spring(bn, [{ transform: 'scale(1)' }, { transform: 'scale(1.5)' }, { transform: 'scale(1)' }], 'medium');
-    });
+    const bn = S.W.svg.querySelector(`.LN [data-n="${b.id}"]`);
+    if (bn) { bn.classList.add('bud'); K.spring(bn, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], 'medium'); }
     state = { name: 'know', ready: true };
   }
 
@@ -894,54 +1027,59 @@
   async function run(kind) {
     clearScenes();
     const g = gen;
-    roll = '';
     let src = V.tree, now = '2026-11-20T08:02:00+09:00', last = V.lastOpen, unlocks = V.unlocks;
     if (kind === 'many') {
       src = V.future.tree;
       now = '2027-03-15T07:40:00+09:00';
-      last = V.lastOpen;
-      // data.js 의 future.unlocks 는 11월 19일 해금 시각이 06:10 으로 지금 데이터(21:40)와 다르다. 지금 데이터를 따른다.
+      // data.js 의 future.unlocks 는 11월 19일 해금 시각이 06:10 으로 지금 데이터(21:40)와 다르다. 같은 id 면 지금 데이터를 따른다.
       const curAt = Object.fromEntries(V.unlocks.map((u) => [u.id, u.at]));
       unlocks = V.future.unlocks.map((u) => (curAt[u.id] ? Object.assign({}, u, { at: curAt[u.id] }) : u));
     }
     NOW = now;
-    const T = treeAt(src, now.slice(0, 10));
-    const pos = layout(T.discs);
+    const M = model(src, now.slice(0, 10), unlocks, last);
     let unseen = unlocks.filter((u) => u.at > last && u.at <= now);
     if (kind === 'major') unseen = unseen.filter((u) => u.batch === 'b-20261119-stat');
     if (kind === 'minor') unseen = unseen.filter((u) => u.batch === 'b-20261119-fin');
-    const { cards, bands } = plan(unseen, now, T);
+    const { cards, bands } = plan(unseen, now);
     const sp = await splash(g);
     if (g !== gen) return;
-    if (!cards.length) return home(T, pos, bands, g, sp);
+    if (!cards.length) return home(M, bands, g, sp);
 
-    // 지도에 들어갈 분과 빛: 학문 카드의 같은 묶음 분과
-    const lights = {};
-    const turn = {};
-    cards.filter((c) => c.type === 'major').forEach((c) => c.lights.length && (lights[c.item.nodeId] = c.lights));
-    const S = makeStage(T, pos, lights, turn);
-    S.el.style.zIndex = 1;
+    const host = scene('unlock', `<div class="udots"></div><div class="ucopy"></div><div class="ubtns"></div>`);
+    const S = mountStage(host, M, 500);
+    host.style.zIndex = 1;
     sp.style.zIndex = 3;
-    // 처음 모습: 이미 본 학문은 흐리게, 새 것은 숨김
-    const fresh = new Set(cards.flatMap((c) => (c.type === 'major' ? [c.item.nodeId] : c.items.filter((u) => u.kind === 'major').map((u) => u.nodeId))));
-    T.discs.forEach((d) => vis(S.W, d.id, fresh.has(d.id) ? 'hide' : 'faint'));
-    S.world.querySelectorAll('.g-b').forEach((x) => (x.style.opacity = 0));
+    // 처음 모습: 지난번에 열었을 때의 지도(흐리게). 그 뒤에 생긴 노드는 숨김.
+    const lastDay = last.slice(0, 10);
+    const lastT = last;
+    const bornAfter = (n) => (n.kind === 'disc' || n.kind === 'branch' || n.kind === 'topic' ? (unlocks.find((u) => u.nodeId === n.id)?.at || n.born + 'T23:59') > lastT : n.born > lastDay || (n.born === lastDay && (n.raw.studied === false)));
+    S.hidden = new Set([...M.N.values()].filter((n) => n.kind !== 'root' && bornAfter(n)).map((n) => n.id));
+    M.discs.forEach((d) => discState(S.W, d.id, 'faint'));
+    S.hidden.forEach((id) => setOp(S.W.els(id), 0));
     setCam(S, { x: 195, y: S.H / 2, s: 0.8 });
     S.world.style.opacity = 0;
     const fl = flyInto(sp, S);
     ML.a(S.world, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 260, easing: 'ease', fill: 'forwards' });
     await fl;
-    S.world.style.opacity = '';
     if (g !== gen) return;
 
+    // 카드마다 보여 줄 새 노드: 학문 카드는 그 학문 아래 전부, 놓친 해금은 나머지
+    const cardIds = new Set(cards.filter((c) => c.type === 'major').flatMap((c) => subtree(M.N.get(c.item.nodeId)).map((x) => x.id)));
+    const bandIds = new Set(bands.flatMap((b) => subtree(M.N.get(b.nodeId)).map((x) => x.id)));
     let i = 0;
     const show = async () => {
       state = { name: 'unlock', ready: false };
       const c = cards[i];
-      if (c.type === 'major') await playMajor(S, c, i, cards.length, g);
-      else if (c.type === 'missed' || c.type === 'more') await playMissed(S, c, i, cards.length, g);
+      if (c.type === 'major') {
+        subtree(M.N.get(c.item.nodeId)).forEach((x) => S.hidden.delete(x.id));
+        await playMajor(S, c, i, cards.length, g);
+      } else {
+        const now1 = new Set([...S.hidden].filter((id) => !cardIds.has(id) && !bandIds.has(id)));
+        now1.forEach((id) => S.hidden.delete(id));
+        await playMissed(S, c, i, cards.length, g, now1);
+      }
       if (g !== gen) return;
-      state = { name: 'unlock', ready: true, next: advance, go: () => toKnowledge(S, c.type === 'major' ? c.item.nodeId : null, gen) };
+      state = { name: 'unlock', ready: true, next: advance, go: () => toKnowledge(S, c.type === 'major' ? c.item.nodeId : null) };
     };
     const advance = async () => {
       state.ready = false;
@@ -949,9 +1087,7 @@
         await settle(S);
         i++;
         await show();
-      } else {
-        home(T, pos, bands, gen, S.el);
-      }
+      } else home(M, bands, gen, S.el);
     };
     S.el.querySelector('.ubtns').addEventListener('click', (e) => {
       const b = e.target.closest('.tbtn');
@@ -970,7 +1106,7 @@
 
   /* 실험 막대 */
   let curKind = 'both';
-  const go = (k) => { curKind = k; Latti.lines.clear(); run(k); };
+  const go = (k) => { curKind = k; run(k); };
   ML.bar({
     title: '해금 · 8차',
     home: '../index.html',
