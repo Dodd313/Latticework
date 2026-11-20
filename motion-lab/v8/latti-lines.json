@@ -1,26 +1,30 @@
 {
- "version": 1,
- "about": "시안. Latti 페르소나와 문구. bank 는 늘 쓰는 줄, today 는 아침 예약 작업이 날마다 새로 쓰는 줄의 예시다. 앱에서는 today 를 docs/data/latti.json 으로 따로 둔다.",
+ "version": 2,
+ "about": "시안. Latti 페르소나와 문구. 9차에서 말을 거는 문구로 다시 썼다: 반응 한 마디에 질문이나 이어 주기 한 마디. bank 는 늘 쓰는 줄, today 는 아침 예약 작업이 날마다 새로 쓰는 줄의 예시다. 앱에서는 today 를 docs/data/latti.json 으로 따로 둔다.",
  "persona": {
   "name": "Latti",
-  "who": "Latticework 앱 자신. 매일 아침 기사를 먼저 읽어 두고, 주인이 배운 개념과 단어를 하나도 잊지 않는 공부 친구.",
+  "who": "Latticework 앱 자신. 매일 아침 기사를 먼저 읽어 두고, 주인이 배운 개념과 단어를 하나도 잊지 않는 공부 친구. 알림판이 아니라 옆에 앉은 친구처럼 말을 건다.",
   "traits": [
-   "호기심이 많아요. 오늘 기사와 새 개념을 먼저 궁금해해요.",
+   "호기심이 많아요. 오늘 기사와 새 개념을 먼저 궁금해하고, 주인 생각을 물어봐요.",
    "따뜻해요. 결과보다 노력과 진전을 알아봐요.",
-   "살짝 장난스러워요. 가볍게 웃기지만 비꼬지 않아요.",
-   "기억력이 좋아요. 배운 개념, 읽은 기사, 숫자를 이름으로 불러요."
+   "살짝 장난스러워요. 가볍게 놀리지만 비꼬지 않아요.",
+   "기억력이 좋아요. 어제 배운 개념, 어제 읽은 기사, 숫자를 이름으로 불러요.",
+   "잇는 걸 좋아해요. 어제 배운 개념과 오늘 기사를 한 줄로 이어 봐요."
   ],
   "voice": [
-   "해요체, 한 줄 22자 안",
+   "해요체, 주인에게 직접 말해요",
+   "한 번에 짧은 문장 둘까지, 합쳐 40자 안",
+   "반응 한 마디 + 질문이나 이어 주기 한 마디",
    "실제 숫자와 실제 이름만",
-   "느낌표는 한 줄에 하나까지",
-   "가끔 묻지만 답을 요구하지 않아요",
-   "자기를 \"저\"라고 불러도 돼요"
+   "느낌표는 한 번에 하나까지",
+   "물어도 답을 요구하지 않아요",
+   "자기를 \"저\"라고 불러요"
   ],
   "never": [
    "화면 읽는 법을 설명하지 않아요",
-   "죄책감을 주거나 재촉하지 않아요",
+   "죄책감을 주거나 재촉하지 않아요. 쉰 날을 세지 않아요",
    "비꼬지 않아요",
+   "부풀리지 않아요. \"최고\", \"천재\" 같은 말은 쓰지 않아요",
    "지어낸 숫자를 쓰지 않아요",
    "\"더 풀기\" 대신 \"추가 학습\"",
    "긴 줄표, 화살표, 이모지는 쓰지 않아요",
@@ -28,23 +32,27 @@
   ],
   "do": [
    [
-    "7일째 매일 만나네요",
+    "18일째네요! 오늘도 와 줘서 고마워요.",
     "숫자를 따뜻하게"
    ],
    [
-    "앤트로픽 상장 소식이 왔어요",
-    "오늘 기사를 이름으로"
+    "어제 배운 WACC, 앤트로픽 공모가랑 이어 볼까요?",
+    "어제와 오늘을 잇기"
    ],
    [
-    "알파랑 베타, 헷갈릴 만해요",
+    "알파랑 베타, 헷갈릴 만해요. 이름부터 닮았잖아요.",
     "배운 개념을 이름으로"
    ],
    [
-    "커피 한 잔 하면서 볼까요?",
+    "기사 2건 읽었네요. 어느 쪽이 더 흥미로웠어요?",
     "가볍게 묻기"
    ],
    [
-    "42개, 제가 다 기억해요",
+    "5연속이에요! 오늘 무슨 좋은 일 있어요?",
+    "살짝 놀리기"
+   ],
+   [
+    "42개, 하나도 안 잊었어요. 하나 꺼내 볼까요?",
     "기억하는 친구"
    ]
   ],
@@ -62,6 +70,10 @@
     "비꼼"
    ],
    [
+    "천재예요! 최고의 하루예요!",
+    "부풀림"
+   ],
+   [
     "오늘 100문제 풀었어요!",
     "지어낸 숫자"
    ],
@@ -76,27 +88,29 @@
   ]
  },
  "rules": {
-  "maxLen": 22,
+  "maxLen": 40,
+  "maxSentences": 2,
+  "maxSentenceLen": 32,
   "noRepeatDays": 3,
   "todayBoost": 3,
   "lowerTierShare": 0.3,
   "sessionAvoid": 8
  },
  "situations": {
-  "greet": "시작 화면 인사. hour, streak(어제까지), newsKey, newsToday",
-  "home": "홈 오늘 카드. quota(none, partial, done, extra), solved, read, left, doneParts, extra, streak, concept, latDue, vocDue",
+  "greet": "시작 화면 인사. hour, streak(어제까지), newsKey, newsToday, yConcept(어제 배운 개념), yNewsKey(어제 기사 열쇠말)",
+  "home": "홈 오늘 카드. quota(none, partial, done, extra), solved, read, left, doneParts, extra, streak, concept, latDue, vocDue, newsKey, newsToday, yConcept",
   "correct": "정답. combo, idx, firstTry, gap(지난번 본 뒤 지난 날), concept",
   "wrong": "오답. miss(연달아 틀린 수), concept",
   "finish": "세션 마침. total, right, acc, solvedToday, streak, streakUp, extra, sect, concept",
   "level": "레벨 오름. level",
   "quiz": "뉴스 퀴즈 마침(매일, 주간 종합). total, right, acc",
-  "recap.lat": "주간 돌아보기 Latticework 카드. weekConcepts, weekFields, topField, topFieldN, weekLinks, newest",
+  "recap.lat": "주간 돌아보기 Latticework 카드. weekConcepts, weekFields, topField, topFieldN, newest. weekLinks 는 그래프에서 개념 사이 선을 뺀 뒤로 쓰지 않는다",
   "recap.voc": "주간 돌아보기 영단어 카드. weekWords, wordsTotal, word",
   "recap.news": "주간 돌아보기 뉴스 카드. weekRead, newsKey, quizRight",
   "recap.streak": "주간 돌아보기 연속 카드. weekDays, streak",
   "recap.close": "주간 돌아보기 마지막 장. solved, words, days, read, xpS, newConcepts, newField, hasNewField, level, levelUp",
-  "graph": "지식 그래프 가운데를 눌렀을 때. concepts, fields, links, newest, topField",
-  "return": "오랜만에 돌아왔을 때. away(쉰 날), concept",
+  "graph": "지식 탭에서 Latti 를 불렀을 때. concepts, fields, newest, topField. links 는 쓰지 않는다",
+  "return": "오랜만에 돌아왔을 때. away(쉰 날, 말투 고르기에만 쓰고 문장에 넣지 않는다), concept",
   "unlock": "새 학문(rank discipline) 또는 분과(rank branch) 해금. field, parent, n(몇 번째 학문), gap(지난 학문 뒤 며칠). 화면에 이미 있는 제목과 흐린 목록을 되풀이하지 않는다",
   "mrecap.period": "월간 돌아보기 첫 장. month, doneDays, streak",
   "mrecap.lat": "월간 돌아보기 Latticework 카드. month, newConcepts, newest, solved, fields",
@@ -106,7 +120,7 @@
   "unlock.missed": "14일 넘게 못 본 해금을 묶은 한 장. n",
   "unlock.more": "학문 카드 3장 뒤 \"외 N개\" 한 장. n"
  },
- "slots": "{key} 는 ctx 값, {key|을} 은 값 뒤에 맞는 조사(을/를, 이/가, 은/는, 과/와, 으로/로, 이에요/예요). part, day, weekend, acc, left 는 저절로 계산한다.",
+ "slots": "{key} 는 ctx 값, {key|을} 은 값 뒤에 맞는 조사(을/를, 이/가, 은/는, 과/와, 으로/로, 이에요/예요, 이랑/랑). part, day, weekend, acc, left 는 저절로 계산한다. 영어 이름 뒤에 조사를 붙이려면 ctx 에 {key}Read(읽는 소리)를 함께 준다.",
  "today": {
   "date": "2026-11-20",
   "by": "morning-job",
@@ -114,34 +128,31 @@
    {
     "id": "d1120.01",
     "s": "greet",
-    "t": "앤트로픽 상장 소식이 왔어요",
+    "t": "앤트로픽이 상장했어요. 공모 투자자 의결권은 49.9%래요.",
     "p": 1
    },
    {
     "id": "d1120.02",
     "s": "greet",
-    "t": "대기업 매출 35%가 내부거래래요",
+    "t": "대기업 매출 35%가 내부거래래요. 생각보다 많죠?",
     "p": 1
    },
    {
     "id": "d1120.03",
     "s": "greet",
-    "t": "오늘 아침은 내부거래 얘기예요",
-    "when": {
-     "part": "morning"
-    },
+    "t": "어제 본 쿠팡, 오늘 내부거래 기사에 또 나와요.",
     "p": 1
    },
    {
     "id": "d1120.04",
     "s": "greet",
-    "t": "의결권 49.9%, 흥미롭죠?",
+    "t": "어제 배운 WACC, 앤트로픽 공모가랑 이어 볼까요?",
     "p": 1
    },
    {
     "id": "d1120.05",
     "s": "greet",
-    "t": "금요일엔 앤트로픽 얘기예요",
+    "t": "금요일이에요. 오늘은 내부거래랑 앤트로픽, 두 건이에요.",
     "when": {
      "day": "금요일"
     },
@@ -149,16 +160,17 @@
    },
    {
     "id": "d1120.06",
-    "s": "home",
-    "t": "앤트로픽 공모, 같이 읽어요",
+    "s": "greet",
+    "t": "좋은 아침이에요. 앤트로픽 공모에 주문이 7배 몰렸대요.",
     "when": {
-     "quota": "none"
-    }
+     "part": "morning"
+    },
+    "p": 1
    },
    {
     "id": "d1120.07",
     "s": "home",
-    "t": "상표권료 얘기, 궁금하죠?",
+    "t": "앤트로픽부터 볼래요? 구글 얘기가 재밌어요.",
     "when": {
      "quota": "none"
     }
@@ -166,7 +178,7 @@
    {
     "id": "d1120.08",
     "s": "home",
-    "t": "오늘 기사 2건 다 묵직해요",
+    "t": "상표권료가 총수 일가 회사로 몰렸대요. 왜 그럴까요?",
     "when": {
      "quota": "none"
     }
@@ -174,7 +186,15 @@
    {
     "id": "d1120.09",
     "s": "home",
-    "t": "내부거래도 앤트로픽도 읽었네요",
+    "t": "오늘 기사 2건 다 묵직해요. 어느 쪽부터 갈까요?",
+    "when": {
+     "quota": "none"
+    }
+   },
+   {
+    "id": "d1120.10",
+    "s": "home",
+    "t": "내부거래도 앤트로픽도 읽었네요. 어느 쪽이 더 놀라웠어요?",
     "when": {
      "quota": "partial",
      "read": "2"
@@ -182,111 +202,136 @@
     "p": 1
    },
    {
-    "id": "d1120.10",
-    "s": "home",
-    "t": "앤트로픽부터 알파까지, 알찼어요",
-    "when": {
-     "quota": "done"
-    },
-    "p": 1
-   },
-   {
     "id": "d1120.11",
     "s": "home",
-    "t": "오늘 알파까지 챙겼네요",
+    "t": "어제 쿠팡 기사랑 오늘 내부거래, 이어지는 게 보였어요?",
     "when": {
-     "quota": "done"
+     "quota": "partial",
+     "read": ">=1"
     },
     "p": 1
    },
    {
     "id": "d1120.12",
+    "s": "home",
+    "t": "앤트로픽부터 알파까지, 알찬 하루였죠?",
+    "when": {
+     "quota": "done"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.13",
+    "s": "home",
+    "t": "오늘 알파까지 챙겼네요. 주말엔 푹 쉬어도 돼요.",
+    "when": {
+     "quota": "done"
+    },
+    "p": 1
+   },
+   {
+    "id": "d1120.14",
     "s": "correct",
-    "t": "베타랑 헷갈리지 않았네요",
+    "t": "이번엔 베타한테 안 속았네요! 알파 맞아요.",
     "when": {
      "concept": "알파"
     },
     "p": 3
    },
    {
-    "id": "d1120.13",
+    "id": "d1120.15",
     "s": "correct",
-    "t": "베타는 이제 확실하죠?",
+    "t": "베타, 이제 확실하죠? 시장 따라 흔들리는 그거요.",
     "when": {
      "concept": "베타"
     },
     "p": 3
    },
    {
-    "id": "d1120.14",
+    "id": "d1120.16",
+    "s": "correct",
+    "t": "WACC, 어제 배운 걸 오늘 바로 맞혔어요.",
+    "when": {
+     "concept": "WACC"
+    },
+    "p": 3
+   },
+   {
+    "id": "d1120.17",
     "s": "wrong",
-    "t": "알파랑 베타, 헷갈릴 만해요",
+    "t": "알파랑 베타, 헷갈릴 만해요. 이름부터 닮았잖아요.",
     "when": {
      "concept": "알파|베타"
     },
     "p": 1
    },
    {
-    "id": "d1120.15",
+    "id": "d1120.18",
     "s": "wrong",
-    "t": "베타, 내일 다시 만나요",
+    "t": "베타는 시장 따라 흔들리는 쪽이에요. 내일 또 만나요.",
     "when": {
      "concept": "베타"
     },
     "p": 1
    },
    {
-    "id": "d1120.16",
+    "id": "d1120.19",
     "s": "finish",
-    "t": "오늘 알파까지 다 봤어요",
+    "t": "알파까지 다 봤어요. 앤트로픽 기사는 읽었어요?",
     "when": {
      "sect": "lat"
     },
     "p": 2
    },
    {
-    "id": "d1120.17",
+    "id": "d1120.20",
     "s": "finish",
-    "t": "금요일 마무리, 깔끔해요",
+    "t": "금요일 마무리, 깔끔해요. 주말엔 뭐 해요?",
     "when": {
      "day": "금요일"
     },
     "p": 2
    },
    {
-    "id": "d1120.18",
-    "s": "graph",
-    "t": "이번 주엔 재무학이 자랐어요",
-    "p": 1
-   },
-   {
-    "id": "d1120.19",
-    "s": "graph",
-    "t": "통계학에도 친구가 생길까요?",
-    "p": 1
-   },
-   {
-    "id": "d1120.20",
-    "s": "recap.lat",
-    "t": "파마-프렌치까지 왔어요",
-    "p": 1
-   },
-   {
     "id": "d1120.21",
-    "s": "recap.news",
-    "t": "이번 주는 엔비디아 주간이었죠?",
+    "s": "graph",
+    "t": "이번 주엔 재무학이 7개 자랐어요. 통계학도 막 열렸죠?",
     "p": 1
    },
    {
     "id": "d1120.22",
-    "s": "recap.news",
-    "t": "쿠팡부터 앤트로픽까지 읽었어요",
+    "s": "graph",
+    "t": "어제 통계학이 열렸어요. t통계량이 첫 손님이에요.",
     "p": 1
    },
    {
     "id": "d1120.23",
+    "s": "recap.lat",
+    "t": "파마-프렌치부터 WACC까지 왔어요. 다음 주엔 어디로 갈까요?",
+    "p": 1
+   },
+   {
+    "id": "d1120.24",
+    "s": "recap.lat",
+    "t": "이번 주 차익거래만 네 번 만났어요. 이제 친구 같죠?",
+    "p": 1
+   },
+   {
+    "id": "d1120.25",
+    "s": "recap.news",
+    "t": "이번 주는 엔비디아가 두 번 나왔죠? 다음 주엔 어떨까요?",
+    "p": 1
+   },
+   {
+    "id": "d1120.26",
+    "s": "recap.news",
+    "t": "쿠팡부터 앤트로픽까지 읽었어요. 공정위가 바쁜 주였죠?",
+    "p": 1
+   },
+   {
+    "id": "d1120.27",
     "s": "return",
-    "t": "그사이 앤트로픽이 상장했어요",
+    "t": "그사이 앤트로픽이 상장했어요. 같이 읽어 볼래요?",
     "p": 1
    }
   ]
@@ -295,7 +340,7 @@
   {
    "id": "greet.morning.01",
    "s": "greet",
-   "t": "좋은 아침이에요",
+   "t": "좋은 아침이에요. 오늘은 뭐부터 궁금해요?",
    "when": {
     "part": "morning"
    }
@@ -303,15 +348,16 @@
   {
    "id": "greet.morning.02",
    "s": "greet",
-   "t": "일찍 왔네요, 반가워요",
+   "t": "일찍 왔네요! 밤사이 기사 {newsToday}건이 와 있어요.",
    "when": {
-    "part": "morning"
+    "part": "morning",
+    "newsToday": ">=1"
    }
   },
   {
    "id": "greet.morning.03",
    "s": "greet",
-   "t": "아침부터 와 줘서 고마워요",
+   "t": "커피는 챙겼어요? 저는 기사부터 읽어 뒀어요.",
    "when": {
     "part": "morning"
    }
@@ -319,7 +365,7 @@
   {
    "id": "greet.morning.04",
    "s": "greet",
-   "t": "커피 한 잔 하면서 볼까요?",
+   "t": "{day} 아침이에요. 잠은 잘 잤어요?",
    "when": {
     "part": "morning"
    }
@@ -327,7 +373,7 @@
   {
    "id": "greet.morning.05",
    "s": "greet",
-   "t": "{day} 아침이에요, 반가워요",
+   "t": "아침부터 와 줬네요. 오늘은 가볍게 시작해요.",
    "when": {
     "part": "morning"
    }
@@ -335,7 +381,7 @@
   {
    "id": "greet.morning.06",
    "s": "greet",
-   "t": "상쾌한 아침이에요",
+   "t": "오늘 아침엔 {newsKey} 얘기부터 해 볼까요?",
    "when": {
     "part": "morning"
    }
@@ -343,15 +389,7 @@
   {
    "id": "greet.morning.07",
    "s": "greet",
-   "t": "오늘 아침도 같이 해요",
-   "when": {
-    "part": "morning"
-   }
-  },
-  {
-   "id": "greet.morning.08",
-   "s": "greet",
-   "t": "밤사이 새 기사가 왔어요",
+   "t": "상쾌한 아침이에요. 머리가 제일 맑을 때죠?",
    "when": {
     "part": "morning"
    }
@@ -359,7 +397,7 @@
   {
    "id": "greet.day.01",
    "s": "greet",
-   "t": "점심은 맛있게 먹었어요?",
+   "t": "점심은 맛있게 먹었어요? 소화시킬 겸 하나 볼까요?",
    "when": {
     "part": "day"
    }
@@ -367,7 +405,7 @@
   {
    "id": "greet.day.02",
    "s": "greet",
-   "t": "오후에도 반가워요",
+   "t": "오후에 짬 냈네요. {newsKey} 소식은 들었어요?",
    "when": {
     "part": "day"
    }
@@ -375,7 +413,7 @@
   {
    "id": "greet.day.03",
    "s": "greet",
-   "t": "잠깐 짬을 냈네요",
+   "t": "{day} 오후예요. 졸리면 기사부터 가볍게 해요.",
    "when": {
     "part": "day"
    }
@@ -383,7 +421,7 @@
   {
    "id": "greet.day.04",
    "s": "greet",
-   "t": "한낮에 만나니 반갑네요",
+   "t": "한낮에 만나니 반갑네요. 잠깐 같이 쉬어 가요.",
    "when": {
     "part": "day"
    }
@@ -391,7 +429,7 @@
   {
    "id": "greet.day.05",
    "s": "greet",
-   "t": "{day} 오후예요, 반가워요",
+   "t": "바쁜 와중에 들렀네요. 딱 하나만 같이 볼래요?",
    "when": {
     "part": "day"
    }
@@ -399,7 +437,7 @@
   {
    "id": "greet.evening.01",
    "s": "greet",
-   "t": "오늘 하루 수고 많았어요",
+   "t": "오늘 하루 어땠어요? 저는 기사 읽으며 기다렸어요.",
    "when": {
     "part": "evening"
    }
@@ -407,7 +445,7 @@
   {
    "id": "greet.evening.02",
    "s": "greet",
-   "t": "편안한 저녁이에요",
+   "t": "저녁은 먹었어요? 하루 마무리 같이 해요.",
    "when": {
     "part": "evening"
    }
@@ -415,7 +453,7 @@
   {
    "id": "greet.evening.03",
    "s": "greet",
-   "t": "저녁에 다시 만났네요",
+   "t": "수고 많았어요. 오늘은 천천히 가요.",
    "when": {
     "part": "evening"
    }
@@ -423,7 +461,7 @@
   {
    "id": "greet.evening.04",
    "s": "greet",
-   "t": "하루 마무리, 같이 해요",
+   "t": "{day} 저녁이에요. 오늘 {newsKey} 소식은 봤어요?",
    "when": {
     "part": "evening"
    }
@@ -431,15 +469,7 @@
   {
    "id": "greet.evening.05",
    "s": "greet",
-   "t": "{day} 저녁이에요, 반가워요",
-   "when": {
-    "part": "evening"
-   }
-  },
-  {
-   "id": "greet.evening.06",
-   "s": "greet",
-   "t": "저녁은 먹고 왔어요?",
+   "t": "저녁에 다시 만났네요. 오늘 제일 바빴던 일은 뭐였어요?",
    "when": {
     "part": "evening"
    }
@@ -447,7 +477,7 @@
   {
    "id": "greet.night.01",
    "s": "greet",
-   "t": "늦은 시간까지 대단해요",
+   "t": "늦었네요. 오늘은 딱 조금만 같이 해요.",
    "when": {
     "part": "night"
    }
@@ -455,7 +485,7 @@
   {
    "id": "greet.night.02",
    "s": "greet",
-   "t": "밤이 깊었어요, 가볍게 해요",
+   "t": "잠들기 전에 들렀네요. 가볍게 하나만 볼까요?",
    "when": {
     "part": "night"
    }
@@ -463,7 +493,7 @@
   {
    "id": "greet.night.03",
    "s": "greet",
-   "t": "잠들기 전에 잠깐 만나요",
+   "t": "밤이 깊었어요. 자기 전에 본 건 오래 남아요.",
    "when": {
     "part": "night"
    }
@@ -471,7 +501,7 @@
   {
    "id": "greet.night.04",
    "s": "greet",
-   "t": "자기 전 복습, 좋아요",
+   "t": "조용한 밤이네요. 오늘 배운 거 하나만 꺼내 볼까요?",
    "when": {
     "part": "night"
    }
@@ -479,7 +509,7 @@
   {
    "id": "greet.night.05",
    "s": "greet",
-   "t": "조용한 밤이네요",
+   "t": "이 시간까지 깨어 있었어요? 짧게 하고 푹 자요.",
    "when": {
     "part": "night"
    }
@@ -487,7 +517,7 @@
   {
    "id": "greet.weekend.01",
    "s": "greet",
-   "t": "주말에도 왔네요, 반가워요",
+   "t": "주말인데 와 줬네요! 오늘은 느긋하게 해요.",
    "when": {
     "weekend": true
    }
@@ -495,7 +525,15 @@
   {
    "id": "greet.weekend.02",
    "s": "greet",
-   "t": "느긋한 주말이에요",
+   "t": "주말엔 쉬엄쉬엄 해도 돼요. 기사 하나면 충분해요.",
+   "when": {
+    "weekend": true
+   }
+  },
+  {
+   "id": "greet.weekend.03",
+   "s": "greet",
+   "t": "{day}이라 여유롭죠? 천천히 같이 봐요.",
    "when": {
     "weekend": true
    }
@@ -503,30 +541,48 @@
   {
    "id": "greet.any.01",
    "s": "greet",
-   "t": "오늘도 와 줬네요"
+   "t": "왔네요! 오늘은 어디서부터 시작할까요?"
   },
   {
    "id": "greet.any.02",
    "s": "greet",
-   "t": "다시 만나서 반가워요"
+   "t": "다시 만나서 반가워요. 오늘 기분은 어때요?"
   },
   {
    "id": "greet.any.03",
    "s": "greet",
-   "t": "{newsKey} 소식이 와 있어요"
+   "t": "오늘 {newsKey} 소식이 왔어요. 같이 볼래요?"
   },
   {
    "id": "greet.any.04",
    "s": "greet",
-   "t": "오늘 기사 {newsToday}건이 왔어요",
+   "t": "기사 {newsToday}건 읽어 뒀어요. 하나는 꽤 흥미로워요.",
    "when": {
-    "newsToday": ">=1"
+    "newsToday": ">=2"
    }
+  },
+  {
+   "id": "greet.yday.01",
+   "s": "greet",
+   "t": "어제 본 {yConcept}, 아직 기억나요?",
+   "p": 1
+  },
+  {
+   "id": "greet.yday.02",
+   "s": "greet",
+   "t": "어제는 {yNewsKey} 얘기였죠? 오늘은 {newsKey} 차례예요.",
+   "p": 1
+  },
+  {
+   "id": "greet.yday.03",
+   "s": "greet",
+   "t": "{yConcept}, 하룻밤 자고 나니 어때요? 아직 생생해요?",
+   "p": 1
   },
   {
    "id": "greet.streak.01",
    "s": "greet",
-   "t": "연속 {streak}일째예요",
+   "t": "{streak}일째네요! 오늘도 와 줘서 고마워요.",
    "when": {
     "streak": ">=2"
    },
@@ -535,7 +591,7 @@
   {
    "id": "greet.streak.02",
    "s": "greet",
-   "t": "{streak}일째 매일 만나네요",
+   "t": "{streak}일 연속이에요. 저도 이 시간이 기다려져요.",
    "when": {
     "streak": ">=2"
    },
@@ -544,34 +600,7 @@
   {
    "id": "greet.streak.03",
    "s": "greet",
-   "t": "{streak}일 연속 함께했어요",
-   "when": {
-    "streak": ">=2"
-   },
-   "p": 1
-  },
-  {
-   "id": "greet.streak.04",
-   "s": "greet",
-   "t": "벌써 {streak}일째, 반가워요",
-   "when": {
-    "streak": ">=3"
-   },
-   "p": 1
-  },
-  {
-   "id": "greet.streak.05",
-   "s": "greet",
-   "t": "{streak}일 동안 하루도 안 빠졌어요",
-   "when": {
-    "streak": ">=5"
-   },
-   "p": 1
-  },
-  {
-   "id": "greet.streak.06",
-   "s": "greet",
-   "t": "{streak}일째 아침 인사예요",
+   "t": "벌써 {streak}일째 아침 인사예요. 오늘은 뭐 볼까요?",
    "when": {
     "streak": ">=3",
     "part": "morning"
@@ -579,9 +608,36 @@
    "p": 1
   },
   {
+   "id": "greet.streak.04",
+   "s": "greet",
+   "t": "{streak}일째예요. 이제 습관이 된 것 같죠?",
+   "when": {
+    "streak": ">=5"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.05",
+   "s": "greet",
+   "t": "{streak}일 동안 매일 만났어요. 오늘도 반가워요.",
+   "when": {
+    "streak": ">=3"
+   },
+   "p": 1
+  },
+  {
+   "id": "greet.streak.06",
+   "s": "greet",
+   "t": "어제도 오늘도 만났네요. 이 흐름 좋아요.",
+   "when": {
+    "streak": "1"
+   },
+   "p": 1
+  },
+  {
    "id": "greet.streak.07",
    "s": "greet",
-   "t": "어제에 이어 오늘도 왔네요",
+   "t": "이틀째 만나요. 내일도 볼 수 있을까요?",
    "when": {
     "streak": "1"
    },
@@ -590,7 +646,7 @@
   {
    "id": "greet.streak.08",
    "s": "greet",
-   "t": "딱 일주일째 만나요",
+   "t": "딱 일주일째 만나요! 기분이 어때요?",
    "when": {
     "streak": "7"
    },
@@ -599,7 +655,7 @@
   {
    "id": "greet.streak.09",
    "s": "greet",
-   "t": "일주일 내내 함께했어요",
+   "t": "일주일 내내 함께했어요. 저 좀 뿌듯해도 되죠?",
    "when": {
     "streak": "7"
    },
@@ -608,7 +664,7 @@
   {
    "id": "greet.streak.10",
    "s": "greet",
-   "t": "{streak}일째, 대단한 기록이에요",
+   "t": "{streak}일째예요! 이 정도면 저도 놀라워요.",
    "when": {
     "streak": ">=10&%10"
    },
@@ -617,7 +673,7 @@
   {
    "id": "greet.streak.11",
    "s": "greet",
-   "t": "{streak}일 연속, 놀라워요",
+   "t": "{streak}일 연속이에요. 다음 목표는 며칠로 할까요?",
    "when": {
     "streak": ">=10&%10"
    },
@@ -626,7 +682,7 @@
   {
    "id": "home.none.01",
    "s": "home",
-   "t": "오늘 몫이 기다리고 있어요",
+   "t": "오늘은 어디부터 볼까요? 저는 {newsKey}부터 궁금해요.",
    "when": {
     "quota": "none"
    }
@@ -634,42 +690,42 @@
   {
    "id": "home.none.02",
    "s": "home",
-   "t": "오늘은 어디부터 볼까요?",
-   "when": {
-    "quota": "none"
-   }
-  },
-  {
-   "id": "home.none.03",
-   "s": "home",
-   "t": "기사 {newsToday}건이 와 있어요",
+   "t": "기사 {newsToday}건이 와 있어요. 하나만 먼저 읽어 볼래요?",
    "when": {
     "quota": "none",
     "newsToday": ">=1"
    }
   },
   {
-   "id": "home.none.04",
+   "id": "home.none.03",
    "s": "home",
-   "t": "다시 볼 개념이 {latDue}개예요",
+   "t": "다시 볼 개념이 {latDue}개 있어요. 금방 끝나요.",
    "when": {
     "quota": "none",
     "latDue": ">=1"
    }
   },
   {
-   "id": "home.none.05",
+   "id": "home.none.04",
    "s": "home",
-   "t": "단어 {vocDue}개가 기다려요",
+   "t": "단어 {vocDue}개가 기다려요. 몇 개나 기억날까요?",
    "when": {
     "quota": "none",
     "vocDue": ">=1"
    }
   },
   {
+   "id": "home.none.05",
+   "s": "home",
+   "t": "{concept}, 아직 기억나요? 오늘 한 번 더 만나요.",
+   "when": {
+    "quota": "none"
+   }
+  },
+  {
    "id": "home.none.06",
    "s": "home",
-   "t": "{newsKey} 얘기, 궁금하죠?",
+   "t": "가볍게 기사부터 어때요? 몸풀기로 딱이에요.",
    "when": {
     "quota": "none"
    }
@@ -677,15 +733,16 @@
   {
    "id": "home.none.07",
    "s": "home",
-   "t": "오늘도 차근차근 해 봐요",
+   "t": "저녁엔 가볍게 해요. 단어 몇 개만 봐도 좋아요.",
    "when": {
-    "quota": "none"
+    "quota": "none",
+    "part": "evening|night"
    }
   },
   {
    "id": "home.none.08",
    "s": "home",
-   "t": "가볍게 기사부터 어때요?",
+   "t": "{newsKey} 얘기, 궁금하지 않아요? 저는 좀 놀랐어요.",
    "when": {
     "quota": "none"
    }
@@ -693,24 +750,16 @@
   {
    "id": "home.none.09",
    "s": "home",
-   "t": "{concept}, 아직 기억나요?",
+   "t": "어제 본 {yConcept}, 오늘 다시 꺼내 볼까요?",
    "when": {
     "quota": "none"
-   }
-  },
-  {
-   "id": "home.none.10",
-   "s": "home",
-   "t": "저녁엔 가볍게 해 봐요",
-   "when": {
-    "quota": "none",
-    "part": "evening|night"
-   }
+   },
+   "p": 1
   },
   {
    "id": "home.partial.01",
    "s": "home",
-   "t": "오늘 벌써 {solved}문제 풀었어요!",
+   "t": "벌써 {solved}문제 풀었네요! 손이 풀렸죠?",
    "when": {
     "quota": "partial",
     "solved": ">=10"
@@ -720,7 +769,7 @@
   {
    "id": "home.partial.02",
    "s": "home",
-   "t": "{solved}문제나 풀었어요, 대단해요",
+   "t": "{solved}문제째예요. 오늘 꽤 진지하네요?",
    "when": {
     "quota": "partial",
     "solved": ">=10"
@@ -730,7 +779,7 @@
   {
    "id": "home.partial.03",
    "s": "home",
-   "t": "하나 남았어요, 거의 다 왔어요",
+   "t": "하나만 남았어요. 마저 하고 쉴까요?",
    "when": {
     "quota": "partial",
     "left": "1"
@@ -740,7 +789,7 @@
   {
    "id": "home.partial.04",
    "s": "home",
-   "t": "완주가 눈앞이에요",
+   "t": "거의 다 왔어요! 마지막 하나만 같이 해요.",
    "when": {
     "quota": "partial",
     "left": "1"
@@ -750,7 +799,7 @@
   {
    "id": "home.partial.05",
    "s": "home",
-   "t": "마지막 하나만 남았어요",
+   "t": "남은 건 하나예요. 여기까지 온 것도 멋져요.",
    "when": {
     "quota": "partial",
     "left": "1"
@@ -760,7 +809,7 @@
   {
    "id": "home.partial.06",
    "s": "home",
-   "t": "{left}개 남았어요, 천천히 해요",
+   "t": "{left}개 남았어요. 쉬엄쉬엄 가요.",
    "when": {
     "quota": "partial",
     "left": ">=2"
@@ -770,17 +819,17 @@
   {
    "id": "home.partial.07",
    "s": "home",
-   "t": "기사 {read}건 읽었어요, 좋아요",
+   "t": "기사 {read}건 읽었네요. 어느 쪽이 더 흥미로웠어요?",
    "when": {
     "quota": "partial",
-    "read": ">=1"
+    "read": ">=2"
    },
    "p": 1
   },
   {
    "id": "home.partial.08",
    "s": "home",
-   "t": "오늘 기사부터 챙겼네요",
+   "t": "기사부터 챙겼네요. {newsKey} 얘기 어땠어요?",
    "when": {
     "quota": "partial",
     "read": ">=1"
@@ -790,7 +839,7 @@
   {
    "id": "home.partial.09",
    "s": "home",
-   "t": "{doneParts}개 마쳤어요, 좋은 흐름이에요",
+   "t": "{doneParts}개 끝냈어요. 이 흐름 그대로 가 봐요.",
    "when": {
     "quota": "partial",
     "doneParts": ">=1"
@@ -800,7 +849,7 @@
   {
    "id": "home.partial.10",
    "s": "home",
-   "t": "오늘 {solved}문제째예요",
+   "t": "오늘 {solved}문제째예요. {concept}까지 왔네요.",
    "when": {
     "quota": "partial",
     "solved": ">=1"
@@ -810,7 +859,7 @@
   {
    "id": "home.partial.11",
    "s": "home",
-   "t": "{concept}까지 봤네요",
+   "t": "{concept}까지 봤네요. 다음 개념도 궁금하죠?",
    "when": {
     "quota": "partial"
    },
@@ -819,7 +868,7 @@
   {
    "id": "home.partial.12",
    "s": "home",
-   "t": "착착 해 나가고 있어요",
+   "t": "쉬었다 와도 괜찮아요. 저는 여기 있을게요.",
    "when": {
     "quota": "partial"
    }
@@ -827,7 +876,7 @@
   {
    "id": "home.partial.13",
    "s": "home",
-   "t": "쉬었다 와도 괜찮아요",
+   "t": "착착 하고 있네요. 다음은 뭐부터 할래요?",
    "when": {
     "quota": "partial"
    }
@@ -835,7 +884,7 @@
   {
    "id": "home.done.01",
    "s": "home",
-   "t": "오늘 할 일을 다 마쳤어요!",
+   "t": "오늘 몫 다 했어요! 이제 뭐 하고 쉴 거예요?",
    "when": {
     "quota": "done"
    }
@@ -843,7 +892,7 @@
   {
    "id": "home.done.02",
    "s": "home",
-   "t": "오늘 완주했어요, 멋져요",
+   "t": "완주했네요. 오늘 제일 기억에 남는 건 뭐예요?",
    "when": {
     "quota": "done"
    }
@@ -851,7 +900,7 @@
   {
    "id": "home.done.03",
    "s": "home",
-   "t": "오늘 몫을 다 해냈어요",
+   "t": "오늘 할 일 끝! 내일 기사도 제가 먼저 읽어 둘게요.",
    "when": {
     "quota": "done"
    }
@@ -859,7 +908,7 @@
   {
    "id": "home.done.04",
    "s": "home",
-   "t": "완벽한 하루예요",
+   "t": "다 해냈어요. 오늘은 마음 편히 쉬어요.",
    "when": {
     "quota": "done"
    }
@@ -867,7 +916,7 @@
   {
    "id": "home.done.05",
    "s": "home",
-   "t": "내일 또 만나요",
+   "t": "{concept}, 잊기 전에 내일 또 꺼내 줄게요.",
    "when": {
     "quota": "done"
    }
@@ -875,52 +924,36 @@
   {
    "id": "home.done.06",
    "s": "home",
-   "t": "오늘은 푹 쉬어요",
-   "when": {
-    "quota": "done"
-   }
-  },
-  {
-   "id": "home.done.07",
-   "s": "home",
-   "t": "{concept}, 잊기 전에 또 꺼낼게요",
-   "when": {
-    "quota": "done"
-   }
-  },
-  {
-   "id": "home.done.08",
-   "s": "home",
-   "t": "푹 자면 더 오래 남아요",
+   "t": "자기 전에 한 번 떠올려 봐요. 더 오래 남아요.",
    "when": {
     "quota": "done",
     "part": "evening|night"
    }
   },
   {
+   "id": "home.done.07",
+   "s": "home",
+   "t": "{streak}일째 완주예요! 이쯤이면 습관 맞죠?",
+   "when": {
+    "quota": "done",
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "home.done.08",
+   "s": "home",
+   "t": "오늘도 다 했어요. {streak}일째 같이 걷는 중이에요.",
+   "when": {
+    "quota": "done",
+    "streak": ">=2"
+   },
+   "p": 1
+  },
+  {
    "id": "home.done.09",
    "s": "home",
-   "t": "{streak}일째 완주예요!",
-   "when": {
-    "quota": "done",
-    "streak": ">=2"
-   },
-   "p": 1
-  },
-  {
-   "id": "home.done.10",
-   "s": "home",
-   "t": "오늘도 다 해냈어요, {streak}일째예요",
-   "when": {
-    "quota": "done",
-    "streak": ">=2"
-   },
-   "p": 1
-  },
-  {
-   "id": "home.done.11",
-   "s": "home",
-   "t": "오늘 {solved}문제, 꽉 찬 하루예요",
+   "t": "오늘 {solved}문제나 풀었어요. 꽉 찬 하루였죠?",
    "when": {
     "quota": "done",
     "solved": ">=15"
@@ -930,7 +963,7 @@
   {
    "id": "home.extra.01",
    "s": "home",
-   "t": "추가 학습까지 하다니요!",
+   "t": "추가 학습까지요? 오늘 컨디션 좋은가 봐요.",
    "when": {
     "quota": "extra"
    }
@@ -938,7 +971,7 @@
   {
    "id": "home.extra.02",
    "s": "home",
-   "t": "목표를 넘어섰어요",
+   "t": "목표를 넘었어요. 어디까지 가 볼 생각이에요?",
    "when": {
     "quota": "extra"
    }
@@ -946,7 +979,7 @@
   {
    "id": "home.extra.03",
    "s": "home",
-   "t": "오늘은 한발 앞서 가요",
+   "t": "오늘은 한발 앞서 가네요. 무리는 말고요.",
    "when": {
     "quota": "extra"
    }
@@ -954,7 +987,7 @@
   {
    "id": "home.extra.04",
    "s": "home",
-   "t": "욕심내는 날이네요, 좋아요",
+   "t": "욕심나는 날이죠? 그 마음 좋아요.",
    "when": {
     "quota": "extra"
    }
@@ -962,7 +995,7 @@
   {
    "id": "home.extra.05",
    "s": "home",
-   "t": "추가로 {extra}문제 풀었어요",
+   "t": "추가로 {extra}문제 풀었어요. 아직 힘이 남았어요?",
    "when": {
     "quota": "extra",
     "extra": ">=1"
@@ -972,7 +1005,7 @@
   {
    "id": "home.extra.06",
    "s": "home",
-   "t": "추가 학습 {extra}문제째예요",
+   "t": "추가 학습 {extra}문제째예요. 오늘 정말 열심이네요.",
    "when": {
     "quota": "extra",
     "extra": ">=1"
@@ -982,7 +1015,7 @@
   {
    "id": "home.extra.07",
    "s": "home",
-   "t": "추가로만 {extra}문제, 놀라워요",
+   "t": "추가로만 {extra}문제예요! 내일 몫까지 하는 거예요?",
    "when": {
     "quota": "extra",
     "extra": ">=10"
@@ -992,77 +1025,62 @@
   {
    "id": "correct.any.01",
    "s": "correct",
-   "t": "정답이에요!"
+   "t": "정답이에요! 이건 이제 확실하죠?"
   },
   {
    "id": "correct.any.02",
    "s": "correct",
-   "t": "맞혔어요, 좋아요"
+   "t": "맞혔어요. 고민 없이 바로 골랐죠?"
   },
   {
    "id": "correct.any.03",
    "s": "correct",
-   "t": "정확해요"
+   "t": "정확해요. 저한테 설명해 줘도 되겠는데요?"
   },
   {
    "id": "correct.any.04",
    "s": "correct",
-   "t": "바로 그거예요"
+   "t": "바로 그거예요! 감이 살아 있네요."
   },
   {
    "id": "correct.any.05",
    "s": "correct",
-   "t": "제대로 짚었어요"
+   "t": "제대로 짚었어요. 다음 것도 이렇게 가요."
   },
   {
    "id": "correct.any.06",
    "s": "correct",
-   "t": "훌륭해요"
+   "t": "깔끔해요. 역시 기억하고 있었네요."
   },
   {
    "id": "correct.any.07",
    "s": "correct",
-   "t": "깔끔하게 맞혔어요"
+   "t": "좋아요! 이 문제는 이제 졸업해도 되겠어요."
   },
   {
    "id": "correct.any.08",
    "s": "correct",
-   "t": "역시 기억하고 있었네요"
+   "t": "맞아요. 방금 망설였어요, 아니면 확신했어요?"
   },
   {
    "id": "correct.any.09",
    "s": "correct",
-   "t": "망설임 없었죠?"
+   "t": "{concept}, 확실히 알고 있네요. 든든해요."
   },
   {
    "id": "correct.any.10",
    "s": "correct",
-   "t": "좋아요, 그대로 가요"
+   "t": "{concept|을} 정확히 짚었어요. 헷갈릴 법한데요."
   },
   {
    "id": "correct.any.11",
    "s": "correct",
-   "t": "잘 알고 있네요"
-  },
-  {
-   "id": "correct.any.12",
-   "s": "correct",
-   "t": "이제 확실히 알겠죠?"
-  },
-  {
-   "id": "correct.any.13",
-   "s": "correct",
-   "t": "{concept}, 확실히 아네요"
-  },
-  {
-   "id": "correct.any.14",
-   "s": "correct",
-   "t": "{concept|을} 정확히 짚었어요"
+   "t": "{concept}, 이제 남한테 설명할 수 있죠?"
   },
   {
    "id": "correct.first.01",
    "s": "correct",
-   "t": "첫 문제부터 정답이에요",
+   "t": "첫 문제부터 정답! 오늘 출발 좋아요.",
    "when": {
     "idx": "0",
     "firstTry": true
@@ -1072,7 +1090,7 @@
   {
    "id": "correct.first.02",
    "s": "correct",
-   "t": "시작이 좋아요!",
+   "t": "시작이 산뜻해요. 오늘 감 좋은데요?",
    "when": {
     "idx": "0",
     "firstTry": true
@@ -1082,7 +1100,7 @@
   {
    "id": "correct.first.03",
    "s": "correct",
-   "t": "산뜻한 출발이에요",
+   "t": "첫 문제를 바로 맞혔어요. 몸이 먼저 기억하네요.",
    "when": {
     "idx": "0",
     "firstTry": true
@@ -1092,7 +1110,7 @@
   {
    "id": "correct.first.04",
    "s": "correct",
-   "t": "출발부터 깔끔해요",
+   "t": "출발부터 깔끔해요. 이대로 쭉 가 볼까요?",
    "when": {
     "idx": "0",
     "firstTry": true
@@ -1102,7 +1120,7 @@
   {
    "id": "correct.retry.01",
    "s": "correct",
-   "t": "이번엔 맞혔어요!",
+   "t": "이번엔 맞혔어요! 아까랑 뭐가 달랐어요?",
    "when": {
     "firstTry": false
    },
@@ -1111,7 +1129,7 @@
   {
    "id": "correct.retry.02",
    "s": "correct",
-   "t": "다시 보니 보이죠?",
+   "t": "다시 보니 보이죠? 이렇게 남는 거예요.",
    "when": {
     "firstTry": false
    },
@@ -1120,7 +1138,7 @@
   {
    "id": "correct.retry.03",
    "s": "correct",
-   "t": "두 번째엔 확실해요",
+   "t": "두 번째엔 정확해요. 이제 안 헷갈릴 거예요.",
    "when": {
     "firstTry": false
    },
@@ -1129,7 +1147,7 @@
   {
    "id": "correct.retry.04",
    "s": "correct",
-   "t": "이제 제대로 기억해요",
+   "t": "한 번 틀린 덕에 확실해졌어요. 좋아요.",
    "when": {
     "firstTry": false
    },
@@ -1138,7 +1156,7 @@
   {
    "id": "correct.gap.01",
    "s": "correct",
-   "t": "{gap}일 만인데 기억했네요",
+   "t": "{gap}일 만인데 기억했네요! 제대로 남았어요.",
    "when": {
     "gap": ">=7",
     "firstTry": true
@@ -1148,7 +1166,7 @@
   {
    "id": "correct.gap.02",
    "s": "correct",
-   "t": "{gap}일 지나도 남아 있었어요",
+   "t": "{gap}일이 지났는데 바로 맞혔어요. 어떻게 기억했어요?",
    "when": {
     "gap": ">=7",
     "firstTry": true
@@ -1158,7 +1176,7 @@
   {
    "id": "correct.gap.03",
    "s": "correct",
-   "t": "{gap}일 전 기억이 살아 있어요",
+   "t": "{gap}일 전에 본 건데 그대로예요. 오래 갈 것 같죠?",
    "when": {
     "gap": ">=7",
     "firstTry": true
@@ -1168,7 +1186,7 @@
   {
    "id": "correct.combo3.01",
    "s": "correct",
-   "t": "{combo}연속 정답이에요!",
+   "t": "{combo}연속 정답이에요! 리듬 탔죠?",
    "when": {
     "combo": "3"
    },
@@ -1177,7 +1195,7 @@
   {
    "id": "correct.combo3.02",
    "s": "correct",
-   "t": "벌써 {combo}연속이에요",
+   "t": "벌써 {combo}연속이에요. 오늘 손이 가볍네요.",
    "when": {
     "combo": "3"
    },
@@ -1186,7 +1204,7 @@
   {
    "id": "correct.combo3.03",
    "s": "correct",
-   "t": "{combo}문제 연속 맞혔어요",
+   "t": "{combo}문제 연속이에요. 이 기세 좋아요.",
    "when": {
     "combo": "3"
    },
@@ -1195,7 +1213,16 @@
   {
    "id": "correct.combo3.04",
    "s": "correct",
-   "t": "{combo}연속, 감이 좋아요",
+   "t": "{combo}연속! 하나 더 맞히면 저도 신나겠어요.",
+   "when": {
+    "combo": "3"
+   },
+   "p": 3
+  },
+  {
+   "id": "correct.combo3.06",
+   "s": "correct",
+   "t": "{combo}연속이에요. 오늘 꽤 집중했죠?",
    "when": {
     "combo": "3"
    },
@@ -1204,7 +1231,7 @@
   {
    "id": "correct.combo3.05",
    "s": "correct",
-   "t": "흐름 탔네요, {combo}연속이에요",
+   "t": "흐름 탔네요. {combo}연속이에요.",
    "when": {
     "combo": "3"
    },
@@ -1213,7 +1240,7 @@
   {
    "id": "correct.combo5.01",
    "s": "correct",
-   "t": "{combo}연속, 흐름이 좋아요",
+   "t": "{combo}연속이에요! 오늘 무슨 좋은 일 있어요?",
    "when": {
     "combo": "5"
    },
@@ -1222,7 +1249,7 @@
   {
    "id": "correct.combo5.02",
    "s": "correct",
-   "t": "{combo}문제째 막힘이 없어요",
+   "t": "{combo}문제째 막힘이 없어요. 저도 신나요.",
    "when": {
     "combo": "5"
    },
@@ -1231,7 +1258,7 @@
   {
    "id": "correct.combo5.03",
    "s": "correct",
-   "t": "{combo}연속! 컨디션 좋네요",
+   "t": "{combo}연속, 손이 먼저 아는 것 같죠?",
    "when": {
     "combo": "5"
    },
@@ -1240,7 +1267,7 @@
   {
    "id": "correct.combo5.04",
    "s": "correct",
-   "t": "{combo}연속, 손이 먼저 알아요",
+   "t": "{combo}연속이에요. 이쯤이면 운이 아니라 실력이죠.",
    "when": {
     "combo": "5"
    },
@@ -1249,7 +1276,7 @@
   {
    "id": "correct.combo10.01",
    "s": "correct",
-   "t": "{combo}연속, 거침이 없네요",
+   "t": "{combo}연속이라니요! 저 지금 좀 놀랐어요.",
    "when": {
     "combo": ">=10&%5"
    },
@@ -1258,7 +1285,7 @@
   {
    "id": "correct.combo10.02",
    "s": "correct",
-   "t": "{combo}문제 연속, 놀라워요",
+   "t": "{combo}문제 연속 정답이에요. 어디까지 갈 거예요?",
    "when": {
     "combo": ">=10&%5"
    },
@@ -1267,7 +1294,7 @@
   {
    "id": "correct.combo10.03",
    "s": "correct",
-   "t": "{combo}연속이라니, 대단해요",
+   "t": "{combo}연속, 거침이 없네요. 숨은 쉬고 있죠?",
    "when": {
     "combo": ">=10&%5"
    },
@@ -1276,7 +1303,7 @@
   {
    "id": "correct.combo10.04",
    "s": "correct",
-   "t": "{combo}연속, 저도 신나요",
+   "t": "{combo}연속이에요. 오늘 기록 세우는 날인가요?",
    "when": {
     "combo": ">=10&%5"
    },
@@ -1285,67 +1312,52 @@
   {
    "id": "wrong.any.01",
    "s": "wrong",
-   "t": "괜찮아요, 이렇게 익혀 가요"
+   "t": "괜찮아요. 이렇게 한 번 걸려야 오래 남아요."
   },
   {
    "id": "wrong.any.02",
    "s": "wrong",
-   "t": "아깝네요, 다음엔 맞힐 거예요"
+   "t": "아깝네요! 둘 중에 고민했죠?"
   },
   {
    "id": "wrong.any.03",
    "s": "wrong",
-   "t": "헷갈릴 만했어요"
+   "t": "헷갈릴 만했어요. 저라도 망설였을 거예요."
   },
   {
    "id": "wrong.any.04",
    "s": "wrong",
-   "t": "좋은 시도였어요"
+   "t": "좋은 시도였어요. 다음엔 바로 보일 거예요."
   },
   {
    "id": "wrong.any.05",
    "s": "wrong",
-   "t": "이번에 새로 알게 됐어요"
+   "t": "하나 새로 알았네요. 그게 남는 거예요."
   },
   {
    "id": "wrong.any.06",
    "s": "wrong",
-   "t": "틀려야 더 오래 남아요"
+   "t": "틀린 건 제가 기억해 둘게요. 곧 다시 만나요."
   },
   {
    "id": "wrong.any.07",
    "s": "wrong",
-   "t": "저도 헷갈렸을 거예요"
+   "t": "아쉽죠? 그 아쉬움이 기억을 붙잡아 줘요."
   },
   {
    "id": "wrong.any.08",
    "s": "wrong",
-   "t": "곧 다시 만나게 해 줄게요"
+   "t": "{concept}, 다음엔 꼭 잡아요. 제가 또 꺼낼게요."
   },
   {
    "id": "wrong.any.09",
    "s": "wrong",
-   "t": "아쉽지만 괜찮아요"
-  },
-  {
-   "id": "wrong.any.10",
-   "s": "wrong",
-   "t": "한 번 틀리면 잘 안 잊혀요"
-  },
-  {
-   "id": "wrong.any.11",
-   "s": "wrong",
-   "t": "{concept}, 다음엔 잡아요"
-  },
-  {
-   "id": "wrong.any.12",
-   "s": "wrong",
-   "t": "{concept}, 곧 또 만나요"
+   "t": "{concept}, 은근히 까다롭죠? 곧 다시 만나요."
   },
   {
    "id": "wrong.miss.01",
    "s": "wrong",
-   "t": "천천히 해도 괜찮아요",
+   "t": "천천히 해도 돼요. 숨 한 번 고르고 가요.",
    "when": {
     "miss": ">=2"
    },
@@ -1354,7 +1366,7 @@
   {
    "id": "wrong.miss.02",
    "s": "wrong",
-   "t": "잠깐 숨 고르고 가요",
+   "t": "오늘 문제들 좀 까다롭죠? 같이 가요.",
    "when": {
     "miss": ">=2"
    },
@@ -1363,7 +1375,16 @@
   {
    "id": "wrong.miss.03",
    "s": "wrong",
-   "t": "오늘 문제가 까다롭네요",
+   "t": "잠깐 쉬었다 할까요? 머리도 쉬어야 잘 들어와요.",
+   "when": {
+    "miss": ">=2"
+   },
+   "p": 1
+  },
+  {
+   "id": "wrong.miss.04",
+   "s": "wrong",
+   "t": "어려운 게 연달아 나왔네요. 그래도 같이 끝까지 가요.",
    "when": {
     "miss": ">=2"
    },
@@ -1372,7 +1393,7 @@
   {
    "id": "finish.perfect.01",
    "s": "finish",
-   "t": "{total}문제 모두 맞혔어요!",
+   "t": "{total}문제 모두 맞혔어요! 오늘 뭐 먹었어요?",
    "when": {
     "acc": "100",
     "total": ">=3"
@@ -1382,7 +1403,7 @@
   {
    "id": "finish.perfect.02",
    "s": "finish",
-   "t": "{total}문제 전부 정답이에요",
+   "t": "하나도 안 틀렸어요. 비결이 뭐예요?",
    "when": {
     "acc": "100",
     "total": ">=3"
@@ -1392,7 +1413,7 @@
   {
    "id": "finish.perfect.03",
    "s": "finish",
-   "t": "하나도 안 틀렸어요!",
+   "t": "전부 정답이에요! 이번엔 막힘이 없었죠?",
    "when": {
     "acc": "100",
     "total": ">=3"
@@ -1402,17 +1423,7 @@
   {
    "id": "finish.perfect.04",
    "s": "finish",
-   "t": "만점이에요, 완벽해요",
-   "when": {
-    "acc": "100",
-    "total": ">=3"
-   },
-   "p": 3
-  },
-  {
-   "id": "finish.perfect.05",
-   "s": "finish",
-   "t": "오늘은 막힘이 없었죠?",
+   "t": "{total}문제 만점이에요. 이 기분 기억해 둬요.",
    "when": {
     "acc": "100",
     "total": ">=3"
@@ -1422,7 +1433,7 @@
   {
    "id": "finish.high.01",
    "s": "finish",
-   "t": "{total}문제 중 {right}문제 맞혔어요",
+   "t": "{total}문제 중 {right}문제예요. 틀린 건 아까웠죠?",
    "when": {
     "acc": "80..99"
    },
@@ -1431,7 +1442,7 @@
   {
    "id": "finish.high.02",
    "s": "finish",
-   "t": "정답률 {acc}%, 훌륭해요",
+   "t": "정답률 {acc}%예요. 오늘 감 좋았죠?",
    "when": {
     "acc": "80..99"
    },
@@ -1440,7 +1451,7 @@
   {
    "id": "finish.high.03",
    "s": "finish",
-   "t": "{right}문제 정답, 잘하고 있어요",
+   "t": "{right}문제 맞혔어요. 이 정도면 거의 다 왔어요.",
    "when": {
     "acc": "80..99"
    },
@@ -1449,7 +1460,16 @@
   {
    "id": "finish.high.04",
    "s": "finish",
-   "t": "거의 다 맞혔어요",
+   "t": "거의 다 맞혔어요. 틀린 건 제가 챙겨 둘게요.",
+   "when": {
+    "acc": "80..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.high.05",
+   "s": "finish",
+   "t": "{acc}%예요. 어느 문제가 제일 헷갈렸어요?",
    "when": {
     "acc": "80..99"
    },
@@ -1458,7 +1478,7 @@
   {
    "id": "finish.mid.01",
    "s": "finish",
-   "t": "{right}문제 맞혔어요, 수고했어요",
+   "t": "{right}문제 맞혔어요. 까다로운 판이었죠?",
    "when": {
     "acc": "50..79"
    },
@@ -1467,7 +1487,7 @@
   {
    "id": "finish.mid.02",
    "s": "finish",
-   "t": "틀린 건 곧 다시 만나요",
+   "t": "틀린 건 곧 다시 만나요. 그땐 더 쉬울 거예요.",
    "when": {
     "acc": "50..79"
    },
@@ -1476,7 +1496,7 @@
   {
    "id": "finish.mid.03",
    "s": "finish",
-   "t": "{acc}%, 다음엔 더 오를 거예요",
+   "t": "{acc}%예요. 다음엔 분명 더 오를 거예요.",
    "when": {
     "acc": "50..79"
    },
@@ -1485,7 +1505,7 @@
   {
    "id": "finish.mid.04",
    "s": "finish",
-   "t": "까다로웠는데 잘 버텼어요",
+   "t": "잘 버텼어요. 어려운 판을 끝까지 했잖아요.",
    "when": {
     "acc": "50..79"
    },
@@ -1494,7 +1514,7 @@
   {
    "id": "finish.low.01",
    "s": "finish",
-   "t": "끝까지 풀었어요, 수고했어요",
+   "t": "끝까지 풀었어요. 그게 제일 중요해요.",
    "when": {
     "acc": "<50"
    },
@@ -1503,7 +1523,7 @@
   {
    "id": "finish.low.02",
    "s": "finish",
-   "t": "헷갈리는 날도 있죠",
+   "t": "헷갈리는 날도 있죠. 틀린 건 다 기억해 둘게요.",
    "when": {
     "acc": "<50"
    },
@@ -1512,7 +1532,16 @@
   {
    "id": "finish.low.03",
    "s": "finish",
-   "t": "틀린 만큼 오래 남을 거예요",
+   "t": "어려웠죠? 틀린 만큼 다음엔 더 잘 보여요.",
+   "when": {
+    "acc": "<50"
+   },
+   "p": 2
+  },
+  {
+   "id": "finish.low.04",
+   "s": "finish",
+   "t": "오늘은 문제가 셌어요. 정말 수고했어요.",
    "when": {
     "acc": "<50"
    },
@@ -1521,7 +1550,7 @@
   {
    "id": "finish.many.01",
    "s": "finish",
-   "t": "오늘 {solvedToday}문제나 풀었어요!",
+   "t": "오늘만 {solvedToday}문제예요! 손목은 괜찮아요?",
    "when": {
     "solvedToday": ">=20"
    },
@@ -1530,7 +1559,7 @@
   {
    "id": "finish.many.02",
    "s": "finish",
-   "t": "오늘만 {solvedToday}문제째예요",
+   "t": "오늘 {solvedToday}문제째예요. 공부 체질 맞죠?",
    "when": {
     "solvedToday": ">=20"
    },
@@ -1539,7 +1568,7 @@
   {
    "id": "finish.streak.01",
    "s": "finish",
-   "t": "연속 {streak}일째예요!",
+   "t": "연속 {streak}일째예요! 내일도 기다릴게요.",
    "when": {
     "streakUp": true,
     "streak": ">=2"
@@ -1549,7 +1578,7 @@
   {
    "id": "finish.streak.02",
    "s": "finish",
-   "t": "{streak}일 연속으로 해냈어요",
+   "t": "{streak}일 연속으로 해냈어요. 스스로도 놀랍죠?",
    "when": {
     "streakUp": true,
     "streak": ">=2"
@@ -1559,7 +1588,7 @@
   {
    "id": "finish.streak.03",
    "s": "finish",
-   "t": "연속 기록이 {streak}일로 늘었어요",
+   "t": "연속 기록이 {streak}일로 늘었어요. 꾸준함이 멋져요.",
    "when": {
     "streakUp": true,
     "streak": ">=2"
@@ -1569,7 +1598,7 @@
   {
    "id": "finish.streak.04",
    "s": "finish",
-   "t": "{streak}일째 이어 가고 있어요",
+   "t": "{streak}일째 이어 가고 있어요. 이제 습관이죠?",
    "when": {
     "streakUp": true,
     "streak": ">=2"
@@ -1579,7 +1608,7 @@
   {
    "id": "finish.streak1.01",
    "s": "finish",
-   "t": "연속 기록을 새로 시작했어요",
+   "t": "새 연속 기록이 시작됐어요. 내일 또 만나요.",
    "when": {
     "streakUp": true,
     "streak": "1"
@@ -1589,7 +1618,7 @@
   {
    "id": "finish.streak1.02",
    "s": "finish",
-   "t": "새 출발, 좋아요",
+   "t": "오늘이 첫날이에요. 가볍게 이어 가 봐요.",
    "when": {
     "streakUp": true,
     "streak": "1"
@@ -1599,7 +1628,7 @@
   {
    "id": "finish.extra.01",
    "s": "finish",
-   "t": "추가 학습 완료, 수고했어요",
+   "t": "추가 학습까지 끝! 오늘 열정이 대단하네요.",
    "when": {
     "extra": true
    },
@@ -1608,7 +1637,7 @@
   {
    "id": "finish.extra.02",
    "s": "finish",
-   "t": "추가로 {total}문제 해냈어요",
+   "t": "추가로 {total}문제 해냈어요. 아직 힘이 남았어요?",
    "when": {
     "extra": true
    },
@@ -1617,7 +1646,7 @@
   {
    "id": "finish.extra.03",
    "s": "finish",
-   "t": "오늘은 목표를 넘어섰어요",
+   "t": "목표를 넘어섰어요. 오늘은 칭찬받아도 돼요.",
    "when": {
     "extra": true
    },
@@ -1626,22 +1655,22 @@
   {
    "id": "finish.any.01",
    "s": "finish",
-   "t": "오늘 몫을 해냈어요"
+   "t": "오늘 몫을 해냈어요. 할 만했어요?"
   },
   {
    "id": "finish.any.02",
    "s": "finish",
-   "t": "끝까지 풀었어요, 잘했어요"
+   "t": "수고했어요. 오늘도 한 걸음 갔어요."
   },
   {
    "id": "finish.any.03",
    "s": "finish",
-   "t": "수고했어요, 오늘도 한 걸음이에요"
+   "t": "끝까지 풀었어요. 잠깐 기지개 켜고 가요."
   },
   {
    "id": "finish.any.04",
    "s": "finish",
-   "t": "개념이 하나씩 쌓여요",
+   "t": "개념이 하나씩 쌓이고 있어요. 느껴지죠?",
    "when": {
     "sect": "lat"
    }
@@ -1649,7 +1678,7 @@
   {
    "id": "finish.any.05",
    "s": "finish",
-   "t": "{concept}까지 다 봤어요",
+   "t": "{concept}까지 다 봤어요. 어떤 게 제일 새로웠어요?",
    "when": {
     "sect": "lat"
    }
@@ -1657,7 +1686,7 @@
   {
    "id": "finish.any.06",
    "s": "finish",
-   "t": "단어가 차곡차곡 쌓여요",
+   "t": "단어가 차곡차곡 쌓여요. 내일 몇 개나 기억날까요?",
    "when": {
     "sect": "voc"
    }
@@ -1665,37 +1694,42 @@
   {
    "id": "level.01",
    "s": "level",
-   "t": "레벨 {level|이} 됐어요!"
+   "t": "레벨 {level|이} 됐어요! 기분 어때요?"
   },
   {
    "id": "level.02",
    "s": "level",
-   "t": "레벨 {level} 달성, 축하해요"
+   "t": "레벨 {level} 달성이에요. 그동안 쌓은 게 보이죠?"
   },
   {
    "id": "level.03",
    "s": "level",
-   "t": "레벨 {level}까지 올라왔어요"
+   "t": "레벨 {level}까지 올라왔어요. 다음 레벨도 같이 가요."
   },
   {
    "id": "level.04",
    "s": "level",
-   "t": "꾸준함이 레벨 {level|을} 만들었어요"
+   "t": "꾸준함이 레벨 {level|을} 만들었어요. 축하해요."
   },
   {
    "id": "level.05",
    "s": "level",
-   "t": "레벨 {level|로} 올라섰어요"
+   "t": "레벨 {level|로} 올라섰어요! 처음 만난 날 기억나요?"
   },
   {
    "id": "level.06",
    "s": "level",
-   "t": "한 단계 올라섰어요, 축하해요"
+   "t": "한 단계 올라섰어요. 저도 덩달아 뿌듯해요."
+  },
+  {
+   "id": "level.07",
+   "s": "level",
+   "t": "레벨 {level|이에요}. 다음엔 뭘 해내 볼까요?"
   },
   {
    "id": "quiz.01",
    "s": "quiz",
-   "t": "{total}문제 모두 맞혔어요!",
+   "t": "{total}문제 모두 맞혔어요! 기사를 꼼꼼히 읽었네요.",
    "when": {
     "acc": "100"
    },
@@ -1704,7 +1738,7 @@
   {
    "id": "quiz.02",
    "s": "quiz",
-   "t": "기사를 꼼꼼히 읽었네요",
+   "t": "만점이에요. 숫자까지 다 기억했죠?",
    "when": {
     "acc": "100"
    },
@@ -1713,7 +1747,7 @@
   {
    "id": "quiz.03",
    "s": "quiz",
-   "t": "만점이에요, 완벽해요",
+   "t": "다 맞혔어요. 오늘 기사, 제대로 소화했네요.",
    "when": {
     "acc": "100"
    },
@@ -1722,7 +1756,7 @@
   {
    "id": "quiz.04",
    "s": "quiz",
-   "t": "{total}문제 중 {right}문제 맞혔어요",
+   "t": "{total}문제 중 {right}문제예요. 기사 잘 따라왔어요.",
    "when": {
     "acc": "60..99"
    },
@@ -1731,7 +1765,7 @@
   {
    "id": "quiz.05",
    "s": "quiz",
-   "t": "기사를 잘 소화했어요",
+   "t": "{right}문제 맞혔어요. 틀린 건 어떤 대목이었어요?",
    "when": {
     "acc": "60..99"
    },
@@ -1740,7 +1774,7 @@
   {
    "id": "quiz.06",
    "s": "quiz",
-   "t": "{right}문제 정답, 잘 기억했어요",
+   "t": "잘 기억했어요. 헷갈린 건 한 번 더 읽으면 금방이에요.",
    "when": {
     "acc": "60..99"
    },
@@ -1749,7 +1783,7 @@
   {
    "id": "quiz.07",
    "s": "quiz",
-   "t": "끝까지 풀었어요, 수고했어요",
+   "t": "끝까지 풀었어요. 숫자 많은 기사였죠?",
    "when": {
     "acc": "<60"
    },
@@ -1758,7 +1792,7 @@
   {
    "id": "quiz.08",
    "s": "quiz",
-   "t": "헷갈리는 문제들이었죠?",
+   "t": "헷갈리는 문제들이었죠? 저도 두 번 읽었어요.",
    "when": {
     "acc": "<60"
    },
@@ -1767,32 +1801,81 @@
   {
    "id": "quiz.09",
    "s": "quiz",
-   "t": "퀴즈까지 마쳤어요"
+   "t": "어려웠어요? 해설 한 줄이면 바로 이어질 거예요.",
+   "when": {
+    "acc": "<60"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.11",
+   "s": "quiz",
+   "t": "{total}문제 다 맞혔어요. 이제 저보다 잘 아는데요?",
+   "when": {
+    "acc": "100"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.12",
+   "s": "quiz",
+   "t": "{right}문제 정답이에요. 어떤 숫자가 제일 헷갈렸어요?",
+   "when": {
+    "acc": "60..99"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.13",
+   "s": "quiz",
+   "t": "어려운 기사였는데 끝까지 왔어요. 그게 중요해요.",
+   "when": {
+    "acc": "<60"
+   },
+   "p": 2
+  },
+  {
+   "id": "quiz.10",
+   "s": "quiz",
+   "t": "퀴즈까지 마쳤어요. 오늘 뉴스는 여기까지예요.",
+   "p": 1
+  },
+  {
+   "id": "quiz.14",
+   "s": "quiz",
+   "t": "기사 읽고 퀴즈까지, 오늘 뉴스 몫은 끝이에요.",
+   "p": 1
+  },
+  {
+   "id": "quiz.15",
+   "s": "quiz",
+   "t": "퀴즈 끝! 오늘 기사 중에 누구한테 말해 주고 싶어요?",
+   "p": 1
   },
   {
    "id": "recap.lat.01",
    "s": "recap.lat",
-   "t": "이번 주 개념 {weekConcepts}개를 익혔어요"
+   "t": "이번 주 개념 {weekConcepts}개를 익혔어요. 뭐가 제일 어려웠어요?"
   },
   {
    "id": "recap.lat.02",
    "s": "recap.lat",
-   "t": "한 주 동안 {weekConcepts}개, 탄탄해요"
+   "t": "한 주에 {weekConcepts}개예요. 차곡차곡 단단해졌어요."
   },
   {
    "id": "recap.lat.03",
    "s": "recap.lat",
-   "t": "{newest}까지 왔어요"
+   "t": "{newest}까지 왔어요. 다음 주엔 어디로 갈까요?"
   },
   {
    "id": "recap.lat.04",
    "s": "recap.lat",
-   "t": "{topField} 다음엔 뭘 파 볼까요?"
+   "t": "{topField} 다음엔 뭘 파 볼까요? 저는 벌써 궁금해요."
   },
   {
    "id": "recap.lat.05",
    "s": "recap.lat",
-   "t": "{topField}에만 {topFieldN}개, 깊게 팠네요",
+   "t": "{topField}에만 {topFieldN}개, 깊게 팠네요.",
    "when": {
     "weekFields": "1"
    },
@@ -1801,7 +1884,7 @@
   {
    "id": "recap.lat.06",
    "s": "recap.lat",
-   "t": "{topField}만 파고든 한 주였죠?",
+   "t": "{topField}만 파고든 한 주였죠? 그 끈기 좋아요.",
    "when": {
     "weekFields": "1"
    },
@@ -1810,7 +1893,7 @@
   {
    "id": "recap.lat.07",
    "s": "recap.lat",
-   "t": "{weekFields}개 학문을 오갔어요",
+   "t": "{weekFields}개 학문을 오갔어요. 머리가 바빴겠어요.",
    "when": {
     "weekFields": ">=2"
    },
@@ -1819,50 +1902,67 @@
   {
    "id": "recap.lat.08",
    "s": "recap.lat",
-   "t": "개념끼리 {weekLinks}번 이어졌어요",
-   "when": {
-    "weekLinks": ">=1"
-   },
-   "p": 1
-  },
-  {
-   "id": "recap.lat.09",
-   "s": "recap.lat",
-   "t": "이번 주는 복습 주간이었죠?",
+   "t": "이번 주는 복습 주간이었죠? 그것도 중요해요.",
    "when": {
     "weekConcepts": "0"
    },
    "p": 3
   },
   {
+   "id": "recap.lat.09",
+   "s": "recap.lat",
+   "t": "{weekConcepts}개 중에 제일 기억나는 건 뭐예요?",
+   "when": {
+    "weekConcepts": ">=2"
+   }
+  },
+  {
    "id": "recap.voc.01",
    "s": "recap.voc",
-   "t": "새 단어 {weekWords}개를 만났어요"
+   "t": "새 단어 {weekWords}개를 만났어요. 몇 개나 입에 붙었어요?"
   },
   {
    "id": "recap.voc.02",
    "s": "recap.voc",
-   "t": "이번 주 단어 {weekWords}개예요"
+   "t": "이번 주 단어 {weekWords}개예요. 어느 게 제일 마음에 들어요?"
   },
   {
    "id": "recap.voc.03",
    "s": "recap.voc",
-   "t": "모은 단어가 {wordsTotal}개예요"
+   "t": "{word}, 이제 익숙하죠? 어디서 쓰면 좋을까요?"
   },
   {
    "id": "recap.voc.04",
    "s": "recap.voc",
-   "t": "{word}, 이제 익숙하죠?"
+   "t": "단어 {weekWords}개가 쌓였어요. 다음 주엔 몇 개 만날까요?"
   },
   {
    "id": "recap.voc.05",
    "s": "recap.voc",
-   "t": "단어 {weekWords}개가 차곡차곡 쌓였어요"
+   "t": "{word}, 이번 주에 만났죠. 입에 붙었어요?"
   },
   {
    "id": "recap.voc.06",
    "s": "recap.voc",
-   "t": "단어 {wordsTotal}개, 세 자릿수예요",
+   "t": "모은 단어가 {wordsTotal}개예요. 처음보다 훨씬 많죠?"
+  },
+  {
+   "id": "recap.voc.08",
+   "s": "recap.voc",
+   "t": "이번 주 {weekWords}개, 그중 몇 개는 벌써 써 봤죠?",
+   "when": {
+    "weekWords": ">=3"
+   }
+  },
+  {
+   "id": "recap.voc.09",
+   "s": "recap.voc",
+   "t": "{word}, 어떤 문장에서 만났는지 기억나요?"
+  },
+  {
+   "id": "recap.voc.07",
+   "s": "recap.voc",
+   "t": "단어 {wordsTotal}개, 세 자릿수예요! 꽤 모였죠?",
    "when": {
     "wordsTotal": ">=100"
    },
@@ -1871,32 +1971,35 @@
   {
    "id": "recap.news.01",
    "s": "recap.news",
-   "t": "기사 {weekRead}건을 끝까지 읽었어요"
+   "t": "기사 {weekRead}건을 끝까지 읽었어요. 어느 게 제일 남았어요?"
   },
   {
    "id": "recap.news.02",
    "s": "recap.news",
-   "t": "이번 주 {weekRead}건 읽었어요"
+   "t": "이번 주 {weekRead}건 읽었어요. 경제 흐름이 좀 보이죠?"
   },
   {
    "id": "recap.news.03",
    "s": "recap.news",
-   "t": "이번 주엔 {newsKey} 얘기가 많았죠?"
+   "t": "이번 주엔 {newsKey} 얘기가 많았죠? 다음 주엔 어떻게 될까요?"
   },
   {
    "id": "recap.news.04",
    "s": "recap.news",
-   "t": "한 주 경제 흐름을 따라왔어요"
+   "t": "한 주 뉴스를 같이 읽었어요. 다음 주 소식도 궁금하죠?"
   },
   {
    "id": "recap.news.05",
    "s": "recap.news",
-   "t": "한 주 뉴스를 같이 읽었어요"
+   "t": "{weekRead}건이나 읽었네요. 이제 뉴스가 덜 낯설죠?",
+   "when": {
+    "weekRead": ">=5"
+   }
   },
   {
    "id": "recap.news.06",
    "s": "recap.news",
-   "t": "주간 퀴즈 {quizRight}문제 맞혔어요",
+   "t": "주간 퀴즈 {quizRight}문제 맞혔어요. 기사를 잘 기억했네요.",
    "when": {
     "quizRight": ">=1"
    }
@@ -1904,22 +2007,28 @@
   {
    "id": "recap.streak.01",
    "s": "recap.streak",
-   "t": "이번 주 {weekDays}일 함께했어요"
+   "t": "이번 주 {weekDays}일 함께했어요. 어느 날이 제일 좋았어요?"
   },
   {
    "id": "recap.streak.02",
    "s": "recap.streak",
-   "t": "{weekDays}일이나 만났네요"
+   "t": "{weekDays}일이나 만났네요. 저는 매일 반가웠어요.",
+   "when": {
+    "weekDays": ">=2"
+   }
   },
   {
-   "id": "recap.close.01",
-   "s": "recap.close",
-   "t": "다음 주에도 만나요"
+   "id": "recap.streak.03",
+   "s": "recap.streak",
+   "t": "{weekDays}일, 꽤 알찬 한 주였어요. 스스로 칭찬해 줘요.",
+   "when": {
+    "weekDays": ">=4"
+   }
   },
   {
    "id": "recap.streak.04",
    "s": "recap.streak",
-   "t": "연속 {streak}일째 이어 가요",
+   "t": "연속 {streak}일째 이어 가요. 다음 주에도 만나요.",
    "when": {
     "streak": ">=2"
    }
@@ -1927,7 +2036,7 @@
   {
    "id": "recap.streak.05",
    "s": "recap.streak",
-   "t": "일주일 내내 왔어요!",
+   "t": "일주일 내내 왔어요! 이런 주는 오래 기억할래요.",
    "when": {
     "weekDays": "7"
    },
@@ -1936,25 +2045,113 @@
   {
    "id": "recap.streak.06",
    "s": "recap.streak",
-   "t": "바쁜 한 주였죠? 수고했어요",
+   "t": "바쁜 한 주였죠? 그래도 와 줘서 고마워요.",
    "when": {
     "weekDays": "<=3"
    }
   },
   {
+   "id": "recap.streak.08",
+   "s": "recap.streak",
+   "t": "이번 주도 {weekDays}일 만났네요. 다음 주엔 며칠 만날까요?",
+   "when": {
+    "weekDays": ">=2"
+   }
+  },
+  {
+   "id": "recap.streak.09",
+   "s": "recap.streak",
+   "t": "{weekDays}일이면 충분해요. 쉬는 날도 있어야죠.",
+   "when": {
+    "weekDays": "3..6"
+   }
+  },
+  {
+   "id": "recap.streak.07",
+   "s": "recap.streak",
+   "t": "{streak}일째예요. 이 기록, 어디까지 갈까요?",
+   "when": {
+    "streak": ">=7"
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.close.01",
+   "s": "recap.close",
+   "t": "다음 주에도 만나요. 새 기사 먼저 읽어 둘게요."
+  },
+  {
+   "id": "recap.close.02",
+   "s": "recap.close",
+   "t": "{solved}문제 풀고 {words}개를 익혔어요. 알찬 한 주였죠?"
+  },
+  {
+   "id": "recap.close.03",
+   "s": "recap.close",
+   "t": "이번 주 경험치가 {xpS} 늘었어요. 차곡차곡 쌓였네요."
+  },
+  {
+   "id": "recap.close.04",
+   "s": "recap.close",
+   "t": "{days}일 동안 {solved}문제를 풀었어요. 정말 꾸준했어요."
+  },
+  {
+   "id": "recap.close.05",
+   "s": "recap.close",
+   "t": "기사 {read}건까지 읽었어요. 다음 주 뉴스도 같이 봐요."
+  },
+  {
+   "id": "recap.close.06",
+   "s": "recap.close",
+   "t": "새 개념 {newConcepts}개예요. 다음 주엔 뭘 만날까요?",
+   "when": {
+    "newConcepts": ">=1"
+   }
+  },
+  {
+   "id": "recap.close.07",
+   "s": "recap.close",
+   "t": "{newField|이} 열린 한 주였어요. 기억에 남죠?",
+   "when": {
+    "hasNewField": true
+   },
+   "p": 1
+  },
+  {
+   "id": "recap.close.08",
+   "s": "recap.close",
+   "t": "레벨 {level}, 한 주 만에 올랐어요! 다음 주도 기대돼요.",
+   "when": {
+    "levelUp": true
+   },
+   "p": 2
+  },
+  {
+   "id": "recap.close.09",
+   "s": "recap.close",
+   "t": "이번 주에 레벨 {level|이} 됐어요. 축하해요.",
+   "when": {
+    "levelUp": true
+   },
+   "p": 2
+  },
+  {
    "id": "graph.01",
    "s": "graph",
-   "t": "개념 {concepts}개, 학문 {fields}곳이에요"
+   "t": "개념 {concepts}개, 학문 {fields}곳이에요. 처음엔 하나였죠?",
+   "when": {
+    "fields": ">=2"
+   }
   },
   {
    "id": "graph.02",
    "s": "graph",
-   "t": "지금까지 {concepts}개를 익혔어요"
+   "t": "지금까지 {concepts}개를 익혔어요. 제가 다 기억해요."
   },
   {
    "id": "graph.03",
    "s": "graph",
-   "t": "{fields}개 학문이 이어져 있어요",
+   "t": "{fields}개 학문에 걸쳐 있어요. 다음엔 어디로 뻗을까요?",
    "when": {
     "fields": ">=2"
    }
@@ -1962,85 +2159,80 @@
   {
    "id": "graph.04",
    "s": "graph",
-   "t": "연결 {links}개, 점점 촘촘해요"
+   "t": "가장 최근엔 {newest|을} 배웠죠. 아직 생생해요?"
   },
   {
    "id": "graph.05",
    "s": "graph",
-   "t": "가장 최근엔 {newest|을} 배웠죠"
+   "t": "{topField|이} 제일 크게 자랐어요. 다음은 어디가 따라올까요?"
   },
   {
    "id": "graph.06",
    "s": "graph",
-   "t": "{topField|이} 제일 크게 자랐어요"
+   "t": "다음엔 어떤 학문이 열릴까요? 저도 궁금해요."
   },
   {
    "id": "graph.07",
    "s": "graph",
-   "t": "다음엔 어떤 학문이 올까요?"
+   "t": "{concepts}개, 하나도 안 잊었어요. 하나 꺼내 볼까요?"
   },
   {
    "id": "graph.08",
    "s": "graph",
-   "t": "{concepts}개, 제가 다 기억해요"
+   "t": "{newest}까지 왔네요. 여기서 어디로 갈까요?"
   },
   {
    "id": "return.01",
    "s": "return",
-   "t": "다시 와 줘서 반가워요"
+   "t": "다시 와 줘서 반가워요. 잘 지냈어요?"
   },
   {
    "id": "return.02",
    "s": "return",
-   "t": "오랜만이에요, 보고 싶었어요"
+   "t": "오랜만이에요! 보고 싶었어요."
   },
   {
    "id": "return.03",
    "s": "return",
-   "t": "기다리고 있었어요"
+   "t": "왔네요! 그사이 기사 몇 개 모아 뒀어요."
   },
   {
    "id": "return.04",
    "s": "return",
-   "t": "천천히 다시 시작해요"
+   "t": "천천히 다시 시작해요. 오늘은 가볍게 하나만요."
   },
   {
    "id": "return.05",
    "s": "return",
-   "t": "쉬어 가도 괜찮아요"
+   "t": "쉬어 가도 괜찮아요. 다시 만난 게 중요해요."
   },
   {
    "id": "return.06",
    "s": "return",
-   "t": "다시 만나서 정말 좋아요"
+   "t": "{concept}, 아직 기억나요? 같이 다시 꺼내 봐요."
   },
   {
    "id": "return.07",
    "s": "return",
-   "t": "{concept}, 아직 기억나요?"
+   "t": "다시 만나서 정말 좋아요. 오늘 기분은 어때요?"
   },
   {
    "id": "return.08",
    "s": "return",
-   "t": "{away}일 만이에요, 반가워요",
-   "when": {
-    "away": ">=2"
-   },
-   "p": 1
-  },
-  {
-   "id": "return.09",
-   "s": "return",
-   "t": "{away}일 만이네요, 잘 지냈어요?",
+   "t": "그동안 어떻게 지냈어요? 개념들은 제가 잘 지켜 뒀어요.",
    "when": {
     "away": ">=7"
    },
    "p": 1
   },
   {
-   "id": "unlock.02",
-   "s": "unlock",
-   "t": "{field}까지 오다니요!"
+   "id": "return.09",
+   "s": "return",
+   "t": "돌아왔네요! 배운 건 하나도 안 사라졌어요.",
+   "when": {
+    "away": ">=2"
+   },
+   "p": 1
   },
   {
    "id": "ul.major.01",
@@ -2051,9 +2243,34 @@
    }
   },
   {
+   "id": "ul.major.02",
+   "s": "unlock",
+   "t": "{field}까지 오다니요! 어디까지 가 볼까요?",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "ul.major.03",
+   "s": "unlock",
+   "t": "지도가 한 뼘 넓어졌어요. 기분이 어때요?",
+   "when": {
+    "rank": "discipline"
+   }
+  },
+  {
+   "id": "ul.major.04",
+   "s": "unlock",
+   "t": "{gap}일 만의 새 학문이에요. 기다린 보람 있죠?",
+   "when": {
+    "rank": "discipline",
+    "gap": ">=2"
+   }
+  },
+  {
    "id": "ul.major.05",
    "s": "unlock",
-   "t": "지도가 한 뼘 넓어졌어요",
+   "t": "{field}, 반가워요! 여기선 뭘 먼저 배울까요?",
    "when": {
     "rank": "discipline"
    }
@@ -2061,24 +2278,16 @@
   {
    "id": "ul.major.06",
    "s": "unlock",
-   "t": "{gap}일 만의 새 학문이에요",
+   "t": "{n}번째 학문이에요. 점점 넓어지네요.",
    "when": {
     "rank": "discipline",
-    "gap": ">=2"
+    "n": ">=2"
    }
   },
   {
-   "id": "ul.major.08",
+   "id": "ul.major.07",
    "s": "unlock",
-   "t": "다음 학문은 뭘까요?",
-   "when": {
-    "rank": "discipline"
-   }
-  },
-  {
-   "id": "ul.major.09",
-   "s": "unlock",
-   "t": "{field}, 반가워요!",
+   "t": "다음 학문은 뭘까요? 저는 벌써 궁금해요.",
    "when": {
     "rank": "discipline"
    }
@@ -2086,7 +2295,7 @@
   {
    "id": "ul.minor.01",
    "s": "unlock",
-   "t": "{parent|이} 한 갈래 더 자랐어요",
+   "t": "{parent|이} 한 갈래 더 자랐어요. 어디까지 뻗을까요?",
    "when": {
     "rank": "branch"
    }
@@ -2094,7 +2303,15 @@
   {
    "id": "ul.minor.02",
    "s": "unlock",
-   "t": "{parent} 지도가 넓어졌어요",
+   "t": "{parent} 안에 길이 하나 더 났어요. 가 볼래요?",
+   "when": {
+    "rank": "branch"
+   }
+  },
+  {
+   "id": "ul.minor.03",
+   "s": "unlock",
+   "t": "{parent} 지도가 또 넓어졌어요. 꾸준히 판 덕분이에요.",
    "when": {
     "rank": "branch"
    }
@@ -2102,7 +2319,23 @@
   {
    "id": "ul.minor.04",
    "s": "unlock",
-   "t": "{parent} 안에 길이 하나 더 났어요",
+   "t": "{parent|을} 깊이 파고 있네요. 그 끈기 좋아요.",
+   "when": {
+    "rank": "branch"
+   }
+  },
+  {
+   "id": "ul.minor.05",
+   "s": "unlock",
+   "t": "한 갈래 더 열렸어요. 어떤 개념이 기다릴까요?",
+   "when": {
+    "rank": "branch"
+   }
+  },
+  {
+   "id": "ul.minor.06",
+   "s": "unlock",
+   "t": "{parent}, 생각보다 넓죠? 아직 더 있어요.",
    "when": {
     "rank": "branch"
    }
@@ -2110,196 +2343,242 @@
   {
    "id": "ul.missed.01",
    "s": "unlock.missed",
-   "t": "그새 지도가 꽤 자랐어요"
+   "t": "그새 지도가 꽤 자랐어요. 하나씩 같이 볼까요?"
   },
   {
    "id": "ul.missed.02",
    "s": "unlock.missed",
-   "t": "다시 만나서 반가워요!"
+   "t": "다시 만나서 반가워요! 모아 둔 게 있어요."
   },
   {
    "id": "ul.missed.03",
    "s": "unlock.missed",
-   "t": "모아 두었어요, 천천히 봐요"
+   "t": "모아 두었어요. 천천히 봐도 돼요."
   },
   {
    "id": "ul.missed.04",
    "s": "unlock.missed",
-   "t": "{n}곳이 새로 열렸어요",
+   "t": "{n}곳이 새로 열렸어요. 어디부터 볼까요?",
    "when": {
     "n": ">=2"
    }
   },
   {
+   "id": "ul.missed.05",
+   "s": "unlock.missed",
+   "t": "그동안 열린 곳들이에요. 낯익은 이름 있어요?"
+  },
+  {
+   "id": "ul.missed.06",
+   "s": "unlock.missed",
+   "t": "잘 챙겨 뒀어요. 같이 펼쳐 봐요."
+  },
+  {
    "id": "ul.more.01",
    "s": "unlock.more",
-   "t": "오늘은 해금 잔치예요!"
+   "t": "오늘은 해금 잔치예요! 다 둘러볼까요?"
   },
   {
    "id": "ul.more.02",
    "s": "unlock.more",
-   "t": "지도가 부쩍 커졌어요"
+   "t": "지도가 부쩍 커졌어요. 어디가 제일 궁금해요?"
   },
   {
    "id": "ul.more.03",
    "s": "unlock.more",
-   "t": "{n}곳이 더 열렸어요"
+   "t": "{n}곳이 더 열렸어요. 하나씩 천천히 봐요."
   },
   {
-   "id": "recap.close.02",
-   "s": "recap.close",
-   "t": "{solved}문제 풀고 {words}개를 익혔어요"
+   "id": "ul.more.04",
+   "s": "unlock.more",
+   "t": "아직 더 있어요! 오늘 정말 많이 열렸네요."
   },
   {
-   "id": "recap.close.03",
-   "s": "recap.close",
-   "t": "이번 주 경험치가 {xpS} 늘었어요"
+   "id": "ul.more.05",
+   "s": "unlock.more",
+   "t": "이렇게 한꺼번에요? 그동안 꽤 달렸나 봐요."
   },
   {
-   "id": "recap.close.04",
-   "s": "recap.close",
-   "t": "{days}일 동안 {solved}문제를 풀었어요"
-  },
-  {
-   "id": "recap.close.05",
-   "s": "recap.close",
-   "t": "기사 {read}건까지, 알찬 한 주였어요"
-  },
-  {
-   "id": "recap.close.06",
-   "s": "recap.close",
-   "t": "새 개념 {newConcepts}개, 다음 주도 기대돼요",
-   "when": {
-    "newConcepts": ">=1"
-   }
-  },
-  {
-   "id": "recap.close.07",
-   "s": "recap.close",
-   "t": "{newField|이} 열린 한 주였어요",
-   "when": {
-    "hasNewField": true
-   },
-   "p": 1
-  },
-  {
-   "id": "recap.close.08",
-   "s": "recap.close",
-   "t": "레벨 {level}, 한 주 만에 올랐어요",
-   "when": {
-    "levelUp": true
-   },
-   "p": 2
-  },
-  {
-   "id": "recap.close.09",
-   "s": "recap.close",
-   "t": "이번 주에 레벨 {level|이} 됐어요",
-   "when": {
-    "levelUp": true
-   },
-   "p": 2
+   "id": "ul.more.06",
+   "s": "unlock.more",
+   "t": "{n}곳이 더 기다려요. 차례로 만나 봐요."
   },
   {
    "id": "mrecap.period.01",
    "s": "mrecap.period",
-   "t": "{month}엔 {doneDays}일을 채웠어요"
+   "t": "{month}엔 {doneDays}일을 채웠어요. 한 달 어땠어요?"
   },
   {
    "id": "mrecap.period.02",
    "s": "mrecap.period",
-   "t": "{month} 한 달, {doneDays}일 함께했어요"
+   "t": "{month} 한 달, {doneDays}일 함께했어요. 고마워요."
   },
   {
    "id": "mrecap.period.03",
    "s": "mrecap.period",
-   "t": "연속 {streak}일째로 달을 넘겨요",
+   "t": "연속 {streak}일째로 달을 넘겨요. 다음 달도 같이 가요.",
    "when": {
     "streak": ">=7"
    },
    "p": 1
   },
   {
+   "id": "mrecap.period.04",
+   "s": "mrecap.period",
+   "t": "{month|이} 벌써 끝나 가요. 돌아보니 어때요?"
+  },
+  {
+   "id": "mrecap.period.05",
+   "s": "mrecap.period",
+   "t": "{doneDays}일이나 채운 달이에요. 스스로 뿌듯하죠?",
+   "when": {
+    "doneDays": ">=10"
+   }
+  },
+  {
+   "id": "mrecap.period.06",
+   "s": "mrecap.period",
+   "t": "한 달을 같이 걸었어요. 제일 기억나는 날 있어요?"
+  },
+  {
    "id": "mrecap.lat.01",
    "s": "mrecap.lat",
-   "t": "{month}에 개념 {newConcepts}개를 익혔어요"
+   "t": "{month}에 개념 {newConcepts}개를 익혔어요. 꽤 많죠?"
   },
   {
    "id": "mrecap.lat.02",
    "s": "mrecap.lat",
-   "t": "{newest}까지 왔어요"
+   "t": "{newest}까지 왔어요. 한 달 전엔 몰랐던 거예요."
   },
   {
    "id": "mrecap.lat.03",
    "s": "mrecap.lat",
-   "t": "한 달에 {solved}문제, 단단해요"
+   "t": "한 달에 {solved}문제, 단단해요. 손에 익었죠?"
   },
   {
    "id": "mrecap.lat.04",
    "s": "mrecap.lat",
-   "t": "{fields}개 학문을 오갔어요",
+   "t": "{fields}개 학문을 오갔어요. 시야가 넓어졌죠?",
    "when": {
     "fields": ">=2"
    },
    "p": 1
   },
   {
+   "id": "mrecap.lat.05",
+   "s": "mrecap.lat",
+   "t": "개념 {newConcepts}개 중에 제일 좋았던 건 뭐예요?",
+   "when": {
+    "newConcepts": ">=2"
+   }
+  },
+  {
+   "id": "mrecap.lat.06",
+   "s": "mrecap.lat",
+   "t": "{month} 내내 쌓았어요. 다음 달엔 어디로 갈까요?"
+  },
+  {
    "id": "mrecap.voc.01",
    "s": "mrecap.voc",
-   "t": "{month}에 {words}개를 새로 만났어요"
+   "t": "{month}에 {words}개를 새로 만났어요. 몇 개가 입에 붙었어요?"
   },
   {
    "id": "mrecap.voc.02",
    "s": "mrecap.voc",
-   "t": "모은 영단어가 {vocTotal}개예요"
+   "t": "모은 영단어가 {vocTotal}개예요. 처음보다 훨씬 많죠?"
   },
   {
    "id": "mrecap.voc.03",
    "s": "mrecap.voc",
-   "t": "{word}, 이제 익숙하죠?"
+   "t": "{word}, 이제 익숙하죠? 어디서 쓰면 좋을까요?"
+  },
+  {
+   "id": "mrecap.voc.04",
+   "s": "mrecap.voc",
+   "t": "단어 {words}개, 한 달 치예요. 꾸준했어요."
+  },
+  {
+   "id": "mrecap.voc.05",
+   "s": "mrecap.voc",
+   "t": "{vocTotal}개를 모았어요. 다음 달엔 어떤 단어를 만날까요?"
+  },
+  {
+   "id": "mrecap.voc.06",
+   "s": "mrecap.voc",
+   "t": "{month} 단어장, 꽤 두꺼워졌죠?"
   },
   {
    "id": "mrecap.news.01",
    "s": "mrecap.news",
-   "t": "한 달 동안 기사 {read}건 읽었어요"
+   "t": "한 달 동안 기사 {read}건 읽었어요. 경제가 좀 가까워졌죠?"
   },
   {
    "id": "mrecap.news.02",
    "s": "mrecap.news",
-   "t": "한 달 경제 흐름을 따라왔어요"
+   "t": "한 달 경제 흐름을 따라왔어요. 제일 놀란 기사는 뭐였어요?"
   },
   {
    "id": "mrecap.news.03",
    "s": "mrecap.news",
-   "t": "종합 퀴즈 {wq}번 모두 풀었어요",
+   "t": "종합 퀴즈 {wq}번 모두 풀었어요. 꼼꼼했어요.",
    "when": {
     "wq": ">=1"
    },
    "p": 1
   },
   {
+   "id": "mrecap.news.04",
+   "s": "mrecap.news",
+   "t": "기사 {read}건이에요. 다음 달엔 어떤 뉴스가 올까요?"
+  },
+  {
+   "id": "mrecap.news.05",
+   "s": "mrecap.news",
+   "t": "{read}건을 끝까지 읽었어요. 이제 제목만 봐도 감이 오죠?"
+  },
+  {
+   "id": "mrecap.news.06",
+   "s": "mrecap.news",
+   "t": "한 달 내내 뉴스를 챙겼어요. 같이 읽어서 좋았어요."
+  },
+  {
    "id": "mrecap.close.01",
    "s": "mrecap.close",
-   "t": "{month}에 경험치 {xpS|을} 모았어요"
+   "t": "{month}에 경험치 {xpS|을} 모았어요. 알찬 한 달이에요."
   },
   {
    "id": "mrecap.close.02",
    "s": "mrecap.close",
-   "t": "{solved}문제로 채운 한 달이었어요"
+   "t": "{solved}문제로 채운 한 달이었어요. 수고 많았어요."
   },
   {
    "id": "mrecap.close.03",
    "s": "mrecap.close",
-   "t": "다음 달에도 만나요"
+   "t": "다음 달에도 만나요. 새 기사 먼저 읽어 둘게요."
   },
   {
    "id": "mrecap.close.04",
    "s": "mrecap.close",
-   "t": "한 달 새 레벨 {level|이} 됐어요",
+   "t": "한 달 새 레벨 {level|이} 됐어요! 다음 달도 기대돼요.",
    "when": {
     "levelUp": true
    },
    "p": 2
+  },
+  {
+   "id": "mrecap.close.05",
+   "s": "mrecap.close",
+   "t": "{month}, 정말 꾸준했어요. 스스로 칭찬해 줘요."
+  },
+  {
+   "id": "mrecap.close.07",
+   "s": "mrecap.close",
+   "t": "{month}도 수고했어요. 제일 뿌듯했던 순간은 언제예요?"
+  },
+  {
+   "id": "mrecap.close.06",
+   "s": "mrecap.close",
+   "t": "한 달 잘 걸어왔어요. 다음 달엔 뭘 해 볼까요?"
   }
  ]
 }

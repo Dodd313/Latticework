@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Latti 아이콘 시안 · Motion Lab 9차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<link rel="stylesheet" href="../v8/latti.css">
+<style>
+  :root {
+    --spring: linear(0, .009, .035 2.1%, .141 4.4%, .723 12.9%, .938 16.7%, 1.017 19.4%, 1.067, 1.077 24.6%, 1.067 27.3%, 1.019 34.4%, .996 39.4%, .991 45.4%, 1.001 61.6%, 1);
+    --out: cubic-bezier(.22, 1, .36, 1);
+    --in: cubic-bezier(.55, 0, 1, .45);
+    --wall-light: linear-gradient(155deg, #cfe0f5 0%, #e9e6f3 55%, #f5ebdf 100%);
+    --wall-dark: linear-gradient(155deg, #0c121d 0%, #1b2236 60%, #2b2a40 100%);
+  }
+  body { background: var(--grey100); color: var(--grey900); }
+  .doc { max-width: 1120px; margin: 0 auto; padding: 32px 16px 80px; display: flex; flex-direction: column; gap: 20px; }
+  .intro h1 { margin: 0; font-size: 30px; line-height: 40px; font-weight: 800; letter-spacing: -0.6px; }
+  .intro p { margin: 6px 0 0; font-size: 17px; line-height: 25.5px; color: var(--grey600); }
+
+  .card { background: #fff; border-radius: 24px; padding: 24px; }
+  .card h2 { margin: 0; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.4px; }
+
+  /* 한눈에 */
+  .over { display: flex; flex-direction: column; gap: 12px; }
+  .wall { border-radius: 20px; padding: 20px 12px 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); row-gap: 16px; }
+  .wall.light { background: var(--wall-light); }
+  .wall.dark { background: var(--wall-dark); }
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+  .slot svg { display: block; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08)); }
+  .slot span { font-size: 12px; line-height: 15px; font-weight: 500; white-space: nowrap; }
+  .wall.light .slot span { color: #1c2230; }
+  .wall.dark .slot span { color: #fff; }
+  .slot.now span { opacity: 0.55; }
+
+  /* 시안 한 장 */
+  .con-hd { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+  .con-hd .no { font-size: 15px; font-weight: 700; color: var(--blue500); font-variant-numeric: tabular-nums; }
+  .con-hd code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--grey500); }
+  .pick { margin-left: auto; display: flex; gap: 6px; }
+  .pick button { height: 34px; padding: 0 14px; border-radius: 17px; background: var(--grey100); color: var(--grey700); font-size: 14px; font-weight: 600; }
+  .pick button[aria-pressed='true'] { background: var(--grey900); color: #fff; }
+  .idea { margin: 8px 0 0; font-size: 16px; line-height: 25px; color: var(--grey700); max-width: 760px; }
+
+  .panes { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 16px; }
+  .pane { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .pane figcaption { font-size: 13px; line-height: 19.5px; font-weight: 600; color: var(--grey500); }
+  .box { border-radius: 18px; background: var(--grey50); box-shadow: inset 0 0 0 1px var(--grey200); }
+
+  .p-master { width: 290px; }
+  .p-master .box { height: 184px; display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .p-master button { display: flex; flex-direction: column; align-items: center; gap: 8px; border-radius: 16px; padding: 6px; }
+  .p-master button svg { display: block; border-radius: 26px; }
+  .p-master button span { font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .p-master button[aria-pressed='true'] span { color: var(--grey900); }
+  .p-master button[aria-pressed='true'] svg { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--grey900); }
+
+  .p-home { width: 300px; }
+  .p-home .walls { display: flex; flex-direction: column; gap: 8px; }
+  .hrow { height: 88px; border-radius: 18px; display: flex; align-items: flex-start; justify-content: space-around; padding: 10px 6px 0; }
+  .hrow.light { background: var(--wall-light); }
+  .hrow.dark { background: var(--wall-dark); }
+  .app { width: 66px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .app svg, .app i { display: block; width: 60px; height: 60px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)); }
+  .app i { border-radius: 13.44px; }
+  .app span { font-size: 11px; line-height: 13px; font-weight: 500; white-space: nowrap; letter-spacing: -0.1px; }
+  .app b { display: block; width: 34px; height: 5px; border-radius: 3px; margin-top: 4px; }
+  .hrow.light .app span { color: #1c2230; }
+  .hrow.light .app b { background: rgba(28, 34, 48, 0.22); }
+  .hrow.dark .app span { color: #fff; }
+  .hrow.dark .app b { background: rgba(255, 255, 255, 0.3); }
+
+  .p-splash { width: 168px; }
+  .phone-mini { width: 168px; height: 184px; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px var(--grey200); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .phone-mini svg { display: block; }
+  .phone-mini b { font-size: 18px; line-height: 24px; font-weight: 800; letter-spacing: -0.4px; color: var(--grey900); }
+
+  .p-move { width: 168px; }
+  .p-move .box { height: 184px; display: flex; align-items: center; justify-content: center; }
+  .p-move .box svg { display: block; filter: drop-shadow(0 2px 6px rgba(0, 23, 51, 0.12)); }
+  .p-move p { margin: 0; font-size: 14px; line-height: 21px; color: var(--grey700); }
+
+  .p-chat { flex: 1 1 520px; }
+  .p-chat .box { background: #fff; padding: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 28px; }
+  .p-chat .latti { align-items: flex-end; gap: 8px; }
+  .p-chat .latti > svg { flex: none; display: block; }
+  .ladder { display: flex; align-items: flex-end; gap: 14px; }
+  .ladder div { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .ladder svg { display: block; }
+  .ladder span { font-size: 12px; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .p-chat .move-line { flex-basis: 100%; margin: 0; font-size: 14px; line-height: 21px; color: var(--grey700); }
+
+  /* 움직임: .live 안에서만 돈다 */
+  .live .m-spin { transform-box: view-box; transform-origin: 50px 53.1px; animation: mSpin 4.4s infinite; }
+  @keyframes mSpin { 0%, 64% { transform: rotate(0deg); animation-timing-function: var(--spring); } 100% { transform: rotate(120deg); } }
+
+  .live .m-node { transform-box: fill-box; transform-origin: center; animation: mNode 3.2s infinite; animation-delay: calc(var(--i) * 110ms); }
+  @keyframes mNode { 0% { transform: scale(1); animation-timing-function: var(--out); } 7% { transform: scale(1.34); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 20%, 100% { transform: scale(1); } }
+
+  .live .m-lit { animation: mWink 4s infinite; }
+  @keyframes mWink { 0%, 78% { opacity: 1; animation-timing-function: steps(1, end); } 79%, 83% { opacity: 0.14; animation-timing-function: var(--out); } 90%, 100% { opacity: 1; } }
+
+  .live .m-breath { transform-box: view-box; transform-origin: 50px 50px; animation: mBreath 3.8s infinite; }
+  @keyframes mBreath { 0%, 66% { transform: scale(1); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 76% { transform: scale(0.9); animation-timing-function: var(--spring); } 100% { transform: scale(1); } }
+
+  .live .m-y { transform-box: view-box; transform-origin: 50px 51px; animation: mFlip 5.2s infinite; }
+  @keyframes mFlip { 0%, 36% { transform: rotate(0deg); animation-timing-function: var(--spring); } 50%, 86% { transform: rotate(60deg); animation-timing-function: var(--spring); } 100% { transform: rotate(120deg); } }
+
+  .live .m-face { animation: mFace 6.6s infinite; }
+  @keyframes mFace { 0%, 28% { fill: var(--c0); } 33%, 61% { fill: var(--c1); } 66%, 94% { fill: var(--c2); } 100% { fill: var(--c0); } }
+
+  .live .m-eyes { transform-box: fill-box; transform-origin: center; animation: mBlink 4.4s infinite; }
+  @keyframes mBlink { 0%, 84% { transform: scaleY(1); animation-timing-function: var(--in); } 86% { transform: scaleY(0.1); animation-timing-function: var(--out); } 89% { transform: scaleY(1); animation-timing-function: var(--in); } 92% { transform: scaleY(0.1); animation-timing-function: var(--out); } 96%, 100% { transform: scaleY(1); } }
+
+  .live .m-dot { transform-box: fill-box; transform-origin: center; animation: mDot 2.8s infinite; animation-delay: calc(var(--i) * 140ms); }
+  @keyframes mDot { 0% { transform: scale(1); animation-timing-function: var(--out); } 9% { transform: scale(1.4); animation-timing-function: cubic-bezier(.45, 0, .55, 1); } 22%, 100% { transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce) { .live * { animation: none !important; } }
+
+  @media (max-width: 640px) {
+    .doc { padding: 20px 16px 60px; }
+    .card { padding: 20px 16px; }
+    .intro h1 { font-size: 26px; line-height: 35px; }
+    .pick { margin-left: 0; width: 100%; }
+    .p-master, .p-home { width: 100%; }
+    .p-splash, .p-move { flex: 1 1 140px; width: auto; }
+    .phone-mini { width: 100%; }
+    .p-chat { flex-basis: 100%; }
+  }
+</style>
+</head>
+<body class="st3">
+<main class="doc">
+  <header class="intro">
+    <h1>Latti 아이콘 시안</h1>
+    <p>여덟 가지 모양을 앱 아이콘, 시작 화면, 말풍선 옆 얼굴에 똑같이 써 봤어요.</p>
+  </header>
+  <section class="card over" aria-label="한눈에">
+    <h2>한눈에</h2>
+    <div class="wall light" id="wl"></div>
+    <div class="wall dark" id="wd"></div>
+  </section>
+  <div id="list" style="display:contents"></div>
+</main>
+<script src="../shared.js"></script>
+<script src="icons.js"></script>
+<script>
+(function () {
+  const L = window.LattiIcons;
+  const LINE = '어제 본 WACC, 오늘 금리 기사랑 이어 볼까요?';
+  const pick = {};
+  L.concepts.forEach((c) => (pick[c.id] = 'a'));
+
+  // 한눈에: 지금 쓰는 아이콘과 여덟 시안
+  const slots = (dark) =>
+    `<a class="slot now" href="#">${L.svg('grid', { size: 60 })}<span>지금</span></a>` +
+    L.concepts.map((c) => `<a class="slot" href="#c-${c.id}">${L.svg(c.id, { size: 60 })}<span>${c.name}</span></a>`).join('');
+  document.getElementById('wl').innerHTML = slots(false);
+  document.getElementById('wd').innerHTML = slots(true);
+
+  const ph = {
+    light: ['#ffffff', '#191f28', '#e5e8eb'],
+    dark: ['#2c313a', '#ffffff', '#4e5968'],
+  };
+  const homeRow = (id, key, tone) => {
+    const [a, b, c] = ph[tone];
+    const blank = (col) => `<div class="app"><i style="background:${col}"></i><b></b></div>`;
+    return `<div class="hrow ${tone}">${blank(a)}<div class="app">${L.svg(id, { opt: key, size: 60 })}<span>Latticework</span></div>${blank(b)}${blank(c)}</div>`;
+  };
+
+  function render(c) {
+    const key = pick[c.id];
+    const o = c.options.find((x) => x.key === key);
+    const el = document.getElementById('c-' + c.id);
+    const i = L.concepts.indexOf(c) + 1;
+    el.innerHTML = `
+      <div class="con-hd">
+        <span class="no">${String(i).padStart(2, '0')}</span><h2>${c.name}</h2><code>${c.id}</code>
+        <div class="pick">${c.options.map((x) => `<button type="button" data-k="${x.key}" aria-pressed="${x.key === key}">${x.label}</button>`).join('')}</div>
+      </div>
+      <p class="idea">${c.idea}</p>
+      <div class="panes">
+        <figure class="pane p-master"><div class="box">${c.options.map((x) => `<button type="button" data-k="${x.key}" aria-pressed="${x.key === key}">${L.svg(c.id, { opt: x.key, size: 116 })}<span>${x.label}</span></button>`).join('')}</div><figcaption>1024 원본, 두 가지 색</figcaption></figure>
+        <figure class="pane p-home"><div class="walls">${homeRow(c.id, key, 'light')}${homeRow(c.id, key, 'dark')}</div><figcaption>홈 화면, 60pt</figcaption></figure>
+        <figure class="pane p-splash"><div class="phone-mini">${L.svg(c.id, { opt: key, mode: 'mark', size: 76 })}<b>Latticework</b></div><figcaption>시작 화면</figcaption></figure>
+        <figure class="pane p-move"><div class="box live">${L.svg(c.id, { opt: key, size: 104, anim: true })}</div><figcaption>움직임</figcaption></figure>
+        <figure class="pane p-chat">
+          <div class="box">
+            <span class="latti live" data-side="right">${L.svg(c.id, { opt: key, size: 28, small: true, anim: true })}<span class="lt-say at-right"><span class="lt-t">${LINE}</span></span></span>
+            <div class="ladder">${[60, 40, 28, 20].map((s) => `<div>${L.svg(c.id, { opt: key, size: s, small: s <= 40 })}<span>${s}</span></div>`).join('')}</div>
+            <p class="move-line">${c.motion}</p>
+          </div>
+          <figcaption>말풍선 옆 28px, 작은 크기</figcaption>
+        </figure>
+      </div>`;
+    el.querySelectorAll('button[data-k]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (pick[c.id] === b.dataset.k) return;
+        pick[c.id] = b.dataset.k;
+        render(c);
+      }),
+    );
+  }
+
+  const list = document.getElementById('list');
+  L.concepts.forEach((c) => {
+    const a = document.createElement('article');
+    a.className = 'card con';
+    a.id = 'c-' + c.id;
+    list.append(a);
+    render(c);
+  });
+
+  ML.bar({ title: 'Latti 아이콘 시안', home: '../index.html' });
+})();
+</script>
+</body>
+</html>
