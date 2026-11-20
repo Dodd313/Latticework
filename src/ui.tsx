@@ -1,6 +1,7 @@
 import React from 'react';
 import { Animated, Linking, Platform, Pressable, StyleProp, Text, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { HEAT_RING, heatColor, heatInk } from './heat';
 import { usePop } from './motion';
 import { FONT_MONO, FONT_SANS, FONT_SERIF, useTheme } from './theme';
 
@@ -285,12 +286,16 @@ export function ReadMark({ read }: { read: boolean }) {
  * 하루 목표의 상태를 그리는 둥근 표식. 달력과 주간 줄에서 같이 쓴다.
  * 달성: 먹색으로 채움 · 늦게 읽음: 먹색 테두리 · 오늘 남음: 초록 테두리 · 미달성: 주황 점선 · 발행 없음: 표식 없음
  */
-export function DayMark({ status, label, size = 32, today }: { status: 'done' | 'late' | 'pending' | 'missed' | 'none' | 'future'; label: string; size?: number; today?: boolean }) {
+/**
+ * 하루 표시. 할당량을 마친 날만 불꽃색으로 칠하고, 더 푼 문제가 많을수록 짙어진다.
+ * 마치지 못한 날은 칠하지 않는다. 오늘 아직이면 주황 테두리만 두른다.
+ */
+export function DayMark({ status, label, size = 32, today, extra = 0 }: { status: 'done' | 'late' | 'pending' | 'missed' | 'none' | 'future'; label: string; size?: number; today?: boolean; extra?: number }) {
   const t = useTheme();
   const scale = usePop(status);
   const filled = status === 'done';
-  const border = status === 'late' ? t.rule : status === 'pending' ? t.green : status === 'missed' ? t.orange : 'transparent';
-  const fg = filled ? t.onInverse : status === 'missed' ? t.orange : status === 'none' || status === 'future' ? t.mute : t.ink;
+  const ring = today && !filled;
+  const fg = filled ? heatInk(extra) : status === 'future' || status === 'none' ? t.mute : t.ink;
   return (
     <Animated.View
       style={{
@@ -299,10 +304,9 @@ export function DayMark({ status, label, size = 32, today }: { status: 'done' | 
         borderRadius: size / 2,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: filled ? t.inverse : 'transparent',
-        borderWidth: filled || border === 'transparent' ? 0 : status === 'pending' ? 2 : 1,
-        borderColor: border,
-        borderStyle: status === 'missed' ? 'dashed' : 'solid',
+        backgroundColor: filled ? heatColor(extra) : 'transparent',
+        borderWidth: ring ? 2 : 0,
+        borderColor: ring ? HEAT_RING : 'transparent',
         transform: [{ scale }],
       }}
     >

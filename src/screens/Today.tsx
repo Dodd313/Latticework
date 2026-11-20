@@ -41,7 +41,7 @@ function TodayPanel() {
         <View style={{ flexDirection: 'row', gap: 3 }} accessibilityLabel="이번 주 달성 현황">
           {WEEK.map((label, i) => {
             const date = addDays(monday, i);
-            return <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={label} size={30} today={date === today} />;
+            return <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={label} size={30} today={date === today} extra={goals.extraOf(date)} />;
           })}
         </View>
       </View>

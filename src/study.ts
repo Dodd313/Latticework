@@ -31,7 +31,7 @@ export type Card = {
   asked: Record<string, number>; // 문제 유형별로 낸 횟수. 같은 유형만 되풀이하지 않게 한다
 };
 
-export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string };
+export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number };
 
 export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number };
 

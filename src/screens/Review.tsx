@@ -153,7 +153,7 @@ function WeekRecap() {
           </View>
           <View style={{ flexDirection: 'row', gap: 3 }} accessibilityLabel="이번 주 달성 현황">
             {all.map((date, i) => (
-              <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={WEEK7[i]} size={30} today={date === today} />
+              <DayMark key={date} status={date > today ? 'future' : goals.statusOf(date)} label={WEEK7[i]} size={30} today={date === today} extra={goals.extraOf(date)} />
             ))}
           </View>
         </View>

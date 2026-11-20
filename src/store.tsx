@@ -95,7 +95,7 @@ type Store = {
   studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
-  recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean }) => void;
+  recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean; extra?: boolean }) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
 };
@@ -381,7 +381,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLocal(STUDY_KEY, next);
   }, [studyData, todayStr]);
 
-  const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean }) => {
+  const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3; counts: boolean; extra?: boolean }) => {
     const cur = studyRef.current;
     const now = new Date();
     const today = todayKST();
@@ -397,6 +397,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         day.voc += 1;
         if (!day.vocDoneAt && day.voc >= day.vocGoal) day.vocDoneAt = now.toISOString();
       }
+    } else if (result.extra) {
+      // 할당량을 넘겨 더 푼 문제. 달력의 색 짙기에 쓴다.
+      day.extra = (day.extra ?? 0) + 1;
     }
     const next: StudyState = { ...cur, cards, days: { ...cur.days, [today]: day }, xp: cur.xp + (q.retry ? 0 : xpFor(result.grade)) };
     studyRef.current = next;
@@ -575,7 +578,9 @@ export function useGoals() {
       if (run > longest) longest = run;
     }
     const parts = partsOf(today, days, user, study, hasStudy, today);
-    return { today, statusOf, streak, longest, parts, status: statusFromParts(parts, today, today), hasStudy };
+    /** 그날 할당량을 넘겨 더 푼 문제 수 */
+    const extraOf = (date: string): number => study.days[date]?.extra ?? 0;
+    return { today, statusOf, extraOf, streak, longest, parts, status: statusFromParts(parts, today, today), hasStudy };
   }, [days, user, study, studyData, today]);
 }
 
