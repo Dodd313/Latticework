@@ -8,19 +8,25 @@ export type TabName = 'today' | 'archive' | 'review';
 
 export type Route = { name: 'article'; id: string } | { name: 'settings' } | { name: 'quiz'; date: string } | { name: 'news' } | { name: 'study'; sect: 'lat' | 'voc' };
 
+/** 화면 이동 동작. 앱이 떠 있는 동안 바뀌지 않으므로, 이것만 쓰는 화면은 탭을 바꿔도 다시 그려지지 않는다. */
 export type Nav = {
-  tab: TabName;
   setTab: (tab: TabName) => void;
   push: (route: Route) => void;
   pop: () => void;
 };
 
 export const NavCtx = createContext<Nav | null>(null);
+/** 지금 켜진 탭. 탭 막대처럼 탭에 따라 모양이 바뀌는 곳만 읽는다. */
+export const NavTabCtx = createContext<TabName>('today');
 
 export function useNav(): Nav {
   const n = useContext(NavCtx);
   if (!n) throw new Error('NavCtx가 없습니다');
   return n;
+}
+
+export function useNavTab(): TabName {
+  return useContext(NavTabCtx);
 }
 
 /**
@@ -143,10 +149,11 @@ export const BOTTOM_PAD: any = STANDALONE ? 'calc(6px + env(safe-area-inset-bott
 export function TabBar() {
   const t = useTheme();
   const nav = useNav();
+  const current = useNavTab();
   return (
     <View accessibilityRole="tablist" style={{ flexDirection: 'row', paddingBottom: BOTTOM_PAD, backgroundColor: t.card, borderTopWidth: 1, borderTopColor: t.line }}>
       {TABS.map((tab) => {
-        const on = nav.tab === tab.name;
+        const on = current === tab.name;
         const c = on ? t.ink : t.faint;
         return (
           <Tap key={tab.name} role="tab" selected={on} label={tab.label} press="soft" onPress={() => nav.setTab(tab.name)} style={{ flex: 1, height: 58, alignItems: 'center', justifyContent: 'center', gap: 3 }}>

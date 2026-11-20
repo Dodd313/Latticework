@@ -506,7 +506,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
-  const value: Store = { status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked };
+  const value = useMemo<Store>(
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, exportData, importData, studyData, study, recordStudy, studyAsked],
+  );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 

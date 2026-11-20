@@ -9,6 +9,30 @@ export const EASE = Easing.bezier(0.22, 1, 0.36, 1);
 export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 /** 시트와 안쪽 화면이 들어오는 곡선 cubic-bezier(0.32, 0.72, 0, 1) */
 export const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
+/** 위 세 곡선의 CSS 표기(웹에서 브라우저에 직접 맡기는 움직임용) */
+export const CSS_EASE = { ease: 'cubic-bezier(0.22, 1, 0.36, 1)', out: 'cubic-bezier(0.23, 1, 0.32, 1)', sheet: 'cubic-bezier(0.32, 0.72, 0, 1)' } as const;
+
+/**
+ * 웹 전용: 화면 요소에 브라우저 움직임(Web Animations)을 건다. 웹이 아니거나 걸 수 없으면 null.
+ * Animated 와 달리 프레임마다 React 를 다시 그리지 않고, 시작 시각을 실제로 처음 그려지는 프레임에 맞춘다.
+ * 그래서 화면을 붙이는 데 시간이 걸려도 움직임 앞부분이 잘려 나가지 않는다.
+ * ref 는 react-native-web View 의 ref(DOM 요소)다.
+ */
+export function webAnimate(ref: React.RefObject<unknown>, keyframes: Keyframe[], opts: KeyframeAnimationOptions): Animation | null {
+  if (Platform.OS !== 'web') return null;
+  const el = ref.current as HTMLElement | null;
+  if (!el || typeof el.animate !== 'function') return null;
+  return el.animate(keyframes, opts);
+}
+
+/** 웹 전용: 브라우저 움직임 a 를 멈추고, 멈춘 순간 요소의 transform 을 돌려준다(이어서 다른 움직임을 걸 때). */
+export function webStop(ref: React.RefObject<unknown>, a: Animation | null, rest: string): string {
+  if (Platform.OS !== 'web' || !a) return rest;
+  const el = ref.current as HTMLElement | null;
+  const now = a.playState === 'running' && el ? getComputedStyle(el).transform : rest;
+  a.cancel();
+  return now && now !== 'none' ? now : rest;
+}
 
 /** Toss 디자인 시스템(@toss/tds-mobile)의 스프링 값. 질량 1. */
 export const SPRING = {

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { EASE, EASE_OUT, EASE_SHEET, NATIVE_DRIVER, motionOff } from './src/motion';
-import { Nav, NavCtx, Route, TabBar, TabName } from './src/nav';
+import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { CSS_EASE, EASE, EASE_OUT, EASE_SHEET, NATIVE_DRIVER, motionOff, webAnimate, webStop } from './src/motion';
+import { Nav, NavCtx, NavTabCtx, Route, TabBar, TabName } from './src/nav';
 import { ArchiveScreen } from './src/screens/Archive';
 import { ArticleScreen } from './src/screens/Article';
 import { DayQuizScreen } from './src/screens/DayQuiz';
@@ -17,27 +17,35 @@ import { ThemeProvider, useTheme } from './src/theme';
 /** 화면 기둥의 최대 폭 */
 const COLUMN = 560;
 
-/** 탭 화면 한 장. 보이게 될 때 살짝 떠오르며 나타난다. */
-function TabLayer({ active, children }: { active: boolean; children: React.ReactNode }) {
-  const v = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
+/**
+ * 탭 화면 한 장. 보이게 될 때 살짝 떠오르며 나타난다.
+ * 0 으로 되돌리기는 그리기 전에(useLayoutEffect) 한다. 그리고 난 뒤(useEffect)에 하면
+ * 웹에서는 새 탭이 다 보인 채로 한 장 그려졌다가 사라진 뒤 다시 나타난다.
+ */
+function TabLayerNative({ active, children }: { active: boolean; children: React.ReactNode }) {
+  const v = useRef(new Animated.Value(active || motionOff() ? 1 : 0)).current;
+  const lift = useMemo(() => v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }), [v]);
+  useLayoutEffect(() => {
     if (!active || motionOff()) return;
     v.setValue(0);
     const a = Animated.timing(v, { toValue: 1, duration: 300, easing: EASE, useNativeDriver: NATIVE_DRIVER });
     a.start();
     return () => a.stop();
   }, [active]);
-  return <Animated.View style={[styles.fill, { display: active ? 'flex' : 'none', opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }]}>{children}</Animated.View>;
+  return <Animated.View style={[styles.fill, { display: active ? 'flex' : 'none', opacity: v, transform: [{ translateY: lift }] }]}>{children}</Animated.View>;
 }
 
 /**
  * 기사와 설정 같은 안쪽 화면 한 장. 오른쪽 끝에서 화면 폭만큼 밀려 들어오고(시트 곡선 420ms),
  * 닫힐 때 같은 길로 나간다(320ms).
  */
-function StackLayer({ id, closing, onClosed, bg, children }: { id: number; closing: boolean; onClosed: (id: number) => void; bg: string; children: React.ReactNode }) {
+type StackLayerProps = { id: number; closing: boolean; onClosed: (id: number) => void; bg: string; children: React.ReactNode };
+
+function StackLayerNative({ id, closing, onClosed, bg, children }: StackLayerProps) {
   const { width } = useWindowDimensions();
   const w = Math.min(width, COLUMN);
   const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
+  const slide = useMemo(() => v.interpolate({ inputRange: [0, 1], outputRange: [w, 0] }), [v, w]);
   useEffect(() => {
     if (motionOff()) return;
     Animated.timing(v, { toValue: 1, duration: 420, easing: EASE_SHEET, useNativeDriver: NATIVE_DRIVER }).start();
@@ -50,10 +58,80 @@ function StackLayer({ id, closing, onClosed, bg, children }: { id: number; closi
     }
     Animated.timing(v, { toValue: 0, duration: 320, easing: EASE_OUT, useNativeDriver: NATIVE_DRIVER }).start(() => onClosed(id));
   }, [closing]);
+  return <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: bg, pointerEvents: closing ? 'none' : 'auto', transform: [{ translateX: slide }] }]}>{children}</Animated.View>;
+}
+
+const TAB_IN: Keyframe[] = [
+  { opacity: 0, transform: 'translateY(10px)' },
+  { opacity: 1, transform: 'translateY(0px)' },
+];
+
+/** 웹의 탭 화면 한 장: 같은 움직임(300ms, 10px 위로)을 브라우저에 맡긴다. 그리기 전에 걸므로 첫 장부터 투명하게 그려진다. */
+function TabLayerWeb({ active, children }: { active: boolean; children: React.ReactNode }) {
+  const ref = useRef<any>(null);
+  useLayoutEffect(() => {
+    if (!active || motionOff()) return;
+    const a = webAnimate(ref, TAB_IN, { duration: 300, easing: CSS_EASE.ease });
+    return () => a?.cancel();
+  }, [active]);
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: bg, pointerEvents: closing ? 'none' : 'auto', transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [w, 0] }) }] }]}>{children}</Animated.View>
+    <View ref={ref} style={[styles.fill, { display: active ? 'flex' : 'none' }]}>
+      {children}
+    </View>
   );
 }
+
+/**
+ * 웹의 안쪽 화면 한 장: 들어오기(420ms)와 나가기(320ms)를 브라우저에 맡긴다.
+ * 들어오는 중에 닫히면 지금 자리에서 나간다. 나가기는 끝 자리(fill)를 붙든 채 onClosed 로 걷어 낸다.
+ */
+function StackLayerWeb({ id, closing, onClosed, bg, children }: StackLayerProps) {
+  const { width } = useWindowDimensions();
+  const w = Math.min(width, COLUMN);
+  const ref = useRef<any>(null);
+  const opening = useRef<Animation | null>(null);
+  useLayoutEffect(() => {
+    if (motionOff()) return;
+    opening.current = webAnimate(ref, [{ transform: `translateX(${w}px)` }, { transform: 'translateX(0px)' }], { duration: 420, easing: CSS_EASE.sheet });
+  }, []);
+  useLayoutEffect(() => {
+    if (!closing) return;
+    const from = webStop(ref, opening.current, 'translateX(0px)');
+    const a = motionOff() ? null : webAnimate(ref, [{ transform: from }, { transform: `translateX(${w}px)` }], { duration: 320, easing: CSS_EASE.out, fill: 'forwards' });
+    if (!a) {
+      onClosed(id);
+      return;
+    }
+    a.onfinish = () => onClosed(id);
+    return () => {
+      a.onfinish = null;
+    };
+  }, [closing]);
+  return (
+    <View ref={ref} style={[StyleSheet.absoluteFill, { backgroundColor: bg, pointerEvents: closing ? 'none' : 'auto' }]}>
+      {children}
+    </View>
+  );
+}
+
+// 웹에서는 탭과 안쪽 화면의 움직임을 브라우저에 맡기고, 앱(iOS, Android)에서는 Animated(네이티브 드라이버)를 쓴다.
+const TabLayer = Platform.OS === 'web' ? TabLayerWeb : TabLayerNative;
+const StackLayer = Platform.OS === 'web' ? StackLayerWeb : StackLayerNative;
+
+/** 쌓인 화면 하나의 내용. route 가 같으면 다시 그리지 않는다(닫힘 표시나 다른 화면이 쌓일 때). */
+const RouteScreen = memo(function RouteScreen({ route }: { route: Route }) {
+  return route.name === 'article' ? (
+    <ArticleScreen id={route.id} />
+  ) : route.name === 'quiz' ? (
+    <DayQuizScreen date={route.date} />
+  ) : route.name === 'news' ? (
+    <NewsScreen />
+  ) : route.name === 'study' ? (
+    <StudyScreen sect={route.sect} />
+  ) : (
+    <SettingsScreen />
+  );
+});
 
 function Shell() {
   const t = useTheme();
@@ -67,7 +145,7 @@ function Shell() {
   const endSplash = useCallback(() => setSplash(false), []);
 
   const setTab = useCallback((next: TabName) => {
-    setStack([]);
+    setStack((s) => (s.length ? [] : s));
     setTabState(next);
     setVisited((v) => (v[next] ? v : { ...v, [next]: true }));
   }, []);
@@ -83,44 +161,39 @@ function Shell() {
     [],
   );
   const finishPop = useCallback((id: number) => setStack((s) => s.filter((e) => e.id !== id)), []);
-  const nav = useMemo<Nav>(() => ({ tab, setTab, push, pop }), [tab, setTab, push, pop]);
+  // 동작만 담은 값은 한 번 만들고 바꾸지 않는다. 지금 탭은 따로 내려보내 탭 막대만 다시 그린다.
+  const nav = useMemo<Nav>(() => ({ setTab, push, pop }), [setTab, push, pop]);
   const top = stack[stack.length - 1]?.route;
+  // 탭 화면은 한 번 만든 요소를 계속 쓴다. 탭을 바꾸거나 화면을 쌓아도 보이지 않는 탭까지 다시 그리지 않는다.
+  const screens = useMemo(() => ({ today: <TodayScreen />, archive: <ArchiveScreen />, review: <ReviewScreen /> }), []);
 
-  const layer = (name: TabName, node: React.ReactNode) =>
+  const layer = (name: TabName) =>
     visited[name] ? (
       <TabLayer key={name} active={tab === name}>
-        {node}
+        {screens[name]}
       </TabLayer>
     ) : null;
 
   return (
     <NavCtx.Provider value={nav}>
-      <View style={[styles.root, { backgroundColor: t.bg }]}>
-        <View style={styles.column}>
-          <View style={[styles.fill, { overflow: 'hidden' }]}>
-            {layer('today', <TodayScreen />)}
-            {layer('archive', <ArchiveScreen />)}
-            {layer('review', <ReviewScreen />)}
-            {stack.map(({ id, route, closing }) => (
-              <StackLayer key={id} id={id} closing={closing} onClosed={finishPop} bg={t.card}>
-                {route.name === 'article' ? (
-                  <ArticleScreen id={route.id} />
-                ) : route.name === 'quiz' ? (
-                  <DayQuizScreen date={route.date} />
-                ) : route.name === 'news' ? (
-                  <NewsScreen />
-                ) : route.name === 'study' ? (
-                  <StudyScreen sect={route.sect} />
-                ) : (
-                  <SettingsScreen />
-                )}
-              </StackLayer>
-            ))}
+      <NavTabCtx.Provider value={tab}>
+        <View style={[styles.root, { backgroundColor: t.bg }]}>
+          <View style={styles.column}>
+            <View style={[styles.fill, { overflow: 'hidden' }]}>
+              {layer('today')}
+              {layer('archive')}
+              {layer('review')}
+              {stack.map(({ id, route, closing }) => (
+                <StackLayer key={id} id={id} closing={closing} onClosed={finishPop} bg={t.card}>
+                  <RouteScreen route={route} />
+                </StackLayer>
+              ))}
+            </View>
+            {top && top.name !== 'settings' ? null : <TabBar />}
           </View>
-          {top && top.name !== 'settings' ? null : <TabBar />}
+          {splash ? <Splash onDone={endSplash} /> : null}
         </View>
-        {splash ? <Splash onDone={endSplash} /> : null}
-      </View>
+      </NavTabCtx.Provider>
     </NavCtx.Provider>
   );
 }
