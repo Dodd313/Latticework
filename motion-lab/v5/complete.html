@@ -42,6 +42,7 @@
   .lvup h2 { margin: 0; font-size: 26px; font-weight: 700; }
   .lvup .lv { max-width: 300px; }
   .lvup .lbtn { position: absolute; left: 16px; right: 16px; bottom: 28px; width: auto; }
+  .stat .h { display: flex; align-items: center; justify-content: center; height: 25px; padding: 0; }
 </style>
 </head>
 <body>
@@ -77,20 +78,19 @@
     phone.innerHTML = `<div class="scr">
       <div class="wrap">
         <div class="ring"><svg viewBox="0 0 148 148" width="148" height="148"><circle cx="74" cy="74" r="64" stroke="var(--grey100)" stroke-width="12" fill="none"/><circle id="arc" cx="74" cy="74" r="64" stroke="var(--green500)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
-          <div class="mid"><b><span id="acc">0</span>%</b><span>정답률</span></div></div>
-        <div class="ttl"><h1>학습 완료</h1><p>Latticework · 5문제</p></div>
+          <div class="mid"><b><span id="acc">0</span>%</b></div></div>
         <div class="stats">
-          <div class="stat xp"><div class="h">경험치</div><div class="v">${K.bolt(18)}+<span id="v1">0</span></div></div>
-          <div class="stat acc"><div class="h">정답</div><div class="v"><span id="v2">0</span>/5</div></div>
-          <div class="stat st"><div class="h">연속</div><div class="v"><span class="roll" id="v3">${st - 1}</span>일</div></div>
+          <div class="stat xp"><div class="h">${K.bolt(14, 'rgba(0,12,30,.8)')}</div><div class="v">${K.bolt(18)}+<span id="v1">0</span></div></div>
+          <div class="stat acc"><div class="h">${K.check(14, '#fff', 3.2)}</div><div class="v"><span id="v2">0</span>/5</div></div>
+          <div class="stat st"><div class="h"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="#fff"/></svg></div><div class="v"><span class="roll" id="v3">${st - 1}</span>일</div></div>
         </div>
         ${scene === 'streak'
-          ? `<div class="wk" id="box"><div class="r"><span>이번 주</span><b class="num" id="wn">6/7</b></div><div class="g">${DAYS.map((d) => `<span class="l">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 6 ? 'on' : ''}" data-i="${i}"><span>${i < 6 ? K.check(14, 'rgba(0,12,30,.8)', 3.2) : ''}</span></span>`).join('')}</div></div>`
-          : `<div class="lv" id="box"><div class="r"><span>레벨 <b id="lvn">3</b></span><span class="num" id="xpn">${scene === 'level' ? 220 : 140} / 240</span></div><div class="pbar"><span class="fill" id="bar" style="transform:scaleX(${scene === 'level' ? 220 / 240 : 140 / 240})"></span></div></div>`}
+          ? `<div class="wk" id="box"><div class="r" style="justify-content:flex-end"><b class="num" id="wn">6/7</b></div><div class="g">${DAYS.map((d) => `<span class="l">${d}</span>`).join('')}${DAYS.map((_, i) => `<span class="c ${i < 6 ? 'on' : ''}" data-i="${i}"><span>${i < 6 ? K.check(14, 'rgba(0,12,30,.8)', 3.2) : ''}</span></span>`).join('')}</div></div>`
+          : `<div class="lv" id="box"><div class="r"><span>Lv.<b id="lvn">3</b></span><span class="num" id="xpn">${scene === 'level' ? 220 : 140} / 240</span></div><div class="pbar"><span class="fill" id="bar" style="transform:scaleX(${scene === 'level' ? 220 / 240 : 140 / 240})"></span></div></div>`}
       </div>
       <div class="foot"><button class="lbtn" id="go"><span class="lbl">계속</span></button></div>
-      <div class="lvup" id="lvup"><div class="medal" id="medal"><small>LEVEL</small><b class="roll" id="ml">3</b></div><h2>레벨 4</h2>
-        <div class="lv"><div class="r"><span>다음 레벨</span><span class="num">0 / 300</span></div><div class="pbar"><span class="fill"></span></div></div>
+      <div class="lvup" id="lvup"><div class="medal" id="medal"><b class="roll" id="ml">3</b></div>
+        <div class="lv"><div class="r" style="justify-content:flex-end"><span class="num">0 / 300</span></div><div class="pbar"><span class="fill"></span></div></div>
         <button class="lbtn" id="ok"><span class="lbl">확인</span></button></div></div>`;
     K.press(phone.querySelector('#go'));
     K.press(phone.querySelector('#ok'));
@@ -99,16 +99,15 @@
       const l = phone.querySelector('#lvup');
       ML.done(ML.a(l, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' })).then(() => (l.style.display = 'none'));
     });
-    const parts = ['.ring', '.ttl', '.stats', '#box'].map((s) => phone.querySelector(s));
+    const parts = ['.ring', '.stats', '#box'].map((s) => phone.querySelector(s));
     parts.forEach((p) => (p.style.opacity = 0));
     await ML.wait(60);
     parts.forEach((p) => (p.style.opacity = ''));
     ML.a(parts[0], [{ opacity: 0, transform: 'scale(.94)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 400, easing: OUT });
     ML.a(phone.querySelector('#arc'), [{ strokeDashoffset: C }, { strokeDashoffset: C * 0.2 }], { duration: 900, delay: 100, easing: OUT });
     ML.count(phone.querySelector('#acc'), 0, 80, 900);
-    ML.a(parts[1], [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 120, easing: OUT });
-    phone.querySelectorAll('.stat').forEach((c, k) => ML.a(c, [{ opacity: 0, transform: 'translateY(14px) scale(.96)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 420, delay: 260 + k * 60, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }));
-    ML.a(parts[3], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 440, easing: OUT });
+        phone.querySelectorAll('.stat').forEach((c, k) => ML.a(c, [{ opacity: 0, transform: 'translateY(14px) scale(.96)' }, { opacity: 1, transform: 'translateY(0) scale(1)' }], { duration: 420, delay: 260 + k * 60, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }));
+    ML.a(parts[2], [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 320, delay: 440, easing: OUT });
     await ML.wait(420);
     ML.count(phone.querySelector('#v1'), 0, 50, 600);
     ML.count(phone.querySelector('#v2'), 0, 4, 500);
@@ -139,7 +138,7 @@
     ML.a(l, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease' });
     const medal = phone.querySelector('#medal');
     K.spring(medal, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], 'bounce', { delay: 100 });
-    ML.stagger(l.querySelectorAll('h2, .lv'), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 300, easing: OUT }, 60);
+    ML.stagger(l.querySelectorAll('.lv'), [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 300, delay: 300, easing: OUT }, 60);
     await ML.wait(520);
     ML.roll(phone.querySelector('#ml'), '4', 1, 360);
     const p = LW.pos(medal, phone);

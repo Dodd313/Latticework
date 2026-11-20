@@ -13,7 +13,7 @@
   .hdr .x { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--grey400); }
   .hdr .pbar { flex: 1; }
   .hdr .xp { display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 700; color: var(--grey700); min-width: 52px; justify-content: flex-end; }
-  .combo { position: absolute; left: 56px; top: 2px; display: inline-flex; align-items: center; gap: 3px; font-size: 13px; line-height: 19.5px; font-weight: 700; color: var(--orange600); opacity: 0; }
+  .combo { position: absolute; left: 56px; top: 2px; display: inline-flex; align-items: center; gap: 1px; height: 20px; padding: 0 7px; border-radius: 10px; background: var(--orange500); font-size: 13px; line-height: 20px; font-weight: 800; color: #fff; opacity: 0; font-variant-numeric: tabular-nums; }
   .stage { position: relative; flex: 1; }
   .q { position: absolute; inset: 0; padding: 20px 16px 0; display: flex; flex-direction: column; }
   .q .kk { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -106,7 +106,7 @@
     xp = 120;
     done = 0;
     phone.innerHTML = `<div class="scr">
-      <div class="hdr"><a class="x" aria-label="닫기" href="../v5/app.html?nosplash=1">${K.close()}</a><span class="combo" id="combo">${K.smallFlame(14)}<span id="cn">3</span>연속 정답</span><div class="pbar"><span class="fill" id="fill"></span></div><span class="xp" id="xp">${K.bolt(18)}<span class="num" id="xpn">${xp}</span></span></div>
+      <div class="hdr"><a class="x" aria-label="닫기" href="../v5/app.html?nosplash=1">${K.close()}</a><span class="combo" id="combo">×<span id="cn">3</span></span><div class="pbar"><span class="fill" id="fill"></span></div><span class="xp" id="xp">${K.bolt(18)}<span class="num" id="xpn">${xp}</span></span></div>
       <div class="stage" id="stage"></div>
       <div class="foot" id="foot"><button class="lbtn off" id="btn"><span class="lbl">확인</span></button></div>
     </div>`;
@@ -118,9 +118,9 @@
 
   const qHtml = (Q) => {
     const tiles = Q.ox
-      ? `<div class="tiles ox">${['○', '✕'].map((g, i) => `<button class="tile" data-i="${i}"><span class="key">${i + 1}</span><span class="glyph">${g}</span><span>${i ? '거짓' : '참'}</span></button>`).join('')}</div>`
-      : `<div class="tiles">${Q.o.map((t, i) => `<button class="tile" data-i="${i}"><span class="key">${i + 1}</span><span class="tx">${t}</span></button>`).join('')}</div>`;
-    return `<div class="kk"><span>${Q.kk}</span><span class="badge">${Q.lv}</span></div><h1>${Q.q}</h1>${tiles}`;
+      ? `<div class="tiles ox">${['○', '✕'].map((g, i) => `<button class="tile" data-i="${i}"><span class="glyph">${g}</span></button>`).join('')}</div>`
+      : `<div class="tiles">${Q.o.map((t, i) => `<button class="tile" data-i="${i}"><span class="tx">${t}</span></button>`).join('')}</div>`;
+    return `<div class="kk"><span>${Q.kk.replace(/^재무학 · /, '')}</span></div><h1>${Q.q}</h1>${tiles}`;
   };
 
   function show(qi, animate = true) {
@@ -181,7 +181,7 @@
       best = Math.max(best, streak);
       done++;
       panel.className = 'panel good';
-      panel.innerHTML = `<div class="row"><span class="ic">${K.check(20, 'var(--green500)', 3.4)}</span><span class="ttl">${streak >= 3 ? '연속 정답이에요' : ['정답이에요', '잘했어요'][(done + idx) % 2]}</span><button class="act" aria-label="개념 노트">${K.note(22)}</button></div><p class="why">${Q.w}</p>`;
+      panel.innerHTML = `<div class="row"><span class="ic">${K.check(20, 'var(--green500)', 3.4)}</span><p class="why" style="margin:0;flex:1;color:var(--green600);font-weight:600">${Q.w}</p><button class="act" aria-label="개념 노트">${K.note(22)}</button></div>`;
     } else {
       mine.classList.add('no');
       ML.a(mine, [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(2px)' }, { transform: 'translateX(0)' }], { duration: 380, easing: 'ease-out' });
@@ -191,7 +191,7 @@
       queue.push(qi);
       const ans = Q.ox ? (Q.a ? '거짓' : '참') : Q.o[Q.a];
       panel.className = 'panel bad';
-      panel.innerHTML = `<div class="row"><span class="ic">${K.x(18, 'var(--red500)', 3.4)}</span><span class="ttl">다시 볼게요</span><button class="act" aria-label="개념 노트">${K.note(22)}</button></div><div class="ans"><b>정답</b><span>${ans}</span></div><p class="why">${Q.w}</p>`;
+      panel.innerHTML = `<div class="row"><span class="ic">${K.x(18, 'var(--red500)', 3.4)}</span><span class="ttl">${ans}</span><button class="act" aria-label="개념 노트">${K.note(22)}</button></div><p class="why">${Q.w}</p>`;
       const combo = phone.querySelector('#combo');
       if (+getComputedStyle(combo).opacity > 0) ML.a(combo, [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
       phone.querySelector('#fill').classList.remove('hot');
@@ -207,7 +207,7 @@
     ML.a(panel.querySelector('.ttl'), [{ opacity: 0, transform: 'translateX(-6px)' }, { opacity: 1, transform: 'translateX(0)' }], { duration: 220, delay: 120 });
     ML.stagger(panel.querySelectorAll('.ans, .why'), [{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 200 }, 40);
     const last = right && done === total;
-    setBtn(last ? '마치기' : right ? '계속' : '확인했어요', right ? 'green' : 'red');
+    setBtn(last ? '마치기' : '계속', right ? 'green' : 'red');
     if (right) {
       flyXp(mine);
       bar();
