@@ -129,7 +129,7 @@
       <div class="three"><div><span>연속</span><b class="hot"><span class="roll" id="st">${todayDone ? 5 : 4}</span><small>일</small></b></div><div><span>최장</span><b>23<small>일</small></b></div><div><span>이번 달</span><b><span class="roll" id="mo">${d.size}</span><small>일</small></b></div></div>
       <div class="box" id="box"><div class="mh"><b>2026년 11월</b><span>${ML.backSvg}<span style="transform:scaleX(-1);display:flex">${ML.backSvg}</span></span></div>
         <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span>${x}</span>`).join('')}</div>
-        <div class="grid" id="grid" style="height:${CH * 6}px"></div><div class="leg" id="leg"></div></div>
+        <div class="grid" id="grid" style="height:${CH * 6}px"></div></div>
     </div></div>`;
     const n = NOTES[V];
     document.getElementById('note').innerHTML = `<h3>${n.t}</h3><table class="spec"><tr><th>레퍼런스</th><td>${n.ref}</td></tr><tr><th>좋은 점</th><td>${n.pro}</td></tr><tr><th>아쉬운 점</th><td>${n.con}</td></tr></table>`;
@@ -178,7 +178,6 @@
         if (n === TODAY) g.append(el('ring', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', boxShadow: `inset 0 0 0 2px ${heat(0)}`, zIndex: 2 }));
       }
     }
-    legend(`<span class="it"><i style="width:12px;height:12px;border-radius:6px;background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="it">완료${[0, 10, 20, 30].map((x) => `<i style="width:12px;height:12px;border-radius:6px;background:${orb(x)}"></i>`).join('')}+30</span>`);
   };
 
   R.B = (g, anim) => {
@@ -205,7 +204,6 @@
         if (anim) ML.a(dot, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: n * 14 });
       }
     }
-    legend(`<span class="it"><i style="width:6px;height:6px;border-radius:3px;background:var(--grey300)"></i>미완료</span><span class="it">완료${[0, 15, 30].map((x) => `<i style="width:${size(x) * 0.5}px;height:${size(x) * 0.5}px;border-radius:50%;background:${orb(x)}"></i>`).join('')}+30</span>`);
   };
 
   R.C = (g, anim) => {
@@ -234,7 +232,6 @@
         if (f) ML.a(f, [{ opacity: 0 }, { opacity: 1 }], { duration: 480, delay: 360 + w, easing: 'ease-in-out' });
       }
     }
-    legend(`<span class="it"><i style="width:14px;height:14px;border-radius:4px;background:var(--grey50);box-shadow:inset 0 0 0 1px var(--grey200)"></i>미완료</span><span class="it">완료${[0, 10, 20, 30].map((x) => `<i style="width:14px;height:14px;border-radius:4px;background:${lin(x)}"></i>`).join('')}+30</span>`);
   };
 
   R.D = (g, anim) => {
@@ -260,7 +257,6 @@
       g.append(numEl(n, d.has(n) ? { color: ink(EXTRA[n]), fontWeight: 700 } : {}));
       if (n === TODAY && !d.has(n)) g.append(el('ring', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', boxShadow: `inset 0 0 0 2px ${heat(0)}`, zIndex: 2 }));
     }
-    legend(`<span class="it"><i style="width:12px;height:12px;border-radius:6px;background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="it">완료<i style="width:64px;height:12px;border-radius:6px;background:linear-gradient(90deg, ${heat(0)}, ${heat(10)}, ${heat(20)}, ${heat(30)})"></i>+30</span>`);
   };
 
   R.E = (g, anim) => {
@@ -291,7 +287,6 @@
       } else g.append(wrap);
       g.append(numEl(n, { fontSize: '12px', fontWeight: d.has(n) ? 700 : 600, color: n === TODAY ? 'var(--orange700)' : n > TODAY ? 'var(--grey300)' : d.has(n) ? 'var(--grey800)' : 'var(--grey500)' }));
     }
-    legend(`<span class="it"><svg width="14" height="14" viewBox="0 0 14 14" style="transform:rotate(-90deg)"><circle cx="7" cy="7" r="5" fill="none" stroke="var(--grey100)" stroke-width="3"/><circle cx="7" cy="7" r="5" fill="none" stroke="var(--grey300)" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="12" stroke-linecap="round"/></svg>미완료</span><span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(0)}" stroke-width="3"/></svg>완료</span><span class="it"><svg width="14" height="14" viewBox="0 0 14 14" style="transform:rotate(-90deg)"><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(0)}" stroke-width="3"/><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(20)}" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round"/></svg>+더 푼 만큼</span>`);
   };
 
   R.F = (g, anim) => {
@@ -318,12 +313,9 @@
         if (f) ML.a(f, [{ transform: 'scaleY(0)' }, { transform: `scaleY(${0.5 / f.dataset.lvl})`, offset: 0.4 }, { transform: 'scaleY(1)' }], { duration: 900, delay: 120 + n * 14, easing: 'cubic-bezier(0.65,0,0.35,1)' });
       }
     }
-    legend(`<span class="it"><i style="width:10px;height:14px;border-radius:3px;background:var(--grey100)"></i>미완료</span><span class="it">완료${[0, 15, 30].map((x) => `<i style="width:10px;height:14px;border-radius:3px;background:linear-gradient(0deg, ${heat(x)} 0, ${heat(x)} ${lvl(x) * 100}%, var(--grey100) ${lvl(x) * 100}%)"></i>`).join('')}+30</span>`);
   };
 
-  function legend(html) {
-    phone.querySelector('#leg').innerHTML = html;
-  }
+  // 범례는 두지 않는다. 칠한 날과 색의 짙기만으로 읽혀야 한다.
 
   function draw(anim) {
     const g = phone.querySelector('#grid');

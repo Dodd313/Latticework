@@ -328,8 +328,7 @@
     return `<div class="ttl1">기록</div><div class="stack">
       <div class="three"><div><span>연속</span><b class="num red">${streak()}<small>일</small></b></div><div><span>최장</span><b class="num">23<small>일</small></b></div><div><span>이번 달</span><b class="num">${d.size}<small>일</small></b></div></div>
       <div class="box"><div class="mh"><b>2026년 11월</b><span class="nav"><button aria-label="이전 달">${ICON.left}</button><button aria-label="다음 달">${ICON.right}</button></span></div>
-        <div class="cal" id="cal">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span class="l">${x}</span>`).join('')}${cells.map((n) => (n ? `<span class="c ${d.has(n) ? 'on' : ''} ${n === 20 ? 'td' : ''} ${n > 20 ? 'fut' : ''}" data-d="${n}"><button style="${d.has(n) ? `background:${heat(EXTRA[n] || 0)};color:${ink(EXTRA[n] || 0)}` : ''}">${n}</button></span>` : '<span class="c"></span>')).join('')}</div>
-        <div class="leg"><span><i style="background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="grad"><b>완료</b><i></i><b>+30</b></span></div></div>
+        <div class="cal" id="cal">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span class="l">${x}</span>`).join('')}${cells.map((n) => (n ? `<span class="c ${d.has(n) ? 'on' : ''} ${n === 20 ? 'td' : ''} ${n > 20 ? 'fut' : ''}" data-d="${n}"><button style="${d.has(n) ? `background:${heat(EXTRA[n] || 0)};color:${ink(EXTRA[n] || 0)}` : ''}">${n}</button></span>` : '<span class="c"></span>')).join('')}</div></div>
       <div class="box"><div class="bh"><b>주별</b></div>
         ${weeks.map(([a, b], k) => { const ds = Array.from({ length: 7 }, (_, j) => a + j); const c = ds.filter((x) => d.has(x)).length; return `<div class="wrow"><span class="wn">11월 ${k + 1}주</span><span class="ds">${ds.map((x) => `<i style="${d.has(x) ? `background:${heat(EXTRA[x] || 0)}` : ''}"></i>`).join('')}</span><span class="wc">${c}/7</span></div>`; }).join('')}</div>
     </div>`;
