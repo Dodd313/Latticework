@@ -15,7 +15,7 @@
   .scr { background: var(--grey100) !important; }
   .view { position: absolute; inset: 0 0 64px 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
   .view::-webkit-scrollbar { display: none; }
-  .ttl1 { padding: 20px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .ttl1 { padding: 8px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
   .stack { padding: 0 12px 24px; display: flex; flex-direction: column; gap: 12px; }
   .card { position: relative; background: #fff; border-radius: 20px; overflow: hidden; }
 
@@ -644,8 +644,8 @@
     const verb = n.kind === 'news' ? '다시 읽기' : n.kind === 'concept' ? '문제 풀기' : '복습하기';
     const html = `<div class="top"><i style="background:${KIND[n.kind].c}"></i><span class="path">${KIND[n.kind].nm} · ${esc(g.name)}</span><button class="x" aria-label="닫기">${ICON.x}</button></div>
       <h3>${esc(n.label)}</h3>${n.en ? `<div class="en">${esc(n.en)}</div>` : ''}
-      <div class="mem"><i style="background:${n.weak ? STEPS[n.kind][2] : KIND[n.kind].c};transform:scaleX(${n.R.toFixed(3)})"></i><u style="left:90%"></u></div>
-      <div class="st"><div><span>기억</span><b>${Math.round(n.R * 100)}%</b></div><div><span>반복</span><b>${n.reps}회</b></div><div><span>다음 복습</span><b>${nextTxt}</b></div></div>
+      <div class="mem"><i style="background:${n.weak ? 'var(--orange400)' : KIND[n.kind].c};transform:scaleX(${n.R.toFixed(3)})"></i><u style="left:90%"></u></div>
+      <div class="st"><div><span>기억</span><b${n.weak ? ' style="color:var(--orange700)"' : ''}>${Math.round(n.R * 100)}%</b></div><div><span>반복</span><b>${n.reps}회</b></div><div><span>다음 복습</span><b${n.weak ? ' style="color:var(--orange700)"' : ''}>${nextTxt}</b></div></div>
       ${n.weak ? `<button class="tbtn" style="--tc:${KIND[n.kind].c}">${verb}</button>` : ''}`;
     const fresh = !sheet;
     if (fresh) {
