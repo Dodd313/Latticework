@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>지식 지도 비교</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<style>
+  body { background: var(--ground); }
+  .top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 16px; background: var(--ink); color: #fff; }
+  .top a.home { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; text-decoration: none; font-size: 14px; font-weight: 500; opacity: 0.85; }
+  .top .title { font-weight: 700; font-size: 14px; margin-right: auto; }
+  .top button { min-height: 36px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.35); font-size: 13px; font-weight: 500; color: #fff; }
+  .top button[aria-pressed='true'] { background: #fff; color: var(--ink); border-color: #fff; }
+  .wrap { max-width: 1720px; margin: 0 auto; padding: 22px 16px 60px; }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+  @media (max-width: 1180px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: minmax(0, 1fr); } .wrap { padding: 16px 16px 48px; } }
+  .cell { min-width: 0; }
+  .hd { display: flex; align-items: baseline; gap: 10px; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--ink); }
+  .hd .k { font-family: ui-monospace, Menlo, monospace; font-size: 13px; font-weight: 700; color: var(--blue); }
+  .hd b { font-family: var(--serif); font-size: 20px; line-height: 1.3; color: var(--ink); }
+  .hd a { margin-left: auto; font-size: 13px; color: var(--sub); text-underline-offset: 3px; white-space: nowrap; }
+  .fr { position: relative; width: 100%; overflow: hidden; background: #fff; border-radius: 22px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.10); }
+  .fr iframe { position: absolute; left: 0; top: 0; width: 390px; height: 800px; border: 0; transform-origin: 0 0; }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .acts button { height: 34px; padding: 0 11px; border: 1px solid var(--line); background: #fff; font-size: 13px; font-weight: 500; color: var(--body); }
+  .acts button[aria-pressed='true'] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .acts button:active, .top button:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+<div class="top">
+  <a class="home" href="../index.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>목록</a>
+  <span class="title">지식 지도 네 가지</span>
+  <button data-all="reset">처음</button>
+  <button data-all="지금" aria-pressed="true">지금</button>
+  <button data-all="6개월 뒤" aria-pressed="false">6개월 뒤</button>
+  <button data-all="학문 해금">학문 해금</button>
+  <button data-all="분과 해금">분과 해금</button>
+</div>
+<div class="wrap">
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+(() => {
+  const V = [
+    ['A', '옵시디언 점', 'graph-a.html'],
+    ['B', '방사 나무', 'graph-b.html'],
+    ['C', '성운', 'graph-c.html'],
+    ['D', '지도 영역', 'graph-d.html'],
+  ];
+  const ACTS = ['지금', '6개월 뒤', '학문 해금', '분과 해금'];
+  const grid = document.getElementById('grid');
+  const cells = V.map(([k, name, file]) => {
+    const el = document.createElement('section');
+    el.className = 'cell';
+    el.innerHTML = `<div class="hd"><span class="k">${k}</span><b>${name}</b><a href="${file}" target="_blank" rel="noopener">크게 보기</a></div>
+      <div class="fr"><iframe src="${file}?embed" title="${name}" loading="eager"></iframe></div>
+      <div class="acts"><button data-a="reset">처음</button>${ACTS.map((a) => `<button data-a="${a}"${a === '지금' ? ' aria-pressed="true"' : a === '6개월 뒤' ? ' aria-pressed="false"' : ''}>${a}</button>`).join('')}</div>`;
+    grid.append(el);
+    return { el, fr: el.querySelector('.fr'), ifr: el.querySelector('iframe'), file };
+  });
+
+  // 390x800 화면을 칸 너비에 맞춰 줄인다
+  const fit = () => {
+    for (const c of cells) {
+      const s = Math.min(1, c.fr.clientWidth / 390);
+      c.ifr.style.transform = `scale(${s})`;
+      c.fr.style.height = Math.round(800 * s) + 'px';
+    }
+  };
+  addEventListener('resize', fit);
+  new ResizeObserver(fit).observe(grid);
+  fit();
+
+  const press = (root, sel, a) => root.querySelectorAll(sel).forEach((b) => { if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', String(b.dataset.a === a || b.dataset.all === a)); });
+  const run = (c, a) => {
+    if (a === 'reset') { c.ifr.src = c.file + '?embed'; press(c.el, '.acts button', '지금'); return; }
+    const doc = c.ifr.contentDocument;
+    if (!doc) return;
+    const b = [...doc.querySelectorAll('.lab-bar button')].find((x) => x.textContent.trim() === a);
+    if (b) b.click();
+    if (a === '지금' || a === '6개월 뒤') press(c.el, '.acts button', a);
+  };
+  cells.forEach((c) => c.el.querySelector('.acts').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) run(c, b.dataset.a); }));
+  document.querySelector('.top').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-all]');
+    if (!b) return;
+    const a = b.dataset.all;
+    cells.forEach((c) => run(c, a));
+    if (a === '지금' || a === '6개월 뒤' || a === 'reset') press(document.querySelector('.top'), 'button', a === 'reset' ? '지금' : a);
+  });
+})();
+</script>
+</body>
+</html>

@@ -6,6 +6,8 @@
 <title>지식 탭 · 9차 A 옵시디언 점</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="../shared.css">
+<script>if (/[?&]embed\b/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<style>html.embed, html.embed body { background: #fff; overflow: hidden; } html.embed .lab-bar, html.embed .notes { display: none !important; } html.embed .lab { display: block; padding: 0; } html.embed .phone { width: 390px; height: 800px; min-height: 0; border-radius: 0; box-shadow: none; }</style>
 <link rel="stylesheet" href="../v3/kit.css">
 <style>
   :root { --purple500: #a234c7; --purple-weak: #f7edfa; }
@@ -142,12 +144,13 @@
   .band { position: relative; display: flex; gap: 14px; align-items: center; background: #fff; border-radius: 20px; padding: 14px 16px 14px 14px; cursor: pointer; }
   .band .sn { width: 96px; height: 96px; flex: none; border-radius: 16px; background: var(--grey50); overflow: hidden; position: relative; }
   .band .sn canvas { position: absolute; inset: 0; width: 96px; height: 96px; }
-  .band .tx { flex: 1; min-width: 0; padding-right: 18px; }
+  .band .tx { flex: 1; min-width: 0; }
   .band .tx .k { font-size: 13px; line-height: 19px; font-weight: 700; }
   .band .tx b { display: block; font-size: 18px; line-height: 26px; font-weight: 700; letter-spacing: -0.3px; color: var(--grey900); }
   .band .tx .ln { display: block; margin-top: 1px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--grey700); }
   .band .tx .fi { display: block; margin-top: 4px; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--grey500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .band .cl { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--grey400); }
+  .band .bb { display: flex; gap: 6px; margin-top: 10px; }
+  .band .sb { height: 32px; padding: 0 12px; border-radius: 10px; font-family: var(--font); font-size: 14px; font-weight: 600; background: var(--grey100); color: var(--grey700); }
 
   .notes code { font-size: 12px; background: rgba(21, 23, 26, .06); padding: 1px 4px; }
 </style>
@@ -647,12 +650,13 @@
       for (const n of M.list) {
         const p = n.parent;
         if (!p) continue;
-        const a = n._v * Math.min(n._e, p._e) * (p._ap > 0 ? 1 : 0);
+        // 소우주 안에 들어와 있으면, 그 소우주에서 바깥 부모로 가는 선은 지운다 (크럼 위로 선이 지나가지 않게)
+        const a = n._v * Math.min(n._e, p._e) * (p._ap > 0 ? 1 : 0) * (this.focusC === n ? 1 - n._open : 1);
         if (a < 0.01 || n._eg <= 0) continue;
         if ((n._x < -40 && p._x < -40) || (n._x > W + 40 && p._x > W + 40) || (n._y < -40 && p._y < -40) || (n._y > H + 40 && p._y > H + 40)) continue;
         const hot = this.chainEdges && this.focus && this.focus.has(n.id) && this.focus.has(p.id);
-        ctx.strokeStyle = hot ? `rgba(139,149,161,${(0.9 * a).toFixed(3)})` : `rgba(176,184,193,${(0.42 * a).toFixed(3)})`;
-        ctx.lineWidth = hot ? 1.25 : hair;
+        ctx.strokeStyle = hot ? `rgba(139,149,161,${(0.6 * a).toFixed(3)})` : `rgba(176,184,193,${(0.42 * a).toFixed(3)})`;
+        ctx.lineWidth = hot ? 1 : hair;
         ctx.beginPath();
         ctx.moveTo(p._x, p._y);
         ctx.lineTo(lerp(p._x, n._x, n._eg), lerp(p._y, n._y, n._eg));
@@ -790,6 +794,14 @@
         const e = this.lab.get(n.id) || { a: 0 };
         e.slot = best.s; e.rc = best.rc; e.text = text; e.font = font; e.n = n; e.force = it.force;
         this.lab.set(n.id, e);
+      }
+      // 숨는 중인 이름이 새 이름이나 다른 숨는 이름과 겹치거나 화면 밖으로 나가면 바로 지운다 (날아가는 동안 겹침 없음)
+      const hiding = [...this.lab].filter(([id]) => !want.has(id)).sort((p, q) => q[1].a - p[1].a);
+      for (const [id, e] of hiding) {
+        const n = e.n, w = e.rc[2] - e.rc[0], hh = e.rc[3] - e.rc[1], r = n._r;
+        const rc = e.slot === 'b' ? [n._x - w / 2, n._y + r + 3, n._x + w / 2, n._y + r + 3 + hh] : e.slot === 't' ? [n._x - w / 2, n._y - r - 3 - hh, n._x + w / 2, n._y - r - 3] : e.slot === 'r' ? [n._x + r + 5, n._y - hh / 2, n._x + r + 5 + w, n._y + hh / 2] : [n._x - r - 5 - w, n._y - hh / 2, n._x - r - 5, n._y + hh / 2];
+        if (rc[0] < 4 || rc[2] > W - 4 || rc[1] < 4 || rc[3] > H - 4 || placed.some((p) => ov(rc, p, 2)) || this.chrome.some((c) => ov(rc, c, 2))) { this.lab.delete(id); continue; }
+        placed.push(rc);
       }
       let anim = false;
       ctx.textBaseline = 'middle';
@@ -1419,8 +1431,8 @@
       const cs = subtree(M.N.get(band.nodeId)).filter((x) => x.kind === 'concept' && x.born === band.at.slice(0, 10));
       const line = lineFor(band.id, { field: band.ko, parent: d.ko, first: band.byName, rank: 'branch' });
       bandHtml = `<div class="bandw"><div class="band"><span class="sn"><canvas></canvas></span>
-        <span class="tx"><span class="k" style="color:${ink(d.color)}">${esc(d.ko)}</span><b>${esc(band.ko)}</b><span class="ln">${esc(line)}</span><span class="fi">${cs.map((c) => esc(c.ko)).join(' · ')}</span></span>
-        <button class="cl" aria-label="닫기">${K.x(16, 'currentColor', 2.4)}</button></div></div>`;
+        <span class="tx"><span class="k" style="color:${ink(d.color)}">${esc(d.ko)}</span><b>${esc(band.ko)}</b><span class="ln">${esc(line)}</span><span class="fi">${cs.map((c) => esc(c.ko)).join(' · ')}</span>
+          <span class="bb"><button class="sb" data-k="next">계속</button><button class="sb" data-k="go" style="background:${rgba(d.color, 0.12)};color:${ink(d.color)}">보러 가기</button></span></span></div></div>`;
     }
     const el = scene('grey home', `<div class="view"><div class="hd"><b>Latticework</b><span class="pill">연속 <b class="num">${V.totals.streak}일</b></span></div>
       <div class="stack">${bandHtml}
@@ -1449,9 +1461,10 @@
     w.style.height = 'auto';
     ML.a(inner, [{ opacity: 0, transform: 'translateY(-8px)' }, { opacity: 1, transform: 'none' }], { duration: 360, delay: 80, easing: E.out, fill: 'backwards' });
     K.press(inner, false);
+    inner.querySelectorAll('.sb').forEach((x) => K.press(x));
     inner.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (e.target.closest('.cl')) { ML.a(w, [{ height: w.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0, marginBottom: '-12px' }], { duration: 300, easing: E.sheet, fill: 'forwards' }); return; }
+      if (e.target.closest('[data-k=next]')) { ML.a(w, [{ height: w.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0, marginBottom: '-12px' }], { duration: 300, easing: E.sheet, fill: 'forwards' }); return; }
       toKnowledge(band.nodeId, el);
     });
   }

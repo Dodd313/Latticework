@@ -6,6 +6,8 @@
 <title>방사 나무 · Motion Lab 9차</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="../shared.css">
+<script>if (/[?&]embed\b/.test(location.search)) document.documentElement.classList.add('embed');</script>
+<style>html.embed, html.embed body { background: #fff; overflow: hidden; } html.embed .lab-bar, html.embed .notes { display: none !important; } html.embed .lab { display: block; padding: 0; } html.embed .phone { width: 390px; height: 800px; min-height: 0; border-radius: 0; box-shadow: none; }</style>
 <link rel="stylesheet" href="../v3/kit.css">
 <style>
   .scr { background: #fff !important; overflow: hidden; user-select: none; -webkit-user-select: none; }
@@ -742,7 +744,22 @@
         const flip = Math.cos(ang) < 0;
         const font = isSel ? F_.sel : F_.concept;
         const room = W / 2 - F.R * F.s * k - it.r - 14;
-        const s = fitText(font, n.ko, F.L === 1 ? clamp(room, 56, 108) : 108);
+        const off0 = it.r + (n.due ? 5.5 : 4);
+        // 화면 끝까지 남은 길이만큼만 쓴다. 잘려 나가는 글자 대신 말줄임, 너무 짧으면 숨김
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        let lim = F.L === 1 ? clamp(room, 56, 108) : 108;
+        const tx_ = ca > 0 ? (W - 4 - it.x) / ca : ca < 0 ? (4 - it.x) / ca : Infinity;
+        const ty_ = sa > 0 ? (H - 4 - it.y) / sa : sa < 0 ? (4 - it.y) / sa : Infinity;
+        lim = Math.min(lim, Math.min(tx_, ty_) - off0);
+        if (lim < 34) continue;
+        const s = fitText(font, n.ko, lim);
+        const tw = textW(font, s);
+        let clash = false;
+        for (let t = off0; t <= off0 + tw && !clash; t += 6) {
+          const px = it.x + ca * t, py = it.y + sa * t;
+          for (const q of boxes) if (px > q[0] - 2 && px < q[2] + 2 && py > q[1] - 2 && py < q[3] + 2) { clash = true; break; }
+        }
+        if (clash && !isSel) continue;
         ctx.save();
         ctx.translate(it.x, it.y);
         ctx.rotate(flip ? ang + Math.PI : ang);
