@@ -171,7 +171,8 @@ function WeekRow({ id, week, width, row, statusOf, extraOf, today, onPick }: { i
         const reach = run && run.b > run.a && cw > 0 ? ((di - run.a) * cw) / ((run.b - run.a) * cw) : 0;
         // 띠가 보이기 시작하는 구간(0~0.15)이 지난 뒤에만 숫자가 나타난다.
         const end = Math.max(0.22, reach);
-        const show = isDone && !WEB ? grow.interpolate({ inputRange: [end - 0.1, end], outputRange: [0, 1], extrapolate: 'clamp' }) : 1;
+        // 웹: 폭을 알기 전(띠를 아직 그리지 않은 장면)에는 칠한 날의 숫자를 숨겨 둔다. 폭이 정해진 장면부터는 브라우저 움직임이 이어받는다.
+        const show = !isDone ? 1 : WEB ? (width > 0 || motionOff() ? 1 : 0) : grow.interpolate({ inputRange: [end - 0.1, end], outputRange: [0, 1], extrapolate: 'clamp' });
         const mark = (
           <MView ref={WEB ? (el: any) => void (marks.current[di] = el) : undefined} style={{ width: MARK, height: MARK, borderRadius: MARK / 2, alignItems: 'center', justifyContent: 'center', borderWidth: ring ? 2 : 0, borderColor: HEAT_RING, opacity: show }}>
             <T s={15} w={isDone || date === today ? '700' : '600'} c={fg} mono lh={1.2}>
