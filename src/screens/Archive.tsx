@@ -332,7 +332,7 @@ export function ArchiveScreen() {
               accessibilityLabel="기사 검색"
               value={q}
               onChangeText={setQ}
-              placeholder=""
+              placeholder="기사 검색"
               placeholderTextColor={t.faint}
               style={[{ flex: 1, height: 48, fontFamily: FONT_SANS, fontSize: 17, color: t.ink }, { outlineStyle: 'none' } as any]}
             />

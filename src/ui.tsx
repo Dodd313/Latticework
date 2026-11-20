@@ -822,6 +822,7 @@ export function TaskRow({
   trackWidth,
   onPress,
   a11yLabel,
+  doneLabel,
 }: {
   name: string;
   value: number;
@@ -835,6 +836,8 @@ export function TaskRow({
   trackWidth?: number;
   onPress?: () => void;
   a11yLabel?: string;
+  /** 마친 줄에서 체크 옆에 보이는 다음 동작(예: "더 풀기") */
+  doneLabel?: string;
 }) {
   const t = useTheme();
   const done = of > 0 && value >= of;
@@ -849,8 +852,16 @@ export function TaskRow({
         {name}
       </T>
       <ProgressBar value={of > 0 ? value / of : 0} height={8} band={false} color={color ?? t.blue} style={trackWidth ? { width: trackWidth } : { flex: 1 }} />
-      <View style={{ width: 34, alignItems: 'flex-end' }}>
-        {done ? (
+      <View style={{ minWidth: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {done && doneLabel ? (
+          <>
+            <Icon name="check" size={16} color={doneColor ?? t.green} sw={3} />
+            <T s={14} w="600" c={t.blueText} lh={1.4}>
+              {doneLabel}
+            </T>
+            <Icon name="chev" size={14} color={t.blueText} />
+          </>
+        ) : done ? (
           <Icon name="check" size={18} color={doneColor ?? t.green} sw={3} />
         ) : (
           <T s={14} w="600" c={t.mute} mono>

@@ -311,7 +311,8 @@ export function StudyScreen({ sect }: { sect: Section }) {
     const now = new Date();
     const asked = studyAsked();
     if (left > 0) return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, left, 'daily', asked) : buildVoc(studyData, study, today, now, 'daily', left, asked), extra: false };
-    return { queue: [], extra: true };
+    // 오늘 분량을 이미 마쳤으면 빈 화면 대신 바로 더 풀기로 연다.
+    return { queue: sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak', asked) : buildVoc(studyData, study, today, now, 'weak', 8, asked), extra: true };
   }, []);
 
   const [queue, setQueue] = useState<Q[]>(first.queue);
@@ -322,7 +323,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const [crossed, setCrossed] = useState<number[]>([]);
   const [attempts, setAttempts] = useState(0);
   const [tally, setTally] = useState({ right: 0, total: 0, xp: 0 });
-  const [exhausted, setExhausted] = useState(false);
+  const [exhausted, setExhausted] = useState(first.extra && first.queue.length === 0);
   const [round, setRound] = useState(0);
   // 화면 장식: 채운 칸 수, 연속 정답, 판, 선택지 반응, 경험치 표시
   const [filled, setFilled] = useState(0);
@@ -474,7 +475,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
         streakFrom={streakAtOpen}
         streakTo={goals.streak}
         exhausted={exhausted}
-        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${extra ? '더 풀기 완료' : '학습 완료'}`}
+        title={`${sect === 'lat' ? 'Latticework' : '영단어'} ${tally.total === 0 ? '오늘 분량 완료' : extra ? '더 풀기 완료' : '학습 완료'}`}
         onMore={more}
         onDone={nav.pop}
       />
@@ -486,7 +487,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.card, overflow: 'hidden' }}>
-      <Header onClose={nav.pop} value={firstRun ? filled / firstRun : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} combo={combo} a11yValue={`${filled}/${firstRun}`} />
+      <Header onClose={nav.pop} value={firstRun ? filled / firstRun : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} combo={combo} a11yValue={`${filled}/${firstRun}`} extra={extra} />
       {fly ? (
         <FlyXp
           key={fly.id}
@@ -586,7 +587,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
 }
 
 /** 위쪽 줄: 닫기 X, 높이 16 진행 막대(연속 정답 3 이상이면 주황), 번개와 누적 경험치. */
-function Header({ onClose, value, hot, xp, bolt, combo, a11yValue }: { onClose: () => void; value: number; hot: boolean; xp: number; bolt: Animated.Value; combo: number; a11yValue?: string }) {
+function Header({ onClose, value, hot, xp, bolt, combo, a11yValue, extra }: { onClose: () => void; value: number; hot: boolean; xp: number; bolt: Animated.Value; combo: number; a11yValue?: string; extra?: boolean }) {
   const t = useTheme();
   return (
     <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 8, paddingRight: 16, zIndex: 3 }}>
@@ -594,6 +595,7 @@ function Header({ onClose, value, hot, xp, bolt, combo, a11yValue }: { onClose: 
         <Icon name="close" size={24} color={t.faint} />
       </Tap>
       <Combo n={combo} />
+      {extra ? <Chip label="더 풀기" tone="neutral" style={{ alignSelf: 'center' }} /> : null}
       <ProgressBar value={value} hot={hot} style={{ flex: 1 }} a11yLabel={a11yValue ? `진행 ${a11yValue}` : undefined} />
       <View accessible accessibilityLabel={`경험치 ${xp}`} style={{ minWidth: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
         <Animated.View style={{ transform: [{ scale: bolt }, { rotate: bolt.interpolate({ inputRange: [1, 1.35], outputRange: ['0deg', '-12deg'] }) }] }}>

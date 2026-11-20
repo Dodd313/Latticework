@@ -78,7 +78,11 @@ function QuizCard({ day }: { day: Day }) {
               <T s={15} w="600" c={t.mute} mono>
                 {answered}/{total}
               </T>
-            ) : null}
+            ) : (
+              <T s={14} w="600" c={t.mute} mono>
+                읽은 기사 {day.articles.length - unread}/{day.articles.length}
+              </T>
+            )}
             {locked ? <Icon name="lock" size={18} color={t.faint} /> : <Icon name="chev" size={14} color={t.faint} />}
           </View>
         </View>

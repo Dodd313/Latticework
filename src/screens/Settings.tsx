@@ -154,6 +154,8 @@ export function SettingsScreen() {
                 nativeID="records-box"
                 accessibilityLabel="기록 내보내기와 가져오기 상자"
                 value={box}
+                placeholder="기록 붙여 넣기"
+                placeholderTextColor={t.faint}
                 onChangeText={(v) => {
                   setBox(v);
                   if (result === 'bad') setResult('');
