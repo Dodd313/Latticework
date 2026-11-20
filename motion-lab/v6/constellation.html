@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>분야 성좌 · Motion Lab 6차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root {
+    --purple50: #f9f0fc; --purple100: #edccf8; --purple200: #da9bef; --purple300: #c770e4; --purple500: #a234c7; --purple600: #9128b4;
+    --purple-weak: #f7ebfb; /* purple300 15% */
+    --k-news: var(--blue500); --k-word: var(--purple500); --k-concept: var(--green500);
+  }
+  .scr { background: var(--grey100) !important; }
+  .view { position: absolute; inset: 0 0 64px 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+  .view::-webkit-scrollbar { display: none; }
+  .ttl1 { padding: 18px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; color: var(--grey900); }
+  .stack { padding: 0 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border-radius: 20px; }
+
+  /* 위쪽 세 칸 */
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .three button { position: relative; background: #fff; border-radius: 16px; padding: 14px 16px 12px; text-align: left; transition: background-color .2s, box-shadow .2s; }
+  .three button > span { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--grey500); }
+  .three button > span i { width: 6px; height: 6px; border-radius: 3px; flex: none; }
+  .three b { display: block; margin-top: 2px; font-size: 22px; line-height: 31px; font-weight: 700; color: var(--grey900); font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
+  .three b em { font-style: normal; }
+  .three b small { font-size: 15px; font-weight: 600; margin-left: 1px; color: var(--grey700); }
+  .three button.on { box-shadow: inset 0 0 0 1.5px var(--kc); }
+  .three button.on b { color: var(--kc); }
+  .three button.off { background: rgba(255,255,255,.55); }
+  .three button.off b, .three button.off b small { color: var(--grey400); }
+
+  /* 성좌 */
+  .sky { position: relative; height: 366px; overflow: hidden; touch-action: manipulation; }
+  .sky svg { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-select: none; }
+  .sky .st { transform-box: fill-box; transform-origin: center; }
+  .sky .cl { transition: opacity .32s cubic-bezier(.22,1,.36,1); }
+  .sky .lbl { font-family: var(--font); font-size: 11.5px; font-weight: 600; fill: var(--grey600); letter-spacing: -0.1px; transition: opacity .2s; }
+  .sky .ed { fill: none; transition: stroke .3s, stroke-opacity .3s, stroke-width .3s; }
+  .sky .x { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 18px; background: var(--grey100); color: var(--grey600); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; }
+  .sky .x.on { pointer-events: auto; }
+  .sky .zt { position: absolute; top: 16px; left: 20px; display: flex; align-items: baseline; gap: 6px; opacity: 0; pointer-events: none; }
+  .sky .zt b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .sky .zt span { font-size: 15px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .tip { position: absolute; left: 0; top: 0; z-index: 3; max-width: 220px; padding: 6px 10px; border-radius: 10px; background: var(--grey900); color: #fff; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; opacity: 0; }
+
+  /* 아래 목록 */
+  .lst { padding: 20px 20px 12px; }
+  .lh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .lh b { font-size: 20px; line-height: 29px; font-weight: 700; letter-spacing: -0.3px; }
+  .lh span { font-size: 15px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .lh span em { font-style: normal; }
+  .row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 8px; margin: 0 -8px; width: calc(100% + 16px); border-radius: 14px; transition: background-color .15s; }
+  .row.sel { background: var(--grey50); }
+  .row .g { width: 28px; height: 28px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .row .t { flex: 1; min-width: 0; }
+  .row .t b { display: block; font-size: 16px; line-height: 23px; font-weight: 600; color: var(--grey800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
+  .row .t span { display: block; font-size: 13px; line-height: 18px; color: var(--grey500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .r { flex: none; font-size: 14px; font-weight: 600; color: var(--grey500); font-variant-numeric: tabular-nums; }
+  .sg { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 3px; margin-bottom: 8px; border-radius: 12px; background: var(--grey100); }
+  .sg button { position: relative; z-index: 1; height: 36px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 15px; font-weight: 600; color: var(--grey500); text-align: center; transition: color .2s; }
+  .sg button em { font-style: normal; font-variant-numeric: tabular-nums; }
+  .sg button.on { color: var(--grey900); }
+  .sg button:disabled { color: var(--grey300); }
+  .sg i { position: absolute; z-index: 0; left: 3px; top: 3px; height: 36px; border-radius: 9px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .lst .tbtn { margin-top: 12px; min-height: 52px; font-size: 16px; }
+  .lst .more { display: flex; width: 100%; justify-content: center; padding: 12px 0 4px; font-size: 15px; font-weight: 600; color: var(--grey600); }
+
+  /* 탭 막대: 5차 앱과 같은 모양 */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 5; }
+  .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs button.on { color: var(--grey900); }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>분야 성좌 · 6차</h2>
+    <p>지식 탭 시안입니다. 공부한 것을 분야별 별자리로 둥글게 놓았습니다. 뉴스, 단어장 세 권, 개념 주제가 한 바퀴를 이루고, 별 하나가 기사·단어·개념 하나입니다.</p>
+    <h3>보이는 것</h3>
+    <table class="spec">
+      <tr><th>모양</th><th>뜻</th></tr>
+      <tr><td>별의 색</td><td>종류. 뉴스 blue500, 단어 purple500, 개념 green500. 위쪽 세 칸의 점과 같은 색</td></tr>
+      <tr><td>별의 크기</td><td>반복 횟수(reps). 1회 반지름 1.5, 10회 4.0</td></tr>
+      <tr><td>별의 밝기</td><td>지금 떠올릴 확률 R = (1 + 지난 날 / (9 × 기억 유지 일수))<sup>-1</sup>. R 0.55 이하 30%, 0.95 이상 100%</td></tr>
+      <tr><td>속이 빈 별</td><td>R 0.9 미만. 복습할 때가 된 것</td></tr>
+      <tr><td>무리 안의 자리</td><td>처음 본 날. 가운데가 오래된 것, 바깥이 새것(해바라기 배열). 무리가 바깥으로 자라는 모양</td></tr>
+      <tr><td>무리를 두른 호</td><td>그 무리에서 R 0.9 이상인 비율</td></tr>
+      <tr><td>가운데를 지나는 곡선</td><td>무리 사이의 연결. 기사가 언급한 개념, 단어와 같은 개념</td></tr>
+    </table>
+    <h3>움직임</h3>
+    <ul>
+      <li>들어올 때: 뉴스부터 시계 방향으로 무리가 하나씩 켜집니다. 무리 안에서는 오래된 별부터 바깥으로 켜져, 지식이 쌓여 온 순서를 그대로 보여 줍니다. 별이 다 켜지면 호가 비율만큼 그려지고, 마지막에 연결선이 떠오릅니다. 1.6초.</li>
+      <li>무리를 누르면 그 무리로 다가갑니다(Toss medium 스프링). 다른 무리는 흐려지지만, 연결된 별은 밝게 남아 어느 분야와 이어졌는지 보입니다. 아래 카드는 그 무리의 항목 목록으로 바뀝니다.</li>
+      <li>확대한 상태에서 별이나 목록 줄을 누르면 그 별에 고리가 생기고 이름이 위에 뜹니다. 연결선도 그 별 것만 남습니다.</li>
+      <li>"복습 반영" 은 복습을 마친 뒤를 보여 줍니다. 빈 별이 차오르고 호가 늘어납니다.</li>
+      <li>위쪽 세 칸을 누르면 그 종류만 밝게 남고, 아래 목록도 그 종류로 좁혀집니다.</li>
+    </ul>
+    <h3>빌려 온 것</h3>
+    <ul>
+      <li>Obsidian 그래프 뷰: 점과 연결선, 누르면 이웃만 남는 국소 강조.</li>
+      <li>Apple Fitness 활동 링: 무리를 두른 얇은 호로 비율을 보이는 방식.</li>
+      <li>원형 코드 다이어그램(Circos): 둘레에 무리를 놓고 연결을 가운데로 지나게 그려 엉킴을 줄이는 배치.</li>
+      <li>Anki/FSRS: 기억 유지 일수와 떠올릴 확률.</li>
+    </ul>
+    <h3>장점</h3>
+    <ul>
+      <li>한 화면에 186개를 모두 보여도 무리 단위로 읽힙니다. 어느 분야가 크고, 어느 분야가 흐려지는지 한눈에 비교됩니다.</li>
+      <li>배치가 고정입니다. 힘 기반 그래프처럼 열 때마다 모양이 바뀌지 않아, 매일 열면 같은 자리에서 별이 늘고 밝아지는 것이 보입니다.</li>
+      <li>속이 빈 별은 색을 더하지 않고 모양만 바꿔 조용합니다. 경고색이 화면을 덮지 않습니다.</li>
+    </ul>
+    <h3>약점</h3>
+    <ul>
+      <li>무리가 많아지면(주제 20개 이상) 둘레가 모자랍니다. 그때는 분야로 한 번 더 묶어야 합니다.</li>
+      <li>무리 크기가 크게 차이 납니다. TOEIC 69개 옆의 개념 6개는 작아서 누르기 어렵습니다(누름 영역은 반지름 + 14px로 넓혔습니다).</li>
+      <li>연결이 무리 사이에서만 보입니다. 개념끼리의 세부 관계는 확대해야 보입니다.</li>
+      <li>뉴스에는 복습 기록이 없어, 기사가 언급한 개념들의 R 평균으로 밝기를 대신했습니다. 실제와 다를 수 있습니다.</li>
+      <li>별자리라는 은유가 정보량에 비해 장식적으로 읽힐 위험이 있습니다. 빛나는 효과와 배경 별은 일부러 넣지 않았습니다.</li>
+    </ul>
+    <h3>실제 앱에 필요한 데이터</h3>
+    <ul>
+      <li>항목마다 처음 본 날, 마지막 복습일, 반복 횟수, 기억 유지 일수(FSRS stability). 지금은 개념과 단어의 정답 기록에서 계산해야 합니다.</li>
+      <li>기사 다시 읽기 기록, 또는 기사와 개념의 연결(이미 기사 요약의 용어 연결로 일부 있음).</li>
+      <li>단어와 개념의 연결(용어 일치). 지금은 금융 단어 7개만 이어져 있습니다.</li>
+      <li>분야 이름과 순서. 새 분야가 생길 때 둘레 어디에 넣을지 정하는 규칙.</li>
+    </ul>
+    <p class="tip">이력은 고정 시드 예시입니다. 개념 42개, 단어 95개, 기사 제목 6건은 앱 데이터입니다.</p>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const D = window.KDATA;
+  const NS = 'http://www.w3.org/2000/svg';
+  const DAY = 864e5;
+  const days = (a, b) => (new Date(a) - new Date(b)) / DAY;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const COL = { news: '#3182f6', word: '#a234c7', concept: '#03b26c' };
+  const TXT = { news: 'var(--blue600)', word: 'var(--purple600)', concept: 'var(--green600)' };
+  const W = 366, H = 366;
+  let CX = 183, CY = 183;
+
+  // ── 데이터 ─────────────────────────────────────────
+  const N = D.nodes.map((n) => Object.assign({}, n));
+  const byId = Object.fromEntries(N.map((n) => [n.id, n]));
+  const retr = (n) => 1 / (1 + Math.max(0, days(D.today, n.last)) / (9 * n.stability));
+  N.forEach((n) => { if (n.kind !== 'news') n.R = retr(n); });
+  // 기사는 복습 기록이 없다. 기사가 언급한 개념들의 R 평균을 쓴다.
+  const ment = {};
+  D.edges.forEach((e) => { if (e.kind === 'mention') (ment[e.s] = ment[e.s] || []).push(e.t); });
+  N.forEach((n) => {
+    if (n.kind !== 'news') return;
+    const cs = (ment[n.id] || []).map((id) => byId[id].R);
+    n.R = cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : 1 / (1 + days(D.today, n.first) / (18 * n.reps));
+  });
+
+  const MAIN = ['CAPM', '자본배분', '최적 포트폴리오', '지수모형', 'APT'];
+  // 시계 방향 순서. 뉴스가 왼쪽, 개념이 위에서 오른쪽, 단어가 아래.
+  const CL = [
+    { key: 'news', kind: 'news', name: '뉴스', m: (n) => n.kind === 'news' },
+    ...MAIN.map((t) => ({ key: t, kind: 'concept', name: t, m: (n) => n.kind === 'concept' && n.topic === t })),
+    { key: 'etc', kind: 'concept', name: '기타', m: (n) => n.kind === 'concept' && !MAIN.includes(n.topic) },
+    { key: 'toeic', kind: 'word', name: 'TOEIC', m: (n) => n.kind === 'word' && n.deck === 'toeic' },
+    { key: 'fin', kind: 'word', name: '금융', m: (n) => n.kind === 'word' && n.deck === 'fin' },
+    { key: 'gen', kind: 'word', name: '일반', m: (n) => n.kind === 'word' && n.deck === 'gen' },
+  ];
+  CL.forEach((c, i) => {
+    c.i = i;
+    c.items = N.filter(c.m).sort((a, b) => (a.first < b.first ? -1 : a.first > b.first ? 1 : a.id < b.id ? -1 : 1));
+    c.items.forEach((n) => (n.cl = c));
+    c.r = 3 + 5.2 * Math.sqrt(c.items.length);
+  });
+
+  // 둘레 배치: 각 무리가 차지하는 각도는 지름과 이름 폭 중 큰 쪽에 비례.
+  const textW = (t) => [...t].reduce((w, ch) => w + (/[가-힣]/.test(ch) ? 11.6 : ch === ' ' ? 3.2 : 7.2), 0);
+  CL.forEach((c) => { c.w = textW(c.name); c.span = Math.max(2 * c.r + 12, c.w + 8); });
+  const S0 = CL.reduce((s, c) => s + c.span, 0);
+  const R0 = Math.max(104, (S0 + 8 * CL.length) / (2 * Math.PI));
+  const GAP = (2 * Math.PI * R0 - S0) / CL.length;
+  CL.forEach((c) => (c.span += GAP));
+  const tot = CL.reduce((s, c) => s + c.span, 0);
+  let acc = 0;
+  CL.forEach((c, i) => {
+    const mid = acc + c.span / 2;
+    acc += c.span;
+    c.mid = mid;
+  });
+  const off = Math.PI - (CL[0].mid / tot) * Math.PI * 2; // 뉴스가 정확히 왼쪽에
+  CL.forEach((c) => {
+    c.a = off + (c.mid / tot) * Math.PI * 2;
+    c.x = CX + R0 * Math.cos(c.a);
+    c.y = CY + R0 * Math.sin(c.a);
+  });
+  // 이름 자리: 옆에 공간이 있으면 옆, 없으면 위나 아래.
+  const placeLabel = (c) => {
+    const cs = Math.cos(c.a), sn = Math.sin(c.a);
+    if (Math.abs(cs) > 0.5) {
+      const lx = c.x + (c.r + 11) * Math.sign(cs);
+      const room = cs > 0 ? lx + c.w < W - 8 : lx - c.w > 8;
+      if (room) return { x: lx, y: c.y + 4, anchor: cs > 0 ? 'start' : 'end', box: [cs > 0 ? lx : lx - c.w, c.y - 8, c.w, 14] };
+    }
+    const top = sn < -0.1;
+    const y = top ? c.y - c.r - 13 : c.y + c.r + 21;
+    return { x: c.x, y, anchor: 'middle', box: [c.x - c.w / 2, y - 12, c.w, 14] };
+  };
+  // 전체를 카드 가운데로 옮긴다.
+  {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    CL.forEach((c) => {
+      c.L = placeLabel(c);
+      const [bx, by, bw, bh] = c.L.box;
+      x0 = Math.min(x0, c.x - c.r - 6, bx); x1 = Math.max(x1, c.x + c.r + 6, bx + bw);
+      y0 = Math.min(y0, c.y - c.r - 6, by); y1 = Math.max(y1, c.y + c.r + 6, by + bh);
+    });
+    const dx = W / 2 - (x0 + x1) / 2, dy = H / 2 - (y0 + y1) / 2;
+    CX += dx; CY += dy;
+    CL.forEach((c) => { c.x += dx; c.y += dy; c.L = placeLabel(c); });
+  }
+  // 무리 안: 해바라기 배열. 오래된 것이 가운데, 새것이 바깥.
+  const GA = Math.PI * (3 - Math.sqrt(5));
+  CL.forEach((c) => {
+    const n = c.items.length;
+    const k = (c.r - 3.5) / Math.sqrt(n - 0.5);
+    c.items.forEach((it, i) => {
+      const rr = k * Math.sqrt(i + 0.5);
+      const t = i * GA + c.a;
+      it.x = c.x + rr * Math.cos(t);
+      it.y = c.y + rr * Math.sin(t);
+      it.sr = 1.3 + 0.3 * Math.min(it.reps, 10);
+    });
+  });
+  const cross = D.edges.filter((e) => byId[e.s].cl !== byId[e.t].cl);
+  const inner = D.edges.filter((e) => byId[e.s].cl === byId[e.t].cl);
+  const weak = (n) => n.R < 0.9;
+  const bright = (n) => 0.3 + 0.7 * clamp((n.R - 0.55) / 0.4, 0, 1);
+  const share = (c) => c.items.filter((n) => !weak(n)).length / c.items.length;
+
+  // ── 상태 ─────────────────────────────────────────
+  const S = { zoom: null, star: null, kind: null, cam: { s: 1, x: 0, y: 0 } };
+
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    know: '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M6.5 7.5L12 16.5L17.5 7.5M6.5 7.5H17.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/><circle cx="6" cy="7" r="3.2" fill="currentColor"/><circle cx="18" cy="7" r="3.2" fill="currentColor"/><circle cx="12" cy="17.5" r="3.6" fill="currentColor"/></svg>',
+    x: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  };
+
+  const glyph = (n) => {
+    const r = 3 + 0.7 * Math.min(n.reps, 10);
+    const c = COL[n.kind];
+    const w = weak(n);
+    return `<svg viewBox="0 0 28 28" width="28" height="28" aria-hidden="true"><circle cx="14" cy="14" r="${w ? r - 0.8 : r}" fill="${w ? '#fff' : c}" stroke="${w ? c : 'none'}" stroke-width="1.6" opacity="${bright(n).toFixed(2)}"/></svg>`;
+  };
+  const md = (d) => `${+d.slice(5, 7)}월 ${+d.slice(8, 10)}일`;
+  const DECK = { toeic: 'TOEIC', fin: '금융', gen: '일반' };
+  const sub = (n) => (n.kind === 'concept' ? n.en : n.kind === 'word' ? n.group || DECK[n.deck] : md(n.first));
+  const rowHtml = (n) => `<button class="row" data-id="${n.id}"><span class="g">${glyph(n)}</span><span class="t"><b>${n.label}</b><span>${sub(n)}</span></span><span class="r">${n.reps}회</span></button>`;
+
+  // ── 화면 ─────────────────────────────────────────
+  function shell() {
+    const cnt = (k) => N.filter((n) => n.kind === k).length;
+    phone.innerHTML = `<div class="scr"><div class="view" id="view">
+      <div class="ttl1">지식</div>
+      <div class="stack">
+        <div class="three" id="three">${[['news', '뉴스'], ['word', '단어'], ['concept', '개념']].map(([k, l]) => `<button data-k="${k}" style="--kc:${TXT[k]}"><span><i style="background:${COL[k]}"></i>${l}</span><b class="num"><em class="c" data-to="${cnt(k)}">0</em><small>개</small></b></button>`).join('')}</div>
+        <div class="box sky" id="sky">
+          <svg id="svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="분야별 지식 지도"><g id="world"></g></svg>
+          <div class="zt" id="zt"><b></b><span></span></div>
+          <button class="x" id="x" aria-label="전체 보기">${ICON.x}</button>
+          <div class="tip" id="tip"></div>
+        </div>
+        <div class="box lst" id="lst"></div>
+      </div></div>
+      <nav class="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['know', ICON.know, '지식']].map(([k, i, l]) => `<button class="${k === 'know' ? 'on' : ''}">${i}${l}</button>`).join('')}</nav></div>`;
+    draw();
+    bind();
+  }
+
+  const el = (tag, at, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in at) e.setAttribute(k, at[k]);
+    parent && parent.append(e);
+    return e;
+  };
+
+  function edgePath(a, b) {
+    // 가운데 쪽으로 휘는 곡선. 두 무리가 멀수록 가운데를 깊게 지난다.
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const k = 0.25;
+    const qx = CX + (mx - CX) * k, qy = CY + (my - CY) * k;
+    return `M${a.x.toFixed(1)} ${a.y.toFixed(1)}Q${qx.toFixed(1)} ${qy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+  }
+
+  function draw() {
+    const world = phone.querySelector('#world');
+    const gE = el('g', { id: 'edges' }, world);
+    cross.forEach((e) => {
+      const a = byId[e.s], b = byId[e.t];
+      e.p = el('path', { class: 'ed', d: edgePath(a, b), stroke: 'var(--grey400)', 'stroke-opacity': 0.28, 'stroke-width': 0.7, 'vector-effect': 'non-scaling-stroke' }, gE);
+    });
+    const gI = el('g', { id: 'inner', opacity: 0 }, world);
+    inner.forEach((e) => {
+      const a = byId[e.s], b = byId[e.t];
+      e.p = el('path', { class: 'ed', d: `M${a.x.toFixed(1)} ${a.y.toFixed(1)}L${b.x.toFixed(1)} ${b.y.toFixed(1)}`, stroke: COL[a.kind], 'stroke-opacity': 0.25, 'stroke-width': 0.8, 'vector-effect': 'non-scaling-stroke' }, gI);
+    });
+    CL.forEach((c) => {
+      const g = (c.g = el('g', { class: 'cl' }, world));
+      // 비율 호: 바탕 고리 + 색 호. 12시에서 시계 방향.
+      c.track = el('circle', { cx: c.x, cy: c.y, r: c.r + 5, fill: 'none', stroke: 'var(--grey200)', 'stroke-width': 2, 'vector-effect': 'non-scaling-stroke' }, g);
+      c.arc = el('circle', { cx: c.x, cy: c.y, r: c.r + 5, fill: 'none', stroke: COL[c.kind], 'stroke-width': 2, 'stroke-linecap': 'round', pathLength: 100, 'stroke-dasharray': `${share(c) * 100} 100`, transform: `rotate(-90 ${c.x} ${c.y})`, 'vector-effect': 'non-scaling-stroke' }, g);
+      c.items.forEach((n) => {
+        n.el = el('circle', { class: 'st', cx: n.x.toFixed(2), cy: n.y.toFixed(2) }, g);
+        paint(n);
+      });
+      c.lbl = el('text', { class: 'lbl', x: c.L.x.toFixed(1), y: c.L.y.toFixed(1), 'text-anchor': c.L.anchor }, g);
+      c.lbl.textContent = c.name;
+    });
+    el('g', { id: 'halo' }, world);
+  }
+
+  function paint(n) {
+    const w = weak(n);
+    const c = COL[n.kind];
+    n.el.setAttribute('r', (w ? n.sr - 0.35 : n.sr).toFixed(2));
+    n.el.setAttribute('fill', w ? '#fff' : c);
+    n.el.setAttribute('stroke', w ? c : 'none');
+    n.el.setAttribute('stroke-width', 1.1);
+    n.el.setAttribute('vector-effect', 'non-scaling-stroke');
+    n.el.setAttribute('opacity', bright(n).toFixed(2));
+  }
+
+  // ── 카메라 ─────────────────────────────────────────
+  const world = () => phone.querySelector('#world');
+  const tf = (v) => `translate(${v.x}px, ${v.y}px) scale(${v.s})`;
+  function camera(to, name = 'medium') {
+    const w = world();
+    const from = getComputedStyle(w).transform;
+    w.getAnimations().forEach((a) => a.cancel());
+    w.style.transform = tf(to);
+    S.cam = to;
+    return K.spring(w, [{ transform: from === 'none' ? 'none' : from }, { transform: tf(to) }], name, { fill: 'none' });
+  }
+  const camFor = (c) => {
+    const s = Math.min(3.2, 124 / (c.r + 6));
+    return { s, x: W / 2 - s * c.x, y: H / 2 + 8 - s * c.y };
+  };
+  const toScreen = (x, y) => [S.cam.x + S.cam.s * x, S.cam.y + S.cam.s * y];
+  const toWorld = (x, y) => [(x - S.cam.x) / S.cam.s, (y - S.cam.y) / S.cam.s];
+
+  // ── 강조 ─────────────────────────────────────────
+  function focus() {
+    const z = S.zoom, st = S.star, kd = S.kind;
+    // 지금 보이는 별: 확대 중이면 그 무리 + 연결된 별
+    const linked = new Set();
+    if (z) cross.forEach((e) => {
+      const a = byId[e.s], b = byId[e.t];
+      const on = st ? (a === st || b === st) : (a.cl === z || b.cl === z);
+      if (on) { linked.add(a); linked.add(b); }
+    });
+    CL.forEach((c) => {
+      let o = 1;
+      if (z) o = c === z ? 1 : 0.14;
+      else if (kd) o = c.kind === kd ? 1 : 0.16;
+      c.g.style.opacity = o;
+      c.lbl.style.opacity = z ? 0 : 1;
+    });
+    // 연결선
+    cross.forEach((e) => {
+      const a = byId[e.s], b = byId[e.t];
+      let op = 0.24, sw = 0.7, col = 'var(--grey400)';
+      if (z) {
+        const on = st ? (a === st || b === st) : (a.cl === z || b.cl === z);
+        op = on ? (st ? 0.9 : 0.3) : 0.04;
+        sw = on ? (st ? 1.4 : 1) : 0.6;
+        col = on ? COL[z.kind] : 'var(--grey400)';
+      } else if (kd) {
+        const on = a.kind === kd || b.kind === kd;
+        op = on ? 0.4 : 0.05;
+        col = on ? COL[kd] : 'var(--grey400)';
+      }
+      e.p.setAttribute('stroke', col);
+      e.p.setAttribute('stroke-opacity', op);
+      e.p.setAttribute('stroke-width', sw);
+    });
+    inner.forEach((e) => {
+      const on = st && (byId[e.s] === st || byId[e.t] === st);
+      e.p.setAttribute('stroke-opacity', st ? (on ? 0.85 : 0.1) : 0.28);
+      e.p.setAttribute('stroke-width', on ? 1.3 : 0.8);
+    });
+    // 연결된 바깥 무리의 별: 무리를 흐리게 해도 연결된 별은 따로 올린다.
+    const gL = phone.querySelector('#halo');
+    gL.innerHTML = '';
+    if (z) linked.forEach((n) => {
+      if (n.cl === z) return;
+      el('circle', { cx: n.x, cy: n.y, r: n.sr, fill: COL[n.kind], opacity: Math.max(0.5, bright(n)) }, gL);
+    });
+  }
+
+  // ── 목록 ─────────────────────────────────────────
+  function list(animate = true, segMove = false) {
+    const box = phone.querySelector('#lst');
+    let html;
+    const z = S.zoom;
+    if (z) {
+      const its = z.items.slice().sort((a, b) => (weak(a) !== weak(b) ? (weak(a) ? -1 : 1) : weak(a) ? a.R - b.R : b.reps - a.reps));
+      const due = its.filter(weak).length;
+      const show = S.due ? its.filter(weak) : its;
+      const cap = S.more ? show.length : 8;
+      html = `<div class="sg" id="seg"><button data-v="0" class="${S.due ? '' : 'on'}">전체 <em>${its.length}</em></button><button data-v="1" class="${S.due ? 'on' : ''}" ${due ? '' : 'disabled'}>복습 <em>${due}</em></button><i></i></div>
+        ${show.slice(0, cap).map(rowHtml).join('')}
+        ${show.length > cap ? `<button class="more" id="more">${show.length - cap}개 더 보기</button>` : ''}
+        ${due ? `<button class="tbtn" id="go">${due}개 복습하기</button>` : ''}`;
+    } else {
+      const pool = N.filter((n) => weak(n) && (!S.kind || n.kind === S.kind)).sort((a, b) => a.R - b.R);
+      html = `<div class="lh"><b>복습</b><span class="num"><em>${pool.length}</em>개</span></div>
+        ${pool.slice(0, 5).map(rowHtml).join('')}
+        ${pool.length ? `<button class="tbtn" id="go">시작하기</button>` : ''}`;
+    }
+    box.innerHTML = html;
+    box.querySelectorAll('.row').forEach((r) => r.addEventListener('click', () => {
+      const n = byId[r.dataset.id];
+      if (!S.zoom) { zoomTo(n.cl).then(() => pick(n)); }
+      else pick(n);
+    }));
+    box.querySelectorAll('#sg button').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.v === '1'; if (v === !!S.due) return; S.due = v; S.more = false; list(true, true); }));
+    const more = box.querySelector('#more');
+    more && more.addEventListener('click', () => { S.more = true; list(false); });
+    const go = box.querySelector('#go');
+    go && K.press(go);
+    go && go.addEventListener('click', review);
+    const seg = box.querySelector('#sg');
+    if (seg) {
+      const i = seg.querySelector('i');
+      const on = seg.querySelector('button.on');
+      i.style.transform = `translateX(${on.offsetLeft - 3}px)`;
+      i.style.width = on.offsetWidth + 'px';
+      if (segMove) K.spring(i, [{ transform: `translateX(${S.due ? 0 : seg.children[1].offsetLeft - 3}px)` }, { transform: `translateX(${on.offsetLeft - 3}px)` }], 'quick', { fill: 'none' });
+    }
+    if (animate) {
+      if (!segMove) ML.a(box.firstElementChild, [{ opacity: 0 }, { opacity: 1 }], { duration: 200 });
+      box.querySelectorAll('.row').forEach((r, i) => K.spring(r, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 'quick', { delay: 30 + i * 24 }));
+    }
+    if (S.star) markRow();
+  }
+  function markRow() {
+    phone.querySelectorAll('#lst .row').forEach((r) => r.classList.toggle('sel', S.star && r.dataset.id === S.star.id));
+  }
+
+  // ── 동작 ─────────────────────────────────────────
+  function zoomTo(c) {
+    S.zoom = c; S.star = null; S.more = false; S.due = false;
+    hideTip();
+    const an = camera(camFor(c));
+    focus();
+    ML.a(phone.querySelector('#inner'), [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 200 });
+    const zt = phone.querySelector('#zt');
+    zt.querySelector('b').textContent = c.name;
+    zt.querySelector('span').textContent = '기억 ' + Math.round(share(c) * 100) + '%';
+    zt.querySelector('b').style.color = TXT[c.kind];
+    ML.a(zt, [{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 240, delay: 160 });
+    const x = phone.querySelector('#x');
+    x.classList.add('on');
+    K.spring(x, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }], 'quick', { delay: 120 });
+    list();
+    return ML.done(an);
+  }
+  function zoomOut() {
+    if (!S.zoom) return;
+    S.zoom = null; S.star = null;
+    hideTip();
+    camera({ s: 1, x: 0, y: 0 });
+    focus();
+    ML.a(phone.querySelector('#inner'), [{ opacity: 1 }, { opacity: 0 }], { duration: 160 });
+    ML.a(phone.querySelector('#zt'), [{ opacity: 1 }, { opacity: 0 }], { duration: 120 });
+    const x = phone.querySelector('#x');
+    x.classList.remove('on');
+    ML.a(x, [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.6)' }], { duration: 140, easing: ML.ease.in });
+    list();
+  }
+
+  let ring = null;
+  function pick(n) {
+    S.star = S.star === n ? null : n;
+    focus();
+    markRow();
+    const gH = phone.querySelector('#halo');
+    if (ring) ring.remove();
+    ring = null;
+    if (!S.star) return hideTip();
+    ring = el('circle', { cx: n.x, cy: n.y, r: n.sr + 2.6, fill: 'none', stroke: COL[n.kind], 'stroke-width': 1.6, 'vector-effect': 'non-scaling-stroke', class: 'st' }, gH);
+    K.spring(ring, [{ transform: 'scale(.4)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], 'bounce');
+    K.spring(n.el, [{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], 'medium');
+    showTip(n);
+  }
+  function showTip(n) {
+    const tip = phone.querySelector('#tip');
+    tip.textContent = n.label;
+    tip.style.background = TXT[n.kind];
+    const [sx, sy] = toScreen(n.x, n.y);
+    const w = Math.min(220, tip.offsetWidth);
+    const left = clamp(sx - w / 2, 12, W - w - 12);
+    const top = sy - (n.sr + 3) * S.cam.s - 38;
+    tip.style.transform = `translate(${left}px, ${top}px)`;
+    tip.getAnimations().forEach((a) => a.cancel());
+    K.spring(tip, [{ opacity: 0, translate: '0 6px' }, { opacity: 1, translate: '0 0' }], 'quick');
+  }
+  function hideTip() {
+    const tip = phone.querySelector('#tip');
+    if (!tip || getComputedStyle(tip).opacity === '0') return;
+    tip.getAnimations().forEach((a) => a.cancel());
+    ML.a(tip, [{ opacity: 1 }, { opacity: 0 }], { duration: 100 });
+  }
+
+  function setKind(k) {
+    if (S.zoom) zoomOut();
+    S.kind = S.kind === k ? null : k;
+    phone.querySelectorAll('#three button').forEach((b) => {
+      b.classList.toggle('on', S.kind === b.dataset.k);
+      b.classList.toggle('off', !!S.kind && S.kind !== b.dataset.k);
+    });
+    focus();
+    list();
+  }
+
+  // 복습 반영: 확대한 무리(없으면 가장 흐린 무리)의 빈 별을 채운다.
+  async function review() {
+    const c = S.zoom || CL.filter((x) => !S.kind || x.kind === S.kind).sort((a, b) => share(a) - share(b))[0];
+    if (!S.zoom) await zoomTo(c);
+    const due = c.items.filter(weak).sort((a, b) => a.R - b.R);
+    if (!due.length) return;
+    const before = share(c);
+    if (S.star) pick(S.star);
+    due.forEach((n, i) => {
+      setTimeout(() => {
+        n.reps += 1; n.stability *= 2.2; n.last = D.today; n.R = 1;
+        n.sr = 1.3 + 0.3 * Math.min(n.reps, 10);
+        paint(n);
+        K.spring(n.el, [{ transform: 'scale(.3)' }, { transform: 'scale(1)' }], 'bounce');
+      }, (i * 90) / ML.rate);
+    });
+    await ML.wait(due.length * 90 + 120);
+    const after = share(c);
+    ML.a(c.arc, [{ strokeDasharray: `${before * 100} 100` }, { strokeDasharray: `${after * 100} 100` }], { duration: 700, easing: ML.ease.out, fill: 'none' });
+    c.arc.setAttribute('stroke-dasharray', `${after * 100} 100`);
+    const sp = phone.querySelector('#zt span');
+    ML.count(sp, before * 100, after * 100, 700, (v) => '기억 ' + Math.round(v) + '%');
+    list(false);
+    focus();
+  }
+
+  // ── 누르기: 끌기와 구분해 짧게 누른 것만 ─────────────────
+  function bind() {
+    const sky = phone.querySelector('#sky');
+    let down = null;
+    sky.addEventListener('pointerdown', (e) => { down = [e.clientX, e.clientY]; });
+    sky.addEventListener('pointerup', (e) => {
+      if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 8) return;
+      if (e.target.closest('#x')) return;
+      const r = sky.getBoundingClientRect();
+      const [wx, wy] = toWorld(e.clientX - r.left, e.clientY - r.top);
+      if (!S.zoom) {
+        const pool = CL.filter((c) => !S.kind || c.kind === S.kind);
+        let best = null, bd = 1e9;
+        pool.forEach((c) => { const d = Math.hypot(wx - c.x, wy - c.y) - c.r; if (d < bd) { bd = d; best = c; } });
+        if (best && bd < 14) zoomTo(best);
+      } else {
+        let best = null, bd = 1e9;
+        S.zoom.items.forEach((n) => { const d = Math.hypot(wx - n.x, wy - n.y); if (d < bd) { bd = d; best = n; } });
+        if (best && bd * S.cam.s < 18) pick(best);
+        else if (Math.hypot(wx - S.zoom.x, wy - S.zoom.y) > S.zoom.r + 10) zoomOut();
+        else if (S.star) pick(S.star);
+      }
+    });
+    phone.querySelector('#x').addEventListener('click', zoomOut);
+    phone.querySelectorAll('#three button').forEach((b) => b.addEventListener('click', () => setKind(b.dataset.k)));
+  }
+
+  // ── 들어오기 ─────────────────────────────────────────
+  async function enter() {
+    ML.clear(phone);
+    phone.querySelectorAll('.c').forEach((c, i) => ML.count(c, 0, +c.dataset.to, 700 + i * 120));
+    const STEP = 95;
+    CL.forEach((c, ci) => {
+      const t0 = 120 + ci * STEP;
+      c.items.forEach((n, i) => {
+        const d = t0 + Math.min(i * (260 / c.items.length), 260);
+        ML.a(n.el, [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1.7)', opacity: 1, offset: 0.35 }, { transform: 'scale(1)', opacity: bright(n) }], { duration: 520, delay: d, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'backwards' });
+      });
+      const L = share(c) * 100;
+      ML.a(c.track, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: t0 });
+      ML.a(c.arc, [{ strokeDasharray: '0 100' }, { strokeDasharray: `${L} 100` }], { duration: 700, delay: t0 + 300, easing: ML.ease.out, fill: 'backwards' });
+      ML.a(c.lbl, [{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: t0 + 120, fill: 'backwards' });
+    });
+    const last = 120 + CL.length * STEP + 300;
+    ML.a(phone.querySelector('#edges'), [{ opacity: 0 }, { opacity: 1 }], { duration: 600, delay: last, easing: 'ease-out' });
+    ML.a(phone.querySelector('#lst'), [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 420, delay: 380, easing: ML.ease.out });
+  }
+
+  function reset() {
+    N.forEach((n) => { const o = D.nodes.find((x) => x.id === n.id); Object.assign(n, o); });
+    N.forEach((n) => { if (n.kind !== 'news') n.R = retr(n); });
+    N.forEach((n) => { if (n.kind === 'news') { const cs = (ment[n.id] || []).map((id) => byId[id].R); n.R = cs.length ? cs.reduce((a, b) => a + b, 0) / cs.length : 0.9; } n.sr = 1.3 + 0.3 * Math.min(n.reps, 10); });
+    Object.assign(S, { zoom: null, star: null, kind: null, more: false, cam: { s: 1, x: 0, y: 0 } });
+    shell();
+    focus();
+    list(false);
+    enter();
+  }
+
+  ML.bar({
+    title: '분야 성좌',
+    home: '../index.html',
+    replay: reset,
+    extra: [
+      ['자본배분 확대', () => { const c = CL.find((x) => x.key === '자본배분'); S.zoom === c ? null : zoomTo(c); }],
+      ['별 선택', () => { const c = S.zoom || CL.find((x) => x.key === '자본배분'); const go = () => pick(c.items.slice().sort((a, b) => b.reps - a.reps)[0]); S.zoom ? go() : zoomTo(c).then(go); }],
+      ['복습 반영', () => review()],
+      ['전체 보기', () => zoomOut()],
+    ],
+  });
+  reset();
+  window.__C = { S, CL, N, zoomTo, zoomOut, pick, setKind, review };
+})();
+</script>
+</body>
+</html>

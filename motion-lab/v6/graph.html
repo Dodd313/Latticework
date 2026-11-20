@@ -1,0 +1,840 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>그래프 뷰 · Motion Lab 6차</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  :root { --purple500: #a234c7; --purple-weak: #f7edfa; --kn: var(--blue500); --kw: var(--purple500); --kc: var(--green500); }
+  .scr { background: var(--grey100) !important; overflow: hidden; touch-action: none; }
+  .hdr { height: 55px; display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 0 20px; }
+  .hdr h1 { margin: 0; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .due { height: 32px; padding: 0 12px 0 10px; border-radius: 16px; background: #fff; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); font-size: 14px; font-weight: 600; color: var(--grey500); transition: background-color .2s, color .2s; }
+  .due .rg { width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 2px var(--orange500); }
+  .due b { font-size: 15px; font-weight: 700; color: var(--grey700); font-variant-numeric: tabular-nums; transition: color .2s; }
+  .due[aria-pressed='true'] { background: var(--orange-weak); color: var(--orange700); }
+  .due[aria-pressed='true'] b { color: var(--orange700); }
+
+  .kseg { position: relative; flex: none; margin: 0 12px; height: 54px; padding: 3px; border-radius: 16px; background: var(--grey200); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .kseg .th { position: absolute; top: 3px; bottom: 3px; left: 3px; border-radius: 13px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+  .kseg button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; font-family: var(--font); }
+  .kseg b { font-size: 17px; line-height: 22px; font-weight: 700; color: var(--grey600); font-variant-numeric: tabular-nums; transition: color .2s; }
+  .kseg span { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--grey500); transition: color .2s; }
+  .kseg span i { width: 6px; height: 6px; border-radius: 3px; }
+  .kseg button.on b { color: var(--grey900); }
+  .kseg button.on span { color: var(--grey700); }
+
+  .card { position: absolute; left: 12px; right: 12px; top: 121px; bottom: 76px; border-radius: 20px; background: #fff; overflow: hidden; }
+  .card canvas.g { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+  .card canvas.g.grab { cursor: grabbing; }
+  .fit { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--grey200), 0 2px 6px rgba(0, 0, 0, .06); display: flex; align-items: center; justify-content: center; color: var(--grey700); opacity: 0; transform: scale(.6); pointer-events: none; }
+  .fit.on { pointer-events: auto; }
+
+  .scrub { position: absolute; left: 0; right: 0; bottom: 0; height: 74px; padding: 0 16px 14px 12px; display: flex; align-items: flex-end; gap: 10px; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 34%); }
+  .play { flex: none; width: 36px; height: 36px; border-radius: 18px; background: var(--grey100); display: flex; align-items: center; justify-content: center; color: var(--grey700); }
+  .trk { position: relative; flex: 1; height: 48px; touch-action: none; cursor: pointer; }
+  .trk canvas { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 30px; }
+  .hd2 { position: absolute; bottom: 0; left: 0; width: 2px; height: 34px; margin-left: -1px; border-radius: 1px; background: var(--grey900); }
+  .dt { position: absolute; top: 0; left: 0; transform: translateX(-50%); font-size: 12px; line-height: 14px; font-weight: 700; color: var(--grey900); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; padding-bottom: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-top: 1px solid var(--grey200); z-index: 5; }
+  .tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--grey400); }
+  .tabs button.on { color: var(--grey900); }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; background: #fff; border-radius: 20px 20px 0 0; padding: 10px 20px 20px; box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 -8px 28px rgba(0, 0, 0, .08); transform: translateY(110%); touch-action: none; }
+  .sheet .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--grey300); margin: 0 auto 14px; }
+  .sk { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--grey500); }
+  .sk i { width: 8px; height: 8px; border-radius: 4px; }
+  .sk em { font-style: normal; color: var(--grey700); }
+  .sheet h3 { margin: 6px 0 0; font-size: 22px; line-height: 31px; font-weight: 700; letter-spacing: -0.4px; color: var(--grey900); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sheet .en { margin: 0; font-size: 14px; line-height: 20px; color: var(--grey500); }
+  .kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+  .kv div { background: var(--grey50); border-radius: 14px; padding: 10px 12px; }
+  .kv span { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--grey500); }
+  .kv b { display: block; margin-top: 2px; font-size: 16px; line-height: 22px; font-weight: 700; color: var(--grey800); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mem { margin-top: 16px; }
+  .mem .mh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .mem .mh span { font-size: 14px; font-weight: 600; color: var(--grey600); }
+  .mem .mh b { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mem .mb { position: relative; height: 8px; border-radius: 4px; background: var(--grey200); overflow: hidden; }
+  .mem .mb i { position: absolute; inset: 0; border-radius: 4px; transform-origin: left; }
+  .mem .mb s { position: absolute; top: 0; bottom: 0; left: 90%; width: 2px; background: #fff; }
+  .nb { display: flex; gap: 6px; margin: 16px -20px 0; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .nb::-webkit-scrollbar { display: none; }
+  .nb button { flex: none; height: 32px; max-width: 180px; padding: 0 12px 0 10px; border-radius: 16px; background: var(--grey100); display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--grey700); white-space: nowrap; overflow: hidden; }
+  .nb button i { flex: none; width: 6px; height: 6px; border-radius: 3px; }
+  .nb button em { font-style: normal; overflow: hidden; text-overflow: ellipsis; }
+  .nb button.wk { box-shadow: inset 0 0 0 1.5px var(--orange300); }
+  .sheet .tbtn { margin-top: 16px; }
+  .sheet .tbtn.ok { background: var(--green-weak); color: var(--green600); }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>지식 탭 · 그래프 뷰</h2>
+    <p>읽은 기사, 외운 단어, 푼 개념을 한 장의 연결망으로 그렸습니다. 점 하나가 항목 하나이고, 선은 기사에 나온 개념, 같은 묶음의 단어, 개념 사이의 주제 연결입니다. 아래 막대를 끌거나 재생하면 60일 전부터 오늘까지 지식이 자라는 과정을 다시 볼 수 있습니다.</p>
+    <h3>화면이 말하는 방식</h3>
+    <table class="spec">
+      <tr><th>시각 요소</th><th>뜻</th></tr>
+      <tr><td>점의 색</td><td>파랑 뉴스(blue500), 보라 단어(purple500), 초록 개념(green500). 위 필터 칸의 작은 점이 같은 색이라 따로 범례가 없습니다.</td></tr>
+      <tr><td>점의 크기</td><td>반복 횟수. 반지름 = 3.2 + 2√반복. 1회와 10회가 두 배쯤 차이 납니다.</td></tr>
+      <tr><td>점의 진하기</td><td>지금 기억이 남아 있을 확률 R = (1 + 경과일 / 9S)<sup>-1</sup>. 흰 바탕 위에 색을 R 만큼 겹쳐 칠해, 잊어 가는 항목은 옅게 바랩니다. 투명하게 하지 않아 선이 점을 뚫고 보이지 않습니다.</td></tr>
+      <tr><td>주황 테두리</td><td>R &lt; 0.9, 지금 복습할 때. 2.8초마다 한 번 바깥으로 퍼지는 고리가 모든 항목에서 함께 뜁니다. 따로 깜박이면 반짝이는 장식처럼 보여서 박자를 맞췄습니다.</td></tr>
+      <tr><td>아래 막대</td><td>날마다 새로 들어온 항목 수, 종류별로 쌓음. 지나간 날은 색, 아직 오지 않은 날은 회색. 이 막대가 그대로 시간 조절 손잡이입니다.</td></tr>
+    </table>
+    <h3>움직임</h3>
+    <ul>
+      <li><b>성장 재생(주인공 동작)</b>: 7초 동안 60일을 지나갑니다. 항목은 처음 본 날 0에서 스프링(강성 380, 감쇠 26, 넘침 약 6%)으로 나타나고, 선은 먼저 있던 점에서 새 점 쪽으로 0.35초에 걸쳐 그어집니다. 복습한 날에는 점이 한 단계 커지면서 같은 색 고리가 한 번 퍼집니다. 카메라는 보이는 항목을 감싸도록 천천히 물러나, 처음에는 몇 개의 점이 크게, 끝에는 전체 지도가 보입니다.</li>
+      <li>점의 자리는 미리 계산한 힘 배치에 고정합니다. 재생 중에 점이 출렁이며 자리를 찾는 모습은 눈속임처럼 보여서 뺐습니다. 점을 손으로 끌 때만 힘 계산이 다시 돌아 이웃이 따라옵니다(옵시디언과 같은 손맛).</li>
+      <li>점을 누르면 이웃만 남고 나머지는 0.2초에 걸쳐 흐려지며, 카메라가 그 점과 이웃을 시트 위 공간에 맞춰 담습니다.</li>
+      <li>시트의 "복습하기" 를 누르면 그 점이 실제로 커지고 진해지며 주황 고리가 사라집니다. 복습 수도 하나 줄어듭니다.</li>
+      <li>필터를 바꾸면 다른 종류는 지우지 않고 흐리게 남깁니다. 자리가 그대로라 지도를 기억하기 쉽습니다.</li>
+    </ul>
+    <h3>빌려 온 것</h3>
+    <ul>
+      <li>옵시디언 그래프 뷰: 힘 배치, 확대할수록 나타나는 이름, 누르면 이웃 강조, 점 끌기.</li>
+      <li>GitHub 기여 그래프: 날마다 쌓은 양을 작은 막대로. 여기서는 그 막대가 시간 손잡이를 겸합니다.</li>
+      <li>Apple 사진의 "추억" 처럼 시간을 앞으로 감아 보는 재생 단추.</li>
+      <li>Toss: 구획 선택(세그먼트) 안에 숫자를 둔 통계 칸, 흰 카드, 아래 시트, 단추 규격.</li>
+    </ul>
+    <h3>장점</h3>
+    <ul>
+      <li>세 종류의 학습이 서로 이어진다는 것이 한눈에 보입니다. 기사 한 건이 어떤 개념을 건드렸는지, 단어가 어떤 개념의 용어인지.</li>
+      <li>통계 칸과 필터를 하나로 합쳐 같은 숫자가 두 번 나오지 않습니다.</li>
+      <li>복습할 항목이 지도 위 위치로 보여, 어느 주제가 통째로 바래고 있는지 알 수 있습니다.</li>
+      <li>성장 재생은 "쌓이고 있다" 는 느낌을 숫자보다 강하게 줍니다.</li>
+    </ul>
+    <h3>약점 (솔직하게)</h3>
+    <ul>
+      <li>휴대폰 폭에서는 186개도 빽빽합니다. 1년이 지나 1,000개를 넘으면 전체 보기는 무늬에 가까워지고, 주제별로 묶어 접는 단계가 필요합니다.</li>
+      <li>TOEIC 단어는 개념과 거의 이어지지 않아 따로 떠 있는 보라 덩어리가 됩니다. 연결이 적은 항목에는 그래프가 잘 맞지 않습니다.</li>
+      <li>"얼마나 반복했나" 를 정확히 읽기엔 크기 차이가 약합니다. 정확한 수는 시트에서만 보입니다.</li>
+      <li>손가락으로 작은 점을 누르기 어렵습니다. 누름 판정을 14px 까지 넓혔지만 겹친 곳에서는 확대가 먼저 필요합니다.</li>
+      <li>힘 배치는 데이터가 바뀌면 자리가 달라집니다. 자리를 기억하게 하려면 이전 좌표를 저장해 이어 써야 합니다.</li>
+    </ul>
+    <h3>실제 앱에 필요한 데이터</h3>
+    <ul>
+      <li>항목별 복습 기록(날짜, 결과). 지금은 반복 횟수와 마지막 날만 있어 그 사이 날짜는 시안에서 고르게 나눠 만들었습니다.</li>
+      <li>단어와 개념의 FSRS 기억 유지 일수(S). 뉴스는 복습 일정이 없어 읽은 횟수로 임시 값을 만들었고, 주황 테두리 대상에서 뺐습니다.</li>
+      <li>연결: 기사에 언급된 개념(지금은 요약문에서 찾음), 단어와 개념의 용어 대응, 개념의 주제 순서.</li>
+      <li>배치 좌표 저장소(점이 매일 같은 자리에 있도록).</li>
+    </ul>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  const D = window.KDATA;
+  const phone = document.getElementById('phone');
+  const DAY = 864e5;
+  const T0 = Date.parse(D.today);
+  const SPAN = 60;
+  const COL = { news: '#3182f6', word: '#a234c7', concept: '#03b26c' };
+  const RGB = { news: [49, 130, 246], word: [162, 52, 199], concept: [3, 178, 108] };
+  const ORANGE = '#fe9800';
+  const KNAME = { news: '뉴스', word: '단어', concept: '개념' };
+  const DECK = { toeic: 'TOEIC', fin: '금융', gen: '일반' };
+  const FONT = "'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', 'WenQuanYi Zen Hei', sans-serif";
+
+  // ---------- 데이터 준비 ----------
+  const dayOf = (s) => Math.round((Date.parse(s) - T0) / DAY);
+  const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 1000) / 1000; };
+  const N = D.nodes.map((n, i) => Object.assign({}, n, { i }));
+  const byId = Object.fromEntries(N.map((n) => [n.id, n]));
+  // 같은 날 들어온 항목은 하루 안에서 나누어 나타나게 한다(한꺼번에 튀지 않도록).
+  const perDay = {};
+  N.forEach((n) => { n.d0 = dayOf(n.first); (perDay[n.d0] = perDay[n.d0] || []).push(n); });
+  Object.values(perDay).forEach((arr) => arr.sort((a, b) => hash(a.id) - hash(b.id)).forEach((n, j) => (n.t0 = n.d0 - 1 + 0.15 + (0.75 * (j + 0.5)) / arr.length)));
+  // 단어와 개념: 처음 본 날 한 번, 그 뒤 reps 번 복습하고 마지막 복습이 last. 뉴스: 읽은 횟수가 reps.
+  function buildRevs(n) {
+    const news = n.kind === 'news';
+    n.base = news ? 0 : 1;
+    const k = n.reps;
+    const last = news ? Math.min(0, n.d0 + (k - 1) * 2) : dayOf(n.last);
+    n.revs = [n.t0];
+    const m = news ? k - 1 : k;
+    for (let i = 1; i <= m; i++) {
+      const f = Math.pow(i / m, 1.5); // 간격이 점점 넓어지는 복습
+      const d = Math.round(n.d0 + (last - n.d0) * f);
+      const v = d - 1 + 0.2 + 0.6 * hash(n.id + i);
+      n.revs.push(Math.min(Math.ceil(v) - 0.01, Math.max(n.revs[i - 1] + 0.05, v)));
+    }
+    n.S = news ? 2.5 * k : n.stability;
+  }
+  N.forEach(buildRevs);
+  const E = D.edges.map((e) => ({ a: byId[e.s], b: byId[e.t], kind: e.kind, p: 0 })).filter((e) => e.a && e.b);
+  N.forEach((n) => (n.nb = []));
+  E.forEach((e) => { e.a.nb.push(e.b); e.b.nb.push(e.a); e.old = e.a.t0 <= e.b.t0 ? e.a : e.b; e.neu = e.old === e.a ? e.b : e.a; });
+
+  const evAt = (n, t) => { let c = 0; for (const r of n.revs) if (r <= t) c++; return c; };
+  const repsAt = (n, t) => Math.max(0, evAt(n, t) - n.base);
+  const lastAt = (n, t) => { let l = n.revs[0]; for (const r of n.revs) if (r <= t) l = r; return l; };
+  const Rat = (n, t) => {
+    const c = evAt(n, t);
+    if (!c) return 1;
+    const S = n.S * (0.4 + (0.6 * c) / n.revs.length);
+    const el = Math.max(0, Math.ceil(t - 1e-6) - Math.ceil(lastAt(n, t) - 1e-6));
+    return 1 / (1 + el / (9 * S));
+  };
+  const rad = (reps) => 3.2 + 2 * Math.sqrt(Math.max(1, reps));
+  const isWeak = (n, t) => n.kind !== 'news' && evAt(n, t) > 0 && Rat(n, t) < 0.9;
+
+  // ---------- 힘 배치(미리 계산, 고정 시드) ----------
+  const deg = (n) => n.nb.length;
+  {
+    const order = N.slice().sort((a, b) => (a.kind > b.kind ? 1 : -1) || a.t0 - b.t0);
+    order.forEach((n, i) => { const r = 9 * Math.sqrt(0.5 + i); const a = i * Math.PI * (3 - Math.sqrt(5)); n.x = r * Math.cos(a); n.y = r * Math.sin(a); n.vx = 0; n.vy = 0; });
+  }
+  const sim = { alpha: 1, decay: 1 - Math.pow(0.001, 1 / 300), target: 0 };
+  // 같은 묶음(단어 묶음, 개념 주제)은 서로의 중심으로 조금 끌린다. 사슬처럼 이어진 단어가 고리로 퍼지지 않게.
+  const gk = (n) => n.kind === 'word' ? 'w' + n.deck + (n.group || '') : n.kind === 'concept' ? 'c' + n.topic : null;
+  const groups = {};
+  N.forEach((n) => { const g = gk(n); if (g) (groups[g] = groups[g] || []).push(n); });
+  // 위에서 아래로 뉴스, 개념, 단어. 기사가 개념을 건드리고 단어가 개념의 용어가 되는 순서.
+  const HOME = { news: -150, concept: -10, word: 150 };
+  const GL = Object.values(groups).filter((g) => g.length > 2);
+  function tick() {
+    const al = sim.alpha;
+    for (const g of GL) {
+      let cx = 0, cy = 0;
+      for (const n of g) { cx += n.x; cy += n.y; }
+      cx /= g.length; cy /= g.length;
+      for (const n of g) { n.vx += (cx - n.x) * 0.05 * al; n.vy += (cy - n.y) * 0.05 * al; }
+    }
+    for (const e of E) {
+      const a = e.a, b = e.b;
+      let dx = b.x + b.vx - a.x - a.vx, dy = b.y + b.vy - a.y - a.vy;
+      let l = Math.sqrt(dx * dx + dy * dy) || 1e-6;
+      const dist = e.kind === 'group' ? 22 : e.kind === 'topic' ? 30 : 38;
+      const st = 1 / Math.min(deg(a), deg(b));
+      l = ((l - dist) / l) * al * st;
+      dx *= l; dy *= l;
+      const bias = deg(a) / (deg(a) + deg(b));
+      b.vx -= dx * bias; b.vy -= dy * bias;
+      a.vx += dx * (1 - bias); a.vy += dy * (1 - bias);
+    }
+    for (let i = 0; i < N.length; i++) {
+      const a = N[i];
+      for (let j = i + 1; j < N.length; j++) {
+        const b = N[j];
+        let dx = b.x - a.x, dy = b.y - a.y;
+        let d2 = dx * dx + dy * dy;
+        if (d2 > 160 * 160) continue;
+        if (d2 < 1) { dx = (hash(a.id + b.id) - 0.5); dy = 0.5 - hash(b.id); d2 = 1; }
+        const w = (-46 * al) / d2;
+        a.vx += dx * w; a.vy += dy * w;
+        b.vx -= dx * w; b.vy -= dy * w;
+        const rr = rad(a.reps) + rad(b.reps) + 2;
+        if (d2 < rr * rr) {
+          const d = Math.sqrt(d2), o = ((rr - d) / d) * 0.35;
+          a.vx -= dx * o; a.vy -= dy * o; b.vx += dx * o; b.vy += dy * o;
+        }
+      }
+      a.vx -= a.x * 0.08 * al; a.vy -= (a.y - HOME[a.kind]) * 0.035 * al;
+    }
+    for (const n of N) {
+      if (n.fx != null) { n.x = n.fx; n.y = n.fy; n.vx = n.vy = 0; continue; }
+      n.vx *= 0.6; n.vy *= 0.6; n.x += n.vx; n.y += n.vy;
+    }
+    sim.alpha += (sim.target - sim.alpha) * sim.decay;
+  }
+  for (let i = 0; i < 320; i++) tick();
+  sim.alpha = 0;
+  N.forEach((n) => { n.vx = n.vy = 0; });
+
+  // ---------- 상태 ----------
+  const st = {
+    t: 0, playing: false, filter: 'all', due: false, sel: null,
+    auto: true, // 카메라가 보이는 항목을 따라가는지
+    flash: new Map(),
+  };
+  N.forEach((n) => { n.s = 0; n.sv = 0; n.r = 0; n.rv = 0; n.f = 1; n.seen = 0; n.mem = 1; });
+  const cam = { x: 0, y: 0, k: 1 };
+  let camT = { x: 0, y: 0, k: 1 };
+
+  // ---------- 화면 ----------
+  const ICON = {
+    home: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 3.6l8.6 7.2-1.3 1.5-.8-.7V20.5h-5.2v-5.4h-2.6v5.4H5.5v-8.9l-.8.7-1.3-1.5z" fill="currentColor"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M7 2.5h2v2h6v-2h2v2h1a3 3 0 0 1 3 3V9H3V7.5a3 3 0 0 1 3-3h1zM3 11h18v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z" fill="currentColor"/></svg>',
+    graph: '<svg viewBox="0 0 24 24" width="24" height="24"><path d="M6.5 7.5L17 6M6.5 7.5L12 17.5M17 6l-5 11.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="6.5" cy="7.5" r="3.2" fill="currentColor"/><circle cx="17" cy="6" r="2.6" fill="currentColor"/><circle cx="12" cy="17.5" r="3.7" fill="currentColor"/></svg>',
+    play: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.4-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z" fill="currentColor"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" width="18" height="18"><rect x="6.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>',
+    fit: '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+  };
+  phone.innerHTML = `<div class="scr" id="scr">
+    <div class="hdr"><h1>지식</h1><button class="due" id="due" aria-pressed="false"><i class="rg"></i>복습<b id="dueN">0</b></button></div>
+    <div class="kseg" id="seg"><i class="th" id="th"></i>
+      ${[['all', '전체'], ['news', '뉴스'], ['word', '단어'], ['concept', '개념']].map(([k, l]) => `<button data-f="${k}" class="${k === 'all' ? 'on' : ''}"><b data-c="${k}">0</b><span>${k === 'all' ? '' : `<i style="background:${COL[k]}"></i>`}${l}</span></button>`).join('')}
+    </div>
+    <div class="card" id="card"><canvas class="g" id="cv"></canvas><button class="fit" id="fit" aria-label="전체 보기">${ICON.fit}</button>
+      <div class="scrub"><button class="play" id="play" aria-label="재생">${ICON.play}</button><div class="trk" id="trk"><canvas id="bars"></canvas><i class="hd2" id="hd2"></i><b class="dt" id="dt">오늘</b></div></div>
+    </div>
+    <nav class="tabs">${[['home', ICON.home, '홈'], ['cal', ICON.cal, '기록'], ['graph', ICON.graph, '지식']].map(([k, i, l]) => `<button data-k="${k}" class="${k === 'graph' ? 'on' : ''}">${i}${l}</button>`).join('')}</nav>
+    <div class="sheet" id="sheet"></div>
+  </div>`;
+  const $ = (s) => phone.querySelector(s);
+  const card = $('#card'), cv = $('#cv'), ctx = cv.getContext('2d');
+  const bars = $('#bars'), bctx = bars.getContext('2d');
+  const sheet = $('#sheet');
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let W = 0, H = 0, BW = 0, BH = 0;
+  function size() {
+    W = card.clientWidth; H = card.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    BW = bars.clientWidth; BH = bars.clientHeight;
+    bars.width = BW * dpr; bars.height = BH * dpr;
+  }
+  size();
+  new ResizeObserver(size).observe(card);
+
+  // 카메라가 담을 영역: 시트가 열리면 시트 위, 아니면 재생 막대 위.
+  function area() {
+    let bottom = H - 70;
+    if (st.sel) {
+      // 시트가 움직이는 중이어도 최종 자리로 계산한다.
+      const sTop = phone.clientHeight - sheet.offsetHeight - card.offsetTop;
+      bottom = Math.min(bottom, sTop);
+    }
+    return { x: 0, y: 0, w: W, h: Math.max(120, bottom) };
+  }
+  function fit(list, ar = area(), pad = 26, kMax = 2.4) {
+    if (!list.length) return { x: 0, y: 0, k: 1 };
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const n of list) { const r = rad(n.reps); x0 = Math.min(x0, n.x - r); y0 = Math.min(y0, n.y - r); x1 = Math.max(x1, n.x + r); y1 = Math.max(y1, n.y + r); }
+    const bw = Math.max(60, x1 - x0), bh = Math.max(60, y1 - y0);
+    const k = Math.min((ar.w - pad * 2) / bw, (ar.h - pad * 2) / bh, kMax);
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    return { k, x: cx - (ar.x + ar.w / 2 - W / 2) / k, y: cy - (ar.y + ar.h / 2 - H / 2) / k };
+  }
+  const visible = (n) => n.t0 <= st.t;
+  const matches = (n) => (st.filter === 'all' || n.kind === st.filter) && (!st.due || isWeak(n, st.t));
+  function autoTarget() {
+    const list = N.filter((n) => visible(n) && matches(n));
+    camT = fit(list.length ? list : N.filter(visible));
+  }
+
+  // ---------- 시간 막대 ----------
+  const perDayKind = [];
+  for (let d = -SPAN; d <= 0; d++) perDayKind.push({ news: 0, word: 0, concept: 0 });
+  N.forEach((n) => { if (n.d0 >= -SPAN) perDayKind[n.d0 + SPAN][n.kind]++; });
+  const maxDay = Math.max(...perDayKind.map((o) => o.news + o.word + o.concept));
+  const PADX = 3;
+  const tx = (t) => PADX + ((t + SPAN) / SPAN) * (BW - PADX * 2);
+  function drawBars() {
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bctx.clearRect(0, 0, BW, BH);
+    const step = (BW - PADX * 2) / SPAN;
+    const bw = Math.max(2, step - 1.6);
+    perDayKind.forEach((o, i) => {
+      const d = i - SPAN;
+      const x = tx(d) - bw / 2;
+      const past = d - 1 + 0.15 <= st.t;
+      let y = BH;
+      const tot = o.news + o.word + o.concept;
+      if (!tot) { bctx.fillStyle = '#e5e8eb'; rr(bctx, x, BH - 3, bw, 3, 1); bctx.fill(); return; }
+      const hT = 4 + (tot / maxDay) * (BH - 6);
+      ['concept', 'word', 'news'].forEach((k) => {
+        if (!o[k]) return;
+        const h = (o[k] / tot) * hT;
+        bctx.fillStyle = past ? COL[k] : '#e5e8eb';
+        bctx.fillRect(x, y - h, bw, h - (y === BH ? 0 : 0.8));
+        y -= h;
+      });
+    });
+    const hx = tx(Math.max(-SPAN, Math.min(0, st.t)));
+    $('#hd2').style.transform = `translateX(${hx}px)`;
+    const dt = $('#dt');
+    const d = Math.min(0, Math.ceil(st.t - 0.15));
+    dt.textContent = d >= 0 ? '오늘' : fmtDay(d);
+    const w = dt.offsetWidth;
+    dt.style.transform = `translateX(${Math.max(0, Math.min(BW - w, hx - w / 2))}px)`;
+  }
+  function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
+  const fmtDay = (d) => { const dt = new Date(T0 + Math.round(d) * DAY); return `${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`; };
+
+  // ---------- 숫자 ----------
+  let lastCounts = '';
+  function counts() {
+    const c = { all: 0, news: 0, word: 0, concept: 0 };
+    let due = 0;
+    for (const n of N) if (visible(n)) { c.all++; c[n.kind]++; if (isWeak(n, st.t)) due++; }
+    const key = JSON.stringify(c) + due;
+    if (key === lastCounts) return;
+    lastCounts = key;
+    for (const k in c) phone.querySelector(`[data-c="${k}"]`).textContent = c[k];
+    $('#dueN').textContent = due;
+  }
+
+  // ---------- 그리기 ----------
+  const sx = (x) => W / 2 + (x - cam.x) * cam.k;
+  const sy = (y) => H / 2 + (y - cam.y) * cam.k;
+  let prev = performance.now();
+  let pulse0 = performance.now();
+  function frame(now) {
+    let dt = Math.min(0.05, (now - prev) / 1000) * ML.rate;
+    prev = now;
+    if (st.playing) stepPlay(dt);
+    if (sim.alpha > 0.004) tick();
+    // 카메라
+    if (st.auto || st.camAnim) {
+      const a = 1 - Math.exp(-dt * (st.playing ? 3.2 : 7));
+      cam.x += (camT.x - cam.x) * a; cam.y += (camT.y - cam.y) * a;
+      cam.k = Math.exp(Math.log(cam.k) + (Math.log(camT.k) - Math.log(cam.k)) * a);
+      if (st.camAnim && Math.abs(camT.k - cam.k) / camT.k < 0.002 && Math.hypot(camT.x - cam.x, camT.y - cam.y) * cam.k < 0.5) st.camAnim = false;
+    }
+    // 점마다 스프링
+    const fl = st.sel ? new Set([st.sel, ...st.sel.nb]) : null;
+    const sub = Math.ceil(dt / (1 / 120));
+    const h = dt / Math.max(1, sub);
+    for (const n of N) {
+      const vis = visible(n);
+      const ts = vis ? 1 : 0;
+      const reps = repsAt(n, st.t);
+      const tr = rad(reps);
+      const ev = evAt(n, st.t);
+      if (vis && ev > n.seen && n.seen > 0 && st.playing) st.flash.set(n, now);
+      n.seen = ev;
+      for (let s = 0; s < sub; s++) {
+        n.sv += (-(vis ? 380 : 700) * (n.s - ts) - (vis ? 26 : 52) * n.sv) * h; n.s += n.sv * h;
+        n.rv += (-380 * (n.r - tr) - 26 * n.rv) * h; n.r += n.rv * h;
+      }
+      if (!vis && n.s < 0.01) { n.s = 0; n.sv = 0; }
+      let tf = matches(n) ? 1 : 0.1;
+      if (fl) tf *= fl.has(n) ? 1 : 0.12;
+      n.f += (tf - n.f) * (1 - Math.exp(-dt * 14));
+      const tm = Rat(n, st.t);
+      n.mem += (tm - n.mem) * (1 - Math.exp(-dt * 8));
+    }
+    for (const e of E) {
+      const on = e.a.s > 0.2 && e.b.s > 0.2 && visible(e.a) && visible(e.b);
+      e.p = on ? Math.min(1, e.p + dt / 0.35) : Math.max(0, e.p - dt / 0.15);
+    }
+    draw(now, fl);
+    counts();
+    drawBars();
+    requestAnimationFrame(frame);
+  }
+
+  function draw(now, fl) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    const k = cam.k;
+    ctx.lineCap = 'round';
+    // 선
+    for (const e of E) {
+      if (e.p <= 0) continue;
+      const a = e.old, b = e.neu;
+      const p = 1 - Math.pow(1 - e.p, 3);
+      const x0 = sx(a.x), y0 = sy(a.y);
+      const x1 = x0 + (sx(b.x) - x0) * p, y1 = y0 + (sy(b.y) - y0) * p;
+      const f = Math.min(a.f, b.f);
+      const hot = st.sel && (a === st.sel || b === st.sel);
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+      if (hot) { const c = RGB[st.sel.kind]; ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.55 * e.p})`; ctx.lineWidth = 1.6; }
+      else { ctx.strokeStyle = `rgba(139,149,161,${0.45 * f * e.p})`; ctx.lineWidth = 1; }
+      ctx.stroke();
+    }
+    // 점: 흐린 것 먼저
+    const order = N.filter((n) => n.s > 0.001).sort((a, b) => a.f - b.f || a.r - b.r);
+    const ph = (((now - pulse0) * ML.rate) % 2800) / 2800;
+    for (const n of order) {
+      const x = sx(n.x), y = sy(n.y);
+      const r = Math.max(1.6, n.r * k) * Math.max(0, n.s);
+      if (x < -30 || y < -30 || x > W + 30 || y > H + 30) continue;
+      const c = RGB[n.kind];
+      const m = Math.max(0, Math.min(1, (n.mem - 0.45) / 0.55));
+      const ink = (0.3 + 0.7 * m) * n.f;
+      // 선택 후광
+      if (n === st.sel) {
+        ctx.beginPath(); ctx.arc(x, y, r + 11, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},.12)`; ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(x, y, r + 1.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${ink})`; ctx.fill();
+      // 복습할 때: 주황 테두리와 퍼지는 고리
+      if (isWeak(n, st.t) && n.s > 0.5) {
+        const wf = n.f * Math.min(1, (n.s - 0.5) * 2);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(x, y, r + 2.2, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(254,152,0,${0.8 * wf})`; ctx.stroke();
+        const e = 1 - Math.pow(1 - ph, 2.2);
+        ctx.beginPath(); ctx.arc(x, y, r + 2.2 + e * 7, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(254,152,0,${0.28 * (1 - ph) * wf})`; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+      if (n === st.sel) {
+        ctx.beginPath(); ctx.arc(x, y, r + (isWeak(n, st.t) ? 5 : 3.5), 0, Math.PI * 2);
+        ctx.strokeStyle = COL[n.kind]; ctx.lineWidth = 2; ctx.stroke();
+      }
+      const t0 = st.flash.get(n);
+      if (t0) {
+        const p = ((now - t0) * ML.rate) / 460;
+        if (p >= 1) st.flash.delete(n);
+        else {
+          const e = 1 - Math.pow(1 - p, 3);
+          ctx.beginPath(); ctx.arc(x, y, r + 1.5 + e * 8, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.3 * (1 - p)})`; ctx.lineWidth = 1.5; ctx.stroke();
+        }
+      }
+    }
+    drawLabels(fl);
+  }
+
+  // 이름: 중요한 것부터, 겹치면 건너뛴다. 확대할수록 많이 보인다.
+  const shortLabel = (s, m = 11) => (s.length > m ? s.slice(0, m - 1) + '…' : s);
+  function drawLabels(fl) {
+    const k = cam.k;
+    const placed = [];
+    const cand = N.filter((n) => n.s > 0.6 && n.f > 0.5);
+    const pri = (n) => (n === st.sel ? 1e9 : fl && fl.has(n) ? 1e6 + n.reps : (n.kind === 'concept' ? 3 : 1) * (n.reps + 2 * deg(n)));
+    cand.sort((a, b) => pri(b) - pri(a));
+    const limit = fl ? 14 : Math.round(6 + Math.max(0, k - 0.7) * 22);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    let shown = 0;
+    const dots = N.filter((m) => m.s > 0.3 && m.f > 0.4).map((m) => ({ n: m, x: sx(m.x), y: sy(m.y), r: m.r * k * m.s + 1 }));
+    for (const n of cand) {
+      if (shown >= limit) break;
+      const r = n.r * k * n.s;
+      const big = n === st.sel;
+      ctx.font = `${big ? 700 : 600} ${big ? 13 : 11}px ${FONT}`;
+      const txt = shortLabel(n.label, big ? 16 : fl ? 10 : 9);
+      const w = ctx.measureText(txt).width;
+      const x = sx(n.x), y = sy(n.y) + r + (isWeak(n, st.t) ? 6 : 4);
+      const box = [x - w / 2 - 2, y - 1, x + w / 2 + 2, y + (big ? 16 : 14)];
+      if (box[0] < 4 || box[2] > W - 4 || box[1] < 4 || box[3] > (st.sel ? area().h : H - 74)) continue;
+      if (placed.some((b) => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) continue;
+      // 다른 점을 가리는 이름은 그리지 않는다(흐린 점은 괜찮다).
+      if (!big && dots.some((d) => d.n !== n && d.x + d.r > box[0] && d.x - d.r < box[2] && d.y + d.r > box[1] && d.y - d.r < box[3])) continue;
+      placed.push(box);
+      shown++;
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.92)'; ctx.lineJoin = 'round';
+      ctx.strokeText(txt, x, y);
+      ctx.fillStyle = big ? '#191f28' : `rgba(78,89,104,${Math.min(1, n.f)})`;
+      ctx.fillText(txt, x, y);
+    }
+  }
+
+  // ---------- 재생 ----------
+  const PLAY_MS = 7000;
+  function stepPlay(dt) {
+    // 60일을 7초에. 처음과 끝만 살짝 느리게.
+    st.pp = Math.min(1, st.pp + (dt * 1000) / PLAY_MS);
+    const p = st.pp;
+    const e = 0.7 * p + 0.3 * (0.5 - Math.cos(Math.PI * p) / 2);
+    st.t = -SPAN + SPAN * e;
+    if (st.auto) autoTarget();
+    if (p >= 1) { st.t = 0; setPlaying(false); if (st.auto) autoTarget(); }
+  }
+  function setPlaying(on) {
+    st.playing = on;
+    $('#play').innerHTML = on ? ICON.pause : ICON.play;
+    $('#play').setAttribute('aria-label', on ? '멈춤' : '재생');
+  }
+  function replay() {
+    closeSheet(true);
+    st.auto = true; showFit(false);
+    st.t = -SPAN; st.pp = 0;
+    N.forEach((n) => { n.s = 0; n.sv = 0; n.seen = 0; n.r = rad(1); n.rv = 0; });
+    E.forEach((e) => (e.p = 0));
+    // 시작할 때는 첫 항목들 근처를 크게 본다.
+    camT = fit(N.filter((n) => n.t0 <= -SPAN + 6));
+    Object.assign(cam, camT);
+    setPlaying(true);
+  }
+  $('#play').addEventListener('click', () => {
+    if (st.playing) return setPlaying(false);
+    if (st.t >= -0.01) return replay();
+    st.pp = Math.max(0, Math.min(1, (st.t + SPAN) / SPAN));
+    closeSheet(true);
+    setPlaying(true);
+  });
+  K.press($('#play'));
+
+  // 시간 막대 끌기
+  const trk = $('#trk');
+  trk.addEventListener('pointerdown', (ev) => {
+    trk.setPointerCapture(ev.pointerId);
+    setPlaying(false); closeSheet(true);
+    const set = (e2) => {
+      const r = trk.getBoundingClientRect();
+      const t = ((e2.clientX - r.left - PADX) / (r.width - PADX * 2)) * SPAN - SPAN;
+      st.t = Math.max(-SPAN, Math.min(0, t));
+      if (st.auto) autoTarget();
+    };
+    set(ev);
+    const mv = (e2) => set(e2);
+    const up = () => { trk.removeEventListener('pointermove', mv); trk.removeEventListener('pointerup', up); trk.removeEventListener('pointercancel', up); if (st.t > -0.6) st.t = 0; if (st.auto) autoTarget(); };
+    trk.addEventListener('pointermove', mv); trk.addEventListener('pointerup', up); trk.addEventListener('pointercancel', up);
+  });
+
+  // ---------- 필터 ----------
+  const th = $('#th');
+  const segBtns = [...phone.querySelectorAll('#seg button')];
+  function placeThumb(i, animate) {
+    const b = segBtns[i];
+    const x = b.offsetLeft - 3, w = b.offsetWidth;
+    const from = th.style.transform;
+    th.style.width = w + 'px';
+    th.style.transform = `translateX(${x}px)`;
+    if (animate && from) K.spring(th, [{ transform: from }, { transform: `translateX(${x}px)` }], 'medium', { fill: 'none' });
+  }
+  placeThumb(0);
+  function setFilter(f) {
+    st.filter = f;
+    segBtns.forEach((b, i) => { const on = b.dataset.f === f; b.classList.toggle('on', on); if (on) placeThumb(i, true); });
+    closeSheet(true);
+    st.auto = true; showFit(false); st.camAnim = true;
+    autoTarget();
+  }
+  segBtns.forEach((b) => b.addEventListener('click', () => setFilter(b.dataset.f)));
+  function setDue(on) {
+    st.due = on;
+    $('#due').setAttribute('aria-pressed', String(on));
+    K.spring($('#due'), [{ transform: 'scale(.94)' }, { transform: 'scale(1)' }], 'bounce', { fill: 'none' });
+    closeSheet(true);
+    st.auto = true; showFit(false); st.camAnim = true;
+    autoTarget();
+  }
+  $('#due').addEventListener('click', () => setDue(!st.due));
+
+  // ---------- 전체 보기 단추 ----------
+  let fitOn = false;
+  function showFit(on) {
+    if (on === fitOn) return;
+    fitOn = on;
+    const b = $('#fit');
+    b.classList.toggle('on', on);
+    K.spring(b, on ? [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'scale(1)' }] : [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.6)' }], on ? 'bounce' : 'quick');
+  }
+  $('#fit').addEventListener('click', () => { closeSheet(true); st.auto = true; st.camAnim = true; autoTarget(); showFit(false); });
+
+  // ---------- 손가락: 끌기, 두 손가락 확대, 점 누르기, 점 끌기 ----------
+  const ptrs = new Map();
+  let gest = null;
+  const toWorld = (px, py) => ({ x: cam.x + (px - W / 2) / cam.k, y: cam.y + (py - H / 2) / cam.k });
+  const local = (ev) => { const r = cv.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; };
+  function hit(px, py) {
+    let best = null, bd = Infinity;
+    for (const n of N) {
+      if (n.s < 0.5 || n.f < 0.3) continue;
+      const d = Math.hypot(sx(n.x) - px, sy(n.y) - py);
+      const lim = Math.max(n.r * cam.k + 6, 14);
+      if (d < lim && d < bd) { bd = d; best = n; }
+    }
+    return best;
+  }
+  let vel = { x: 0, y: 0 }, lastMv = 0;
+  cv.addEventListener('pointerdown', (ev) => {
+    cv.setPointerCapture(ev.pointerId);
+    const p = local(ev);
+    ptrs.set(ev.pointerId, p);
+    st.coast = false;
+    if (ptrs.size === 1) gest = { mode: 'tap', start: p, t: performance.now(), node: hit(p.x, p.y), last: p };
+    else if (ptrs.size === 2) {
+      if (gest && gest.node && gest.mode === 'node') { gest.node.fx = gest.node.fy = null; }
+      const [a, b] = [...ptrs.values()];
+      gest = { mode: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y), m: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
+    }
+  });
+  cv.addEventListener('pointermove', (ev) => {
+    if (!ptrs.has(ev.pointerId) || !gest) return;
+    const p = local(ev);
+    ptrs.set(ev.pointerId, p);
+    if (gest.mode === 'pinch' && ptrs.size >= 2) {
+      const [a, b] = [...ptrs.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const w = toWorld(gest.m.x, gest.m.y);
+      cam.k = Math.max(0.3, Math.min(5, cam.k * (d / gest.d)));
+      cam.x = w.x - (m.x - W / 2) / cam.k; cam.y = w.y - (m.y - H / 2) / cam.k;
+      gest.d = d; gest.m = m;
+      userMoved();
+      return;
+    }
+    if (gest.mode === 'tap' && Math.hypot(p.x - gest.start.x, p.y - gest.start.y) > 6) {
+      gest.mode = gest.node && st.t >= 0 ? 'node' : 'pan';
+      cv.classList.add('grab');
+    }
+    if (gest.mode === 'pan') {
+      const dx = p.x - gest.last.x, dy = p.y - gest.last.y;
+      cam.x -= dx / cam.k; cam.y -= dy / cam.k;
+      const now = performance.now();
+      const dtm = Math.max(1, now - lastMv); lastMv = now;
+      vel = { x: dx / dtm, y: dy / dtm };
+      userMoved();
+    } else if (gest.mode === 'node') {
+      const w = toWorld(p.x, p.y);
+      gest.node.fx = w.x; gest.node.fy = w.y;
+      sim.alpha = Math.max(sim.alpha, 0.25); sim.target = 0.25;
+      if (!st.sel) st.dragFocus = gest.node;
+    }
+    gest.last = p;
+  });
+  const end = (ev) => {
+    if (!ptrs.has(ev.pointerId)) return;
+    ptrs.delete(ev.pointerId);
+    cv.classList.remove('grab');
+    if (!gest) return;
+    if (gest.mode === 'tap' && ptrs.size === 0) {
+      if (gest.node) select(gest.node); else if (st.sel) closeSheet();
+    } else if (gest.mode === 'node') {
+      gest.node.fx = gest.node.fy = null; sim.target = 0;
+    } else if (gest.mode === 'pan' && performance.now() - lastMv < 60) {
+      coast(vel);
+    }
+    if (ptrs.size === 1 && gest.mode === 'pinch') { const p = [...ptrs.values()][0]; gest = { mode: 'pan', start: p, last: p, t: 0 }; return; }
+    if (ptrs.size === 0) gest = null;
+  };
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+  cv.addEventListener('wheel', (ev) => {
+    ev.preventDefault();
+    const p = local(ev);
+    const w = toWorld(p.x, p.y);
+    cam.k = Math.max(0.3, Math.min(5, cam.k * Math.exp(-ev.deltaY * 0.0022)));
+    cam.x = w.x - (p.x - W / 2) / cam.k; cam.y = w.y - (p.y - H / 2) / cam.k;
+    userMoved();
+  }, { passive: false });
+  function userMoved() { st.auto = false; st.camAnim = false; showFit(true); }
+  // 손을 떼면 남은 속도로 미끄러지다 멈춘다.
+  function coast(v) {
+    st.coast = true;
+    let vx = v.x * 16, vy = v.y * 16;
+    const go = () => {
+      if (!st.coast) return;
+      cam.x -= vx / cam.k; cam.y -= vy / cam.k;
+      vx *= 0.92; vy *= 0.92;
+      if (Math.hypot(vx, vy) > 0.2) requestAnimationFrame(go); else st.coast = false;
+    };
+    requestAnimationFrame(go);
+  }
+
+  // ---------- 선택과 시트 ----------
+  let camBefore = null, autoBefore = true;
+  const md = (d) => fmtDay(d);
+  function sheetHtml(n) {
+    const c = COL[n.kind];
+    const t = st.t;
+    const reps = repsAt(n, t);
+    const R = Rat(n, t);
+    const last = Math.floor(lastAt(n, t));
+    const weak = isWeak(n, t);
+    let sub = '';
+    if (n.kind === 'concept') sub = [n.field, n.topic].filter(Boolean).join(' · ');
+    else if (n.kind === 'word') sub = [DECK[n.deck], n.group].filter(Boolean).join(' · ');
+    let kv;
+    if (n.kind === 'news') kv = [['읽음', `${reps}회`], ['처음', md(n.d0)], ['연결', `${n.nb.length}개`]];
+    else {
+      const S = n.S * (0.4 + (0.6 * evAt(n, t)) / n.revs.length);
+      const next = Math.round(last + S);
+      kv = [['반복', `${reps}회`], ['마지막', last >= 0 ? '오늘' : md(last)], ['다음', next <= 0 ? '오늘' : md(next)]];
+    }
+    const nbs = n.nb.slice().sort((a, b) => (a.kind === n.kind) - (b.kind === n.kind) || b.reps - a.reps);
+    const verb = n.kind === 'news' ? '다시 읽기' : weak ? '복습하기' : '한 번 더 보기';
+    return `<div class="grab"></div>
+      <div class="sk"><i style="background:${c}"></i><em>${KNAME[n.kind]}</em>${sub ? `<span>${sub}</span>` : ''}</div>
+      <h3>${n.label}</h3>${n.en ? `<p class="en">${n.en}</p>` : ''}
+      <div class="kv">${kv.map(([a, b]) => `<div><span>${a}</span><b>${b}</b></div>`).join('')}</div>
+      <div class="mem"><div class="mh"><span>기억</span><b id="memN" style="color:${weak ? 'var(--orange700)' : 'var(--grey800)'}">0%</b></div><div class="mb"><i id="memB" style="background:${weak ? ORANGE : c}"></i><s></s></div></div>
+      ${nbs.length ? `<div class="nb">${nbs.map((m) => `<button data-id="${m.id}" class="${isWeak(m, t) ? 'wk' : ''}"><i style="background:${COL[m.kind]}"></i><em>${m.label}</em></button>`).join('')}</div>` : ''}
+      <button class="tbtn ${weak ? '' : n.kind === 'news' ? 'weak' : 'weak'}" id="act">${verb}</button>`;
+  }
+  function fillMem(n, from = 0) {
+    const R = Rat(n, st.t);
+    const pct = Math.round(R * 100);
+    const b = sheet.querySelector('#memB');
+    K.spring(b, [{ transform: `scaleX(${from})` }, { transform: `scaleX(${R})` }], 'large', { delay: 120 });
+    ML.count(sheet.querySelector('#memN'), from * 100, pct, 700, (v) => Math.round(v) + '%');
+  }
+  function bindSheet(n) {
+    sheet.querySelectorAll('.nb button').forEach((b) => { K.press(b, false); b.addEventListener('click', () => select(byId[b.dataset.id])); });
+    const act = sheet.querySelector('#act');
+    K.press(act);
+    act.addEventListener('click', () => review(n));
+    // 손잡이를 끌어 내리면 닫힌다.
+    const g = sheet.querySelector('.grab');
+    let y0 = null;
+    sheet.onpointerdown = (ev) => { if (ev.target.closest('button')) return; y0 = ev.clientY; sheet.setPointerCapture(ev.pointerId); };
+    sheet.onpointermove = (ev) => { if (y0 == null) return; const dy = Math.max(0, ev.clientY - y0); sheet.style.transform = `translateY(${dy}px)`; };
+    sheet.onpointerup = (ev) => { if (y0 == null) return; const dy = ev.clientY - y0; y0 = null; if (dy > 70) closeSheet(); else K.spring(sheet, [{ transform: `translateY(${Math.max(0, dy)}px)` }, { transform: 'translateY(0)' }], 'quick'), (sheet.style.transform = 'translateY(0)'); };
+  }
+  function select(n) {
+    if (!n) return;
+    if (st.playing) setPlaying(false);
+    const wasOpen = !!st.sel;
+    if (!wasOpen) { camBefore = { ...cam }; autoBefore = st.auto; }
+    st.sel = n;
+    sheet.innerHTML = sheetHtml(n);
+    bindSheet(n);
+    if (!wasOpen) {
+      sheet.getAnimations().forEach((a) => a.cancel());
+      sheet.style.transform = 'translateY(0)';
+      K.spring(sheet, [{ transform: 'translateY(110%)' }, { transform: 'translateY(0)' }], 'medium');
+    } else {
+      ML.a(sheet.querySelector('h3'), [{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 220 });
+    }
+    fillMem(n);
+    // 그 점과 이웃을 시트 위 공간에 담는다.
+    const ar = area();
+    camT = fit([n, ...n.nb.filter(visible)], ar, 34, 2.0);
+    st.auto = false; st.camAnim = true;
+  }
+  function closeSheet(instant) {
+    if (!st.sel) return;
+    st.sel = null;
+    sheet.style.transform = 'translateY(110%)';
+    if (!instant) K.spring(sheet, [{ transform: 'translateY(0)' }, { transform: 'translateY(110%)' }], 'quick');
+    if (camBefore && !instant) { camT = camBefore; st.camAnim = true; st.auto = autoBefore; if (autoBefore) autoTarget(); }
+  }
+  // 복습하기: 점이 커지고 진해지며 주황 테두리가 사라진다.
+  function review(n) {
+    const before = Rat(n, st.t);
+    st.t = 0;
+    n.revs.push(-0.001);
+    n.revs.sort((a, b) => a - b);
+    n.reps = n.revs.length - n.base;
+    n.S = n.S * (n.kind === 'news' ? 1.4 : 2.3);
+    n.stability = n.S;
+    n.last = D.today;
+    st.flash.set(n, performance.now());
+    n.rv += 30;
+    const scrollX = sheet.querySelector('.nb')?.scrollLeft || 0;
+    sheet.innerHTML = sheetHtml(n);
+    bindSheet(n);
+    if (sheet.querySelector('.nb')) sheet.querySelector('.nb').scrollLeft = scrollX;
+    const act = sheet.querySelector('#act');
+    act.classList.add('ok'); act.classList.remove('weak');
+    act.innerHTML = `${K.check(18, 'var(--green600)', 3)}<span style="margin-left:6px">${n.kind === 'news' ? '읽음' : '복습함'}</span>`;
+    ML.drawCheck(act.querySelector('svg'));
+    fillMem(n, before);
+    K.spring($('#dueN'), [{ transform: 'translateY(-3px)' }, { transform: 'none' }], 'bounce', { fill: 'none' });
+  }
+
+  // ---------- 시작 ----------
+  replay();
+  requestAnimationFrame((t) => { prev = t; frame(t); });
+
+  function demoSelect() {
+    if (st.playing) { st.t = 0; st.pp = 1; setPlaying(false); }
+    const c = N.filter((n) => n.kind === 'concept' && isWeak(n, 0) && n.nb.length >= 4).sort((a, b) => b.nb.length - a.nb.length)[0];
+    select(c);
+  }
+  const API = (window.GRAPH = { st, cam, N, select, replay, setFilter, setDue, closeSheet, demoSelect, review: () => st.sel && review(st.sel), toEnd: () => { st.t = 0; st.pp = 1; setPlaying(false); autoTarget(); } });
+  ML.bar({
+    title: '지식 탭 · 그래프 뷰',
+    home: '../index.html',
+    replay: () => { setFilter('all'); setDue(false); replay(); },
+    extra: [['성장 재생', () => replay()], ['점 열기', demoSelect], ['복습 모드', () => setDue(!st.due)]],
+  });
+})();
+</script>
+</body>
+</html>
