@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { todayKST } from '../dates';
-import { Rise } from '../motion';
+import { Rise, useLater } from '../motion';
 import { BackBar, useNav } from '../nav';
 import { useStore } from '../store';
 import { useTheme } from '../theme';
@@ -103,6 +103,8 @@ export function NewsScreen() {
   const t = useTheme();
   const { days, user } = useStore();
   const day = days[0];
+  // 웹: 기사 목록과 퀴즈 카드(60ms, 140ms 동안 투명하다)는 첫 장면을 그린 뒤 이어서 그린다. 움직임 시각은 같다.
+  const later = useLater();
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <BackBar label="홈" bg={t.bg} />
@@ -118,16 +120,16 @@ export function NewsScreen() {
         <View style={{ paddingHorizontal: 12, gap: 12 }}>
           {!day ? (
             <EmptyState title="기사 없음" />
-          ) : (
+          ) : !later.ready ? null : (
             <>
-              <Rise delay={60}>
+              <Rise delay={60} since={later.since}>
                 <Box style={{ paddingVertical: 8 }}>
                   {day.articles.map((a) => (
                     <Story key={a.id} a={a} read={!!user.read[a.id]} />
                   ))}
                 </Box>
               </Rise>
-              <Rise delay={140}>
+              <Rise delay={140} since={later.since}>
                 <QuizCard day={day} />
               </Rise>
             </>

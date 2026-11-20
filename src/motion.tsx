@@ -1,6 +1,6 @@
 // 화면 전체가 같이 쓰는 움직임. 빠르게 시작해 부드럽게 멎는 한 가지 곡선만 쓴다.
 // 기기에서 "동작 줄이기"를 켜 두면 모든 움직임을 건너뛰고 바로 끝 상태를 보여 준다.
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { createContext, startTransition, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, StyleProp, Text, View, ViewStyle } from 'react-native';
 
 export const NATIVE_DRIVER = Platform.OS !== 'web';
@@ -261,7 +261,7 @@ export function useReduceMotion(): boolean {
 }
 
 /** 아래에서 살짝 올라오며 나타난다. trigger 값이 바뀌면 다시 재생한다. */
-type RiseProps = { children: React.ReactNode; delay?: number; y?: number; trigger?: unknown; style?: StyleProp<ViewStyle> };
+type RiseProps = { children: React.ReactNode; delay?: number; y?: number; trigger?: unknown; style?: StyleProp<ViewStyle>; /** 웹: 이 시각(performance.now)에 시작한 것처럼 맞춘다(나중에 그린 부분용) */ since?: number };
 
 function RiseNative({ children, delay = 0, y = 12, trigger, style }: RiseProps) {
   const v = useRef(new Animated.Value(reduce ? 1 : 0)).current;
@@ -279,11 +279,16 @@ function RiseNative({ children, delay = 0, y = 12, trigger, style }: RiseProps) 
 }
 
 /** 웹: 같은 움직임(480ms, 같은 곡선)을 브라우저에 맡긴다. 그리기 전에 걸어 첫 장면부터 투명하다. */
-function RiseWeb({ children, delay = 0, y = 12, trigger, style }: RiseProps) {
+function RiseWeb({ children, delay = 0, y = 12, trigger, style, since }: RiseProps) {
   const ref = useRef<any>(null);
+  const first = useRef(true);
+  const ctxSince = useContext(SinceCtx);
   useLayoutEffect(() => {
+    // 나중에 그린 부분은 늦게 붙은 만큼 기다림을 줄인다(음수면 그만큼 진행된 자리에서 시작). 다시 재생할 때는 그대로.
+    const late = first.current ? lateBy(since ?? ctxSince) : 0;
+    first.current = false;
     if (reduce) return;
-    const a = webAnimate(ref, [{ opacity: 0, transform: `translateY(${y}px)` }, { opacity: 1, transform: 'translateY(0px)' }], { duration: 480, delay, easing: CSS_EASE.ease, fill: 'backwards' });
+    const a = webAnimate(ref, [{ opacity: 0, transform: `translateY(${y}px)` }, { opacity: 1, transform: 'translateY(0px)' }], { duration: 480, delay: delay - late, easing: CSS_EASE.ease, fill: 'backwards' });
     return () => a?.cancel();
   }, [trigger]);
   return (
@@ -294,6 +299,36 @@ function RiseWeb({ children, delay = 0, y = 12, trigger, style }: RiseProps) {
 }
 
 export const Rise = WEB ? RiseWeb : RiseNative;
+
+/** 나중에 그린 부분의 기준 시각(첫 장면). 이 안의 Rise 는 그 시각에 시작한 것처럼 움직인다. */
+export const SinceCtx = createContext(0);
+/** 기준 시각에서 지금까지 늦은 만큼. 나중에 그리는 일은 길어야 수백 ms 라서, 그보다 오래 지난 기준은 쓰지 않는다. */
+export function lateBy(since: number | undefined): number {
+  if (!since) return 0;
+  const late = performance.now() - since;
+  return late > 0 && late < 400 ? late : 0;
+}
+
+/**
+ * 웹: 화면을 처음 붙일 때 첫 장면을 가볍게 그리고, 나머지(아직 투명하거나 화면 아래에 있는 부분)는 첫 장면을 그린 뒤 이어서 그린다.
+ * ready 가 false 인 동안 그 부분을 빼 두고, since(첫 장면 시각)를 Rise 에 넘기면 움직임 시각이 처음 계획과 같아진다.
+ * 앱에서는 처음부터 ready.
+ */
+export function useLater(): { ready: boolean; since: number } {
+  const [ready, setReady] = useState(!WEB);
+  const since = useRef(0);
+  useLayoutEffect(() => {
+    since.current = performance.now();
+  }, []);
+  useEffect(() => {
+    if (!ready) startTransition(() => setReady(true));
+  }, []);
+  // 나머지를 붙인 뒤에는 since 를 지운다. 그 뒤에 새로 붙는 부분(달을 바꿀 때 등)은 원래 시각대로 움직인다.
+  useEffect(() => {
+    if (ready) since.current = 0;
+  }, [ready]);
+  return { ready, since: since.current };
+}
 
 type CountProps = { to: number; from?: number; duration?: number; delay?: number; format?: (n: number) => string };
 const round = (n: number) => String(Math.round(n));
@@ -324,7 +359,12 @@ function CountNative({ to, from = 0, duration = 900, delay = 0, format = round }
  */
 function CountWeb({ to, from = 0, duration = 900, delay = 0, format = round }: CountProps) {
   const ref = useRef<any>(null);
+  const since = useContext(SinceCtx);
+  const first = useRef(true);
   useLayoutEffect(() => {
+    // 나중에 그린 숫자는 기준 시각(첫 장면)부터 센다.
+    const late = first.current ? lateBy(since) : 0;
+    first.current = false;
     const el = ref.current as HTMLElement | null;
     if (!el) return;
     const write = (s: string) => {
@@ -337,7 +377,7 @@ function CountWeb({ to, from = 0, duration = 900, delay = 0, format = round }: C
     write(format(from));
     let t0 = -1;
     let id = requestAnimationFrame(function tick(ts) {
-      if (t0 < 0) t0 = ts;
+      if (t0 < 0) t0 = late ? ts - late : ts;
       const p = Math.max(0, Math.min(1, (ts - t0 - delay) / duration));
       write(format(p >= 1 ? to : from + (to - from) * EASE_OUT(p)));
       if (p < 1) id = requestAnimationFrame(tick);

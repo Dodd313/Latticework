@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, Easing, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
 import { cheerRead, seedOf } from '../cheer';
 import { monthDay, todayKST } from '../dates';
-import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, usePop, webTween } from '../motion';
+import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, useLater, usePop, webTween } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { findArticle, useStore } from '../store';
 import { useTheme } from '../theme';
@@ -184,6 +184,8 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
   const past = a.links.filter((l) => l.kind !== 'new');
   const body = a.body ?? [];
   const kicker = a.threadName;
+  // 웹: 제목 아래(요약은 140ms, 본문은 220ms 동안 투명하다)는 첫 장면을 그린 뒤 이어서 그린다. 움직임 시각은 같다.
+  const later = useLater();
 
   return (
     <>
@@ -206,8 +208,8 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
           </T>
         </Rise>
 
-        {a.summary.length > 0 ? (
-          <Rise delay={140} style={{ marginTop: 20, padding: 16, borderRadius: 16, backgroundColor: t.layer, borderWidth: 1, borderColor: t.hair, gap: 8 }}>
+        {later.ready && a.summary.length > 0 ? (
+          <Rise delay={140} since={later.since} style={{ marginTop: 20, padding: 16, borderRadius: 16, backgroundColor: t.layer, borderWidth: 1, borderColor: t.hair, gap: 8 }}>
             {a.summary.map((line, i) => (
               <View key={i} style={{ flexDirection: 'row' }}>
                 <View style={{ width: 18, height: 23, justifyContent: 'center' }} aria-hidden>
@@ -221,8 +223,8 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
           </Rise>
         ) : null}
 
-        {body.length > 0 ? (
-          <Rise delay={220} style={{ marginTop: 20, gap: 16 }}>
+        {later.ready && body.length > 0 ? (
+          <Rise delay={220} since={later.since} style={{ marginTop: 20, gap: 16 }}>
             {body.map((para, i) => (
               <T key={i} s={17} lh={28 / 17} c={t.body} style={{ letterSpacing: -0.2 }}>
                 {para}
@@ -231,7 +233,7 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
           </Rise>
         ) : null}
 
-        {past.length > 0 ? (
+        {later.ready && past.length > 0 ? (
           <View style={{ marginTop: 24, borderRadius: 16, borderWidth: 1, borderColor: t.hair, paddingHorizontal: 16 }}>
             {past.map((link, i) => (
               <LinkRow key={i} link={link} first={i === 0} />
@@ -239,16 +241,18 @@ function Body({ a, pos }: { a: Article; pos: string | undefined }) {
           </View>
         ) : null}
 
-        <ExtLink
-          url={a.url}
-          label="기사 원문 보기"
-          style={{ marginTop: 24, minHeight: 56, paddingHorizontal: 28, borderRadius: 16, backgroundColor: t.blueWeak, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-        >
-          <T s={17} w="600" lh={1.5} c={t.blueText}>
-            원문 보기
-          </T>
-          <Icon name="external" size={18} color={t.blueText} />
-        </ExtLink>
+        {later.ready ? (
+          <ExtLink
+            url={a.url}
+            label="기사 원문 보기"
+            style={{ marginTop: 24, minHeight: 56, paddingHorizontal: 28, borderRadius: 16, backgroundColor: t.blueWeak, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+          >
+            <T s={17} w="600" lh={1.5} c={t.blueText}>
+              원문 보기
+            </T>
+            <Icon name="external" size={18} color={t.blueText} />
+          </ExtLink>
+        ) : null}
       </ScrollView>
       {toast ? <ReadToast text={toast} onDone={() => setToast(null)} /> : null}
     </>

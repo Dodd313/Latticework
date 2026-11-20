@@ -2,7 +2,7 @@ import React, { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, 
 import { Animated, Easing, TextInput, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { addDays, korean, monthGrid, monthKey, monthTitle, shiftMonth, todayKST, weekTitle, weekdaysOf } from '../dates';
-import { EASE_OUT, MView, NATIVE_DRIVER, Rise, WEB, lerp, motionOff, webTween } from '../motion';
+import { EASE_OUT, MView, NATIVE_DRIVER, Rise, WEB, lerp, motionOff, useLater, webTween } from '../motion';
 import { HEAT_RING, heatColor, heatInk } from '../heat';
 import { TabScreen, useNav } from '../nav';
 import { DayStatus, partsOf, useGoals, useStore } from '../store';
@@ -242,7 +242,7 @@ const Calendar = memo(function Calendar({ month, statusOf, extraOf, onPrev, onNe
 });
 
 /** 달력 아래 기사 목록. 시트를 열고 닫을 때는 다시 그리지 않는다. */
-const ArticleGroups = memo(function ArticleGroups({ groups, trigger, read, today, empty }: { groups: { date: string; articles: Day['articles'] }[]; trigger: string; read: Record<string, string>; today: string; empty: string }) {
+const ArticleGroups = memo(function ArticleGroups({ groups, trigger, read, today, empty, since }: { groups: { date: string; articles: Day['articles'] }[]; trigger: string; read: Record<string, string>; today: string; empty: string; since?: number }) {
   const t = useTheme();
   const nav = useNav();
   if (groups.length === 0)
@@ -254,7 +254,7 @@ const ArticleGroups = memo(function ArticleGroups({ groups, trigger, read, today
   return (
     <>
       {groups.map((g, gi) => (
-        <Rise key={g.date} trigger={trigger} delay={60 + Math.min(gi, 8) * 50}>
+        <Rise key={g.date} trigger={trigger} delay={60 + Math.min(gi, 8) * 50} since={since}>
           <Box style={{ paddingTop: 18, paddingBottom: 8 }}>
             <T s={13} w="700" c={g.date === today ? t.blue : t.mute} mono role="heading" level={2} style={{ marginBottom: 2 }}>
               {korean(g.date)}
@@ -389,6 +389,7 @@ export function ArchiveScreen() {
 
   const goals = useGoals();
   const [picked, setPicked] = useState<string | null>(null);
+  const later = useLater();
 
   const oldest = days.length ? monthKey(days[days.length - 1].date) : shown;
   const newest = monthKey(today);
@@ -439,7 +440,8 @@ export function ArchiveScreen() {
               style={[{ flex: 1, height: 48, fontFamily: FONT_SANS, fontSize: 17, color: t.ink }, { outlineStyle: 'none' } as any]}
             />
           </View>
-          <ArticleGroups groups={groups} trigger={`${shown}-${needle}`} read={user.read} today={today} empty={filtering ? '결과 없음' : '기사 없음'} />
+          {/* 웹: 기사 목록(나타나기 전 60ms 이상 투명하다)은 탭을 처음 열 때 첫 장면을 그린 뒤 이어서 그린다. */}
+          {later.ready ? <ArticleGroups groups={groups} trigger={`${shown}-${needle}`} read={user.read} today={today} empty={filtering ? '결과 없음' : '기사 없음'} since={later.since} /> : null}
         </>
       )}
     </TabScreen>

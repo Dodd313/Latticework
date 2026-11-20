@@ -1,9 +1,9 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { cheerCorrect, cheerFinish, cheerLevel, cheerWrong, seedOf } from '../cheer';
 import { todayKST } from '../dates';
-import { Count, EASE_OUT, MView, NATIVE_DRIVER, Rise, Tween, WEB, lerp, motionOff, spring, tweenStop, webTween } from '../motion';
+import { Count, EASE_OUT, MView, NATIVE_DRIVER, Rise, Tween, WEB, lerp, motionOff, spring, tweenStop, lateBy, SinceCtx, useLater, webTween } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
 import { LAT_GOAL, Q, Section, buildLat, buildVoc, levelOf, xpFor } from '../study';
@@ -32,7 +32,7 @@ const GLYPH = ['○', '✕'];
 // ─────────────────────────────────────────────────────────────
 
 /** 오른쪽에서 32 밀려 들어온다(Toss quick 스프링). */
-type SlideInProps = { delay: number; children: React.ReactNode; style?: StyleProp<ViewStyle> };
+type SlideInProps = { delay: number; children: React.ReactNode; style?: StyleProp<ViewStyle>; /** 웹: 이 시각에 시작한 것처럼 맞춘다(나중에 그린 부분용) */ since?: number };
 function SlideInNative({ delay, children, style }: SlideInProps) {
   const v = useRef(new Animated.Value(motionOff() ? 1 : 0)).current;
   useEffect(() => {
@@ -56,11 +56,11 @@ function SlideInNative({ delay, children, style }: SlideInProps) {
 }
 const slideIn = (v: number) => ({ opacity: Math.max(0, Math.min(1, v)), transform: `translateX(${32 * (1 - v)}px)` });
 /** 웹: 같은 스프링을 미리 계산해 브라우저에 맡긴다. 그리기 전에 걸어 첫 장면부터 제자리 밖에 있다. */
-function SlideInWeb({ delay, children, style }: SlideInProps) {
+function SlideInWeb({ delay, children, style, since }: SlideInProps) {
   const ref = useRef<any>(null);
   useLayoutEffect(() => {
     if (motionOff()) return;
-    const tw = webTween(ref, { spring: 'quick' }, slideIn, { delay });
+    const tw = webTween(ref, { spring: 'quick' }, slideIn, { delay: delay - lateBy(since) });
     return () => tw?.anim.cancel();
   }, []);
   return (
@@ -97,9 +97,10 @@ function EnterNative({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scal
 }
 function EnterWeb({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale = 1, children, style }: EnterProps) {
   const ref = useRef<any>(null);
+  const since = useContext(SinceCtx);
   useLayoutEffect(() => {
     if (motionOff()) return;
-    const tw = webTween(ref, { duration, easing }, (v) => ({ opacity: lerp(v, [0, 0.4, 1], [0, 1, 1], true), transform: `translateY(${y * (1 - v)}px) scale(${scale + (1 - scale) * v})` }), { delay, stops: [0.4] });
+    const tw = webTween(ref, { duration, easing }, (v) => ({ opacity: lerp(v, [0, 0.4, 1], [0, 1, 1], true), transform: `translateY(${y * (1 - v)}px) scale(${scale + (1 - scale) * v})` }), { delay: delay - lateBy(since), stops: [0.4] });
     return () => tw?.anim.cancel();
   }, []);
   return (
@@ -532,6 +533,15 @@ export function StudyScreen({ sect }: { sect: Section }) {
   const q = queue[at];
   const finished = !q;
   const firstRun = queue.filter((x) => !x.retry).length;
+  // 웹: 새 문제(나타나기 전 100ms 넘게 투명하다)는 누른 순간의 장면을 먼저 그린 뒤 이어서 그린다.
+  // 그 사이 지난 문제는 원래처럼 바로 사라지고, 새 문제의 움직임 시각(qSince 기준)은 처음 계획과 같다.
+  const qKey = q ? `${round}-${at}-${q.key}` : '';
+  const deferredKey = useDeferredValue(qKey, WEB ? '' : qKey);
+  const shownKey = WEB ? deferredKey : qKey;
+  const qSince = useRef(0);
+  useLayoutEffect(() => {
+    qSince.current = performance.now();
+  }, [qKey]);
 
   const open = (index: number, list: Q[]) => {
     setAt(index);
@@ -694,29 +704,30 @@ export function StudyScreen({ sect }: { sect: Section }) {
       ) : null}
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 24 + (settled ? panelH : 0) }}>
-        <View key={`${round}-${at}-${q.key}`}>
-          <SlideIn delay={100} style={{ marginBottom: 8 }}>
-            <T type="t7" w="700" c={t.blue}>
-              {kicker}
-            </T>
-          </SlideIn>
-          <SlideIn delay={130} style={{ marginBottom: q.pre ? 16 : 28 }}>
-            <Rich type="t3" w="700" role="heading" level={1} style={{ letterSpacing: -0.3 }}>
-              {q.q}
-            </Rich>
-          </SlideIn>
-          {q.pre ? (
-            <SlideIn delay={145} style={{ marginBottom: 28, padding: 16, borderRadius: 16, backgroundColor: t.layer }}>
-              <Rich type="t5" c={t.body}>
-                {q.pre}
+        {shownKey === qKey ? (
+          <View key={qKey}>
+            <SlideIn delay={100} since={qSince.current} style={{ marginBottom: 8 }}>
+              <T type="t7" w="700" c={t.blue}>
+                {kicker}
+              </T>
+            </SlideIn>
+            <SlideIn delay={130} since={qSince.current} style={{ marginBottom: q.pre ? 16 : 28 }}>
+              <Rich type="t3" w="700" role="heading" level={1} style={{ letterSpacing: -0.3 }}>
+                {q.q}
               </Rich>
             </SlideIn>
+            {q.pre ? (
+              <SlideIn delay={145} since={qSince.current} style={{ marginBottom: 28, padding: 16, borderRadius: 16, backgroundColor: t.layer }}>
+                <Rich type="t5" c={t.body}>
+                  {q.pre}
+                </Rich>
+              </SlideIn>
           ) : null}
 
           {q.options ? (
             <View accessibilityRole="radiogroup" style={{ flexDirection: ox ? 'row' : 'column', gap: 12 }}>
               {q.options.map((opt, i) => (
-                <SlideIn key={i} delay={160 + i * 35} style={ox ? { flex: 1 } : null}>
+                <SlideIn key={i} delay={160 + i * 35} since={qSince.current} style={ox ? { flex: 1 } : null}>
                   <TileFx shake={fx.i === i && fx.kind === 'shake' ? fx.n : 0} pop={fx.i === i && fx.kind === 'pop' ? fx.n : 0}>
                     <OptionTile
                       state={stateOf(i)}
@@ -760,6 +771,7 @@ export function StudyScreen({ sect }: { sect: Section }) {
             </Rise>
           ) : null}
         </View>
+        ) : null}
       </ScrollView>
 
       <Panel fb={fb} onHeight={setPanelH} />
@@ -874,6 +886,9 @@ function Finish({
       </T>
     </Enter>
   ) : null;
+  // 웹: 링 아래(140ms 넘게 투명하다)는 첫 장면을 그린 뒤 이어서 그린다. 움직임과 숫자 세기의 시각은 같다.
+  const later = useLater();
+  const rest = later.ready || !any;
   const [boxCur, boxNeed]: [React.ReactNode, number] =
     lvShown === lvTo && up ? [curTo, needTo] : [<Count key="bar" from={curFrom} to={up ? needFrom : curTo} duration={up ? 360 : 600} delay={BAR_AT} />, up ? needFrom : needTo];
 
@@ -892,25 +907,33 @@ function Finish({
                 </T>
               </Ring>
             </Enter>
-            {heading}
-            <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: 10 }}>
-              <Enter delay={260} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="yellow" icon="bolt" label="경험치" num={<>+<Count to={tally.xp} duration={600} delay={420} /></>} a11yLabel={`경험치 ${tally.xp}`} />
-              </Enter>
-              <Enter delay={320} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="green" icon="check" label="정답" num={<><Count to={tally.right} duration={500} delay={420} />/{tally.total}</>} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
-              </Enter>
-              <Enter delay={380} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
-                <StatCard tone="orange" icon="calFill" label="연속" num={<><Count from={streakFrom} to={streakTo} duration={320} delay={680} />일</>} a11yLabel={`연속 ${streakTo}일`} />
-              </Enter>
-            </View>
+            {rest ? (
+              <SinceCtx.Provider value={later.since}>
+                {heading}
+                <View style={{ alignSelf: 'stretch', flexDirection: 'row', gap: 10 }}>
+                  <Enter delay={260} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
+                    <StatCard tone="yellow" icon="bolt" label="경험치" num={<>+<Count to={tally.xp} duration={600} delay={420} /></>} a11yLabel={`경험치 ${tally.xp}`} />
+                  </Enter>
+                  <Enter delay={320} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
+                    <StatCard tone="green" icon="check" label="정답" num={<><Count to={tally.right} duration={500} delay={420} />/{tally.total}</>} a11yLabel={`정답 ${tally.right}/${tally.total}`} />
+                  </Enter>
+                  <Enter delay={380} duration={420} easing={BACK} y={14} scale={0.96} style={{ flex: 1 }}>
+                    <StatCard tone="orange" icon="calFill" label="연속" num={<><Count from={streakFrom} to={streakTo} duration={320} delay={680} />일</>} a11yLabel={`연속 ${streakTo}일`} />
+                  </Enter>
+                </View>
+              </SinceCtx.Provider>
+            ) : null}
           </>
         ) : (
           heading
         )}
-        <Enter delay={any ? 440 : 0} duration={320} y={10} style={{ alignSelf: 'stretch' }}>
-          <LevelBox lv={lvShown} cur={boxCur} a11yCur={lvShown === lvTo && up ? curTo : up ? needFrom : curTo} need={boxNeed} value={bar} />
-        </Enter>
+        {rest ? (
+          <SinceCtx.Provider value={later.since}>
+            <Enter delay={any ? 440 : 0} duration={320} y={10} style={{ alignSelf: 'stretch' }}>
+              <LevelBox lv={lvShown} cur={boxCur} a11yCur={lvShown === lvTo && up ? curTo : up ? needFrom : curTo} need={boxNeed} value={bar} />
+            </Enter>
+          </SinceCtx.Provider>
+        ) : null}
       </ScrollView>
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: FOOT_PAD, flexDirection: 'row', gap: 10 }}>
         {exhausted ? null : <LipButton label="추가 학습" tone="ghost" onPress={onMore} style={{ flex: 1 }} />}

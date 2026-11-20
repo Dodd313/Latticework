@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { cheerQuiz, seedOf } from '../cheer';
 import { addDays, isWeekend, todayKST, weekTitle, weekdaysOf } from '../dates';
-import { MView, NATIVE_DRIVER, Rise, WEB, motionOff, spring, webTween } from '../motion';
+import { MView, NATIVE_DRIVER, Rise, SinceCtx, WEB, motionOff, spring, useLater, webTween } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
 import { useTheme } from '../theme';
@@ -329,21 +329,25 @@ export function ReviewScreen() {
   const { reviews } = useStore();
   const { inWeek } = useWeek();
   const review = reviews[0];
+  // 웹: 기사 목록과 퀴즈(40ms, 80ms 뒤에 나타난다)는 탭을 처음 열 때 첫 장면을 그린 뒤 이어서 그린다. 움직임 시각은 같다.
+  const later = useLater();
   return (
     <TabScreen title="리뷰">
       <Rise y={8}>
         <WeekRecap />
       </Rise>
-      {inWeek.some((d) => d.articles.length > 0) ? (
-        <Rise y={8} delay={40}>
-          <WeekArticles />
-        </Rise>
-      ) : null}
-      {review && review.questions.length > 0 ? (
-        <Rise y={8} delay={80}>
-          <Quiz key={review.id} review={review} />
-        </Rise>
-      ) : null}
+      <SinceCtx.Provider value={later.since}>
+        {later.ready && inWeek.some((d) => d.articles.length > 0) ? (
+          <Rise y={8} delay={40} since={later.since}>
+            <WeekArticles />
+          </Rise>
+        ) : null}
+        {later.ready && review && review.questions.length > 0 ? (
+          <Rise y={8} delay={80} since={later.since}>
+            <Quiz key={review.id} review={review} />
+          </Rise>
+        ) : null}
+      </SinceCtx.Provider>
     </TabScreen>
   );
 }
