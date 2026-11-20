@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>달력 강조 시안 · Motion Lab</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="../v3/kit.css">
+<style>
+  .scr { background: var(--grey100) !important; }
+  .ttl1 { padding: 12px 20px 12px; font-size: 26px; line-height: 35px; font-weight: 700; letter-spacing: -0.5px; }
+  .stack { padding: 0 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .three > div { background: #fff; border-radius: 16px; padding: 14px 16px; }
+  .three > div > span { display: block; font-size: 13px; font-weight: 600; color: var(--grey500); }
+  .three b { font-size: 22px; line-height: 31px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .three b small { font-size: 15px; font-weight: 600; margin-left: 1px; }
+  .three b.hot { color: var(--orange700); }
+  .box { background: #fff; border-radius: 20px; padding: 20px 20px 18px; }
+  .mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .mh b { font-size: 17px; font-weight: 700; }
+  .mh span { display: flex; gap: 4px; color: var(--grey500); }
+  .wd { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-bottom: 4px; }
+  .wd span { text-align: center; font-size: 12px; font-weight: 600; color: var(--grey500); }
+  .grid { position: relative; }
+  .grid > * { position: absolute; }
+  .num { font-variant-numeric: tabular-nums; }
+  .n { display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: var(--grey700); pointer-events: none; }
+  .n.fut { color: var(--grey300); }
+  .layer { position: absolute; inset: 0; border-radius: inherit; }
+  .leg { display: flex; align-items: center; gap: 14px; margin-top: 16px; font-size: 12px; font-weight: 600; color: var(--grey500); }
+  .leg .it { display: inline-flex; align-items: center; gap: 6px; }
+  .tag { position: absolute; z-index: 9; font-size: 14px; font-weight: 800; pointer-events: none; }
+  .ring { position: absolute; border-radius: 50%; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="phone clean st3" id="phone"></div>
+  <section class="notes">
+    <h2>달력 강조 시안 여섯 가지</h2>
+    <p>모두 같은 규칙입니다. 할당량을 마친 날만 칠하고, 더 푼 문제가 많을수록 노랑에서 주황, 빨강으로 짙어집니다. 시안마다 "더 많이 했다" 를 무엇으로 보여 주는지가 다릅니다.</p>
+    <p class="tip">위쪽 A부터 F까지 바꿔 보세요. 시안마다 "오늘 완료" 와 "더 풀기 +5" 를 눌러 보면 움직임까지 비교할 수 있습니다.</p>
+    <div id="note"></div>
+    <h3>고르실 때 봐 주실 것</h3>
+    <ol style="padding-left:18px;margin:0">
+      <li>더 푼 날이 <strong>색으로만</strong> 달라 보이는 게 좋은지(A, C, D), <strong>크기나 높이까지</strong> 달라 보이는 게 좋은지(B, E, F).</li>
+      <li>연속한 날이 <strong>이어져 보여야</strong> 하는지(A, D), 날마다 <strong>따로</strong> 있어도 되는지(B, C, E, F).</li>
+      <li>날짜 숫자가 <strong>잘 읽혀야</strong> 하는지, 무늬로 <strong>한눈에 보이는 것</strong>이 더 중요한지.</li>
+    </ol>
+  </section>
+</div>
+<script src="../shared.js"></script>
+<script src="../v2/kit.js"></script>
+<script src="../v3/springs.js"></script>
+<script src="../v3/kit.js"></script>
+<script>
+(function () {
+  const phone = document.getElementById('phone');
+  const OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  const BACK = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+  // 2026년 11월. 1일이 일요일. 월요일 시작.
+  const BASE = new Set([2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 16, 17, 18, 19]);
+  const EXTRA0 = { 2: 0, 3: 8, 4: 3, 5: 15, 6: 0, 7: 22, 8: 5, 10: 0, 11: 30, 12: 12, 13: 4, 16: 2, 17: 18, 18: 0, 19: 9, 20: 0 };
+  const PROG = { 1: 0.33, 9: 0.67, 14: 0.67, 15: 0.33, 20: 0.67 }; // 마치지 못한 날의 진행(E 시안에서만 회색으로)
+  const TODAY = 20;
+  let V = 'A';
+  let todayDone = false;
+  let EXTRA = { ...EXTRA0 };
+
+  // 불꽃 색: Toss yellow500, orange500, orange800, red600 사이를 잇는다.
+  const STOPS = [[0, [255, 195, 66]], [0.33, [254, 152, 0]], [0.66, [237, 103, 0]], [1, [228, 41, 57]]];
+  const TOPS = [[0, [255, 230, 155]], [0.5, [255, 205, 128]], [1, [255, 169, 39]]]; // 위쪽 밝은 빛: yellow200 · orange200 · orange400
+  const mix = (S, x) => {
+    const t = Math.min(1, Math.max(0, x / 30));
+    for (let i = 1; i < S.length; i++) {
+      if (t <= S[i][0]) {
+        const k = (t - S[i - 1][0]) / (S[i][0] - S[i - 1][0]);
+        return S[i - 1][1].map((v, j) => Math.round(v + (S[i][1][j] - v) * k));
+      }
+    }
+    return S[S.length - 1][1];
+  };
+  const rgb = (a) => `rgb(${a.join(',')})`;
+  const heat = (x) => rgb(mix(STOPS, x));
+  const top = (x) => rgb(mix(TOPS, x));
+  const ink = (x) => (Math.min(1, x / 30) < 0.22 ? 'rgba(0,12,30,.82)' : '#fff');
+  const orb = (x) => `radial-gradient(circle at 32% 28%, ${top(x)} 0%, ${heat(x)} 62%, ${heat(x + 6)} 100%)`;
+  const lin = (x, deg = 155) => `linear-gradient(${deg}deg, ${top(x)} 0%, ${heat(x)} 70%)`;
+  const done = () => {
+    const s = new Set(BASE);
+    if (todayDone) s.add(TODAY);
+    return s;
+  };
+
+  const W = 326; // 상자 안쪽 폭
+  const CW = W / 7;
+  const CH = 48;
+  const pos = (n) => {
+    const i = n + 5;
+    return { col: i % 7, row: Math.floor(i / 7), cx: (i % 7) * CW + CW / 2, cy: Math.floor(i / 7) * CH + CH / 2 };
+  };
+  const runs = (d) => {
+    const out = [];
+    let r = null;
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      if (d.has(n) && r && r.row === p.row && r.b === n - 1) r.b = n;
+      else if (d.has(n)) out.push((r = { row: p.row, a: n, b: n }));
+      else r = null;
+    }
+    return out;
+  };
+
+  const NOTES = {
+    A: { t: 'A 불꽃 구슬과 사슬', ref: '듀오링고 연속 기록 달력: 마친 날을 주황으로 칠하고 끊기지 않은 날을 하나의 사슬로 보여 줌', pro: '익숙하고 숫자가 잘 읽힘. 구슬 안쪽 왼쪽 위에 밝은 빛을 넣어 평면 원보다 입체감이 있음. 연속한 날 사이를 두 날의 색으로 이어 사슬 자체가 불길처럼 보임', con: '색 차이만으로 더 푼 정도를 읽어야 해서 노랑과 연한 주황 사이 구분이 약함' },
+    B: { t: 'B 크기로 말하는 점', ref: '데이터 시각화의 버블 차트, Streaks 앱의 큰 원', pro: '더 푼 날은 원이 크고 진해서 두 번 강조됨. 한 달을 멀리서 봐도 "많이 한 날" 이 바로 보임. 마치지 못한 날은 작은 회색 점이라 공백이 뚜렷함', con: '날짜 숫자를 원 밖 위쪽으로 빼야 해서 달력보다 차트처럼 보임' },
+    C: { t: 'C 열지도 타일', ref: 'GitHub 기여 그래프, Habity와 Heatbit 같은 습관 열지도', pro: '칸이 꽉 차서 한 달이 하나의 면으로 보임. 대각선으로 퍼지는 등장 움직임이 시원함. 정보 밀도가 가장 높음', con: '칸이 커서 마친 날과 안 마친 날의 차이보다 칸 자체가 먼저 보임. 연속이 이어지는 느낌은 약함' },
+    D: { t: 'D 이어진 띠', ref: '듀오링고의 완벽한 한 주 막대, 캘린더 앱의 여러 날 일정 막대', pro: '연속한 날이 하나의 띠로 합쳐지고, 띠 안에서 날마다 색이 이어서 바뀌어 불길이 흐르는 것처럼 보임. 가장 세련되고 단정함', con: '혼자 떨어진 하루는 작은 원이라 띠보다 덜 눈에 띔' },
+    E: { t: 'E 넘치는 링', ref: '애플 피트니스 활동 링: 목표를 넘기면 링이 한 바퀴 더 돌며 겹침', pro: '할당량은 링 한 바퀴, 더 푼 만큼 두 번째 바퀴가 더 그려져 "넘쳤다" 가 형태로 보임. 마치지 못한 날도 회색 링으로 얼마나 했는지 보임', con: '링이 서른 개라 화면이 가장 복잡함. 작은 크기에서 두 바퀴 구분이 어려울 수 있음' },
+    F: { t: 'F 차오르는 높이', ref: '물이 차오르는 진행 표시, 불꽃의 높이', pro: '마치면 칸의 절반까지, 더 푼 만큼 위로 차오름. 아래는 짙고 위로 갈수록 밝아 불꽃 모양을 닮음. 크기와 색 두 가지로 보여 줌', con: '칸 모양이 세로로 길어 달력의 둥근 느낌이 줄어듦' },
+  };
+
+  function shell() {
+    const d = done();
+    phone.innerHTML = `<div class="scr"><div class="ttl1">기록</div><div class="stack">
+      <div class="three"><div><span>연속</span><b class="hot"><span class="roll" id="st">${todayDone ? 5 : 4}</span><small>일</small></b></div><div><span>최장</span><b>23<small>일</small></b></div><div><span>이번 달</span><b><span class="roll" id="mo">${d.size}</span><small>일</small></b></div></div>
+      <div class="box" id="box"><div class="mh"><b>2026년 11월</b><span>${ML.backSvg}<span style="transform:scaleX(-1);display:flex">${ML.backSvg}</span></span></div>
+        <div class="wd">${['월', '화', '수', '목', '금', '토', '일'].map((x) => `<span>${x}</span>`).join('')}</div>
+        <div class="grid" id="grid" style="height:${CH * 6}px"></div><div class="leg" id="leg"></div></div>
+    </div></div>`;
+    const n = NOTES[V];
+    document.getElementById('note').innerHTML = `<h3>${n.t}</h3><table class="spec"><tr><th>레퍼런스</th><td>${n.ref}</td></tr><tr><th>좋은 점</th><td>${n.pro}</td></tr><tr><th>아쉬운 점</th><td>${n.con}</td></tr></table>`;
+  }
+
+  const el = (cls, css, html = '') => {
+    const e = document.createElement('div');
+    e.className = cls;
+    Object.assign(e.style, css);
+    e.innerHTML = html;
+    return e;
+  };
+  const numEl = (n, css, color) => el('n num' + (n > TODAY ? ' fut' : ''), Object.assign({ left: pos(n).cx - CW / 2 + 'px', top: pos(n).cy - CH / 2 + 'px', width: CW + 'px', height: CH + 'px', zIndex: 3 }, css || {}), String(n));
+
+  // ---------- 시안별 그리기. anim: 'enter' | null. 오늘 칸 요소에는 data-today 를 붙인다.
+  const R = {};
+
+  R.A = (g, anim) => {
+    const d = done();
+    const S = 36;
+    runs(d).filter((r) => r.b > r.a).forEach((r, k) => {
+      for (let n = r.a; n < r.b; n++) {
+        const a = pos(n);
+        const link = el('link', { left: a.cx + 'px', top: a.cy - 7 + 'px', width: CW + 'px', height: '14px', borderRadius: '7px', zIndex: 1, background: `linear-gradient(90deg, ${heat(EXTRA[n])}, ${heat(EXTRA[n + 1])})`, opacity: 0.55, transformOrigin: 'left' });
+        if (n + 1 === TODAY) link.dataset.today = 'link';
+        g.append(link);
+        if (anim) ML.a(link, [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 320, delay: 500 + n * 14, easing: OUT });
+      }
+    });
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      if (d.has(n)) {
+        const o = el('orb', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', borderRadius: '50%', zIndex: 2, boxShadow: `0 2px 6px ${heat(EXTRA[n])}55` });
+        const base = el('layer', { background: orb(0) });
+        const fin = el('layer', { background: orb(EXTRA[n]) });
+        o.append(base, fin);
+        if (n === TODAY) o.dataset.today = 'vis';
+        g.append(o);
+        g.append(numEl(n, { color: ink(EXTRA[n]), fontWeight: 700 }));
+        if (anim) {
+          ML.a(o, [{ transform: 'scale(.4)', opacity: 0 }, { transform: 'scale(1.08)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)', opacity: 1 }], { duration: 420, delay: n * 14, easing: OUT });
+          ML.a(fin, [{ opacity: 0 }, { opacity: 1 }], { duration: 520, delay: 380 + n * 14, easing: 'ease-in-out' });
+        }
+      } else {
+        g.append(numEl(n));
+        if (n === TODAY) g.append(el('ring', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', boxShadow: `inset 0 0 0 2px ${heat(0)}`, zIndex: 2 }));
+      }
+    }
+    legend(`<span class="it"><i style="width:12px;height:12px;border-radius:6px;background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="it">완료${[0, 10, 20, 30].map((x) => `<i style="width:12px;height:12px;border-radius:6px;background:${orb(x)}"></i>`).join('')}+30</span>`);
+  };
+
+  R.B = (g, anim) => {
+    const d = done();
+    const size = (x) => 18 + 20 * Math.min(1, x / 30);
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      g.append(el('n num' + (n > TODAY ? ' fut' : ''), { left: p.cx - CW / 2 + 'px', top: p.cy - CH / 2 - 2 + 'px', width: CW + 'px', height: '14px', fontSize: '11px', fontWeight: n === TODAY ? 800 : 600, color: n === TODAY ? 'var(--orange700)' : n > TODAY ? 'var(--grey300)' : 'var(--grey500)', zIndex: 3 }, String(n)));
+      const cy = p.cy + 6;
+      if (d.has(n)) {
+        const S = size(EXTRA[n]);
+        const o = el('dot', { left: p.cx - S / 2 + 'px', top: cy - S / 2 + 'px', width: S + 'px', height: S + 'px', borderRadius: '50%', zIndex: 2, boxShadow: `0 2px 8px ${heat(EXTRA[n])}50` });
+        o.append(el('layer', { background: orb(0) }), el('layer fin', { background: orb(EXTRA[n]) }));
+        o.dataset.size = S;
+        if (n === TODAY) o.dataset.today = 'vis';
+        g.append(o);
+        if (anim) {
+          ML.a(o, [{ transform: `scale(${18 / S * 0.4})`, opacity: 0 }, { transform: `scale(${18 / S})`, opacity: 1, offset: 0.35 }, { transform: 'scale(1)', opacity: 1 }], { duration: 760, delay: n * 14, easing: OUT });
+          ML.a(o.querySelector('.fin'), [{ opacity: 0 }, { opacity: 1 }], { duration: 520, delay: 300 + n * 14, easing: 'ease-in-out' });
+        }
+      } else if (n <= TODAY) {
+        const dot = el('dot', { left: p.cx - 3 + 'px', top: cy - 3 + 'px', width: '6px', height: '6px', borderRadius: '3px', background: n === TODAY ? heat(0) : 'var(--grey300)', zIndex: 2 });
+        g.append(dot);
+        if (anim) ML.a(dot, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: n * 14 });
+      }
+    }
+    legend(`<span class="it"><i style="width:6px;height:6px;border-radius:3px;background:var(--grey300)"></i>미완료</span><span class="it">완료${[0, 15, 30].map((x) => `<i style="width:${size(x) * 0.5}px;height:${size(x) * 0.5}px;border-radius:50%;background:${orb(x)}"></i>`).join('')}+30</span>`);
+  };
+
+  R.C = (g, anim) => {
+    const d = done();
+    const G = 4;
+    const tw = CW - G;
+    const th = CH - G;
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      const t = el('ctile', { left: p.cx - tw / 2 + 'px', top: p.cy - th / 2 + 'px', width: tw + 'px', height: th + 'px', borderRadius: '12px', zIndex: 1, overflow: 'hidden', background: n > TODAY ? 'transparent' : 'var(--grey50)', boxShadow: n > TODAY ? 'inset 0 0 0 1px var(--grey100)' : 'none' });
+      if (d.has(n)) {
+        t.append(el('layer', { background: lin(0) }), el('layer fin', { background: lin(EXTRA[n]) }));
+        t.style.boxShadow = `inset 0 -1px 0 ${heat(EXTRA[n] + 6)}`;
+      }
+      if (n === TODAY) {
+        t.dataset.today = 'vis';
+        if (!d.has(n)) t.style.boxShadow = `inset 0 0 0 2px ${heat(0)}`;
+      }
+      g.append(t);
+      const nm = el('n num' + (n > TODAY ? ' fut' : ''), { left: p.cx - tw / 2 + 8 + 'px', top: p.cy - th / 2 + 6 + 'px', fontSize: '12px', fontWeight: 700, color: d.has(n) ? ink(EXTRA[n]) : n > TODAY ? 'var(--grey300)' : 'var(--grey500)', zIndex: 3, justifyContent: 'flex-start' }, String(n));
+      g.append(nm);
+      if (anim) {
+        const w = (p.row + p.col) * 34;
+        ML.a(t, [{ transform: 'scale(.6)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: 420, delay: w, easing: BACK });
+        const f = t.querySelector('.fin');
+        if (f) ML.a(f, [{ opacity: 0 }, { opacity: 1 }], { duration: 480, delay: 360 + w, easing: 'ease-in-out' });
+      }
+    }
+    legend(`<span class="it"><i style="width:14px;height:14px;border-radius:4px;background:var(--grey50);box-shadow:inset 0 0 0 1px var(--grey200)"></i>미완료</span><span class="it">완료${[0, 10, 20, 30].map((x) => `<i style="width:14px;height:14px;border-radius:4px;background:${lin(x)}"></i>`).join('')}+30</span>`);
+  };
+
+  R.D = (g, anim) => {
+    const d = done();
+    const S = 36;
+    runs(d).forEach((r, k) => {
+      const A = pos(r.a);
+      const B = pos(r.b);
+      const w = B.cx - A.cx + S;
+      const stops = [];
+      for (let n = r.a; n <= r.b; n++) stops.push(`${heat(EXTRA[n])} ${(((pos(n).cx - A.cx + S / 2) / w) * 100).toFixed(1)}%`);
+      const tops = [];
+      for (let n = r.a; n <= r.b; n++) tops.push(`${top(EXTRA[n])} ${(((pos(n).cx - A.cx + S / 2) / w) * 100).toFixed(1)}%`);
+      const band = el('band', { left: A.cx - S / 2 + 'px', top: A.cy - S / 2 + 'px', width: w + 'px', height: S + 'px', borderRadius: S / 2 + 'px', zIndex: 1, overflow: 'hidden', boxShadow: `0 2px 8px ${heat(EXTRA[r.b])}40` });
+      band.append(el('layer', { background: stops.length > 1 ? `linear-gradient(90deg, ${stops.join(', ')})` : heat(EXTRA[r.a]) }));
+      band.append(el('layer', { background: 'linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 55%)' }));
+      if (r.b === TODAY) band.dataset.today = 'vis';
+      g.append(band);
+      if (anim) ML.a(band, [{ clipPath: `inset(0 ${w - S}px 0 0 round ${S / 2}px)`, opacity: 0 }, { clipPath: `inset(0 ${w - S}px 0 0 round ${S / 2}px)`, opacity: 1, offset: 0.15 }, { clipPath: `inset(0 0 0 0 round ${S / 2}px)`, opacity: 1 }], { duration: 300 + (r.b - r.a) * 90, delay: 60 + r.row * 120, easing: 'cubic-bezier(0.65,0,0.35,1)' });
+    });
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      g.append(numEl(n, d.has(n) ? { color: ink(EXTRA[n]), fontWeight: 700 } : {}));
+      if (n === TODAY && !d.has(n)) g.append(el('ring', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', boxShadow: `inset 0 0 0 2px ${heat(0)}`, zIndex: 2 }));
+    }
+    legend(`<span class="it"><i style="width:12px;height:12px;border-radius:6px;background:var(--grey100);box-shadow:inset 0 0 0 1px var(--grey300)"></i>미완료</span><span class="it">완료<i style="width:64px;height:12px;border-radius:6px;background:linear-gradient(90deg, ${heat(0)}, ${heat(10)}, ${heat(20)}, ${heat(30)})"></i>+30</span>`);
+  };
+
+  R.E = (g, anim) => {
+    const d = done();
+    const S = 38;
+    const SW = 5;
+    const r = (S - SW) / 2;
+    const C = 2 * Math.PI * r;
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      const wrap = el('rg', { left: p.cx - S / 2 + 'px', top: p.cy - S / 2 + 'px', width: S + 'px', height: S + 'px', zIndex: 2 });
+      if (n <= TODAY) {
+        const isD = d.has(n);
+        const ex = Math.min(1, (EXTRA[n] || 0) / 30);
+        const pr = isD ? 1 : PROG[n] || 0;
+        wrap.innerHTML = `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" style="transform:rotate(-90deg);overflow:visible">
+          <circle cx="${S / 2}" cy="${S / 2}" r="${r}" fill="none" stroke="${isD ? 'rgba(254,152,0,.16)' : 'var(--grey100)'}" stroke-width="${SW}"/>
+          <circle class="a1" cx="${S / 2}" cy="${S / 2}" r="${r}" fill="none" stroke="${isD ? heat(0) : 'var(--grey300)'}" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pr)}" ${pr === 0 ? 'opacity="0"' : ''}/>
+          ${isD && ex > 0 ? `<circle class="a2" cx="${S / 2}" cy="${S / 2}" r="${r}" fill="none" stroke="${heat(EXTRA[n])}" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - ex)}" style="filter:drop-shadow(0 0 1.5px rgba(0,0,0,.35))"/>` : ''}</svg>`;
+        if (n === TODAY) wrap.dataset.today = 'vis';
+        g.append(wrap);
+        if (anim) {
+          const a1 = wrap.querySelector('.a1');
+          ML.a(a1, [{ strokeDashoffset: C }, { strokeDashoffset: C * (1 - pr) }], { duration: 520, delay: n * 14, easing: OUT });
+          const a2 = wrap.querySelector('.a2');
+          if (a2) ML.a(a2, [{ strokeDashoffset: C }, { strokeDashoffset: C * (1 - ex) }], { duration: 520, delay: 480 + n * 14, easing: OUT });
+        }
+      } else g.append(wrap);
+      g.append(numEl(n, { fontSize: '12px', fontWeight: d.has(n) ? 700 : 600, color: n === TODAY ? 'var(--orange700)' : n > TODAY ? 'var(--grey300)' : d.has(n) ? 'var(--grey800)' : 'var(--grey500)' }));
+    }
+    legend(`<span class="it"><svg width="14" height="14" viewBox="0 0 14 14" style="transform:rotate(-90deg)"><circle cx="7" cy="7" r="5" fill="none" stroke="var(--grey100)" stroke-width="3"/><circle cx="7" cy="7" r="5" fill="none" stroke="var(--grey300)" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="12" stroke-linecap="round"/></svg>미완료</span><span class="it"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(0)}" stroke-width="3"/></svg>완료</span><span class="it"><svg width="14" height="14" viewBox="0 0 14 14" style="transform:rotate(-90deg)"><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(0)}" stroke-width="3"/><circle cx="7" cy="7" r="5" fill="none" stroke="${heat(20)}" stroke-width="3" stroke-dasharray="31.4" stroke-dashoffset="10" stroke-linecap="round"/></svg>+더 푼 만큼</span>`);
+  };
+
+  R.F = (g, anim) => {
+    const d = done();
+    const w = CW - 8;
+    const h = CH - 6;
+    const lvl = (x) => 0.42 + 0.58 * Math.min(1, x / 30);
+    for (let n = 1; n <= 30; n++) {
+      const p = pos(n);
+      const c = el('fcol', { left: p.cx - w / 2 + 'px', top: p.cy - h / 2 + 'px', width: w + 'px', height: h + 'px', borderRadius: '12px', overflow: 'hidden', zIndex: 1, background: n > TODAY ? 'transparent' : 'var(--grey100)', boxShadow: n === TODAY && !d.has(n) ? `inset 0 0 0 2px ${heat(0)}` : n > TODAY ? 'inset 0 0 0 1px var(--grey100)' : 'none' });
+      if (d.has(n)) {
+        const L = lvl(EXTRA[n]);
+        const f = el('fill', { left: 0, right: 0, bottom: 0, height: L * 100 + '%', borderRadius: '0', transformOrigin: 'bottom', boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,.55)', background: `linear-gradient(0deg, ${heat(EXTRA[n])} 0%, ${heat(EXTRA[n] * 0.6)} 55%, ${top(EXTRA[n])} 100%)`, position: 'absolute' });
+        f.dataset.lvl = L;
+        c.append(f);
+      }
+      if (n === TODAY) c.dataset.today = 'vis';
+      g.append(c);
+      const full = d.has(n) && lvl(EXTRA[n]) > 0.78;
+      g.append(el('n num' + (n > TODAY ? ' fut' : ''), { left: p.cx - w / 2 + 'px', top: p.cy - h / 2 + 4 + 'px', width: w + 'px', height: '18px', fontSize: '12px', fontWeight: 700, color: full ? '#fff' : n > TODAY ? 'var(--grey300)' : 'var(--grey600)', zIndex: 3 }, String(n)));
+      if (anim) {
+        const f = c.querySelector('.fill');
+        ML.a(c, [{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: n * 12 });
+        if (f) ML.a(f, [{ transform: 'scaleY(0)' }, { transform: `scaleY(${0.5 / f.dataset.lvl})`, offset: 0.4 }, { transform: 'scaleY(1)' }], { duration: 900, delay: 120 + n * 14, easing: 'cubic-bezier(0.65,0,0.35,1)' });
+      }
+    }
+    legend(`<span class="it"><i style="width:10px;height:14px;border-radius:3px;background:var(--grey100)"></i>미완료</span><span class="it">완료${[0, 15, 30].map((x) => `<i style="width:10px;height:14px;border-radius:3px;background:linear-gradient(0deg, ${heat(x)} 0, ${heat(x)} ${lvl(x) * 100}%, var(--grey100) ${lvl(x) * 100}%)"></i>`).join('')}+30</span>`);
+  };
+
+  function legend(html) {
+    phone.querySelector('#leg').innerHTML = html;
+  }
+
+  function draw(anim) {
+    const g = phone.querySelector('#grid');
+    g.innerHTML = '';
+    R[V](g, anim);
+  }
+
+  function render() {
+    ML.clear(phone);
+    shell();
+    draw(true);
+  }
+
+  /** 오늘 칸이 바뀌는 순간: 옛 모습을 복제해 겹쳐 두고, 새 모습이 튀어 오르며 옛 모습이 사라진다. */
+  function changeToday(mutate, kind) {
+    const g = phone.querySelector('#grid');
+    const old = [...g.querySelectorAll('[data-today]')].map((e) => {
+      const c = e.cloneNode(true);
+      c.style.zIndex = 4;
+      c.removeAttribute('data-today');
+      return { c, size: +e.dataset.size || 0, lvl: e.querySelector('.fill')?.dataset.lvl };
+    });
+    const prevEx = EXTRA[TODAY];
+    mutate();
+    draw(false);
+    const now = g.querySelector('[data-today="vis"]');
+    if (!now) return;
+    old.forEach(({ c }) => {
+      g.append(c);
+      ML.done(ML.a(c, [{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: 60, easing: 'ease' })).then(() => c.remove());
+    });
+    if (V === 'B' && old[0] && old[0].size) {
+      ML.a(now, [{ transform: `scale(${old[0].size / now.dataset.size})` }, { transform: 'scale(1.08)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 520, easing: OUT });
+    } else if (V === 'E') {
+      const a2 = now.querySelector('.a2');
+      const S = 38;
+      const C = 2 * Math.PI * ((S - 5) / 2);
+      if (kind === 'fill') {
+        const a1 = now.querySelector('.a1');
+        ML.a(a1, [{ strokeDashoffset: C * (1 - (PROG[TODAY] || 0)) }, { strokeDashoffset: 0 }], { duration: 520, easing: OUT });
+      }
+      if (a2) ML.a(a2, [{ strokeDashoffset: C * (1 - Math.min(1, prevEx / 30)) }, { strokeDashoffset: C * (1 - Math.min(1, EXTRA[TODAY] / 30)) }], { duration: 520, easing: OUT });
+      ML.a(now, [{ transform: 'scale(1)' }, { transform: 'scale(1.14)', offset: 0.35 }, { transform: 'scale(1)' }], { duration: 480, easing: OUT });
+    } else if (V === 'F') {
+      const f = now.querySelector('.fill');
+      const from = old[0] && old[0].lvl ? old[0].lvl / f.dataset.lvl : 0;
+      ML.a(f, [{ transform: `scaleY(${from})` }, { transform: 'scaleY(1.04)', offset: 0.7 }, { transform: 'scaleY(1)' }], { duration: 620, easing: OUT });
+    } else if (V === 'D' && kind === 'fill') {
+      const w = now.getBoundingClientRect().width;
+      ML.a(now, [{ clipPath: `inset(0 36px 0 ${w - 72}px round 18px)` }, { clipPath: 'inset(0 0 0 0 round 18px)' }], { duration: 520, easing: OUT });
+    } else {
+      ML.a(now, [{ transform: 'scale(.8)' }, { transform: 'scale(1.14)', offset: 0.55 }, { transform: 'scale(1)' }], { duration: 520, easing: OUT });
+    }
+    // 파문과 숫자 꼬리표
+    const r = now.getBoundingClientRect();
+    const pr = phone.getBoundingClientRect();
+    const ring = el('ring', { left: r.left - pr.left + 'px', top: r.top - pr.top + 'px', width: r.width + 'px', height: r.height + 'px', borderRadius: V === 'C' || V === 'F' ? '12px' : '50%', boxShadow: `0 0 0 3px ${heat(EXTRA[TODAY])}`, zIndex: 20 });
+    if (V === 'D') Object.assign(ring.style, { left: r.right - pr.left - 36 + 'px', width: '36px', height: '36px' });
+    phone.querySelector('.scr').append(ring);
+    ML.a(ring, [{ transform: 'scale(1)', opacity: 0.8 }, { transform: 'scale(1.7)', opacity: 0 }], { duration: 620, delay: 100, easing: OUT }).finished.then(() => ring.remove()).catch(() => {});
+    if (kind === 'bump') {
+      const tag = el('tag num', { left: r.left - pr.left + r.width / 2 + 'px', top: r.top - pr.top - 4 + 'px', color: heat(EXTRA[TODAY]) }, `+${EXTRA[TODAY]}`);
+      if (V === 'D') tag.style.left = r.right - pr.left - 18 + 'px';
+      phone.querySelector('.scr').append(tag);
+      ML.a(tag, [{ transform: 'translate(-50%, 4px)', opacity: 0 }, { transform: 'translate(-50%, -8px)', opacity: 1, offset: 0.25 }, { transform: 'translate(-50%, -20px)', opacity: 0 }], { duration: 1000, easing: OUT }).finished.then(() => tag.remove()).catch(() => {});
+    }
+  }
+
+  function fillToday() {
+    if (todayDone) return;
+    changeToday(() => (todayDone = true), 'fill');
+    ML.roll(phone.querySelector('#st'), '5', 1, 320);
+    ML.roll(phone.querySelector('#mo'), String(done().size), 1, 320);
+  }
+  function bump() {
+    if (!todayDone) return fillToday();
+    changeToday(() => (EXTRA[TODAY] = Math.min(40, EXTRA[TODAY] + 5)), 'bump');
+  }
+
+  const pick = (v) => () => {
+    V = v;
+    todayDone = false;
+    EXTRA = { ...EXTRA0 };
+    render();
+  };
+  ML.bar({ title: '달력 강조', replay: () => { todayDone = false; EXTRA = { ...EXTRA0 }; render(); }, home: '../index.html', extra: [['A 구슬', pick('A')], ['B 크기', pick('B')], ['C 타일', pick('C')], ['D 띠', pick('D')], ['E 링', pick('E')], ['F 높이', pick('F')], ['오늘 완료', fillToday], ['더 풀기 +5', bump]] });
+  render();
+})();
+</script>
+</body>
+</html>
