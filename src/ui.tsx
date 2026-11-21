@@ -3,6 +3,7 @@ import { Animated, Easing, Linking, Platform, Pressable, StyleProp, StyleSheet, 
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { HEAT_RING, heatColor, heatInk } from './heat';
 import { EASE_OUT, EASE_SHEET, MView, NATIVE_DRIVER, Tween, WEB, lerp, motionOff, spring, tweenStop, usePop, webShake, webTween } from './motion';
+import { LogoMark, Wordmark } from './logo';
 import { FONT_SANS, TYPE, Theme, TypeStep, useTheme } from './theme';
 
 // ─────────────────────────────────────────────────────────────
@@ -1161,22 +1162,14 @@ function SheetWeb({ open, onClose, children, label = '닫기', style, clear }: S
  */
 export const Sheet = WEB ? SheetWeb : SheetNative;
 
-/** 앱 표식: 파랑 둥근 사각형(88, 모서리 24) 안에 흰 칸 3×3. */
+/** 앱 표식: 세 면 상자(윗면 파랑, 옆면 글자색). 모양은 src/logo.tsx. */
 export function AppMark({ size = 88 }: { size?: number }) {
-  const t = useTheme();
-  const k = size / 88;
-  const cell = 20 * k;
-  const gap = 5 * k;
-  return (
-    <View aria-hidden style={{ width: size, height: size, borderRadius: 24 * k, backgroundColor: t.blue, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: cell * 3 + gap * 2, flexDirection: 'row', flexWrap: 'wrap', gap }}>
-        {Array.from({ length: 9 }, (_, i) => (
-          <View key={i} style={{ width: cell, height: cell, borderRadius: 6 * k, backgroundColor: '#ffffff' }} />
-        ))}
-      </View>
-    </View>
-  );
+  return <LogoMark size={size} />;
 }
+
+/** 시작 화면의 표식과 글자 로고 크기(assets/logo/lockup.svg 와 같은 비율: 글자 높이 = 표식의 0.19, 틈 = 0.19). */
+const SPLASH_MARK = 96;
+const SPLASH_WORD = 18;
 
 /** 시작 화면: 표식과 이름이 0.3초 동안 나타나 잠시 머문 뒤 사라지고 onDone. 화면 맨 바깥에 둔다. */
 function SplashNative({ onDone }: { onDone: () => void }) {
@@ -1197,14 +1190,12 @@ function SplashNative({ onDone }: { onDone: () => void }) {
     return () => clearTimeout(id);
   }, []);
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { zIndex: 50, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', gap: 16, opacity: all }]}>
+    <Animated.View style={[StyleSheet.absoluteFill, { zIndex: 50, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', gap: 18, opacity: all }]}>
       <Animated.View style={{ opacity: mark, transform: [{ scale: mark.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }}>
-        <AppMark />
+        <AppMark size={SPLASH_MARK} />
       </Animated.View>
       <Animated.View style={{ opacity: word, transform: [{ translateY: word.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) }] }}>
-        <T s={24} w="800" lh={1.4}>
-          Latticework
-        </T>
+        <Wordmark height={SPLASH_WORD} />
       </Animated.View>
     </Animated.View>
   );
@@ -1237,14 +1228,12 @@ function SplashWeb({ onDone }: { onDone: () => void }) {
     };
   }, []);
   return (
-    <View ref={all} style={[StyleSheet.absoluteFill, { zIndex: 50, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', gap: 16 }]}>
+    <View ref={all} style={[StyleSheet.absoluteFill, { zIndex: 50, backgroundColor: t.card, alignItems: 'center', justifyContent: 'center', gap: 18 }]}>
       <View ref={mark}>
-        <AppMark />
+        <AppMark size={SPLASH_MARK} />
       </View>
       <View ref={word}>
-        <T s={24} w="800" lh={1.4}>
-          Latticework
-        </T>
+        <Wordmark height={SPLASH_WORD} />
       </View>
     </View>
   );

@@ -25,8 +25,8 @@ MARK_H = 204          # 원본 표식: 상자 높이 204, 가운데 128
 ICON_S = 0.70         # 앱 아이콘(가득 찬 흰 사각형 위): 상자 높이 = 204 * 0.70 = 143 (56 %)
 ICON_LIFT = 3         # 아래 두 면이 무거워 보여 3 단위 올린다
 MASK_S = 0.58         # 둥근 마스크(안전 원 지름 80 %) 안에 넉넉히
-TILE_S = 0.72         # 흰 둥근 타일(파비콘 큰 판, 아바타 어두운 판)
-FAV_S = 0.80          # 16, 32 px 파비콘: 작은 판 표식을 크게
+TILE_S = 0.72         # 흰 둥근 타일(설치 아이콘)
+FAV_S = 144 / 188.04  # 16, 32 px 파비콘: 상자 너비 144 단위 = 16 px 에서 9 px, 32 px 에서 18 px (세로 모서리가 픽셀 경계에 닿는다)
 AND_S = 0.45          # 안드로이드 적응형 앞면(108 중 72 가 보인다)
 
 # ---------------------------------------------------------------- Inkscape
@@ -151,10 +151,11 @@ def main():
     write("favicon.svg", doc("Latticework 파비콘", f'<path fill="{WHITE}" d="{TILE_SMALL}"/>' + placed(small, FAV_S, 0)))
     # 16 px 판: 세로 틈이 픽셀 한 칸에 딱 맞게 반 픽셀(8 단위) 왼쪽으로 민다
     write("favicon-16.svg", doc("Latticework 파비콘 16", f'<path fill="{WHITE}" d="{TILE_SMALL}"/><g transform="translate(-8 0)">' + placed(small, FAV_S, 0) + "</g>"))
-    write("avatar-dark.svg", doc("Latti 어두운 바탕 얼굴", f'<path fill="{WHITE}" d="{TILE_SMALL}"/>' + placed(small, FAV_S, 0)))
+    # 어두운 바탕: 옆면만 흰색으로 뒤집고 윗면은 그대로 파랑 (앱의 Latti 얼굴과 어두운 시작 화면)
+    write("mark-reversed.svg", doc("Latti 세 면 상자 어두운 바탕", mark(big, BLUE, WHITE)))
+    write("mark-small-reversed.svg", doc("Latti 세 면 상자 작은 판 어두운 바탕", mark(small, BLUE, WHITE)))
     write("android-foreground.svg", doc("Latticework 안드로이드 앞면", placed(big, AND_S, 2)))
     write("android-monochrome.svg", doc("Latticework 안드로이드 한 색", placed(big, AND_S, 2, "#000000", "#000000")))
-    write("splash.svg", doc("Latticework 시작 표식", placed(big, 0.5)))
 
     # 세로 묶음: 표식 256, 틈 48, 글자 높이 = 표식의 0.19
     s = 256 * 0.19 / H

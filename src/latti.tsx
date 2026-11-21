@@ -77,7 +77,10 @@ export function useLattiLine(sit: string | string[], ctx: LattiCtx, moment: stri
 // 표식과 말풍선
 // ─────────────────────────────────────────────────────────────
 
-/** Latti 의 얼굴. 지금은 앱 아이콘 표식이다. 로고를 바꿀 때는 이 부품만 고친다. */
+/**
+ * Latti 의 얼굴: 앱 표식(세 면 상자). 윗면은 늘 파랑, 옆면은 글자색이라 밝은 바탕에서 검정, 어두운 바탕에서 흰색이다.
+ * 40 px 아래에서는 틈을 넓힌 작은 판을 쓴다(src/logo.tsx). 로고를 바꿀 때는 이 부품만 고친다.
+ */
 export function LattiAvatar({ size = 28 }: { size?: number }) {
   return <AppMark size={size} />;
 }
