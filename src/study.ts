@@ -46,8 +46,11 @@ export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: num
 
 export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number };
 
-/** 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘. r 은 틀려서 세션 끝에 다시 나온 문제 */
-export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1 };
+/**
+ * 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘. r 은 틀려서 세션 끝에 다시 나온 문제.
+ * id 는 시트로 보낼 때 같은 줄을 한 번만 적는 열쇠(새 줄은 기기 id 와 순번, 예전 줄은 내용의 해시. src/sync.ts 의 rowId).
+ */
+export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1; id?: string };
 
 export const LAT_GOAL = 5;
 export const VOC_NEW_PER_DAY = 6;
@@ -125,6 +128,55 @@ export function withFirsts(state: StudyState, log: LogRow[]): StudyState {
     changed = true;
   }
   return changed ? { ...state, cards } : state;
+}
+
+/**
+ * 풀이 기록을 처음부터 다시 풀어 기억 상태를 만든다(시트에서 불러올 때). 기록을 남길 때와 같은 review 를 같은 시각으로 부르므로
+ * 기록이 빠짐없이 있으면 결과가 기기의 기억 상태와 같다. rows 는 순서와 상관없이 받는다(시각순으로 다시 푼다).
+ * 유형 키: Latticework 는 문제의 수준(lv), 영단어는 문제 이름의 마지막 조각. 자료에 없는 문제는 lv1 로 센다(출제 순서에만 쓰인다).
+ * 경험치도 같은 방식으로 다시 센다. 다시 나온 문제(r)는 기억 상태와 경험치를 바꾸지 않는다.
+ */
+export function rebuildFromLog(rows: LogRow[], data: StudyData | null): { cards: Record<string, Card>; xp: number; start: string | null } {
+  const lv = new Map<string, number>();
+  for (const x of data?.questions ?? []) lv.set(x.id, x.lv);
+  const sorted = rows.slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
+  const cards: Record<string, Card> = {};
+  let xp = 0;
+  for (const row of sorted) {
+    if (row.r) continue;
+    const at = new Date(row.t);
+    const day = kstDate(row.t);
+    if (!day || (row.g !== 1 && row.g !== 2 && row.g !== 3)) continue;
+    const type = row.k === 'lat' ? `lv${lv.get(row.q) ?? 1}` : row.q.slice(row.q.lastIndexOf(':') + 1);
+    cards[row.u] = review(cards[row.u], row.g, at, day, type);
+    xp += xpFor(row.g);
+  }
+  return { cards, xp, start: sorted.length ? kstDate(sorted[0].t) : null };
+}
+
+/**
+ * 풀이 기록만으로 만든 날짜별 푼 수. 그날의 목표 문항 수는 기록에 없으므로, 날마다 남긴 상태(시트의 상태 탭)가 없을 때만 쓴다.
+ * Latticework 목표는 LAT_GOAL, 영단어 목표는 그날 할당으로 푼 수로 잡는다(남은 것은 추가 학습).
+ */
+export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
+  const out: Record<string, StudyDay> = {};
+  for (const row of rows.slice().sort((a, b) => (a.t < b.t ? -1 : 1))) {
+    if (row.r) continue;
+    const d = kstDate(row.t);
+    if (!d) continue;
+    const day = (out[d] ??= { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 });
+    if (row.k === 'lat') {
+      if (day.lat < day.latGoal) {
+        day.lat += 1;
+        if (day.lat >= day.latGoal) day.latDoneAt = row.t;
+      } else day.extra = (day.extra ?? 0) + 1;
+    } else if (day.voc < VOC_REVIEW_CAP + VOC_NEW_PER_DAY) {
+      day.voc += 1;
+      day.vocGoal = day.voc;
+      day.vocDoneAt = row.t;
+    } else day.extra = (day.extra ?? 0) + 1;
+  }
+  return out;
 }
 
 // ---------- 문제 한 건 ----------
