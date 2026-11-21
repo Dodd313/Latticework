@@ -17,7 +17,9 @@ export type Concept = { id: string; name: string; en?: string; node: string; fie
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용 · 5 설명. t 는 mc(4지선다), ox(맞다·틀리다), rc(떠올리고 스스로 채점). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox' | 'rc'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string; r?: string };
 
-export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string; pos?: string };
+/** mis: 흔한 실수(어색한 연어). bad 는 term 과 같은 자리에 들어가는 꼴이라 빈칸과 정의 문제의 오답으로 쓴다. */
+export type VocMistake = { bad: string; good: string; why: string };
+export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string; pos?: string; mis?: VocMistake[] };
 
 /** 오늘 이미 낸 문제와 항목. 같은 날 같은 문제를 다시 내지 않는 데 쓴다. */
 export type Asked = { keys: Set<string>; units: Set<string> };
@@ -313,17 +315,21 @@ function vocQ(v: Vocab, type: string, data: StudyData, seed: string): Q {
     return { options, answer: options.indexOf(right) };
   };
   const bare = v.term.replace(/\s*\(.*?\)/g, '');
-  const detail = [v.pos ? `${v.term} (${v.pos}) ${v.ko}` : `${v.term}: ${v.ko}`, v.def, v.deck === 'toeic' && v.ex ? `예문: ${v.ex}` : '', v.similar ? `비슷한 표현: ${v.similar}` : '', v.formal ? `격식 있는 표현: ${v.formal}` : ''].filter(Boolean).join('\n');
+  // 흔한 실수가 있으면 정의와 빈칸 문제의 오답 하나로 먼저 넣는다.
+  const wrongs = (v.mis ?? []).map((m) => m.bad).filter((w) => w.toLowerCase() !== bare.toLowerCase());
+  const terms = (strip: boolean) => [...wrongs, ...others.map((x) => (strip ? x.term.replace(/\s*\(.*?\)/g, '') : x.term))].filter((x, i, a) => a.indexOf(x) === i).slice(0, 3);
+  // 예문은 한 줄짜리만 해설에 붙인다(대화형 예문은 빼던 그대로).
+  const detail = [v.pos ? `${v.term} (${v.pos}) ${v.ko}` : `${v.term}: ${v.ko}`, v.def, v.ex && !v.ex.includes('\n') ? `예문: ${v.ex}` : '', v.similar ? `비슷한 표현: ${v.similar}` : '', v.formal ? `격식 있는 표현: ${v.formal}` : '', ...(v.mis ?? []).map((m) => `어색한 표현: ${m.bad}. ${m.why}`)].filter(Boolean).join('\n');
 
   if (type === 'meaning') {
     return { ...base, q: v.term, ...withAnswer(v.ko, others.map((x) => x.ko)), hint: v.def, explain: detail };
   }
   if (type === 'define') {
-    return { ...base, q: '이 정의에 맞는 표현은 무엇입니까?', pre: v.def, ...withAnswer(v.term, others.map((x) => x.term)), hint: `우리말 뜻: ${v.ko}`, explain: detail };
+    return { ...base, q: '이 정의에 맞는 표현은 무엇입니까?', pre: v.def, ...withAnswer(v.term, terms(false)), hint: `우리말 뜻: ${v.ko}`, explain: detail };
   }
   if (type === 'cloze') {
     const blanked = (v.ex ?? '').replace(new RegExp(bare.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), '_____');
-    return { ...base, q: '빈칸에 들어갈 표현은 무엇입니까?', pre: blanked, ...withAnswer(bare, others.map((x) => x.term.replace(/\s*\(.*?\)/g, ''))), hint: `우리말 뜻: ${v.ko}`, explain: detail };
+    return { ...base, q: '빈칸에 들어갈 표현은 무엇입니까?', pre: blanked, ...withAnswer(bare, terms(true)), hint: `우리말 뜻: ${v.ko}`, explain: detail };
   }
   if (type === 'register') {
     return { ...base, q: `"${v.term}"은 어떤 자리에서 쓰는 표현입니까?`, pre: v.ex, options: REGISTERS, answer: REGISTERS.indexOf(v.level), hint: v.formal ? `격식을 갖추면 이렇게 말합니다: ${v.formal}` : v.def, explain: detail };

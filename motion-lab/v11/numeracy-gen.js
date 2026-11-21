@@ -204,6 +204,18 @@
     else has = false;
     return word + (has ? a : b);
   }
+  /** 으로/로: 받침이 없거나 ㄹ 받침이면 "로". 숫자는 1, 7, 8(ㄹ)과 2, 4, 5, 9(받침 없음)가 "로". */
+  function ro(word) {
+    const ch = String(word).replace(/[\s)\]]+$/, '').slice(-1);
+    const code = ch.charCodeAt(0);
+    let eu;
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      const j = (code - 0xac00) % 28;
+      eu = j !== 0 && j !== 8;
+    } else if (/[0-9]/.test(ch)) eu = '036'.includes(ch);
+    else eu = /[MNmn]/.test(ch);
+    return word + (eu ? '으로' : '로');
+  }
 
   /** 원 금액을 문장에 넣는 모양. 억 넘는 금액과 만 원 단위 금액은 한글 단위로. */
   function won(n) {
@@ -214,7 +226,10 @@
   const pct = (x) => fmtNum(x) + '%';
   const ORD = ['', '첫째', '둘째', '셋째', '넷째'];
   const roundNote = (dp) => (dp === 0 ? '반올림해 정수로' : `반올림해 소수 ${ORD[dp]} 자리까지`);
-  const joinUnit = (unit) => (!unit ? '' : /^[a-zA-Z]/.test(unit) ? ' ' + unit : unit);
+  const joinUnit = (unit) => (!unit ? '' : /^(million|billion|trillion)/.test(unit) ? ' ' + unit : unit);
+  /** 한글 단위로 끝나면 띄어 쓴다: "8,300만 원", "2,500만 주", "1,957원" */
+  const krWith = (txt, u) => txt + (/[조억만]$/.test(txt) ? ' ' : '') + u;
+  const shares = (n) => krWith(fmtKR(n, { comma: true }), '주');
 
   // ─────────────────────────────────────────────────────────────
   // 문제 모양
@@ -283,7 +298,7 @@
       const x = clean(n / Math.pow(10, EN[en]));
       const base = { million: '1 million은 100만', billion: '1 billion은 10억', trillion: '1 trillion은 1조' }[en];
       const kr = fmtKR(n, { comma: true });
-      const o = { q: `${kr} ${josa(cur, '은', '는')} 몇 ${en} ${cur}?`, unit: `${en} ${cur}`, vars: { n, en }, why: `${base}이므로 ${kr}은 ${fmtNum(x)} ${en}.` };
+      const o = { q: `${kr} ${josa(cur, '은', '는')} 몇 ${en} ${cur}?`, unit: `${en} ${cur}`, vars: { n, en }, why: `${base}이므로 ${josa(kr, '은', '는')} ${fmtNum(x)} ${en}.` };
       return exact(o, x);
     },
     e2k(R, lv) {
@@ -294,7 +309,7 @@
       else if (lv === 3) [n, en] = R.chance(0.5) ? [R.int(1001, 9999) * 1e8, 'billion'] : [R.int(101, 999) * 1e10, 'trillion'];
       else [n, en] = R.chance(0.5) ? [R.int(101, 9999) * 1e5, 'million'] : [R.int(1001, 9999) * 1e9, 'trillion'];
       const base = { million: '1 million은 100만', billion: '1 billion은 10억', trillion: '1 trillion은 1조' }[en];
-      const o = { q: `${fmtEN(n, en)} ${josa(cur, '을', '를')} 조, 억, 만 단위를 넣어 쓰면?`, input: 'kr', form: true, unit: cur, vars: { n, en, x: clean(n / Math.pow(10, EN[en])) }, why: `${base}이므로 ${fmtEN(n, en)}는 ${fmtKR(n, { comma: true })}.` };
+      const o = { q: `${fmtEN(n, en)} ${josa(cur, '을', '를')} 조, 억, 만 단위를 넣어 쓰면?`, input: 'kr', form: true, unit: cur, vars: { n, en, x: clean(n / Math.pow(10, EN[en])) }, why: `${base}이므로 ${josa(fmtEN(n, en), '은', '는')} ${fmtKR(n, { comma: true })}.` };
       return exact(o, n);
     },
   };
@@ -317,7 +332,7 @@
     }
     const amt = R.int(10, 990) * 1e4;
     const w = amt * r;
-    const o = { q: `${rt}일 때 ${fmtKR(amt, { comma: true })} ${CUR[c]}는 몇 억 원?`, unit: '억 원', vars: { c, r, amt, out: 'eok' }, why: `${fmtKR(amt)} × ${fmtNum(r)} = ${fmtNum(w)}원 = ${fmtNum(w / 1e8)}억 원.` };
+    const o = { q: `${rt}일 때 ${fmtKR(amt, { comma: true })} ${CUR[c]}는 몇 억 원?`, unit: '억 원', vars: { c, r, amt, out: 'eok' }, why: `${fmtKR(amt, { comma: true })} × ${fmtNum(r)} = ${fmtNum(w)}원 = ${fmtNum(w / 1e8)}억 원.` };
     return rounded(o, w / 1e8, 1);
   }
   function k2f(R, lv, c) {
@@ -333,7 +348,7 @@
       const o = { q: `${rt}일 때 ${won(w)}은 몇 ${CUR[c]}?`, unit: CUR[c], input: 'kr', vars: { c, r, w, out: 'one' }, why: `${fmtNum(w)} ÷ ${fmtNum(r)} = ${fmtNum(amt)}.` };
       return exact(o, amt);
     }
-    const wEok = c === 'usd' ? R.int(1, 500) : R.int(1, 99);
+    const wEok = c === 'usd' ? R.int(1, 500) : c === 'jpy' ? R.int(1, 9) : R.int(1, 99);
     const w = wEok * 1e8;
     const f = (w / r) * PER_UNIT[c];
     const o = { q: `${rt}일 때 ${eok(wEok)}은 몇 만 ${CUR[c]}?`, unit: `만 ${CUR[c]}`, input: 'kr', vars: { c, r, w, out: 'man' }, why: `${fmtNum(w)} ÷ ${fmtNum(r)}${c === 'jpy' ? ' × 100' : ''} = 약 ${fmtNum(roundTo(f, 0))}${CUR[c]}.` };
@@ -350,7 +365,7 @@
       const r = RATE.usd(R, lv);
       const m = R.int(5, 999);
       const raw = (m * 1e6 * r) / 1e8;
-      return rounded({ q: `${RATE_TXT.usd(r)}일 때 ${m} million 달러는 몇 억 원?`, unit: '억 원', vars: { r, m }, why: `${m}00만 × ${fmtNum(r)} = 약 ${fmtNum(roundTo(raw, 1))}억 원.` }, raw, 0);
+      return rounded({ q: `${RATE_TXT.usd(r)}일 때 ${m} million 달러는 몇 억 원?`, unit: '억 원', vars: { r, m }, why: `${fmtKR(m * 1e6, { comma: true })} × ${fmtNum(r)} = 약 ${fmtNum(roundTo(raw, 1))}억 원.` }, raw, 0);
     },
     eok2usdmn(R, lv) {
       const r = RATE.usd(R, lv);
@@ -392,6 +407,7 @@
       let s = 0;
       while (!s) s = R.int(-10, 25);
       const raw = ((100 + s) * (100 + c) - 10000) / 100;
+      if (Math.abs(raw) < 0.5) return SKIP;
       return rounded({ q: `미국 주식이 달러 기준으로 ${Math.abs(s)}% ${s > 0 ? '올랐' : '내렸'}고, 같은 기간 환율은 1달러 ${fmtNum(r0)}원에서 ${fmtNum(r1)}원이 됐다. 원화 기준 수익률은 몇 %?`, unit: '%', neg: true, vars: { r0, r1, s }, why: `${fmtNum((100 + s) / 100)} × ${fmtNum(r1 / r0)} = ${fmtNum(clean(((100 + s) * (100 + c)) / 10000))}.` }, raw, 1);
     },
     ret_usd(R) {
@@ -402,6 +418,7 @@
       let s = 0;
       while (!s) s = R.int(-10, 25);
       const raw = (((100 + s) / 100) * (r0 / r1) - 1) * 100;
+      if (Math.abs(raw) < 0.5) return SKIP;
       return rounded({ q: `국내 주식이 원화 기준으로 ${Math.abs(s)}% ${s > 0 ? '올랐' : '내렸'}고, 같은 기간 환율은 1달러 ${fmtNum(r0)}원에서 ${fmtNum(r1)}원이 됐다. 달러 기준 수익률은 몇 %?`, unit: '%', neg: true, vars: { r0, r1, s }, why: `${fmtNum((100 + s) / 100)} × ${fmtNum(r0)} ÷ ${fmtNum(r1)} = ${fmtNum(roundTo(((100 + s) / 100) * (r0 / r1), 4))}.` }, raw, 1);
     },
   };
@@ -499,10 +516,10 @@
       const up = r1 > r0;
       const verb = up ? '올랐' : '떨어졌';
       if (R.chance(0.5)) return exact({ q: `${name}이 ${pct(r0)}에서 ${pct(r1)}로 ${verb}다. 몇 %p(퍼센트포인트) ${verb}나?`, unit: '%p', vars: { r0, r1, ask: 'pp' }, why: `두 비율의 차이: ${fmtNum(Math.abs(r1 - r0))}%p.` }, clean(Math.abs(r1 - r0)));
-      return rounded({ q: `${name}이 ${pct(r0)}에서 ${pct(r1)}로 ${verb}다. 처음 값에 견줘 몇 % ${verb}나?`, unit: '%', vars: { r0, r1, ask: 'pct' }, why: `차이 ${fmtNum(clean(Math.abs(r1 - r0)))}를 처음 값 ${fmtNum(r0)}로 나눈다.` }, (Math.abs(r1 - r0) / r0) * 100, 1);
+      return rounded({ q: `${name}이 ${pct(r0)}에서 ${pct(r1)}로 ${verb}다. 처음 값에 견줘 몇 % ${verb}나?`, unit: '%', vars: { r0, r1, ask: 'pct' }, why: `차이 ${josa(fmtNum(clean(Math.abs(r1 - r0))), '을', '를')} 처음 값 ${ro(fmtNum(r0))} 나눈다.` }, (Math.abs(r1 - r0) / r0) * 100, 1);
     },
     rev_from_margin(R) {
-      const rev = R.int(5, 200) * 100;
+      const rev = R.int(5, 99) * 100;
       const p = R.pick([4, 5, 8, 10, 12, 15, 20, 25]);
       const op = (rev * p) / 100;
       return exact({ q: `영업이익률이 ${p}%이고 영업이익이 ${eok(op)}이면 매출은 몇 억 원?`, unit: '억 원', vars: { p, op }, why: `${fmtNum(op)} ÷ ${fmtNum(p / 100)} = ${fmtNum(rev)}.` }, rev);
@@ -512,11 +529,14 @@
       const eps = R.int(5, 80) * 100;
       const ni = (eps * sh) / 1e4; // 억 원
       const m = R.int(5, 20);
-      return exact({ q: `순이익 ${eok(ni)}, 발행주식 ${fmtKR(sh * 1e4, { comma: true })}주인 회사의 PER(주가수익비율)이 ${m}배면 주가는 몇 원?`, unit: '원', input: 'kr', vars: { ni, sh, m }, why: `EPS(주당순이익)는 ${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4)} = ${fmtNum(eps)}원. 여기에 ${m}배.` }, eps * m);
+      return exact({ q: `순이익 ${eok(ni)}, 발행주식 ${shares(sh * 1e4)}인 회사의 PER(주가수익비율)이 ${m}배면 주가는 몇 원?`, unit: '원', input: 'kr', vars: { ni, sh, m }, why: `EPS(주당순이익)는 ${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4, { comma: true })} = ${fmtNum(eps)}원. 여기에 ${m}배.` }, eps * m);
     },
     mcap_from_pbr(R) {
-      const eq = R.int(5, 500) * 100;
-      const b10 = R.int(3, 30);
+      let eq, b10;
+      do {
+        eq = R.int(5, 500) * 100;
+        b10 = R.int(3, 30);
+      } while ((eq * b10) / 10 >= 1e4);
       return exact({ q: `자기자본 ${eok(eq)}인 회사의 PBR(주가순자산비율)이 ${fmtNum(b10 / 10)}배면 시가총액은 몇 억 원?`, unit: '억 원', input: 'kr', vars: { eq, pbr: b10 / 10 }, why: `${fmtNum(eq)} × ${fmtNum(b10 / 10)}.` }, (eq * b10) / 10);
     },
     ev_ebitda(R) {
@@ -526,7 +546,7 @@
         const e = R.int(10, 99) * 100;
         const raw = (mcap + nd) / e;
         if (raw < 2 || raw > 30) continue;
-        return rounded({ q: `시가총액 ${eok(mcap)}, 순차입금 ${eok(nd)}, EBITDA(상각 전 영업이익) ${eok(e)}인 회사의 EV(기업가치)/EBITDA는 몇 배?`, unit: '배', vars: { mcap, nd, e }, why: `EV는 시가총액에 순차입금을 더한 ${fmtNum(mcap + nd)}억 원. 이를 ${fmtNum(e)}로 나눈다.` }, raw, 1);
+        return rounded({ q: `시가총액 ${eok(mcap)}, 순차입금 ${eok(nd)}, EBITDA(상각 전 영업이익) ${eok(e)}인 회사의 EV(기업가치)/EBITDA는 몇 배?`, unit: '배', vars: { mcap, nd, e }, why: `EV는 시가총액에 순차입금을 더한 ${eok(mcap + nd)}. 이를 ${ro(fmtNum(e))} 나눈다.` }, raw, 1);
       }
     },
     dupont(R) {
@@ -553,7 +573,7 @@
       for (;;) {
         const prev = R.int(100, 9999);
         const cur = Math.round(prev * (1 + R.int(-40, 80) / 100 + (R.next() - 0.5) / 50));
-        if (cur === prev || cur <= 0) continue;
+        if (cur <= 0 || Math.abs(cur / prev - 1) < 0.01) continue; // 1% 미만은 반올림하면 0.0 이 될 수 있다
         return rounded({ q: `작년 ${k} ${eok(prev)}, 올해 ${k} ${eok(cur)}이면 전년보다 몇 % ${cur > prev ? '늘었나' : '줄었나'}?`, unit: '%', vars: { prev, cur }, why: `${fmtNum(cur)} ÷ ${fmtNum(prev)} = ${fmtNum(roundTo(cur / prev, 4))}.` }, Math.abs(cur / prev - 1) * 100, 1);
       }
     },
@@ -577,15 +597,21 @@
       return exact({ q: `매출이 2년 만에 ${eok(base)}에서 ${eok(end)}이 됐다. CAGR(연평균 성장률)은 몇 %?`, unit: '%', vars: { base, end, n: 2 }, why: `${fmtNum(end)} ÷ ${fmtNum(base)} = ${fmtNum(clean(end / base))}, 이는 ${fmtNum(1 + r / 100)}의 제곱.` }, r);
     },
     comp3(R) {
-      const r = R.pick([10, 20, 50]);
-      const base = R.int(1, 9) * 1000; // 만 원
-      const end = (base * (100 + r) ** 3) / 1e6;
+      let r, base, end;
+      do {
+        r = R.pick([10, 20, 50]);
+        base = R.int(1, 9) * 1000; // 만 원
+        end = (base * (100 + r) ** 3) / 1e6;
+      } while (end >= 1e4);
       return exact({ q: `${fmtKR(base * 1e4, { comma: true })} 원을 연 ${r}% 복리로 3년 굴리면 몇 만 원?`, unit: '만 원', input: 'kr', vars: { base, r, n: 3 }, why: `${fmtNum(1 + r / 100)}의 세제곱은 ${fmtNum(clean((1 + r / 100) ** 3))}.` }, end);
     },
     cagr3(R) {
-      const r = R.pick([10, 20, 50]);
-      const base = R.int(1, 9) * 1000;
-      const end = (base * (100 + r) ** 3) / 1e6;
+      let r, base, end;
+      do {
+        r = R.pick([10, 20, 50]);
+        base = R.int(1, 9) * 1000; // 만 원
+        end = (base * (100 + r) ** 3) / 1e6;
+      } while (end >= 1e4);
       return exact({ q: `${fmtKR(base * 1e4, { comma: true })} 원이 3년 만에 ${fmtKR(end * 1e4, { comma: true })} 원이 됐다. 연 복리 수익률은 몇 %?`, unit: '%', vars: { base, end, n: 3 }, why: `${fmtNum(end)} ÷ ${fmtNum(base)} = ${fmtNum(clean(end / base))}, 이는 ${fmtNum(1 + r / 100)}의 세제곱.` }, r);
     },
     cagr_est(R) {
@@ -594,7 +620,7 @@
         const n = R.int(3, 10);
         const raw = (Math.pow(m, 1 / n) - 1) * 100;
         if (raw < 3 || raw > 40) continue;
-        return approx({ q: `매출이 ${n}년 만에 ${fmtNum(m)}배가 됐다. CAGR(연평균 성장률)은 약 몇 %?`, unit: '%', vars: { m, n }, why: `${n}번 곱해 ${fmtNum(m)}가 되는 수를 찾는다. 약 ${fmtNum(roundTo(1 + raw / 100, 3))}.` }, raw, { abs: 1 });
+        return approx({ q: `매출이 ${n}년 만에 ${fmtNum(m)}배가 됐다. CAGR(연평균 성장률)은 약 몇 %?`, unit: '%', vars: { m, n }, why: `${n}번 곱해 ${josa(fmtNum(m), '이', '가')} 되는 수를 찾는다. 약 ${fmtNum(roundTo(1 + raw / 100, 3))}.` }, raw, { abs: 1 });
       }
     },
     mult_est(R, lv) {
@@ -673,7 +699,7 @@
         if (r > 15) continue;
         const price = (d1 * 100) / s;
         if (price !== Math.round(price) || price % 10 !== 0) continue;
-        return exact({ q: `올해 주당배당금 ${won(d0)}을 막 지급했고, 배당은 해마다 ${g}%씩 영원히 늘어난다. 요구수익률이 연 ${r}%일 때 적정 주가는 몇 원?`, unit: '원', input: 'kr', vars: { d0, g, r }, why: `내년 배당은 ${fmtNum(d0)} × ${fmtNum(1 + g / 100)} = ${fmtNum(d1)}원. 이를 ${fmtNum(s / 100)}로 나눈다.` }, price);
+        return exact({ q: `올해 주당배당금 ${won(d0)}을 막 지급했고, 배당은 해마다 ${g}%씩 영원히 늘어난다. 요구수익률이 연 ${r}%일 때 적정 주가는 몇 원?`, unit: '원', input: 'kr', vars: { d0, g, r }, why: `내년 배당은 ${fmtNum(d0)} × ${fmtNum(1 + g / 100)} = ${fmtNum(d1)}원. 이를 ${ro(fmtNum(s / 100))} 나눈다.` }, price);
       }
     },
     pv3_est(R) {
@@ -704,8 +730,12 @@
       return exact({ q: `연 ${pct(r0 / 100)}인 금리가 ${Math.abs(r1 - r0)}${BP} ${up ? '오르면' : '내리면'} 몇 %?`, unit: '%', vars: { r0: r0 / 100, d: (r1 - r0) } , why: `${Math.abs(r1 - r0)}bp는 ${fmtNum(Math.abs(r1 - r0) / 100)}%p.` }, r1 / 100);
     },
     fs_mn(R, lv) {
-      const v = lv <= 2 ? R.int(1e4, 999999) : R.int(1e5, 9999999);
-      return rounded({ q: `단위가 백만 원인 재무제표에서 매출 칸의 숫자가 ${fmtNum(v)}이다. 매출은 몇 억 원?`, unit: '억 원', input: 'kr', vars: { v, scale: 1e6 }, why: `1억은 백만의 100배. ${fmtNum(v)} ÷ 100.` }, v / 100, 0);
+      if (lv <= 2) {
+        const v = R.int(1e4, 999999);
+        return rounded({ q: `단위가 백만 원인 재무제표에서 매출 칸의 숫자가 ${fmtNum(v)}이다. 매출은 몇 억 원?`, unit: '억 원', vars: { v, scale: 1e6, out: 1e8 }, why: `1억은 백만의 100배. ${fmtNum(v)} ÷ 100.` }, v / 100, 0);
+      }
+      const v = R.int(1e6, 999999999);
+      return rounded({ q: `단위가 백만 원인 재무제표에서 매출 칸의 숫자가 ${fmtNum(v)}이다. 매출은 몇 조 원?`, unit: '조 원', vars: { v, scale: 1e6, out: 1e12 }, why: `1조는 백만의 100만 배. ${fmtNum(v)} ÷ 1,000,000.` }, v / 1e6, 1);
     },
     fs_th(R) {
       const v = R.int(1, 9999) * 1e4;
@@ -730,14 +760,14 @@
         const m = R.int(10, 999);
         const w = (m * r) / 100;
         if (w !== Math.round(w)) continue;
-        return exact({ q: `${RATE_TXT.usd(r)}일 때 ${m} million 달러는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, m }, why: `${m}00만 × ${fmtNum(r)} = ${fmtNum(w)}억 원.` }, w);
+        return exact({ q: `${RATE_TXT.usd(r)}일 때 ${m} million 달러는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, m }, why: `${fmtKR(m * 1e6, { comma: true })} × ${fmtNum(r)} = ${fmtNum(w)}억 원.` }, w);
       }
     },
     eps_calc(R) {
       const sh = R.pick([1000, 1500, 2000, 2500, 3000, 4000, 5000, 8000, 10000]);
       const eps = R.int(5, 80) * 100;
       const ni = (eps * sh) / 1e4;
-      return exact({ q: `순이익 ${eok(ni)}, 발행주식 ${fmtKR(sh * 1e4, { comma: true })}주인 회사의 EPS(주당순이익)는 몇 원?`, unit: '원', input: 'kr', vars: { ni, sh }, why: `${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4)}.` }, eps);
+      return exact({ q: `순이익 ${eok(ni)}, 발행주식 ${shares(sh * 1e4)}인 회사의 EPS(주당순이익)는 몇 원?`, unit: '원', input: 'kr', vars: { ni, sh }, why: `${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4, { comma: true })}.` }, eps);
     },
     mcap_jo(R) {
       for (;;) {
@@ -745,7 +775,7 @@
         const price = R.int(10, 999) * 100;
         const raw = (sh * 1e4 * price) / 1e12;
         if (raw < 0.1 || raw > 500) continue;
-        const o = rounded({ q: `발행주식 ${fmtKR(sh * 1e4, { comma: true })}주, 주가 ${won(price)}인 회사의 시가총액은 몇 조 원?`, unit: '조 원', vars: { sh, price }, why: `${fmtKR(sh * 1e4)} × ${fmtNum(price)} = ${fmtNum(sh * 1e4 * price)}원.` }, raw, 1);
+        const o = rounded({ q: `발행주식 ${shares(sh * 1e4)}, 주가 ${won(price)}인 회사의 시가총액은 몇 조 원?`, unit: '조 원', vars: { sh, price }, why: `${fmtKR(sh * 1e4, { comma: true })} × ${fmtNum(price)} = ${fmtNum(sh * 1e4 * price)}원.` }, raw, 1);
         if (o) return o;
       }
     },
@@ -757,17 +787,23 @@
   const est = {
     mul(R, lv) {
       const s = SIG[lv];
-      const price = sigIn(R, s, 1000, 99999);
-      const q = sigIn(R, s, 100, 9999);
-      const raw = (price * q) / 1e4;
+      let price, q, raw;
+      do {
+        price = sigIn(R, s, 1000, 99999);
+        q = sigIn(R, s, 100, 9999);
+        raw = (price * q) / 1e4;
+      } while (raw >= 1e4);
       return approx({ q: `주가 ${won(price)}인 주식 ${fmtNum(q)}주를 사면 약 몇 만 원?`, unit: '만 원', vars: { price, qty: q }, why: `${fmtNum(roundSig(price, 2))} × ${fmtNum(roundSig(q, 2))}처럼 앞자리로 어림한다.` }, raw, { rel: TOL[lv] });
     },
     pct_of(R, lv) {
       const s = SIG[lv];
-      const base = sigIn(R, s, 1000, 99999); // 억 원
-      const p = lv === 1 ? R.int(2, 30) : roundSig(R.int(11, 299) / 10, Math.min(s, 3));
-      const raw = (base * p) / 100;
-      return approx({ q: `매출 ${eok(base)}의 ${pct(p)}는 약 몇 억 원?`, unit: '억 원', vars: { base, p }, why: `1%는 ${fmtNum(roundTo(base / 100, 1))}억 원. 여기에 ${fmtNum(p)}를 곱한다.` }, raw, { rel: TOL[lv] });
+      let base, p, raw;
+      do {
+        base = sigIn(R, s, 1000, 99999); // 억 원
+        p = lv === 1 ? R.int(2, 30) : roundSig(R.int(11, 299) / 10, Math.min(s, 3));
+        raw = (base * p) / 100;
+      } while (raw >= 1e4);
+      return approx({ q: `매출 ${eok(base)}의 ${pct(p)}는 약 몇 억 원?`, unit: '억 원', vars: { base, p }, why: `1%는 ${fmtNum(roundTo(base / 100, 1))}억 원. 여기에 ${josa(fmtNum(p), '을', '를')} 곱한다.` }, raw, { rel: TOL[lv] });
     },
     fx_div(R, lv) {
       const s = SIG[lv];
@@ -781,7 +817,7 @@
       const ni = sigIn(R, s, 100, 9999); // 억 원
       const sh = sigIn(R, s, 1000, 50000); // 만 주
       const raw = (ni * 1e8) / (sh * 1e4);
-      return approx({ q: `순이익 ${eok(ni)}, 발행주식 ${fmtKR(sh * 1e4, { comma: true })}주인 회사의 EPS(주당순이익)는 약 몇 원?`, unit: '원', vars: { ni, sh }, why: `${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4)}. 억을 만으로 나누면 1만 원 단위가 된다.` }, raw, { rel: TOL[lv] });
+      return approx({ q: `순이익 ${eok(ni)}, 발행주식 ${shares(sh * 1e4)}인 회사의 EPS(주당순이익)는 약 몇 원?`, unit: '원', vars: { ni, sh }, why: `${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4, { comma: true })}. 억을 만으로 나누면 1만 원 단위가 된다.` }, raw, { rel: TOL[lv] });
     },
     pow(R, lv) {
       for (;;) {
@@ -879,7 +915,7 @@
   }
   function showOf(p) {
     if (p.tol) return '약 ' + fmtNum(roundSig(p.raw, 3)) + joinUnit(p.unit);
-    if (p.form) return fmtKR(p.answer, { comma: true }) + joinUnit(p.unit);
+    if (p.form) return krWith(fmtKR(p.answer, { comma: true }), p.unit);
     return fmtNum(p.answer, p.dp != null ? p.dp : undefined) + joinUnit(p.unit);
   }
   /** 정답을 자판으로 누른 모양(시험과 자동 풀이용). */
@@ -943,7 +979,7 @@
       if (!/^-?(\d+\.?\d*|\.\d+)$/.test(t)) return { ok: false, reason: 'parse' };
       v = Number(t);
     }
-    const close = (a, b) => Math.abs(a - b) <= 1e-9 + 1e-13 * Math.abs(b);
+    const close = (a, b) => (Number.isInteger(b) ? Math.abs(a - b) < 1e-6 : Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)));
     const scaled = (a, b) => {
       if (!a || !b) return false;
       const l = Math.log10(Math.abs(a / b));
@@ -1090,7 +1126,7 @@
     'unit.pp2bp': (v) => v.pp * 100,
     'unit.bp2pp': (v) => v.bp / 100,
     'unit.bp_add': (v) => v.r0 + v.d / 100,
-    'unit.fs_mn': (v) => (v.v * v.scale) / 1e8,
+    'unit.fs_mn': (v) => (v.v * v.scale) / v.out,
     'unit.fs_th': (v) => (v.v * v.scale) / 1e8,
     'unit.eok2jo': (v) => (v.v * v.scale) / 1e12,
     'unit.eok2usdmn': (v) => (v.w * 1e8) / v.r / 1e6,
@@ -1129,6 +1165,13 @@
     if (/  /.test(q)) out.push('빈칸 두 개');
     if (/\d{5,}/.test(q.replace(/\d{1,3}(,\d{3})+/g, ''))) out.push('쉼표 없는 큰 수');
     if (BAD_JOSA.test(q)) out.push('조사 ' + q.match(BAD_JOSA)[0]);
+    // 숫자 바로 뒤 조사(문제와 풀이 모두): 3를, 10로, 36로 같은 것
+    for (const m of (q + ' ' + p.why).matchAll(/(\d)(으로|로|을|를|은|는|이|가)(?=[\s.,?]|$)/g)) {
+      const want = m[2] === '으로' || m[2] === '로' ? ro(m[1]).slice(1) : josa(m[1], { 을: '을', 를: '을', 은: '은', 는: '은', 이: '이', 가: '이' }[m[2]], { 을: '를', 를: '를', 은: '는', 는: '는', 이: '가', 가: '가' }[m[2]]).slice(1);
+      if (want !== m[2]) out.push('숫자 뒤 조사 ' + m[0]);
+    }
+    if (/(million|billion|trillion)(는|를|가|로)(?=[\s.,?]|$)/.test(q + ' ' + p.why)) out.push('영어 단위 뒤 조사');
+    if (/(^|[^\d,.])\d{4,}(만|억|조)/.test(q + ' ' + p.why)) out.push('쉼표 없는 한글 단위');
     for (const [ac, re] of GLOSS) {
       const has = ac === 'EV' ? /EV(?!\w)/.test(q.replace(/EV\/EBITDA/g, 'X')) || /EV\(/.test(q) : q.includes(ac);
       if (has && !re.test(q)) out.push('약어 설명 없음 ' + ac);

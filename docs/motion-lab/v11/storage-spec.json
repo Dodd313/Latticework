@@ -1,0 +1,377 @@
+{
+  "spec": "latticework-storage",
+  "version": 2,
+  "date": "2026-11-21",
+  "status": "draft, owner decisions pending (see decisions)",
+  "page": "motion-lab/v11/storage.html",
+  "principles": [
+    "영단어, Latticework, 뉴스, 수리는 원본, 앱이 읽는 것, 개인 기록, 백업을 종류마다 따로 정한다.",
+    "지식의 원본은 비공개 저장소 latticework-vault 의 마크다운 노트다. docs/data/study.json 은 보관함 전체에서 다시 만드는 결과물이고 손으로 고치지 않는다.",
+    "공개 저장소에는 compile 결과(study.json)만 올라간다. 본 곳 문장(met), 드라이브 파일 id, 확인 필요 항목, 개인 낱말은 빠진다.",
+    "뉴스에는 기억 상태, 복습일, 기억 확률, 채점 칸을 어디에도 두지 않는다.",
+    "처리 여부의 기준은 노트 속성 from 이다. 장부는 보기용 기록일 뿐이다.",
+    "화면, 처리 기록, 해설, 알림 어디에도 단어장 이름(toeic, fin, gen, 토익, 금융영어, 일반회화)을 쓰지 않는다."
+  ],
+  "decisions": [
+    { "n": 1, "q": "풀이 기록을 어디에 둘까", "options": ["sheet", "firestore", "device+export"], "default": "sheet", "condition": "10분 시험(github.io 에서 Apps Script 로 한 줄 보내고 다시 받기)을 통과할 때만. 실패하면 firestore" },
+    { "n": 2, "q": "옵시디언을 쓸까", "options": ["pc-view-only", "none"], "default": "none-until-phase-3", "note": "쓰더라도 처음에는 자동 받기만 켜고 자동 커밋은 끈다" },
+    { "n": 3, "q": "새 노트와 문제를 바로 앱에 낼까", "options": ["publish-now", "hold-one-day"], "default": "publish-now" }
+  ],
+  "settledByDefault": {
+    "newsToKnowledge": "수집함에 넣은 것만 지식이 된다. 예약 작업은 기사에서 개념을 스스로 만들지 않고 후보를 처리 기록에 적을 수만 있다.",
+    "vocabRecallFromKorean": "만들지 않는다(2026-11-19 결정 유지). 문장 속 연습 권고는 기존 빈칸 유형으로 받는다.",
+    "newsReadSource": "자체 주소 빌드의 기록을 원본으로 본다. Claude 링크 빌드의 앱 데이터베이스 기록은 그대로 두고 합치지 않는다."
+  },
+  "phases": [
+    { "phase": 1, "owner": ["GitHub 비공개 저장소 latticework-vault 만들기", "예약 작업 'Latticework 수집함 정리' 만들기(웹 화면 claude.ai/code/routines, 저장소 둘, Google Drive와 Google Docs 커넥터, main 푸시 허용) 또는 드라이브가 붙은 세션에서 Claude가 만들기", "'지금 실행' 한 번 뒤 실행 기록에서 드라이브 도구를 실제로 불렀는지 확인"], "claude": ["scripts/compile-vault.mjs", "scripts/study-check.mjs", "기존 개념 42개, 문제 168개, 표현 255개를 노트로 옮기기"] },
+    { "phase": 2, "precondition": "Apps Script 10분 시험 통과", "owner": ["스크립트 코드 붙여넣기와 배포", "앱 설정에 열쇠 문자열 입력"], "claude": ["시트 파일과 탭을 시트 커넥터로 미리 만들기", "기준점(base) 올리기", "앱의 보내기와 다시 계산"] },
+    { "phase": 3, "optional": true, "owner": ["PC에 옵시디언과 Git, Obsidian Git 설치(자동 받기만)"] }
+  ],
+
+  "ids": {
+    "vocabLexeme": { "legacy": "지금 id 그대로(fin-0008, gen-0012, toeic-0101)", "new": "voc-<철자를 소문자, 공백은 하이픈>", "example": "voc-subject-to" },
+    "vocabSense": { "rule": "표제어 id 그대로가 s1. 둘째 뜻부터 <표제어 id>#s<N>. 뜻 번호는 지운 뒤에도 다시 쓰지 않는다.", "examples": ["voc-subject-to", "voc-subject-to#s2"], "legacyTwoMeanings": "옛 항목의 ko 에 뜻이 둘 적혀 있으면 기록을 이어받는 쪽은 s1" },
+    "concept": { "legacy": "지금 id 그대로(capm, wacc)", "new": "<분과 slug>-<용어 slug>", "example": "fin-valuation-ddm", "rule": "한 번 쓴 id는 다른 뜻으로 쓰지 않는다" },
+    "node": { "pattern": "n:<slug>", "example": "n:fin-valuation" },
+    "latQuestion": { "pattern": "<개념 id>-<번호>", "example": "fin-valuation-ddm-3" },
+    "article": { "pattern": "YYYY-MM-DD-<a|b>", "example": "2026-11-18-a" },
+    "numeracyField": ["read", "fx", "ratio", "growth", "pv", "unit", "est"],
+    "rid": { "pattern": "<기기 4자>-<밀리초 시각 36진>-<순번>", "rule": "다시 보내도 같은 값. 다시 계산과 백업에서 rid로 중복을 거른다" }
+  },
+
+  "from": {
+    "desc": "수집함에서 온 모든 노트와 met 줄에 붙는 출처 표시. 같은 from 으로 만든 노트가 있으면 다시 만들지 않는다.",
+    "fields": {
+      "file": { "type": "string", "desc": "드라이브 파일 id" },
+      "mod": { "type": "string", "format": "date-time", "desc": "읽을 때의 고친 시각" },
+      "part": { "type": "string", "optional": true, "desc": "계속 쓰는 메모 문서의 문단 지문(sha1 앞 8자)" }
+    },
+    "example": { "file": "1AbC...xyz", "mod": "2026-11-20T22:41:00Z" }
+  },
+
+  "vocab": {
+    "memoryUnit": "sense",
+    "storage": {
+      "source": "vault 영단어/단어/<철자>.md, 영단어/구문/<철자>.md, 문제/영단어/<표제어 id>.md",
+      "appReads": "docs/data/study.json vocab[] (뜻 하나가 한 줄)",
+      "personalRecord": "시트 voc 탭",
+      "backup": "vault _기록/voc/YYYY-MM.csv"
+    },
+    "note": {
+      "path": "영단어/{단어|구문}/<term>.md. 같은 철자의 다른 품사는 '<term> (동사).md'",
+      "frontmatter": {
+        "kind": { "const": "vocab" },
+        "id": { "type": "string", "required": true },
+        "term": { "type": "string", "required": true },
+        "type": { "enum": ["단어", "구문"], "required": true, "rule": "괄호를 뺀 뒤 띄어쓰기가 있으면 구문. 넣을 때 한 번 정한다" },
+        "expr": { "type": "boolean", "default": false, "desc": "통째로 쓰는 구문 표시. 문제 고를 때만" },
+        "pool": { "enum": ["toeic", "fin", "gen"], "required": true, "internal": true, "desc": "보기 묶음과 새 항목 순번용 내부 값. 화면, 처리 기록, 해설, 알림에 쓰지 않는다. 옛 deck 값을 그대로 옮긴다" },
+        "legacy": { "type": "object", "optional": true, "desc": "옮긴 항목만. { group, level }. 새 항목에는 두지 않는다" },
+        "related": { "type": "array", "items": "표제어 id 또는 개념 id", "optional": true },
+        "from": { "$ref": "#/from", "optional": true },
+        "created": { "type": "string", "format": "date" },
+        "status": { "enum": ["active", "retired"] }
+      },
+      "body": {
+        "senseHeading": "## s<N> · <품사> · <우리말 뜻>",
+        "senseLines": {
+          "def": { "required": true, "desc": "영어 정의 한 줄" },
+          "ex": { "required": true, "min": 1, "max": 2, "desc": "신상이 없는 새 문장. 뜻이 문맥만으로 정해져야 한다" },
+          "col": { "optional": true, "desc": "쉼표로 나눈 연어" },
+          "mistake": { "optional": true, "repeatable": true, "format": "<틀린 문장> | <맞는 문장> | <이유 한 줄>" }
+        },
+        "sections": ["## 본 곳 (- 날짜 · 출처 종류 · \"문장\" · from:<파일 id>)", "## 관련 ([[링크]])"],
+        "maxSenses": 3
+      },
+      "example": "---\nkind: vocab\nid: voc-subject-to\nterm: subject to\ntype: 구문\nexpr: false\npool: fin\nfrom: { file: 1AbC, mod: 2026-11-20T22:41:00Z }\ncreated: 2026-11-21\nstatus: active\n---\n## s1 · 형용사구 · ~의 대상이 되다\n- def: likely to be affected by something, or required to follow a rule or pay a charge\n- ex: All overseas transfers are subject to a small fee.\n- col: subject to tax, subject to change\n## s2 · 형용사구 · ~을 조건으로\n- def: happening only if something else happens or is approved first\n- ex: The merger is subject to approval by the competition regulator.\n- col: subject to approval, subject to availability\n- mistake: The merger is subjected to approval. | The merger is subject to approval. | 조건을 말할 때는 수동태가 아니다\n## 본 곳\n- 2026-11-21 · 기사 · \"The deal is subject to regulatory approval.\" · from:1AbC\n"
+    },
+    "appRow": {
+      "desc": "compile 이 뜻 하나를 study.json vocab 한 줄로 펼친다. 지금 src/study.ts 의 Vocab 모양에 lex, sid 를 더한 것",
+      "fields": {
+        "id": "뜻 id (s1 은 표제어 id 그대로)",
+        "lex": "표제어 id",
+        "sid": "s1, s2 ...",
+        "deck": "note.pool 값. 내부용",
+        "term": "철자",
+        "pos": "품사",
+        "ko": "우리말 뜻",
+        "def": "영어 정의",
+        "ex": "예문 하나",
+        "level": "legacy.level 또는 빈 문자열",
+        "group": "legacy.group (선택)",
+        "kind": "단어 | 구문",
+        "col": "연어 (선택)",
+        "mis": "[{ bad, good, why }] (선택, 해설과 빈칸 오답에만)"
+      },
+      "excluded": ["met", "본 곳", "from", "related", "status != active"]
+    },
+    "questionTypes": {
+      "allowed": [
+        { "t": "meaning", "desc": "예문 속 표현의 우리말 뜻 4지. 오답 하나는 같은 표제어의 다른 뜻" },
+        { "t": "define", "desc": "영어 정의에 맞는 표현 4지. 오답에 비슷한 말과 흔한 실수" },
+        { "t": "gap", "desc": "예문 빈칸 4지. mistake 가 있으면 틀린 표현을 오답으로. 정답이 둘 이상 가능하면 버린다" }
+      ],
+      "forbidden": ["자기 말로 설명(rc)", "격식 고르기", "우리말에서 영어 떠올리기"],
+      "perSense": "2~3",
+      "file": "문제/영단어/<표제어 id>.md (kind: questions, of, made, note_hash)"
+    },
+    "scheduling": { "algo": "FSRS 4.5 (src/study.ts review)", "newPerDay": 6, "reviewCap": 10, "rule": "같은 표제어의 두 뜻은 같은 날 처음 내지 않는다" }
+  },
+
+  "latticework": {
+    "memoryUnit": "concept",
+    "storage": {
+      "source": "vault 지식/<학문>/<분과>/<표시명>.md, 문제/지식/<개념 id>.md, _시스템/분류.json",
+      "appReads": "docs/data/study.json concepts[], questions[], nodes[]",
+      "personalRecord": "시트 lat 탭",
+      "backup": "vault _기록/lat/YYYY-MM.csv"
+    },
+    "note": {
+      "path": "지식/<학문>/<분과>/<name>.md. 보관함 전체에서 이름이 겹치면 '<name> (<분과 짧은 이름>).md'. 표시명이 바뀌어도 파일 이름은 그대로 두고 aliases 만 고친다",
+      "frontmatter": {
+        "kind": { "const": "concept" },
+        "id": { "type": "string", "required": true },
+        "name": { "type": "string", "required": true, "desc": "소유자가 쓴 말 먼저" },
+        "short": { "type": "string", "optional": true },
+        "en": { "type": "string", "optional": true },
+        "aliases": { "type": "array", "optional": true },
+        "node": { "type": "string", "pattern": "^n:", "required": true, "desc": "분류의 정답. 폴더는 맞춰 둘 뿐" },
+        "seed": { "type": "string", "optional": true, "desc": "주제 씨앗. 같은 씨앗 개념이 3개면 주제 마디를 만든다" },
+        "links": { "type": "array", "max": 3, "items": "'<기반|응용|유사|대비>: [[이름]]'" },
+        "vocab": { "type": "array", "optional": true, "items": "표제어 id" },
+        "check": { "enum": ["일반 지식", "원자료에서 확인", "확인 필요"], "required": true, "rule": "확인 필요는 앱에 내지 않는다" },
+        "from": { "$ref": "#/from", "optional": true },
+        "created": { "type": "string", "format": "date" },
+        "status": { "enum": ["active", "retired"] }
+      },
+      "bodySections": [
+        { "h": "한 줄 정의", "required": true, "rule": "한 문장. 같은 분과 후보에서 이 문장이 같으면 같은 개념" },
+        { "h": "설명", "required": true, "rule": "3~6문장" },
+        { "h": "조건과 가정", "required": true },
+        { "h": "헷갈리는 이웃", "required": true, "rule": "2~3개. 구분 문제 재료" },
+        { "h": "예", "required": true, "rule": "암산 가능한 숫자 예. 적용 문제 재료" },
+        { "h": "본 곳", "required": true, "rule": "날짜 · 출처 종류 · 드라이브 파일 id 또는 주소. 문제와 study.json 에 쓰지 않는다" },
+        { "h": "관련", "optional": true }
+      ],
+      "tags": "본문과 문제의 태그는 <sub>, <sup> 만"
+    },
+    "nodeNote": {
+      "path": "지식/<학문>/_<학문>.md, 지식/<학문>/<분과>/_<분과>.md, 지식/<학문>/<분과>/_주제 <이름>.md",
+      "frontmatter": ["kind: node", "id (n:...)", "rank (discipline|branch|topic)", "name", "short", "en", "parent", "color, domain (학문만)", "created", "status"]
+    },
+    "appRows": {
+      "concept": "{ id, name, en, node } (지금 Concept 모양)",
+      "question": "{ id, cid, lv, t, q, pre?, o?, a, h?, w? } (지금 LatQuestion 모양. lv 1~4, t mc|ox)",
+      "node": "{ id, ko, short, en, rank, parent, color?, domain? } (앱에 개념이 있는 마디만)"
+    },
+    "questionTypes": {
+      "allowed": [
+        { "lv": 1, "name": "인식", "desc": "정의를 보고 이름, 이름을 보고 정의" },
+        { "lv": 2, "name": "특징", "desc": "성립 조건, 성질. ox 또는 4지" },
+        { "lv": 3, "name": "구분", "desc": "헷갈리는 이웃과 가르기" },
+        { "lv": 4, "name": "적용", "desc": "암산 수준 계산이나 장면 판단" }
+      ],
+      "forbidden": ["lv 5", "t rc"],
+      "perConcept": "4~7, 네 유형이 모두 있어야 앱에 낸다",
+      "migration": "지금 study.json 문제 210개 가운데 lv 5 rc 42개를 뺀 168개만 옮긴다"
+    },
+    "classification": {
+      "order": ["중복 확인", "판례 R01~R23", "맥락 규칙", "정의처 규칙"],
+      "nodes": "학문과 분과는 없으면 만든다. 주제는 같은 씨앗 개념이 3개일 때. 새 학문은 집이 분명할 때만, 애매하면 보류하고 처리 기록에 여쭌다",
+      "unlock": "마디 만들기와 해금은 다르다. 해금은 기기에서 계산(src/knowledge.ts)",
+      "log": "_시스템/분류.json { nodes[], events[{ t, kind: create|move|rename, id, from?, to? }] }"
+    },
+    "scheduling": { "algo": "FSRS 4.5", "perDay": 5, "newPerDay": 3 }
+  },
+
+  "news": {
+    "memoryUnit": null,
+    "forbiddenFields": ["card", "due", "stability", "difficulty", "recall", "g"],
+    "storage": {
+      "source": "앱 데이터베이스 days/{YYYY-MM-DD} (아침 발행 작업이 쓴다)",
+      "appReads": "Claude 링크 빌드는 앱 데이터베이스, 자체 주소 빌드는 docs/data/feed.json(최근 3일, 동기화 세션만 커밋)",
+      "personalRecord": "시트 news 탭 (원본은 자체 주소 빌드). Claude 링크 빌드의 data/users/{본인} 은 그대로 두고 합치지 않는다",
+      "backup": "feed.json 의 git 커밋 역사(매일 커밋되어 모든 날이 남는다), vault _기록/news/YYYY-MM.csv. 보관함에 기사 노트 사본은 두지 않는다"
+    },
+    "article": {
+      "desc": "src/types.ts Article 그대로",
+      "fields": {
+        "id": "YYYY-MM-DD-a",
+        "date": "YYYY-MM-DD",
+        "title": "원문 제목",
+        "gist": "한 줄",
+        "source": "매체",
+        "url": "원문 주소",
+        "publishedAt": "선택",
+        "minutes": "읽는 시간",
+        "summary": "3문장",
+        "body": "풀어 쓴 문단들. 원문 문장을 옮기지 않는다",
+        "links": "[{ kind, refDate, refArticleId, refTitle, text }]",
+        "quiz": "[{ q, options, answer, explain }] 2문항",
+        "threadId": "선택", "threadName": "선택", "threadOrder": "선택", "isNewThread": "선택"
+      }
+    },
+    "toKnowledge": "기사 속 말은 소유자가 수집함에 넣은 것만 영단어나 개념이 된다. 그때 노트의 본 곳에 기사 id를 적는다"
+  },
+
+  "numeracy": {
+    "memoryUnit": null,
+    "desc": "문제는 날짜와 분야 씨앗으로 날마다 새로 만든다(motion-lab/v11/numeracy-gen.js). 문제와 답은 저장하지 않고 세트 결과만 남긴다. FSRS 를 쓰지 않는다",
+    "storage": {
+      "source": "생성기 코드(src/numeracy.ts 로 옮길 것)",
+      "appReads": "없음(기기에서 생성)",
+      "personalRecord": "시트 num 탭. 기기 안에는 user.numeracy",
+      "backup": "vault _기록/num/YYYY-MM.csv"
+    },
+    "deviceState": { "v": 1, "level": { "read": 2, "fx": 1 }, "sessions": "[set]" },
+    "set": {
+      "fields": {
+        "d": "한국 날짜",
+        "k": "분야(read|fx|ratio|growth|pv|unit|est)",
+        "lv": "수준 1~4",
+        "n": "문제 수(보통 6)",
+        "ok": "맞힌 수",
+        "med": "맞힌 문제 시간의 중앙값(초)",
+        "best": "맞힌 문제 가운데 가장 빠른 시간(초)",
+        "sum": "모든 문제 시간의 합(초)",
+        "extra": "추가 학습이면 1 (선택)"
+      },
+      "example": { "d": "2026-11-21", "k": "fx", "lv": 2, "n": 6, "ok": 5, "med": 11.2, "best": 7.4, "sum": 74.3 }
+    },
+    "inbox": "수집함의 계산 요령은 요령이 한 문장 정의를 가진 개념이면 Latticework 개념으로 넣는다. 계산 연습 요청은 처리 기록에 적고 생성기 분야 추가 후보로 여쭌다"
+  },
+
+  "sheet": {
+    "desc": "구글 시트 하나 'Latticework 기록'. 보내는 Apps Script 웹 앱은 하나를 같이 쓰되 탭은 종류마다 나눈다. 덧붙이기만 하고 고치거나 지우지 않는다(state 탭 제외)",
+    "commonColumns": { "rid": "줄 고유 번호", "t": "ISO 시각(UTC)", "dev": "기기 이름" },
+    "tabs": {
+      "voc": { "columns": ["rid", "t", "dev", "u", "q", "ok", "n", "sec", "g", "r", "goal", "asg"], "desc": "u 뜻 id, q 문제 키, g 1 틀림 2 힌트 보고 맞힘 3 맞힘, r 다시 나온 문제면 1, goal 그날 vocGoal, asg 할당이면 1 추가 학습이면 0" },
+      "lat": { "columns": ["rid", "t", "dev", "u", "q", "ok", "n", "sec", "g", "r", "goal", "asg"], "desc": "u 개념 id, goal 그날 latGoal" },
+      "news": { "columns": ["rid", "t", "dev", "kind", "aid", "item", "pick", "text"], "desc": "kind read|quiz|week|memo. read 는 aid 와 그때 제목(text). quiz 와 week 는 item 문항 번호, pick 고른 보기. memo 는 text. 채점이나 기억 칸은 없다" },
+      "num": { "columns": ["rid", "t", "dev", "d", "k", "lv", "n", "ok", "med", "best", "sum", "extra"] },
+      "flag": { "columns": ["rid", "t", "dev", "q", "why", "done"], "desc": "why wrong|unclear|known|remove. done 은 처리한 날(예약 작업이 채운다)" },
+      "inbox": { "columns": ["rid", "t", "dev", "text", "aid"], "desc": "앱의 '수집함에 넣기'(2단계 이후). 예약 작업이 _수집함 파일과 같이 처리한다" },
+      "state": { "columns": ["key", "value", "t"], "desc": "settings, seen, numeracy level. 마지막 값이 이긴다" },
+      "base": { "columns": ["kind", "id", "json", "t"], "desc": "시작할 때 한 번 올리는 기준점. kind card|day|xp. 다시 계산은 기준점에서 시작해 그 뒤 기록만 더한다" }
+    },
+    "send": "답할 때마다 바로 보낸다. 실패하면 기기 안 보낼 목록에 두고 다음 답, 앱 시작, 화면 복귀 때 다시. Content-Type text/plain, 열쇠 문자열을 본문에 넣는다",
+    "script": "doPost 에 LockService 잠금. 열쇠가 틀리면 거절. rid 중복은 막지 않고 읽는 쪽이 거른다",
+    "capacity": "하루 약 100줄 × 약 12칸이면 1년 약 44만 칸. 1천만 칸 한도까지 약 20년. 해마다 새 파일로 나누는 것을 권한다",
+    "key": "열쇠 문자열은 앱 설정과 드라이브 Latticework/_시스템 문서 한 곳에 적어 둔다"
+  },
+
+  "recompute": {
+    "start": "base 탭의 기준점",
+    "rules": [
+      "rid 로 중복을 거른 뒤 t 순서로 src/study.ts review 를 적용한다",
+      "r = 1 줄은 기억 상태를 바꾸지 않는다. r 표시 전의 줄은 같은 날 같은 문제의 두 번째 줄을 다시 나온 문제로 본다",
+      "하루 기록(days)의 목표와 할당 여부는 줄의 goal, asg 로 채운다",
+      "경험치와 처음 답한 날(first)도 기록에서 다시 만든다"
+    ],
+    "trigger": "앱 시작 때 기기 안 마지막 줄 시각과 시트 마지막 줄 시각을 비교해 시트가 더 새면",
+    "deadline": "기기 안 기록이 LOG_CAP 6000 줄에 닿기 전에 기준점을 올린다"
+  },
+
+  "inbox": {
+    "folder": "드라이브 Latticework/_수집함 (바로 아래 파일만). 하위 폴더 처리됨, 확인 필요",
+    "routine": {
+      "name": "Latticework 수집함 정리",
+      "cron": "CRON_TZ=Asia/Seoul 13 5 * * *",
+      "repos": ["Dodd313/latticework-vault", "Dodd313/Latticework"],
+      "connectors": ["Google Drive", "Google Docs", "Google Sheets (2단계부터)"],
+      "push": false,
+      "notice": "처리 요약 한 줄을 앱 데이터베이스 inbox/{YYYY-MM-DD} 에 적고, 07:22 아침 알림이 여쭐 것이 있는 날만 그 줄을 붙인다(아침 알림 지시문 수정 필요)",
+      "commitPrefix": "[수집함 정리]"
+    },
+    "caps": { "files": 10, "newSenses": 30, "newConcepts": 5, "bigPdf": 1, "skipIfModifiedWithinMin": 30 },
+    "steps": [
+      { "n": 0, "name": "도구 확인", "rule": "드라이브 목록 읽기를 한 번 불러 본다. 실패하면 아무것도 쓰지 않고 끝 줄만 남기고 멈춘다" },
+      { "n": 1, "name": "어제 끝 줄 확인", "rule": "어제 처리 기록에 끝 줄이 없으면 오늘 요약에 그 사실을 적는다" },
+      { "n": 2, "name": "문제 이상함", "rule": "2단계부터. 시트 flag 탭의 done 이 빈 줄을 먼저 처리. wrong, unclear 는 고치거나 retired. known 은 손대지 않는다(기기가 복습을 미룬다). remove 는 retired" },
+      { "n": 3, "name": "목록", "rule": "오래된 것부터 caps.files 까지. 최근 30분 안에 고친 파일은 건너뛴다. 목록의 etag 를 적어 둔다" },
+      { "n": 4, "name": "건너뛰기", "rule": "같은 from(file, mod)으로 만든 노트가 보관함에 있으면 그 파일은 옮기기만 한다" },
+      { "n": 5, "name": "읽기와 나누기", "rule": "글, 문서, PDF, 그림. 링크는 받아 보고 막히면 제목과 링크로만 처리하거나 보류" },
+      { "n": 6, "name": "분류", "enum": ["영단어", "개념", "뉴스 관련", "수리", "불명확"] },
+      { "n": 7, "name": "합치기", "rule": "있는 표제어나 개념이면 본 곳과 예문만 더한다. 소유자가 고친 노트(머리말 없는 커밋이 마지막)는 본 곳 줄만 덧붙인다" },
+      { "n": 8, "name": "펼치기", "rule": "정해진 모양으로. 일반 지식이나 원자료에 있는 것만, 아니면 check 확인 필요" },
+      { "n": 9, "name": "문제와 검사", "rule": "만든 뒤 따로 한 번 더 읽는 검사와 scripts/study-check.mjs. 떨어지면 한 번 다시, 또 떨어지면 보류" },
+      { "n": 10, "name": "보관함 커밋", "rule": "commitPrefix 를 붙여 main 에 푸시. git pull --rebase, 세 번까지" },
+      { "n": 11, "name": "옮기기", "rule": "보관함 푸시가 성공한 파일만 처리됨으로(update_file 의 부모 바꾸기, 3번의 etag). etag 가 바뀌었으면 옮기지 않는다. 불명확과 보류는 확인 필요로. 지우기와 휴지통은 쓰지 않는다" },
+      { "n": 12, "name": "compile", "rule": "보관함 전체에서 study.json 을 다시 만들고 검사기와 개인 낱말 검사를 통과하면, 공개 저장소의 것과 다를 때만 main 에 커밋. feed.json, latti.json 은 건드리지 않는다. 실패해도 다음 실행이 다시 만든다" },
+      { "n": 13, "name": "백업", "rule": "시트 각 탭의 어제 줄을 rid 로 걸러 _기록/<탭>/YYYY-MM.csv 에 덧붙인다(2단계 이후)" },
+      { "n": 14, "name": "처리 기록", "rule": "보관함 _시스템/처리 기록/YYYY-MM-DD.md, 드라이브 문서 '수집함 처리 기록' 맨 위. 마지막 줄은 끝 줄" }
+    ],
+    "continuousDoc": "소유자가 정한 '계속 쓰는 메모' 문서 하나는 옮기지 않고, 문단 지문(from.part)이 없는 새 문단만 처리한다",
+    "ledger": { "path": "_시스템/수집함 장부.jsonl", "role": "보기용", "row": { "t": "처리 시각", "file": "드라이브 파일 id", "name": "파일 이름", "mod": "고친 시각", "result": "done|held|unclear|failed", "made": "[노트 id]", "why": "보류 이유(선택)" } },
+    "runLog": {
+      "path": "_시스템/처리 기록/YYYY-MM-DD.md",
+      "sections": ["파일별 결과(만든 노트, 합친 노트, 새 마디, 보류와 이유)", "여쭐 것", "개념 후보(기사나 표현에서 본 것)", "첫 3주 동안은 새 문제 전체", "앱에 다 나올 때까지 남은 날"],
+      "endLine": {
+        "format": "끝 줄: {json}",
+        "fields": {
+          "date": "YYYY-MM-DD",
+          "tools": "ok|no-drive|no-docs",
+          "listed": "목록의 파일 수",
+          "done": "처리됨으로 옮긴 수",
+          "held": "보류 수",
+          "unclear": "확인 필요 수",
+          "newSenses": "새 뜻 수",
+          "newConcepts": "새 개념 수",
+          "flags": "처리한 문제 이상함 수",
+          "vault": "보관함 커밋 번호 또는 none",
+          "study": "공개 저장소 커밋 번호, same, failed 가운데 하나",
+          "backlogDays": "앱에 다 나올 때까지 남은 날(새 뜻 ÷ 6, 새 개념 ÷ 3 가운데 큰 값)",
+          "ask": "여쭐 것 수"
+        },
+        "example": "끝 줄: {\"date\":\"2026-11-22\",\"tools\":\"ok\",\"listed\":1,\"done\":1,\"held\":0,\"unclear\":0,\"newSenses\":14,\"newConcepts\":0,\"flags\":0,\"vault\":\"a1b2c3d\",\"study\":\"e4f5a6b\",\"backlogDays\":3,\"ask\":1}"
+      },
+      "backlogRule": "backlogDays 가 14를 넘으면 처리 상한을 낮추거나 무엇부터 낼지 여쭌다"
+    }
+  },
+
+  "compile": {
+    "script": "scripts/compile-vault.mjs (새로 만들 것)",
+    "in": "latticework-vault 전체(status active, check 가 확인 필요가 아닌 것)",
+    "out": "docs/data/study.json { version, updatedAt, vault: <보관함 커밋 번호>, nodes, concepts, questions, vocab }",
+    "drop": ["본 곳", "met", "from", "related", "legacy 외 내부 메모", "check 확인 필요", "status retired(문제는 retired 표시로 남긴다)"],
+    "privacy": "vault _시스템/개인 낱말.txt 의 낱말(학교, 복무처 등)이 결과에 있으면 실패",
+    "split": "파일이 1MB를 넘으면 study-vocab.json 과 study-lat.json 으로 나눈다"
+  },
+
+  "checker": {
+    "script": "scripts/study-check.mjs (새로 만들 것)",
+    "rules": [
+      "lv 5, t rc 문제 금지. 영단어 rc, 격식, 우리말에서 영어 유형 금지",
+      "태그는 <sub>, <sup> 만. LaTeX, HTML 엔티티 금지",
+      "강의, 교수, 수업, 강의자료, 도표 번호, 예제 번호, 단원 같은 출처 말 금지",
+      "보기 4개, 정답 하나, 보기 중복 금지",
+      "힌트에 정답 문자열 금지",
+      "긴 줄표, 화살표 문자 금지",
+      "처리 기록, 해설, 알림 문구에 단어장 이름(toeic, fin, gen, 토익, 금융영어, 일반회화) 금지",
+      "개념은 네 유형(lv 1~4)이 모두 있어야 낸다",
+      "개인 낱말 금지"
+    ]
+  },
+
+  "vault": {
+    "repo": "Dodd313/latticework-vault (비공개, 소유자가 만든다)",
+    "tree": [
+      "README.md",
+      "영단어/단어/*.md",
+      "영단어/구문/*.md",
+      "지식/<학문>/_<학문>.md",
+      "지식/<학문>/<분과>/_<분과>.md",
+      "지식/<학문>/<분과>/_주제 <이름>.md",
+      "지식/<학문>/<분과>/<개념>.md",
+      "문제/영단어/<표제어 id>.md",
+      "문제/지식/<개념 id>.md",
+      "_기록/{voc,lat,news,num}/YYYY-MM.csv",
+      "_시스템/분류.json",
+      "_시스템/수집함 장부.jsonl",
+      "_시스템/처리 기록/YYYY-MM-DD.md",
+      "_시스템/개인 낱말.txt",
+      "_시스템/규칙/ (지시문 원본)"
+    ],
+    "obsidian": "선택. 쓰면 PC에서 Obsidian Git 자동 받기만 켜고 자동 커밋은 끈다. 고칠 것은 수집함에 '이 노트 고쳐 줘'. 휴대폰판은 쓰지 않는다"
+  }
+}

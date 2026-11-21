@@ -1,6 +1,6 @@
 // 서비스 워커: 인터넷이 될 때는 항상 새 파일을 받고, 끊겼을 때만 보관본을 쓴다.
-const CACHE = 'lw-shell-v3';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'];
+const CACHE = 'lw-shell-v4';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/favicon-32.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -44,7 +44,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(data.title || '오늘의 두 건이 준비됐습니다', {
       body: data.body || '',
       icon: './icons/icon-192.png',
-      badge: './icons/icon-192.png',
+      badge: './icons/badge-96.png',
       tag: 'lw-daily',
       data: { url: data.url || './' },
     }),
