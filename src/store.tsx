@@ -83,6 +83,12 @@ const SYNC_KEY = 'lw.sync.v1';
 const SYNC_Q_KEY = 'lw.sync.q.v1';
 const SYNC_EVERY = 3 * 60 * 1000;
 const SYNC_BATCH_ROWS = 400;
+/**
+ * 2026-11-21 사용자 결정: 시트로는 학습 기록(영단어, Latticework 풀이와 수리 세트)만 보낸다.
+ * 상태 줄에도 학습 기록(날짜별 푼 수, 경험치, 기억 상태 사본, 수리 수준과 할당)만 담고,
+ * 읽은 기사, 퀴즈 답, 메모, 본 해금 같은 개인 기록(user)은 뉴스와 지식 저장 구조를 정한 뒤에 다시 넣는다.
+ */
+const SYNC_USER_STATE = false;
 const SYNC_BATCH_SETS = 300;
 const BEACON_MAX = 60000;
 // Latti 가 한 줄을 보여 준 시각(줄 id → 시각). 기기에만 둔다. 30일 지난 것은 버린다.
@@ -725,7 +731,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const st = studyRef.current;
     const nm = numRef.current;
     if (!Object.keys(st.cards).length && !nm.sessions.length && !Object.keys(userRef.current.read).length) return null;
-    const body = { v: 1 as const, date: todayKST(), device: c.device, user: userRef.current, study: { start: st.start, days: st.days, xp: st.xp, cards: st.cards }, num: { start: nm.start, level: nm.level, days: nm.days } };
+    const body = { v: 1 as const, date: todayKST(), device: c.device, user: SYNC_USER_STATE ? userRef.current : null, study: { start: st.start, days: st.days, xp: st.xp, cards: st.cards }, num: { start: nm.start, level: nm.level, days: nm.days } };
     const key = hash53(JSON.stringify(body));
     if (key === c.snapKey) return null;
     return { snap: { ...body, at: new Date().toISOString() }, key };
@@ -933,7 +939,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // 개인 기록(읽은 기사, 퀴즈, 본 해금 등): 기기별 마지막 상태를 차례로 합친다.
     let u = userRef.current;
-    for (const sn of snaps) u = mergeUser(u, sn.user);
+    for (const sn of snaps) if (sn.user) u = mergeUser(u, sn.user);
     if (u !== userRef.current) {
       userRef.current = u;
       setUser(u);

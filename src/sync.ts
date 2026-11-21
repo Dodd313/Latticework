@@ -31,7 +31,8 @@ export type Snapshot = {
   date: string;
   at: string;
   device: string;
-  user: UserData;
+  /** 개인 기록. 지금은 보내지 않는다(null). */
+  user: UserData | null;
   /** cards 는 기억 상태의 사본. 풀이 기록이 빠진 항목(기기 기록이 6,000줄을 넘어 앞이 잘린 경우 등)을 살리는 데만 쓴다. */
   study: { start: string; days: Record<string, StudyDay>; xp: number; cards?: Record<string, Card> };
   num: { start: string; level: Record<string, number>; days: Record<string, NumDay> };
@@ -182,7 +183,7 @@ export async function sheetAll(url: string): Promise<SheetAll> {
     if (Array.isArray(j.rows)) rows.push(...j.rows);
     if (page === 0) {
       sets = Array.isArray(j.sets) ? j.sets : [];
-      snapshots = Array.isArray(j.snapshots) ? j.snapshots.filter((s: any) => s && typeof s === 'object' && s.user) : [];
+      snapshots = Array.isArray(j.snapshots) ? j.snapshots.filter((s: any) => s && typeof s === 'object' && (s.user || s.study || s.num)) : [];
     }
     if (j.next == null || !(Number(j.next) > after)) break;
     after = Number(j.next);
