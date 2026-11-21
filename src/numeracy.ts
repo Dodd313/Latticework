@@ -306,14 +306,21 @@ function approx(o: Draft, raw: number, tol: Tol): Draft {
 
 // 수준 1, 2 는 암산으로 5~15초에 풀리게 만든다(소유자 결정 2026-11-21: "100/6=16.66 이 정도는 할 수 있다").
 //  - 곱하고 나누는 수는 0 이 아닌 숫자가 한두 개(3억 2,000만, 4,500달러, 1,400원)
-//  - 환율은 1달러 1,300 / 1,400 / 1,500원, 100엔 900원. 비율은 5, 10, 15, 20, 25, 50% 같은 수
+//  - 환율은 50원 간격(1달러 1,250~1,550원, 100엔 850~1,000원, 1유로 1,400~1,700원). 비율은 5, 10, 15, 20, 25, 50% 같은 수
 //  - 나눗셈은 나누는 수가 한 자리 크기(600, 7,000)라 답이 짧다. 반올림 자리는 문제에 적는다
+//  - 같은 규칙 안에서 숫자 조합은 유형마다 500 가지 이상(scripts/numeracy-test.mjs 5번이 센다). 자주 풀어도 답을 외울 수 없게(2026-11-21)
 // 수준 3, 4 는 더 어렵지만, 곱하고 나누는 수는 앞자리 두 개(2,700억, 1,450원)까지만 쓴다. 손으로 긴 곱셈을 할 일은 없다.
 type Cur = 'usd' | 'jpy' | 'eur';
+/** 수준 1, 2 의 환율(50원 간격). 1달러 1,250~1,550원, 100엔 850~1,000원, 1유로 1,400~1,700원 */
+const RATES12: Record<Cur, number[]> = {
+  usd: [1250, 1300, 1350, 1400, 1450, 1500, 1550],
+  jpy: [850, 900, 950, 1000],
+  eur: [1400, 1450, 1500, 1550, 1600, 1650, 1700],
+};
 const RATE: Record<Cur, (R: Rng, lv: number) => number> = {
-  usd: (R, lv) => (lv <= 2 ? R.pick([1300, 1400, 1500]) : R.step(1300, 1500, 50)),
-  jpy: (R, lv) => (lv <= 2 ? 900 : R.pick([900, 1000])), // 100엔당 원
-  eur: (R, lv) => (lv <= 2 ? R.pick([1500, 1600]) : R.step(1450, 1650, 50)),
+  usd: (R, lv) => (lv <= 2 ? R.pick(RATES12.usd) : R.step(1300, 1500, 50)),
+  jpy: (R, lv) => (lv <= 2 ? R.pick(RATES12.jpy) : R.pick([900, 1000])), // 100엔당 원
+  eur: (R, lv) => (lv <= 2 ? R.pick(RATES12.eur) : R.step(1450, 1650, 50)),
 };
 const RATE_TXT: Record<Cur, (r: number) => string> = {
   usd: (r) => `1달러가 ${fmtNum(r)}원`,
@@ -335,21 +342,58 @@ const few = (x: number, s = 3) => roundSig(x, s) === x;
 /** 0 이 아닌 숫자가 하나: 1~9 에 자리 하나를 곱한다(300, 4,000) */
 const one = (R: Rng, places: number[]) => R.int(1, 9) * R.pick(places);
 
+// 숫자 조합 늘리기(소유자 결정 2026-11-21: "난이도는 그대로, 숫자는 외울 수 없게").
+// 유형마다 난이도 규칙(앞자리 수, 친한 비율, 똑 떨어지는 답)을 지키는 조합을 미리 늘어놓고 그 안에서 고르게 뽑는다.
+// 자릿수(10 의 거듭제곱)는 난이도를 바꾸지 않으므로 넓게 쓴다: 1,000만 원에서 90조 원까지.
+/** 앞자리 m 에 10 의 거듭제곱을 곱해 [lo, hi) 에 드는 수들. 3 이면 30, 300, 3,000, ... */
+function scales(m: number, lo: number, hi: number): number[] {
+  const out: number[] = [];
+  for (let p = 1; m * p < hi; p *= 10) if (m * p >= lo) out.push(m * p);
+  return out;
+}
+/** 조합 목록은 한 번만 만든다(순수 함수라 결과가 같다). */
+const LISTS = new Map<string, unknown>();
+function listOf<T>(key: string, build: () => T): T {
+  if (!LISTS.has(key)) LISTS.set(key, build());
+  return LISTS.get(key) as T;
+}
+/** 묶음을 먼저 고르고(비율, 환율 같은 것) 그 안에서 하나를 고른다. 묶음마다 조합 수가 달라도 고르게 섞인다. */
+function pick2<T>(R: Rng, groups: T[][]): T {
+  const gs = groups.filter((g) => g.length);
+  return R.pick(R.pick(gs));
+}
+/** 원 금액: 100만 원 위나 만 원 단위로 떨어지면 조, 억, 만(3억 2,000만 원, 518만 4,000원), 아니면 쉼표(405,000원) */
+function krw(n: number): string {
+  if (n >= 1e6 || (n >= 1e4 && n % 1e4 === 0)) return krWith(fmtKR(n, { comma: true }), '원');
+  return fmtNum(n) + '원';
+}
+/**
+ * 답의 단위. 답이 정수로 떨어지게 고른다(수준 1, 2 의 정확한 답에 소수가 생기지 않게):
+ * 100만 원 아래와 정수로 안 떨어지는 금액은 원(조, 억, 만 자판으로 "1억 3,500만"), 1억 원 아래는 만 원, 그 위는 억 원이나 조 원.
+ */
+function tier(n: number): { unit: string; div: number } {
+  const whole = (div: number) => Number.isInteger(clean(n / div));
+  if (n >= 1e12) return whole(1e12) ? { unit: '조 원', div: 1e12 } : { unit: '원', div: 1 };
+  if (n >= 1e8 && whole(1e8)) return { unit: '억 원', div: 1e8 };
+  if (n >= 1e6 && n < 1e8 && whole(1e4)) return { unit: '만 원', div: 1e4 };
+  return { unit: '원', div: 1 };
+}
+/** 앞자리 하나(1~9) */
+const D1 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+/** 앞자리 하나 또는 둘(1~99) */
+const D12 = Array.from({ length: 99 }, (_, i) => i + 1);
+/** 회사 금액의 자릿수: 1,000만 원 이상 100조 원 미만 */
+const CO = [1e7, 1e14] as const;
+
 // ── 1. 큰 수 읽기 ──────────────────────────────────────────
 const EN_BASE: Record<string, string> = { million: '1 million은 100만', billion: '1 billion은 10억', trillion: '1 trillion은 1조' };
 const read: Record<string, Gen> = {
   d2k(R, lv) {
     let n: number;
     if (lv === 1) {
-      // 0 이 아닌 숫자 두 개: 3억 2,000만, 45억, 1조 2,000억, 3억 200만
-      const [a, b] = R.pick([
-        [8, 7],
-        [8, 7],
-        [8, 6],
-        [9, 8],
-        [10, 9],
-        [12, 11],
-      ]);
+      // 0 이 아닌 숫자 두 개, 만 위 아무 자리에서 한두 자리 떨어져: 32만, 3억 200만, 45억, 1조 2,000억, 50조 7,000억(앞자리 셋까지)
+      const a = R.int(5, 13);
+      const b = a === 5 ? 4 : a - R.int(1, 2);
       n = R.int(1, 9) * Math.pow(10, a) + R.int(1, 9) * Math.pow(10, b);
     } else if (lv === 2) n = R.chance(0.7) ? sigIn(R, 3, 1e8, 99e8) : sigIn(R, 3, 1e12, 99e12); // 3억 2,500만, 12억 3,000만, 1조 2,500억
     else if (lv === 3) n = R.int(10, 9999) * 1e8 + (R.chance(0.25) ? 0 : R.int(1, 9999)) * 1e4;
@@ -397,46 +441,58 @@ const read: Record<string, Gen> = {
 };
 
 // ── 2. 환율 환산 ───────────────────────────────────────────
-/** 수준 1, 2 의 외화 금액. 원으로 바꾸면 만 원 단위로 똑 떨어진다. */
-function fxAmt(R: Rng, lv: number, c: Cur): number {
-  if (c === 'jpy') return lv === 1 ? one(R, [1e4, 1e5]) : R.int(11, 99) * 1e4; // 3만 엔, 30만 엔 / 35만 엔
-  return lv === 1 ? one(R, [100, 1000]) : R.int(2, 19) * 500; // 300달러, 3,000달러 / 3,500달러(500 단위라 1,300원을 곱하고 나누기 쉽다)
+/**
+ * 수준 1, 2 의 (환율, 외화 금액) 조합. 원으로 바꾼 금액도 앞자리 셋까지라 암산으로 끝난다.
+ *  - 수준 1: 곱하는 두 수 가운데 하나는 0 이 아닌 숫자가 하나(3,000달러 × 1,350원, 35만 엔 × 900원)
+ *  - 수준 2: 외화 금액 앞자리 둘(달러, 유로는 500 단위처럼 끝자리 0 또는 5, 엔은 아무 둘)
+ * 금액의 자릿수는 1달러에서 수백억 달러까지 넓게 쓴다(자릿수는 난이도를 바꾸지 않는다).
+ */
+function fxList(lv: number, c: Cur): { r: number; amt: number }[][] {
+  return listOf(`fx|${Math.min(lv, 2)}|${c}`, () =>
+    RATES12[c].map((r) => {
+      const ms = lv <= 1 ? (few(r, 1) ? D12 : D1) : c === 'jpy' ? D12.filter((m) => m >= 10) : D12.filter((m) => m >= 10 && m % 5 === 0);
+      const amts = new Set<number>();
+      for (const m of ms) for (const amt of scales(m, PER_UNIT[c], c === 'jpy' ? 1e12 : 1e11)) amts.add(amt);
+      // 환율의 기준 금액 그 자체(1달러, 100엔)는 답이 문장에 그대로 있으므로 뺀다
+      return [...amts].filter((amt) => amt !== PER_UNIT[c] && Number.isInteger((amt / PER_UNIT[c]) * r) && few((amt / PER_UNIT[c]) * r)).map((amt) => ({ r, amt }));
+    }),
+  );
 }
-const fxTxt = (amt: number, c: Cur) => (c === 'jpy' ? fmtKR(amt, { comma: true }) + ' 엔' : fmtNum(amt) + CUR[c]);
+/** 외화 금액 표기: 만 단위로 떨어지면 "35만 엔", "3억 달러", 아니면 "3,500달러", "500엔" */
+const fxTxt = (amt: number, c: Cur) => (amt >= 1e4 && amt % 1e4 === 0 ? fmtKR(amt, { comma: true }) + ' ' : fmtNum(amt)) + CUR[c];
 function f2k(R: Rng, lv: number, c: Cur): Draft | null {
+  if (lv <= 2) {
+    const { r, amt } = pick2(R, fxList(lv, c));
+    const rt = RATE_TXT[c](r);
+    const w = (amt / PER_UNIT[c]) * r;
+    const { unit, div } = tier(w);
+    const o: Draft = { q: `${rt}일 때 ${josa(fxTxt(amt, c), '은', '는')} 몇 ${unit}?`, unit, vars: { c, r, amt, out: div }, why: `${fmtNum(amt / PER_UNIT[c])} × ${fmtNum(r)} = ${fmtNum(w)}원.` };
+    return exact(o, w / div);
+  }
   const r = RATE[c](R, lv);
   const rt = RATE_TXT[c](r);
-  if (lv <= 2) {
-    const amt = fxAmt(R, lv, c);
-    const w = (amt / PER_UNIT[c]) * r;
-    if (!few(w)) return SKIP;
-    const o: Draft = { q: `${rt}일 때 ${josa(fxTxt(amt, c), '은', '는')} 몇 만 원?`, unit: '만 원', input: 'kr', vars: { c, r, amt, out: 'man' }, why: `${fmtNum(amt / PER_UNIT[c])} × ${fmtNum(r)} = ${fmtNum(w)}원.` };
-    return exact(o, w / 1e4);
-  }
   const amt = sigIn(R, 2, 10, 990) * 1e4; // 35만 달러
   const w = (amt / PER_UNIT[c]) * r;
-  const o: Draft = { q: `${rt}일 때 ${josa(fmtKR(amt, { comma: true }) + ' ' + CUR[c], '은', '는')} 몇 억 원?`, unit: '억 원', vars: { c, r, amt, out: 'eok' }, why: `${fmtNum(amt / PER_UNIT[c])} × ${fmtNum(r)} = ${fmtNum(w)}원 = ${fmtNum(w / 1e8)}억 원.` };
+  const o: Draft = { q: `${rt}일 때 ${josa(fmtKR(amt, { comma: true }) + ' ' + CUR[c], '은', '는')} 몇 억 원?`, unit: '억 원', vars: { c, r, amt, out: 1e8 }, why: `${fmtNum(amt / PER_UNIT[c])} × ${fmtNum(r)} = ${fmtNum(w)}원 = ${fmtNum(w / 1e8)}억 원.` };
   return rounded(o, w / 1e8, 1);
 }
 function k2f(R: Rng, lv: number, c: Cur): Draft | null {
-  const r = RATE[c](R, lv);
-  const rt = RATE_TXT[c](r);
   if (lv <= 2) {
-    const amt = fxAmt(R, lv, c);
+    const { r, amt } = pick2(R, fxList(lv, c));
+    const rt = RATE_TXT[c](r);
     const w = (amt / PER_UNIT[c]) * r;
-    if (!few(w)) return SKIP;
-    if (c === 'jpy') {
-      const o: Draft = { q: `${rt}일 때 ${won(w)}은 몇 만 엔?`, unit: '만 엔', input: 'kr', vars: { c, r, w, out: 'man' }, why: `${fmtNum(w)} ÷ ${fmtNum(r)} × 100 = ${fmtNum(amt)}엔.` };
-      return exact(o, amt / 1e4);
-    }
-    const o: Draft = { q: `${rt}일 때 ${won(w)}은 몇 ${CUR[c]}?`, unit: CUR[c], input: 'kr', vars: { c, r, w, out: 'one' }, why: `${fmtNum(w)} ÷ ${fmtNum(r)} = ${fmtNum(amt)}.` };
+    const o: Draft = { q: `${rt}일 때 ${krw(w)}은 몇 ${CUR[c]}?`, unit: CUR[c], input: 'kr', vars: { c, r, w, out: 1 }, why: `${fmtNum(w)} ÷ ${fmtNum(r)}${c === 'jpy' ? ' × 100' : ''} = ${fmtNum(amt)}${CUR[c]}.` };
     return exact(o, amt);
   }
-  const wEok = c === 'jpy' ? R.int(1, 9) : sigIn(R, 2, 1, 99); // 3억, 45억
-  const w = wEok * 1e8;
+  const r = RATE[c](R, lv);
+  const rt = RATE_TXT[c](r);
+  // 수준 3: 원화 금액 앞자리 둘(4,500만 원, 45억 원, 450억 원은 만 단위로, 4,500억 원은 억 단위로)
+  const w = sigIn(R, 2, 10, 99) * R.pick([1e6, 1e7, 1e8, 1e9]);
   const f = (w / r) * PER_UNIT[c];
-  const o: Draft = { q: `${rt}일 때 ${eok(wEok)}은 몇 만 ${CUR[c]}?`, unit: `만 ${CUR[c]}`, input: 'kr', vars: { c, r, w, out: 'man' }, why: `${fmtNum(w)} ÷ ${fmtNum(r)}${c === 'jpy' ? ' × 100' : ''} = 약 ${fmtNum(roundTo(f, 0))}${CUR[c]}.` };
-  return rounded(o, f / 1e4, 0);
+  const big = w >= 1e10;
+  const u = big ? '억' : '만';
+  const o: Draft = { q: `${rt}일 때 ${krw(w)}은 몇 ${u} ${CUR[c]}?`, unit: `${u} ${CUR[c]}`, vars: { c, r, w, out: big ? 1e8 : 1e4 }, why: `${fmtNum(w)} ÷ ${fmtNum(r)}${c === 'jpy' ? ' × 100' : ''} = 약 ${fmtNum(roundTo(f, 0))}${CUR[c]}.` };
+  return rounded(o, f / (big ? 1e8 : 1e4), big ? 1 : 0);
 }
 const fx: Record<string, Gen> = {
   f2k_usd: (R, lv) => f2k(R, lv, 'usd'),
@@ -457,28 +513,35 @@ const fx: Record<string, Gen> = {
     const raw = (w * 1e8) / r / 1e6;
     return rounded({ q: `${RATE_TXT.usd(r)}일 때 ${eok(w)}은 몇 million 달러?`, unit: 'million 달러', vars: { r, w }, why: `${fmtNum(w)}억 ÷ ${fmtNum(r)} = 약 ${fmtNum(roundTo(raw * 1e6, 0))}달러.` }, raw, 0);
   },
-  cross_jpy(R, lv) {
-    const ru = RATE.usd(R, lv);
-    const rj = RATE.jpy(R, lv);
-    const raw = ru / (rj / 100);
-    return rounded({ q: `${RATE_TXT.usd(ru)}, ${RATE_TXT.jpy(rj)}일 때 1달러는 몇 엔?`, unit: '엔', vars: { ru, rj }, why: `1엔은 ${fmtNum(rj / 100)}원이므로 ${fmtNum(ru)} ÷ ${fmtNum(rj / 100)}.` }, raw, 1);
+  // 수준 3, 4. 환율은 10원 간격. 1달러 쪽은 몇 달러(1~9)를 엔으로, 엔 쪽은 몇만 엔(1~9)을 달러로 바꾼다.
+  cross_jpy(R) {
+    const ru = R.step(1250, 1550, 10);
+    const rj = R.pick([900, 1000]);
+    const n = R.int(1, 9);
+    if (R.chance(0.5)) {
+      const raw = (n * ru * 100) / rj;
+      return rounded({ q: `${RATE_TXT.usd(ru)}, ${RATE_TXT.jpy(rj)}일 때 ${n}달러는 몇 엔?`, unit: '엔', vars: { ru, rj, n, dir: 'u2j' }, why: `1엔은 ${fmtNum(rj / 100)}원이므로 ${n} × ${fmtNum(ru)} ÷ ${fmtNum(rj / 100)}.` }, raw, 1);
+    }
+    const raw = (n * 100 * rj) / ru;
+    return rounded({ q: `${RATE_TXT.usd(ru)}, ${RATE_TXT.jpy(rj)}일 때 ${n}만 엔은 몇 달러?`, unit: '달러', vars: { ru, rj, n, dir: 'j2u' }, why: `${n}만 엔은 ${fmtNum(n * 100 * rj)}원. 이를 ${ro(fmtNum(ru))} 나눈다.` }, raw, 1);
   },
-  cross_eur(R, lv) {
-    const re = RATE.eur(R, lv);
-    const ru = RATE.usd(R, lv);
+  cross_eur(R) {
+    const re = R.step(1400, 1700, 10);
+    const ru = R.step(1250, 1550, 10);
     const raw = re / ru;
     return rounded({ q: `${RATE_TXT.eur(re)}, ${RATE_TXT.usd(ru)}일 때 1유로는 몇 달러?`, unit: '달러', vars: { re, ru }, why: `${fmtNum(re)} ÷ ${fmtNum(ru)}.` }, raw, 2);
   },
+  // 수준 4. 환율은 10원 간격, 10~200원 움직인다.
   valchg_krw(R) {
-    const r0 = R.step(1250, 1450, 50);
-    const r1 = r0 + R.sign() * R.step(50, 150, 50);
+    const r0 = R.step(1200, 1600, 10);
+    const r1 = r0 + R.sign() * R.step(10, 200, 10);
     const raw = Math.abs(r0 / r1 - 1) * 100;
     const up = r1 < r0;
     return rounded({ q: `환율이 1달러 ${fmtNum(r0)}원에서 ${fmtNum(r1)}원이 됐다. 원화 자산을 달러로 환산한 가치는 몇 % ${up ? '늘었나' : '줄었나'}?`, unit: '%', vars: { r0, r1 }, why: `달러 가치는 환율에 반비례한다. ${fmtNum(r0)} ÷ ${fmtNum(r1)} = ${fmtNum(roundTo(r0 / r1, 4))}.` }, raw, 1);
   },
   valchg_usd(R) {
-    const r0 = R.step(1250, 1450, 50);
-    const r1 = r0 + R.sign() * R.step(50, 150, 50);
+    const r0 = R.step(1200, 1600, 10);
+    const r1 = r0 + R.sign() * R.step(10, 200, 10);
     const raw = Math.abs(r1 / r0 - 1) * 100;
     const up = r1 > r0;
     return rounded({ q: `환율이 1달러 ${fmtNum(r0)}원에서 ${fmtNum(r1)}원이 됐다. 달러 자산을 원화로 환산한 가치는 몇 % ${up ? '늘었나' : '줄었나'}?`, unit: '%', vars: { r0, r1 }, why: `${fmtNum(r1)} ÷ ${fmtNum(r0)} = ${fmtNum(roundTo(r1 / r0, 4))}.` }, raw, 1);
@@ -514,10 +577,11 @@ const base = (R: Rng, lv: number, lo: number, hi: number) => (lv <= 2 ? sigIn(R,
 const ratio: Record<string, Gen> = {
   margin(R, lv) {
     if (lv === 1) {
-      const rev = one(R, [100, 1000]);
-      const p = R.pick([5, 10, 15, 20, 25, 30]);
+      // 매출은 0 이 아닌 숫자 하나(3,000억, 7조), 이익률은 친한 수
+      const rev = one(R, scales(1, ...CO));
+      const p = R.pick([4, 5, 8, 10, 12, 15, 20, 25, 30, 40]);
       const op = (rev * p) / 100;
-      return exact({ q: `매출 ${eok(rev)}, 영업이익 ${eok(op)}인 회사의 영업이익률은 몇 %?`, unit: '%', vars: { rev, op }, why: `${fmtNum(op)} ÷ ${fmtNum(rev)} = ${fmtNum(p / 100)}.` }, p);
+      return exact({ q: `매출 ${krw(rev)}, 영업이익 ${krw(op)}인 회사의 영업이익률은 몇 %?`, unit: '%', vars: { rev, op }, why: `${fmtKR(op, { comma: true })} ÷ ${fmtKR(rev, { comma: true })} = ${fmtNum(p / 100)}.` }, p);
     }
     const rev = base(R, lv, 200, 9900);
     const op = sigIn(R, 2, Math.ceil(rev * 0.03), Math.floor(rev * 0.4));
@@ -525,8 +589,8 @@ const ratio: Record<string, Gen> = {
   },
   per(R, lv) {
     if (lv === 1) {
-      const eps = R.pick([500, 1000, 2000, 2500, 3000, 4000, 5000]);
-      const m = R.int(4, 20);
+      const eps = one(R, [100, 1000, 10000]); // 300원, 4,000원, 2만 원
+      const m = R.int(3, 30);
       return exact({ q: `주가 ${won(eps * m)}, EPS(주당순이익) ${won(eps)}인 회사의 PER(주가수익비율)은 몇 배?`, unit: '배', vars: { price: eps * m, eps }, why: `${fmtNum(eps * m)} ÷ ${fmtNum(eps)} = ${m}.` }, m);
     }
     for (;;) {
@@ -548,10 +612,10 @@ const ratio: Record<string, Gen> = {
   },
   roe(R, lv) {
     if (lv === 1) {
-      const eq = one(R, [1000, 10000]);
-      const p = R.pick([5, 8, 10, 12, 15, 20, 25]);
+      const eq = one(R, scales(1, ...CO));
+      const p = R.pick([4, 5, 6, 8, 10, 12, 15, 20, 25, 30]);
       const ni = (eq * p) / 100;
-      return exact({ q: `순이익 ${eok(ni)}, 자기자본 ${eok(eq)}인 회사의 ROE(자기자본이익률)는 몇 %?`, unit: '%', vars: { ni, eq }, why: `${fmtNum(ni)} ÷ ${fmtNum(eq)} = ${fmtNum(p / 100)}.` }, p);
+      return exact({ q: `순이익 ${krw(ni)}, 자기자본 ${krw(eq)}인 회사의 ROE(자기자본이익률)는 몇 %?`, unit: '%', vars: { ni, eq }, why: `${fmtKR(ni, { comma: true })} ÷ ${fmtKR(eq, { comma: true })} = ${fmtNum(p / 100)}.` }, p);
     }
     const eq = base(R, lv, 1000, 90000);
     const ni = sigIn(R, 2, Math.ceil(eq * 0.02), Math.floor(eq * 0.3));
@@ -559,10 +623,10 @@ const ratio: Record<string, Gen> = {
   },
   payout(R, lv) {
     if (lv === 1) {
-      const ni = one(R, [100, 1000]);
-      const p = R.pick([10, 20, 25, 30, 40, 50]);
+      const ni = one(R, scales(1, ...CO));
+      const p = R.pick([5, 10, 15, 20, 25, 30, 40, 50, 60, 75]);
       const div = (ni * p) / 100;
-      return exact({ q: `순이익 ${eok(ni)} 가운데 ${eok(div)}을 배당금으로 줬다. 배당성향은 몇 %?`, unit: '%', vars: { ni, div }, why: `${fmtNum(div)} ÷ ${fmtNum(ni)} = ${fmtNum(p / 100)}.` }, p);
+      return exact({ q: `순이익 ${krw(ni)} 가운데 ${krw(div)}을 배당금으로 줬다. 배당성향은 몇 %?`, unit: '%', vars: { ni, div }, why: `${fmtKR(div, { comma: true })} ÷ ${fmtKR(ni, { comma: true })} = ${fmtNum(p / 100)}.` }, p);
     }
     const ni = base(R, lv, 100, 9900);
     const div = sigIn(R, 2, Math.ceil(ni * 0.1), Math.floor(ni * 0.7));
@@ -570,14 +634,14 @@ const ratio: Record<string, Gen> = {
   },
   pchg(R, lv) {
     if (lv === 1) {
-      const p0 = one(R, [1000, 10000]);
-      const g = R.pick([5, 10, 20, 25, 30, 40, 50, -10, -20, -25, -50]);
+      const p0 = one(R, [100, 1000, 10000, 100000]); // 700원 ~ 90만 원
+      const g = R.pick([5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, -5, -10, -15, -20, -25, -30, -40, -50, -60]);
       const p1 = (p0 * (100 + g)) / 100;
       if (!few(p1)) return SKIP;
       return exact({ q: `주가가 ${won(p0)}에서 ${won(p1)}${g > 0 ? '으로 올랐다. 몇 % 올랐나' : '으로 내렸다. 몇 % 내렸나'}?`, unit: '%', vars: { p0, p1 }, why: `${fmtNum(p1)} ÷ ${fmtNum(p0)} = ${fmtNum((100 + g) / 100)}.` }, Math.abs(g));
     }
     for (;;) {
-      const p0 = base(R, lv, 10000, 99000);
+      const p0 = lv <= 2 ? one(R, [1000, 10000, 100000]) : base(R, lv, 10000, 99000);
       const p1 = sigIn(R, 2, Math.ceil(p0 * 0.6), Math.floor(p0 * 1.6));
       if (p1 === p0) continue;
       const raw = Math.abs(p1 / p0 - 1) * 100;
@@ -585,11 +649,14 @@ const ratio: Record<string, Gen> = {
     }
   },
   pp(R) {
-    const r0 = R.step(100, 600, 25);
+    // 기준금리는 0.25%p 간격, 시장 금리는 0.05%p 간격
+    const name = R.pick(['기준금리', '국고채 금리', '예금 금리', '대출 금리']);
+    const st = name === '기준금리' ? 25 : 5;
+    const r0 = R.step(st, 800, st);
     let r1 = 0;
-    while (r1 <= 0 || r1 === r0) r1 = r0 + R.sign() * R.step(25, 150, 25);
+    while (r1 <= 0 || r1 >= 1000 || r1 === r0) r1 = r0 + R.sign() * R.step(st, 300, st);
     const up = r1 > r0;
-    return exact({ q: `기준금리가 ${pct(r0 / 100)}에서 ${pct(r1 / 100)}로 ${up ? '올랐다' : '내렸다'}. 몇 %p(퍼센트포인트) ${up ? '올랐나' : '내렸나'}?`, unit: '%p', vars: { r0: r0 / 100, r1: r1 / 100 }, why: `두 비율의 차이는 %p로 센다. ${fmtNum(r1 / 100)} 빼기 ${fmtNum(r0 / 100)}.` }, Math.abs(r1 - r0) / 100);
+    return exact({ q: `${name}가 ${pct(r0 / 100)}에서 ${pct(r1 / 100)}로 ${up ? '올랐다' : '내렸다'}. 몇 %p(퍼센트포인트) ${up ? '올랐나' : '내렸나'}?`, unit: '%p', vars: { r0: r0 / 100, r1: r1 / 100 }, why: `두 비율의 차이는 %p로 센다. ${fmtNum(r1 / 100)} 빼기 ${fmtNum(r0 / 100)}.` }, Math.abs(r1 - r0) / 100);
   },
   pp_vs_pct(R, lv) {
     const name = R.pick(['영업이익률', '시장점유율', '배당성향']);
@@ -605,7 +672,7 @@ const ratio: Record<string, Gen> = {
     return rounded({ q: `${name}이 ${pct(r0)}에서 ${pct(r1)}로 ${verb}다. 처음 값에 견줘 몇 % ${verb}나?`, unit: '%', vars: { r0, r1, ask: 'pct' }, why: `차이 ${josa(fmtNum(clean(Math.abs(r1 - r0))), '을', '를')} 처음 값 ${ro(fmtNum(r0))} 나눈다.` }, (Math.abs(r1 - r0) / r0) * 100, 1);
   },
   rev_from_margin(R) {
-    const rev = R.int(5, 99) * 100;
+    const rev = R.int(5, 99) * R.pick([10, 100, 1000]);
     const p = R.pick([4, 5, 8, 10, 12, 15, 20, 25]);
     const op = (rev * p) / 100;
     return exact({ q: `영업이익률이 ${p}%이고 영업이익이 ${eok(op)}이면 매출은 몇 억 원?`, unit: '억 원', vars: { p, op }, why: `${fmtNum(op)} ÷ ${fmtNum(p / 100)} = ${fmtNum(rev)}.` }, rev);
@@ -636,23 +703,59 @@ const ratio: Record<string, Gen> = {
     }
   },
   dupont(R) {
-    const m = R.int(2, 15);
-    const t10 = R.pick([5, 8, 10, 12, 15, 20]);
-    const l10 = R.pick([12, 15, 20, 25, 30]);
+    const m = R.int(2, 20);
+    const t10 = R.pick([5, 6, 8, 10, 12, 15, 20]);
+    const l10 = R.pick([12, 15, 16, 20, 25, 30]);
     const raw = (m * t10 * l10) / 100;
     return rounded({ q: `순이익률 ${m}%, 총자산회전율 ${fmtNum(t10 / 10)}회, 총자산이 자기자본의 ${fmtNum(l10 / 10)}배인 회사의 ROE(자기자본이익률)는 몇 %?`, unit: '%', vars: { m, t: t10 / 10, l: l10 / 10 }, why: `${m}% × ${fmtNum(t10 / 10)} × ${fmtNum(l10 / 10)}.` }, raw, 1);
   },
 };
 
 // ── 4. 성장과 복리 ─────────────────────────────────────────
+/** 앞자리 하나 또는 둘인 금액(100만 원 이상 1조 원 미만): 72의 법칙, 복리 어림에 쓴다 */
+const AMT12 = () => listOf('amt12', () => [...new Set(D12.flatMap((m) => scales(m, 1e6, 1e12)))]);
+/** 어림 답의 단위: 조, 억, 만 원 가운데 답이 1 이상인 가장 큰 것 */
+const tierBig = (n: number) => (n >= 1e12 ? { unit: '조 원', div: 1e12 } : n >= 1e8 ? { unit: '억 원', div: 1e8 } : { unit: '만 원', div: 1e4 });
+/**
+ * 두 해 성장률 조합. 해마다 같은 비율로 늘거나 줄어(1.1 의 제곱 1.21, 0.8 의 제곱 0.64 처럼 외워 둔 수 하나를 곱한다).
+ * 수준 1 은 10, 20, 50%, 수준 2 는 30, 40% 도. 기준 금액은 앞자리 하나(수준 2 는 둘까지), 답은 앞자리 셋까지.
+ * 첫해와 이듬해 비율이 다른 문제(1.2 × 0.9)는 곱셈이 하나 늘어 난도가 오르므로 내지 않는다(2026-11-21 검토).
+ */
+const C2R: Record<number, number[]> = { 1: [10, 20, 50, -10, -20, -50], 2: [10, 20, 30, 40, 50, -10, -20, -30, -40, -50] };
+type C2 = { b: number; r: number; end: number };
+function comp2List(lv: number): C2[][] {
+  const L = Math.min(2, lv);
+  return listOf(`comp2|${L}`, () =>
+    C2R[L].map((r) => {
+      const bs = [...new Set((L === 1 ? D1 : D12).flatMap((m) => scales(m, ...CO)))];
+      return bs.map((b) => ({ b, r, end: (b * (100 + r) * (100 + r)) / 1e4 })).filter((x) => Number.isInteger(x.end) && few(x.end));
+    }),
+  );
+}
+/** 2년 복리(CAGR) 조합: 해마다 10, 20, 30, 50, 100% 로 늘어 답이 앞자리 셋까지인 기준 금액 */
+function cagr2List(): { b: number; r: number; end: number }[][] {
+  return listOf('cagr2', () =>
+    [10, 20, 30, 50, 100].map((r) => [...new Set(D12.flatMap((m) => scales(m, ...CO)))].map((b) => ({ b, r, end: (b * (100 + r) * (100 + r)) / 1e4 })).filter((x) => Number.isInteger(x.end) && few(x.end))),
+  );
+}
+/** 3년 복리 조합: 10, 20% 는 앞자리 하나인 금액, 50% 는 8 의 배수(× 27/8), 100% 는 앞자리 둘까지. 답은 앞자리 넷까지(1,331만 원). */
+function comp3List(): { b: number; r: number; end: number }[][] {
+  return listOf('comp3', () =>
+    [10, 20, 50, 100].map((r) => {
+      const ms = r <= 20 ? D1 : r === 50 ? D12.filter((m) => m < 10 || m % 8 === 0) : D12;
+      const bs = [...new Set(ms.flatMap((m) => scales(m, 1e6, 1e12)))];
+      return bs.map((b) => ({ b, r, end: (b * (100 + r) * (100 + r) * (100 + r)) / 1e6 })).filter((x) => Number.isInteger(x.end) && few(x.end, 4));
+    }),
+  );
+}
 const growth: Record<string, Gen> = {
   yoy(R) {
     const k = R.pick(METRIC);
-    const prev = one(R, [100, 1000]);
+    const prev = one(R, scales(1, ...CO));
     const g = R.pick([5, 10, 20, 25, 30, 40, 50, 100, -10, -20, -25, -50]);
     const cur = (prev * (100 + g)) / 100;
     if (!few(cur)) return SKIP;
-    return exact({ q: `작년 ${k} ${eok(prev)}, 올해 ${k} ${eok(cur)}이면 전년보다 몇 % ${g > 0 ? '늘었나' : '줄었나'}?`, unit: '%', vars: { prev, cur }, why: `${fmtNum(cur)} ÷ ${fmtNum(prev)} = ${fmtNum((100 + g) / 100)}.` }, Math.abs(g));
+    return exact({ q: `작년 ${k} ${krw(prev)}, 올해 ${k} ${krw(cur)}이면 전년보다 몇 % ${g > 0 ? '늘었나' : '줄었나'}?`, unit: '%', vars: { prev, cur }, why: `${fmtKR(cur, { comma: true })} ÷ ${fmtKR(prev, { comma: true })} = ${fmtNum((100 + g) / 100)}.` }, Math.abs(g));
   },
   yoy_r(R, lv) {
     const k = R.pick(METRIC);
@@ -663,91 +766,132 @@ const growth: Record<string, Gen> = {
       return rounded({ q: `작년 ${k} ${eok(prev)}, 올해 ${k} ${eok(cur)}이면 전년보다 몇 % ${cur > prev ? '늘었나' : '줄었나'}?`, unit: '%', vars: { prev, cur }, why: `${fmtNum(cur)} ÷ ${fmtNum(prev)} = ${fmtNum(roundTo(cur / prev, 4))}.` }, Math.abs(cur / prev - 1) * 100, 1);
     }
   },
+  // 72의 법칙: 두 배(72 ÷ r), 네 배(144 ÷ r). 금액은 앞자리 하나 또는 둘이라 몇 배인지는 한눈에 보인다.
   r72_years(R) {
-    const r = R.pick([2, 3, 4, 6, 8, 9, 12, 18, 24]);
-    return exact({ q: `72의 법칙(72 ÷ 연 수익률)으로 어림하면, 연 ${r}%로 불어나는 돈이 두 배가 되기까지 몇 년?`, unit: '년', vars: { r }, why: `72 ÷ ${r} = ${72 / r}.` }, 72 / r);
+    const k = R.pick([2, 4]);
+    const r = R.pick(k === 2 ? [2, 3, 4, 6, 8, 9, 12, 18, 24] : [2, 3, 4, 6, 8, 9, 12, 16, 18, 24]);
+    const a = R.pick(AMT12());
+    return exact({ q: `72의 법칙(72 ÷ 연 수익률)으로 어림하면, 연 ${r}%로 불어나는 ${krw(a)}이 ${krw(a * k)}이 되기까지 몇 년?`, unit: '년', vars: { r, k, a }, why: `${k === 2 ? '두 배' : '네 배는 두 배의 두 배'}. 72 ÷ ${r} = ${fmtNum(72 / r)}${k === 4 ? `, 그 두 배는 ${fmtNum(144 / r)}` : ''}.` }, (72 * Math.log2(k)) / r);
   },
   r72_rate(R) {
-    const n = R.pick([3, 4, 6, 8, 9, 12, 18]);
-    return exact({ q: `72의 법칙(72 ÷ 연 수익률)으로 어림하면, ${n}년 만에 두 배가 된 투자의 연 수익률은 몇 %?`, unit: '%', vars: { n }, why: `72 ÷ ${n} = ${72 / n}.` }, 72 / n);
+    const k = R.pick([2, 4]);
+    const n = R.pick(k === 2 ? [2, 3, 4, 6, 8, 9, 12, 18, 24, 36] : [4, 6, 8, 9, 12, 16, 18, 24, 36, 48]);
+    const a = R.pick(AMT12());
+    return exact({ q: `72의 법칙(72 ÷ 연 수익률)으로 어림하면, ${krw(a)}이 ${n}년 만에 ${krw(a * k)}이 된 투자의 연 수익률은 몇 %?`, unit: '%', vars: { n, k, a }, why: `${k === 2 ? `두 배에 ${n}년` : `네 배에 ${n}년이면 두 배에 ${fmtNum(n / 2)}년`}. 72 ÷ ${fmtNum(n / (k / 2))} = ${fmtNum((72 * Math.log2(k)) / n)}.` }, (72 * Math.log2(k)) / n);
   },
+  // 2년 성장: 해마다 같은 비율. 1.1 의 제곱(1.21)처럼 외워 둔 수 하나를 곱한다. 수준 1, 2 는 답도 앞자리 셋까지.
   comp2(R, lv) {
-    const r = R.pick(lv === 1 ? [10, 20, 50] : [10, 20, 30, 40, 50]);
-    const b = R.int(1, 9) * 100;
-    // 수준 1, 2 는 답도 앞자리 셋까지(900억 × 1.44 = 1,296억 같은 네 자리 곱은 다시 뽑는다)
-    if (lv <= 2 && !few((b * (100 + r) * (100 + r)) / 1e4)) return SKIP;
-    return exact({ q: `매출 ${eok(b)}이 해마다 ${r}%씩 2년 늘면 몇 억 원?`, unit: '억 원', input: 'kr', vars: { base: b, r, n: 2 }, why: `${fmtNum(1 + r / 100)}의 제곱은 ${fmtNum(clean(Math.pow(1 + r / 100, 2)))}. ${fmtNum(b)} × ${fmtNum(clean(Math.pow(1 + r / 100, 2)))}.` }, (b * (100 + r) * (100 + r)) / 1e4);
+    const k = R.pick(METRIC);
+    const { b, r, end } = pick2(R, comp2List(lv));
+    const { unit, div } = tier(end);
+    const f = clean(Math.pow(1 + r / 100, 2));
+    return exact({ q: `${k} ${krw(b)}이 해마다 ${Math.abs(r)}%씩 2년 ${r > 0 ? '늘면' : '줄면'} 몇 ${unit}?`, unit, vars: { base: b, r, div }, why: `${fmtNum(1 + r / 100)}의 제곱은 ${fmtNum(f)}. ${fmtKR(b, { comma: true })} × ${fmtNum(f)} = ${fmtKR(end, { comma: true })}.` }, end / div);
   },
   cagr2(R) {
-    const r = R.pick([10, 20, 30, 50, 100]);
-    const b = R.int(1, 9) * 100;
-    const end = (b * (100 + r) * (100 + r)) / 1e4;
-    if (!few(end)) return SKIP;
-    return exact({ q: `매출이 2년 만에 ${eok(b)}에서 ${eok(end)}이 됐다. CAGR(연평균 성장률)은 몇 %?`, unit: '%', vars: { base: b, end, n: 2 }, why: `${fmtNum(end)} ÷ ${fmtNum(b)} = ${fmtNum(clean(end / b))}, 이는 ${fmtNum(1 + r / 100)}의 제곱.` }, r);
+    const { b, r, end } = pick2(R, cagr2List());
+    return exact({ q: `매출이 2년 만에 ${krw(b)}에서 ${krw(end)}이 됐다. CAGR(연평균 성장률)은 몇 %?`, unit: '%', vars: { base: b, end, n: 2 }, why: `${fmtKR(end, { comma: true })} ÷ ${fmtKR(b, { comma: true })} = ${fmtNum(clean(end / b))}, 이는 ${fmtNum(1 + r / 100)}의 제곱.` }, r);
   },
   comp3(R) {
-    let r: number, b: number, end: number;
-    do {
-      r = R.pick([10, 20, 50, 100]);
-      b = R.int(1, 9) * 1000; // 만 원
-      end = (b * (100 + r) * (100 + r) * (100 + r)) / 1e6;
-    } while (end >= 1e4);
-    return exact({ q: `${fmtKR(b * 1e4, { comma: true })} 원을 연 ${r}% 복리로 3년 굴리면 몇 만 원?`, unit: '만 원', input: 'kr', vars: { base: b, r, n: 3 }, why: `${fmtNum(1 + r / 100)}의 세제곱은 ${fmtNum(clean(Math.pow(1 + r / 100, 3)))}.` }, end);
+    const { b, r, end } = pick2(R, comp3List());
+    const { unit, div } = tier(end);
+    return exact({ q: `${krw(b)}을 연 ${r}% 복리로 3년 굴리면 몇 ${unit}?`, unit, vars: { base: b, r, n: 3, div }, why: `${fmtNum(1 + r / 100)}의 세제곱은 ${fmtNum(clean(Math.pow(1 + r / 100, 3)))}.` }, end / div);
   },
   cagr3(R) {
-    let r: number, b: number, end: number;
-    do {
-      r = R.pick([10, 20, 50, 100]);
-      b = R.int(1, 9) * 1000; // 만 원
-      end = (b * (100 + r) * (100 + r) * (100 + r)) / 1e6;
-    } while (end >= 1e4);
-    return exact({ q: `${fmtKR(b * 1e4, { comma: true })} 원이 3년 만에 ${fmtKR(end * 1e4, { comma: true })} 원이 됐다. 연 복리 수익률은 몇 %?`, unit: '%', vars: { base: b, end, n: 3 }, why: `${fmtNum(end)} ÷ ${fmtNum(b)} = ${fmtNum(clean(end / b))}, 이는 ${fmtNum(1 + r / 100)}의 세제곱.` }, r);
+    const { b, r, end } = pick2(R, comp3List());
+    return exact({ q: `${krw(b)}이 3년 만에 ${krw(end)}이 됐다. 연 복리 수익률은 몇 %?`, unit: '%', vars: { base: b, end, n: 3 }, why: `${fmtNum(end)} ÷ ${fmtNum(b)} = ${fmtNum(clean(end / b))}, 이는 ${fmtNum(1 + r / 100)}의 세제곱.` }, r);
   },
+  // 수준 4. 몇 배가 됐는지(1.2 ~ 10배) 또는 처음과 나중 금액(앞자리 둘)을 주고 연평균 성장률을 어림한다.
   cagr_est(R) {
     for (;;) {
-      const m = R.pick([1.5, 2, 2.5, 3, 4, 5]);
-      const n = R.int(3, 10);
-      const raw = (Math.pow(m, 1 / n) - 1) * 100;
+      const n = R.int(2, 20);
+      if (R.chance(0.5)) {
+        const m = R.pick([1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 2, 2.5, 3, 4, 5, 6, 8, 10]);
+        const raw = (Math.pow(m, 1 / n) - 1) * 100;
+        if (raw < 3 || raw > 40) continue;
+        return approx({ q: `매출이 ${n}년 만에 ${fmtNum(m)}배가 됐다. CAGR(연평균 성장률)은 약 몇 %?`, unit: '%', vars: { m, n }, why: `${n}번 곱해 ${josa(fmtNum(m), '이', '가')} 되는 수를 찾는다. 약 ${fmtNum(roundTo(1 + raw / 100, 3))}.` }, raw, { abs: 1 });
+      }
+      const a = sigIn(R, 2, 10, 99) * R.pick([1e7, 1e8, 1e9, 1e10, 1e11]);
+      const b = roundSig(a * (1.1 + R.next() * 8.9), 2);
+      const raw = (Math.pow(b / a, 1 / n) - 1) * 100;
       if (raw < 3 || raw > 40) continue;
-      return approx({ q: `매출이 ${n}년 만에 ${fmtNum(m)}배가 됐다. CAGR(연평균 성장률)은 약 몇 %?`, unit: '%', vars: { m, n }, why: `${n}번 곱해 ${josa(fmtNum(m), '이', '가')} 되는 수를 찾는다. 약 ${fmtNum(roundTo(1 + raw / 100, 3))}.` }, raw, { abs: 1 });
+      return approx({ q: `매출이 ${n}년 만에 ${krw(a)}에서 ${krw(b)}이 됐다. CAGR(연평균 성장률)은 약 몇 %?`, unit: '%', vars: { m: b / a, n, a, b }, why: `${fmtKR(b, { comma: true })} ÷ ${fmtKR(a, { comma: true })} = 약 ${fmtNum(roundTo(b / a, 2))}배. ${n}번 곱해 그만큼 되는 수는 약 ${fmtNum(roundTo(1 + raw / 100, 3))}.` }, raw, { abs: 1 });
     }
   },
+  // 수준 3, 4. 연 2~20%, 2~30년(16배 아래). 절반은 금액을 주고 나중 금액을 어림한다.
   mult_est(R, lv) {
     for (;;) {
-      const r = R.int(3, 15);
-      const n = R.int(5, 20);
+      const r = R.int(2, 20);
+      const n = R.int(2, 30);
       const raw = Math.pow(1 + r / 100, n);
-      if (raw > 12) continue;
-      return approx({ q: `연 ${r}% 복리로 ${n}년 굴리면 처음 금액의 약 몇 배?`, unit: '배', vars: { r, n }, why: `72 ÷ ${r} = ${fmtNum(roundTo(72 / r, 1))}년마다 두 배. 정확히는 ${fmtNum(roundTo(raw, 3))}.` }, raw, { rel: lv >= 4 ? 0.04 : 0.05 });
+      if (raw > 16 || raw < 1.2) continue;
+      const tol = { rel: lv >= 4 ? 0.04 : 0.05 };
+      const why = `72 ÷ ${r} = ${fmtNum(roundTo(72 / r, 1))}년마다 두 배. 정확히는 ${fmtNum(roundTo(raw, 3))}배.`;
+      if (R.chance(0.5)) return approx({ q: `연 ${r}% 복리로 ${n}년 굴리면 처음 금액의 약 몇 배?`, unit: '배', vars: { r, n }, why }, raw, tol);
+      const a = R.pick(AMT12());
+      const { unit, div } = tierBig(a * raw);
+      return approx({ q: `${krw(a)}을 연 ${r}% 복리로 ${n}년 굴리면 약 몇 ${unit}?`, unit, vars: { r, n, a, div }, why }, (a * raw) / div, tol);
     }
   },
 };
 
 // ── 5. 할인과 현재가치 ─────────────────────────────────────
+/** 현재가치 금액의 자릿수: 10만 원 이상 100조 원 미만 */
+const PVR = [1e5, 1e14] as const;
+/** 1년 할인 조합. 받는 돈 = 현재가치 × (1 + r) 이 앞자리 셋까지. 수준 1 은 현재가치가 앞자리 하나, 수준 2 는 둘까지. */
+function pv1List(lv: number): { v: number; r: number; cf: number }[][] {
+  const L = Math.min(2, lv);
+  return listOf(`pv1|${L}`, () =>
+    [4, 5, 8, 10, 15, 20, 25, 50].map((r) => [...new Set((L === 1 ? D1 : D12).flatMap((m) => scales(m, ...PVR)))].map((v) => ({ v, r, cf: (v * (100 + r)) / 100 })).filter((x) => Number.isInteger(x.cf) && few(x.cf))),
+  );
+}
+/** 2년 할인 조합: 1.21, 1.44, 1.5625, 1.69, 1.96, 2.25 를 곱해 앞자리 셋까지 떨어지는 금액 */
+function pv2List(): { v: number; r: number; cf: number }[][] {
+  return listOf('pv2', () =>
+    [10, 20, 25, 30, 40, 50].map((r) => [...new Set(D12.flatMap((m) => scales(m, ...PVR)))].map((v) => ({ v, r, cf: (v * (100 + r) * (100 + r)) / 1e4 })).filter((x) => Number.isInteger(x.cf) && few(x.cf))),
+  );
+}
+/** 영구 현금흐름 조합: 할인율 2, 4, 5, 8, 10, 20, 25%(곱하면 50, 25, 20, 12.5, 10, 5, 4배). 수준 1 은 받는 돈이 앞자리 하나. */
+function perpList(lv: number): { cf: number; r: number; v: number }[][] {
+  const L = Math.min(2, lv);
+  return listOf(`perp|${L}`, () =>
+    [2, 4, 5, 8, 10, 20, 25].map((r) => [...new Set((L === 1 ? D1 : D12).flatMap((m) => scales(m, ...PVR)))].map((cf) => ({ cf, r, v: (cf * 100) / r })).filter((x) => Number.isInteger(x.v) && few(x.v) && x.v < 1e15)),
+  );
+}
+/** 배당수익률 조합: 주가 앞자리 둘(1만 ~ 9만 9,000원) × 배당수익률 2 ~ 6%, 배당금이 원 단위로 떨어지는 것 */
+const gordonYield = () =>
+  listOf('gyield', () => {
+    const out: { price: number; y: number; d1: number }[] = [];
+    for (let m = 10; m <= 99; m++) for (const y of [2, 2.5, 3, 4, 5, 6]) {
+      const price = m * 1000;
+      const d1 = (price * y) / 100;
+      if (Number.isInteger(d1) && few(d1)) out.push({ price, y, d1 });
+    }
+    return out;
+  });
+/** 2년 뒤부터 영구히: 현재가치(억 원) 앞자리 둘 × 할인율 5, 10, 20, 25%. 해마다 받는 돈(현재가치 × r × (1 + r))이 앞자리 셋까지 */
+function deferredList(): { r: number; v: number; cf: number }[][] {
+  return listOf('deferred', () =>
+    [5, 10, 20, 25].map((r) => [...new Set(D12.filter((m) => m >= 10).flatMap((m) => scales(m, 10, 1e5)))].map((v) => ({ r, v, cf: (v * r * (100 + r)) / 1e4 })).filter((x) => few(x.cf) && Number.isInteger(clean(x.cf * 1e4)))),
+  );
+}
 const pv: Record<string, Gen> = {
   pv1(R, lv) {
-    const r = R.pick(lv === 1 ? [5, 10] : [5, 10, 20, 25]);
-    // 받는 돈도 앞자리 셋까지: 5% 는 한 자리 금액, 25% 는 400 의 배수(× 1.25 가 똑 떨어진다)
-    const v = lv === 1 || r === 5 ? one(R, [100, 1000]) : r === 25 ? R.int(3, 24) * 400 : R.int(11, 99) * 100;
-    const cf = (v * (100 + r)) / 100;
-    if (!few(cf)) return SKIP;
-    return exact({ q: `할인율이 연 ${r}%일 때, 1년 뒤에 받는 ${eok(cf)}의 현재가치는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, cf, n: 1 }, why: `${fmtNum(cf)} ÷ ${fmtNum(1 + r / 100)}.` }, v);
+    const { v, r, cf } = pick2(R, pv1List(lv));
+    const { unit, div } = tier(v);
+    return exact({ q: `할인율이 연 ${r}%일 때, 1년 뒤에 받는 ${krw(cf)}의 현재가치는 몇 ${unit}?`, unit, vars: { r, cf, n: 1, div }, why: `${fmtKR(cf, { comma: true })} ÷ ${fmtNum(1 + r / 100)} = ${fmtKR(v, { comma: true })}.` }, v / div);
   },
-  pv2(R, lv) {
-    const r = R.pick([10, 20]);
-    const v = lv <= 2 ? R.int(1, 9) * 100 : R.int(11, 50) * 100;
-    const cf = (v * (100 + r) * (100 + r)) / 1e4;
-    if (!few(cf)) return SKIP; // 4,477억 ÷ 1.21 같은 긴 나눗셈은 내지 않는다
-    return exact({ q: `할인율이 연 ${r}%일 때, 2년 뒤에 받는 ${eok(cf)}의 현재가치는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, cf, n: 2 }, why: `${fmtNum(cf)} ÷ ${fmtNum(clean(Math.pow(1 + r / 100, 2)))}.` }, v);
+  // 2년 할인. 열에 일곱은 현재가치를, 나머지는 할인율을 묻는다(같은 계수를 거꾸로 쓴다).
+  pv2(R) {
+    const { v, r, cf } = pick2(R, pv2List());
+    const f = clean(Math.pow(1 + r / 100, 2));
+    if (R.chance(0.3)) return exact({ q: `2년 뒤에 받는 ${krw(cf)}의 현재가치가 ${krw(v)}이면 할인율은 연 몇 %?`, unit: '%', vars: { cf, v, n: 2, ask: 'r' }, why: `${fmtKR(cf, { comma: true })} ÷ ${fmtKR(v, { comma: true })} = ${fmtNum(f)}, 이는 ${fmtNum(1 + r / 100)}의 제곱.` }, r);
+    const { unit, div } = tier(v);
+    return exact({ q: `할인율이 연 ${r}%일 때, 2년 뒤에 받는 ${krw(cf)}의 현재가치는 몇 ${unit}?`, unit, vars: { r, cf, n: 2, div }, why: `${fmtKR(cf, { comma: true })} ÷ ${fmtNum(f)} = ${fmtKR(v, { comma: true })}.` }, v / div);
   },
   perp(R, lv) {
-    const r = R.pick(lv === 1 ? [5, 10] : [4, 5, 8, 10]);
-    let cf: number, v: number;
-    do {
-      cf = lv === 1 ? one(R, [10, 100]) : R.int(2, 99) * 10;
-      v = (cf * 100) / r;
-    } while (v >= 1e4);
-    return exact({ q: `할인율이 연 ${r}%일 때, 1년 뒤부터 해마다 ${eok(cf)}을 영원히 받는 권리의 현재가치는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, cf }, why: `영구히 같은 돈: ${fmtNum(cf)} ÷ ${fmtNum(r / 100)}.` }, v);
+    const { cf, r, v } = pick2(R, perpList(lv));
+    const { unit, div } = tier(v);
+    return exact({ q: `할인율이 연 ${r}%일 때, 1년 뒤부터 해마다 ${krw(cf)}을 영원히 받는 권리의 현재가치는 몇 ${unit}?`, unit, vars: { r, cf, div }, why: `영구히 같은 돈: ${fmtKR(cf, { comma: true })} ÷ ${fmtNum(r / 100)} = ${fmtKR(v, { comma: true })}.` }, v / div);
   },
   perp_g(R, lv) {
     let r: number, g: number, cf: number, v: number;
@@ -763,7 +907,7 @@ const pv: Record<string, Gen> = {
     } else {
       r = R.int(6, 12);
       g = R.int(1, r - 2);
-      v = R.int(5, 50) * 100;
+      v = R.int(5, 99) * R.pick([10, 100]); // 50억 ~ 9,900억
       cf = (v * (r - g)) / 100;
     }
     return exact({ q: `1년 뒤에 ${eok(cf)}을 받고, 그 뒤 해마다 ${g}%씩 늘려 영원히 받는다. 할인율이 연 ${r}%일 때 현재가치는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, g, cf }, why: `${fmtNum(cf)} ÷ (${r}% 빼기 ${g}%) = ${fmtNum(cf)} ÷ ${fmtNum((r - g) / 100)}.` }, v);
@@ -777,35 +921,30 @@ const pv: Record<string, Gen> = {
         s = R.pick([2, 4, 5, 10]);
         r = g + s;
       } while (r > 15);
-      d1 = R.int(3, 30) * 100;
+      d1 = sigIn(R, 2, 100, 9900); // 앞자리 둘(350원, 4,500원)
       price = (d1 * 100) / s;
+      if (!few(price)) return SKIP; // 답도 앞자리 셋까지(4,900원 ÷ 0.04 = 122,500원 같은 네 자리는 다시 뽑는다)
     } else {
       r = R.int(6, 12);
       g = R.int(1, r - 2);
-      price = R.int(10, 99) * 1000;
+      price = R.int(10, 99) * R.pick([1000, 10000]); // 1만 ~ 99만 원
       d1 = (price * (r - g)) / 100;
     }
     return exact({ q: `내년 주당배당금이 ${won(d1)}이고 그 뒤 해마다 ${g}%씩 영원히 늘어난다. 요구수익률이 연 ${r}%일 때 적정 주가는 몇 원?`, unit: '원', input: 'kr', vars: { d1, g, r }, why: `${fmtNum(d1)} ÷ (${r}% 빼기 ${g}%) = ${fmtNum(d1)} ÷ ${fmtNum((r - g) / 100)}.` }, price);
   },
   gordon_r(R) {
-    const price = R.pick([10, 12, 15, 16, 20, 24, 25, 30, 40, 45, 48, 50, 60, 75, 80]) * 1000;
-    const y = R.pick([2, 2.5, 3, 4, 5, 6]);
-    const d1 = (price * y) / 100;
-    const g = R.int(1, 6);
+    const { price, y, d1 } = R.pick(gordonYield());
+    const g = R.int(1, 8);
     return exact({ q: `주가 ${won(price)}, 내년 주당배당금 ${won(d1)}이고 배당이 해마다 ${g}%씩 영원히 늘어난다고 보면, 이 주가에 담긴 요구수익률은 몇 %?`, unit: '%', vars: { price, d1, g }, why: `배당수익률 ${fmtNum(d1)} ÷ ${fmtNum(price)} = ${fmtNum(y)}%에 성장률 ${g}%를 더한다.` }, clean(y + g));
   },
   gordon_g(R) {
-    const price = R.pick([10, 12, 15, 16, 20, 24, 25, 30, 40, 45, 48, 50, 60, 75, 80]) * 1000;
-    const y = R.pick([2, 2.5, 3, 4, 5, 6]);
-    const d1 = (price * y) / 100;
-    const g = R.int(1, 6);
+    const { price, y, d1 } = R.pick(gordonYield());
+    const g = R.int(1, 8);
     const r = clean(y + g);
     return exact({ q: `주가 ${won(price)}, 내년 주당배당금 ${won(d1)}, 요구수익률 연 ${fmtNum(r)}%다. 배당이 해마다 같은 비율로 영원히 늘어난다고 보면, 이 주가에 담긴 성장률은 몇 %?`, unit: '%', vars: { price, d1, r }, why: `요구수익률 ${fmtNum(r)}%에서 배당수익률 ${fmtNum(y)}%를 뺀다.` }, g);
   },
   deferred_perp(R) {
-    const r = R.pick([10, 20]);
-    const v = R.int(5, 50) * 100;
-    const cf = (v * r * (100 + r)) / 1e4;
+    const { r, v, cf } = pick2(R, deferredList());
     return exact({ q: `할인율이 연 ${r}%일 때, 2년 뒤부터 해마다 ${eok(cf)}을 영원히 받는 권리의 현재가치는 몇 억 원?`, unit: '억 원', input: 'kr', vars: { r, cf }, why: `1년 뒤 시점의 가치는 ${fmtNum(cf)} ÷ ${fmtNum(r / 100)} = ${fmtNum(clean(cf / (r / 100)))}. 이를 1년 할인한다.` }, v);
   },
   gordon_d0(R) {
@@ -833,36 +972,39 @@ const pv: Record<string, Gen> = {
 // ── 6. 단위 환산 ───────────────────────────────────────────
 const BP = 'bp(베이시스포인트, 1bp는 0.01퍼센트포인트)';
 const unit: Record<string, Gen> = {
-  pp2bp(R, lv) {
-    const bp = lv === 1 ? R.step(25, 300, 25) : R.step(5, 300, 5);
+  // 소수점 옮기기라 아무 수나 쓴다(1 ~ 999bp).
+  pp2bp(R) {
+    const bp = R.int(1, 999);
     return exact({ q: `금리 차이 ${fmtNum(bp / 100)}%p(퍼센트포인트)는 몇 ${BP}?`, unit: 'bp', vars: { pp: bp / 100 }, why: `1%p는 100bp.` }, bp);
   },
-  bp2pp(R, lv) {
-    const bp = lv === 1 ? R.step(25, 300, 25) : R.step(5, 300, 5);
+  bp2pp(R) {
+    const bp = R.int(1, 999);
     return exact({ q: `금리 차이 ${bp}${BP}는 몇 %p(퍼센트포인트)?`, unit: '%p', vars: { bp }, why: `100bp가 1%p.` }, bp / 100);
   },
   bp_add(R, lv) {
-    const st = lv === 1 ? 25 : 5;
-    const r0 = R.step(100, 600, st);
+    // 수준 1: 금리는 0.25%p 간격(0.25 ~ 10%), 움직임은 5bp 간격(5 ~ 200bp). 수준 2 위: 둘 다 5 간격
+    const r0 = lv === 1 ? R.step(25, 1000, 25) : R.step(100, 600, 5);
     let r1 = 0;
-    while (r1 <= 0) r1 = r0 + R.sign() * R.step(st, 150, st);
+    // 수준 1 은 답이 10% 아래(앞자리 셋까지, 9.75 + 0.9 = 10.65 같은 네 자리는 내지 않는다)
+    while (r1 <= 0 || (lv === 1 && r1 >= 1000)) r1 = r0 + R.sign() * (lv === 1 ? R.step(5, 200, 5) : R.step(5, 150, 5));
     const up = r1 > r0;
     return exact({ q: `연 ${pct(r0 / 100)}인 금리가 ${Math.abs(r1 - r0)}${BP} ${up ? '오르면' : '내리면'} 몇 %?`, unit: '%', vars: { r0: r0 / 100, d: r1 - r0 }, why: `${Math.abs(r1 - r0)}bp는 ${fmtNum(Math.abs(r1 - r0) / 100)}%p.` }, r1 / 100);
   },
   fs_mn(R, lv) {
     if (lv <= 2) {
-      const v = sigIn(R, 2, 1e4, 99e4);
+      // 앞자리 셋까지, 자릿수는 넓게(123 ~ 9,990만): 답은 1.23억 ~ 99만 9,000억
+      const v = R.int(100, 999) * Math.pow(10, R.int(0, 5));
       return exact({ q: `단위가 백만 원인 재무제표에서 매출 칸의 숫자가 ${fmtNum(v)}이다. 매출은 몇 억 원?`, unit: '억 원', vars: { v, scale: 1e6, out: 1e8 }, why: `1억은 백만의 100배. ${fmtNum(v)} ÷ 100.` }, v / 100);
     }
     const v = sigIn(R, 3, 1e6, 3e8); // 1조 ~ 300조
     return rounded({ q: `단위가 백만 원인 재무제표에서 매출 칸의 숫자가 ${fmtNum(v)}이다. 매출은 몇 조 원?`, unit: '조 원', vars: { v, scale: 1e6, out: 1e12 }, why: `1조는 백만의 100만 배. ${fmtNum(v)} ÷ 1,000,000.` }, v / 1e6, 1);
   },
   fs_th(R) {
-    const v = sigIn(R, 2, 1e5, 99e7);
+    const v = R.int(100, 999) * Math.pow(10, R.int(3, 7)); // 123,000 ~ 99억 9,000만: 답은 1.23억 ~ 9만 9,900억
     return exact({ q: `단위가 천 원인 재무제표에서 영업이익 칸의 숫자가 ${fmtNum(v)}이다. 영업이익은 몇 억 원?`, unit: '억 원', vars: { v, scale: 1e3 }, why: `1억은 천의 10만 배. ${fmtNum(v)} ÷ 100,000.` }, v / 1e5);
   },
   eok2jo(R) {
-    const v = sigIn(R, 2, 1000, 99000);
+    const v = R.int(10, 999) * Math.pow(10, R.int(2, 3)); // 1,000 ~ 999,000: 답은 0.1조 ~ 99.9조
     return exact({ q: `단위가 억 원인 표에서 자산총계 칸의 숫자가 ${fmtNum(v)}이다. 자산총계는 몇 조 원?`, unit: '조 원', vars: { v, scale: 1e8 }, why: `1조는 1만 억. ${fmtNum(v)} ÷ 10,000.` }, v / 1e4);
   },
   eok2usdmn(R) {
@@ -884,8 +1026,8 @@ const unit: Record<string, Gen> = {
     }
   },
   eps_calc(R) {
-    const sh = R.pick([1000, 1500, 2000, 2500, 3000, 4000, 5000, 8000, 10000]);
-    const eps = R.int(5, 80) * 100;
+    const sh = R.pick([1000, 1200, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 8000, 10000, 20000]);
+    const eps = sigIn(R, 2, 100, 50000);
     const ni = (eps * sh) / 1e4;
     return exact({ q: `순이익 ${eok(ni)}, 발행주식 ${shares(sh * 1e4)}인 회사의 EPS(주당순이익)는 몇 원?`, unit: '원', input: 'kr', vars: { ni, sh }, why: `${fmtNum(ni)}억 ÷ ${fmtKR(sh * 1e4, { comma: true })}.` }, eps);
   },
@@ -941,11 +1083,16 @@ const est: Record<string, Gen> = {
   },
   pow(R, lv) {
     for (;;) {
-      const r = R.int(3, 15);
-      const n = R.int(5, 20);
+      const r = R.int(2, 20);
+      const n = R.int(2, 30);
       const raw = Math.pow(1 + r / 100, n);
-      if (raw > 12) continue;
-      return approx({ q: `연 ${r}% 복리로 ${n}년이면 처음 금액의 약 몇 배?`, unit: '배', vars: { r, n }, why: `72의 법칙으로 ${fmtNum(roundTo(72 / r, 1))}년마다 두 배.` }, raw, { rel: TOL[lv] });
+      if (raw > 16 || raw < 1.2) continue;
+      const why = `72의 법칙으로 ${fmtNum(roundTo(72 / r, 1))}년마다 두 배.`;
+      if (R.chance(0.5)) return approx({ q: `연 ${r}% 복리로 ${n}년이면 처음 금액의 약 몇 배?`, unit: '배', vars: { r, n }, why }, raw, { rel: TOL[lv] });
+      // 절반은 금액(앞자리 하나 또는 둘)을 주고 나중 금액을 어림한다
+      const a = R.pick(AMT12());
+      const { unit, div } = tierBig(a * raw);
+      return approx({ q: `${krw(a)}을 연 ${r}% 복리로 ${n}년 두면 약 몇 ${unit}?`, unit, vars: { r, n, a, div }, why }, (a * raw) / div, { rel: TOL[lv] });
     }
   },
 };
@@ -1053,7 +1200,8 @@ function finish(p: Draft & { skill: SkillId; level: number; type: string; seed: 
 }
 function showOf(p: Problem): string {
   if (p.tol) return '약 ' + fmtNum(roundSig(p.raw, 3)) + joinUnit(p.unit);
-  if (p.form) return krWith(fmtKR(p.answer, { comma: true }), p.unit);
+  // 끊어 쓰기 문제와 조, 억, 만 자판으로 답하는 100만 넘는 답은 한글 단위로(1억 3,500만 원, 43억 엔)
+  if (p.form || (p.input === 'kr' && p.answer >= 1e6 && Number.isInteger(p.answer))) return krWith(fmtKR(p.answer, { comma: true }), p.unit);
   return fmtNum(p.answer, p.dp != null ? p.dp : undefined) + joinUnit(p.unit);
 }
 /** 정답을 자판으로 누른 모양(시험과 자동 풀이용). */
@@ -1077,7 +1225,24 @@ export function makeProblem(skill: SkillId, level: number, type: string, seed: s
   throw new Error(`문제를 못 만듦: ${skill}.${type}`);
 }
 
-/** 한 분야 한 세트(6문제). 유형 묶음은 수준마다 고정이고 순서만 섞는다. */
+/** 답의 단위가 나타내는 배수(만 원이면 1만). 문장 속 금액과 견주려고 쓴다. */
+const UNIT_MULT: Record<string, number> = { '만 원': 1e4, '억 원': 1e8, '조 원': 1e12, '만 엔': 1e4, '억 엔': 1e8, '만 달러': 1e4, '억 달러': 1e8 };
+/**
+ * 문제에 나오는 수와 답을 모은 표식. 서로 뒤집은 두 문제(1,350원일 때 4만 달러는? / 1,350원일 때 5,400만 원은?,
+ * 2년 30% 성장 / 같은 금액의 CAGR, 2.69%p 는 몇 bp? / 269bp 는 몇 %p?)는 이 표식이 같다. 한 세트에 함께 내지 않는다.
+ */
+function numSig(p: Problem): string {
+  const vals = new Set<number>();
+  const re = /\d[\d,.]*(?:조|억|만)?(?: \d[\d,]*(?:억|만))*(?: \d[\d,]*(?![\d,]*(?:조|억|만)))?/g;
+  for (const m of p.q.replace(/\([^)]*\)/g, '').match(re) || []) {
+    const v = parseKR(m.trim());
+    if (v) vals.add(clean(v.value));
+  }
+  vals.add(clean(Math.abs(p.answer) * (UNIT_MULT[p.unit] || 1)));
+  return [...vals].sort((a, b) => a - b).join('|');
+}
+
+/** 한 분야 한 세트(6문제). 유형 묶음은 수준마다 고정이고 순서만 섞는다. 같은 문제와 서로 뒤집은 문제는 한 세트에 두지 않는다. */
 export function makeSet(skill: SkillId, level: number, seedKey: string, n = SET_SIZE): Problem[] {
   const S = SKILL[skill];
   const L = Math.max(1, Math.min(S.levels.length, level));
@@ -1085,13 +1250,15 @@ export function makeSet(skill: SkillId, level: number, seedKey: string, n = SET_
   const R = makeRng(`${seedKey}|${skill}|${L}|order`);
   const order = R.shuffle(types).slice(0, n);
   const seen = new Set<string>();
+  const sigs = new Set<string>();
   return order.map((t, i) => {
     let p: Problem;
     for (let k = 0; ; k++) {
       p = makeProblem(skill, L, t, `${seedKey}|${skill}|${L}|${i}|${k}`);
-      if (!seen.has(p.q)) break;
+      if (!seen.has(p.q) && (k >= 50 || !sigs.has(numSig(p)))) break;
     }
     seen.add(p.q);
+    sigs.add(numSig(p));
     return p;
   });
 }
@@ -1468,11 +1635,11 @@ const SOLVE: Record<string, (v: any) => number> = {
   'read.d2k': (v) => v.n,
   'read.k2e': (v) => v.n / Math.pow(10, EN[v.en]),
   'read.e2k': (v) => v.x * Math.pow(10, EN[v.en]),
-  'fx.f2k': (v) => ((v.amt / PER_UNIT[v.c as Cur]) * v.r) / (v.out === 'man' ? 1e4 : 1e8),
-  'fx.k2f': (v) => (v.w * PER_UNIT[v.c as Cur]) / v.r / (v.out === 'man' ? 1e4 : 1),
+  'fx.f2k': (v) => ((v.amt / PER_UNIT[v.c as Cur]) * v.r) / v.out,
+  'fx.k2f': (v) => (v.w * PER_UNIT[v.c as Cur]) / v.r / v.out,
   'fx.usdmn2eok': (v) => (v.m * v.r) / 100,
   'fx.eok2usdmn': (v) => (v.w * 100) / v.r,
-  'fx.cross_jpy': (v) => (v.ru * 100) / v.rj,
+  'fx.cross_jpy': (v) => (v.dir === 'u2j' ? (v.n * v.ru * 100) / v.rj : (v.n * 1e4 * v.rj) / 100 / v.ru),
   'fx.cross_eur': (v) => v.re / v.ru,
   'fx.valchg_krw': (v) => (Math.abs(v.r0 - v.r1) / v.r1) * 100,
   'fx.valchg_usd': (v) => (Math.abs(v.r1 - v.r0) / v.r0) * 100,
@@ -1493,17 +1660,17 @@ const SOLVE: Record<string, (v: any) => number> = {
   'ratio.dupont': (v) => v.m * v.t * v.l,
   'growth.yoy': (v) => (100 * Math.abs(v.cur - v.prev)) / v.prev,
   'growth.yoy_r': (v) => (100 * Math.abs(v.cur - v.prev)) / v.prev,
-  'growth.r72_years': (v) => 72 / v.r,
-  'growth.r72_rate': (v) => 72 / v.n,
-  'growth.comp2': (v) => v.base * Math.pow(1 + v.r / 100, v.n),
+  'growth.r72_years': (v) => (72 * Math.log(v.k)) / Math.LN2 / v.r,
+  'growth.r72_rate': (v) => (72 * Math.log(v.k)) / Math.LN2 / v.n,
+  'growth.comp2': (v) => (v.base * Math.pow(1 + v.r / 100, 2)) / v.div,
   'growth.cagr2': (v) => (Math.pow(v.end / v.base, 1 / v.n) - 1) * 100,
-  'growth.comp3': (v) => v.base * Math.pow(1 + v.r / 100, v.n),
+  'growth.comp3': (v) => (v.base * Math.pow(1 + v.r / 100, v.n)) / v.div,
   'growth.cagr3': (v) => (Math.pow(v.end / v.base, 1 / v.n) - 1) * 100,
   'growth.cagr_est': (v) => (Math.exp(Math.log(v.m) / v.n) - 1) * 100,
-  'growth.mult_est': (v) => Math.exp(v.n * Math.log(1 + v.r / 100)),
-  'pv.pv1': (v) => v.cf / Math.pow(1 + v.r / 100, v.n),
-  'pv.pv2': (v) => v.cf / Math.pow(1 + v.r / 100, v.n),
-  'pv.perp': (v) => v.cf / (v.r / 100),
+  'growth.mult_est': (v) => (Math.exp(v.n * Math.log(1 + v.r / 100)) * (v.a ?? 1)) / (v.div ?? 1),
+  'pv.pv1': (v) => v.cf / Math.pow(1 + v.r / 100, v.n) / v.div,
+  'pv.pv2': (v) => (v.ask === 'r' ? (Math.sqrt(v.cf / v.v) - 1) * 100 : v.cf / Math.pow(1 + v.r / 100, v.n) / v.div),
+  'pv.perp': (v) => v.cf / (v.r / 100) / v.div,
   'pv.perp_g': (v) => v.cf / ((v.r - v.g) / 100),
   'pv.gordon': (v) => v.d1 / ((v.r - v.g) / 100),
   'pv.gordon_r': (v) => (100 * v.d1) / v.price + v.g,
@@ -1525,7 +1692,7 @@ const SOLVE: Record<string, (v: any) => number> = {
   'est.pct_of': (v) => (v.base * v.p) / 100,
   'est.fx_div': (v) => (v.w * 1e8) / v.r / 1e6,
   'est.per_share': (v) => (v.ni * 1e8) / (v.sh * 1e4),
-  'est.pow': (v) => Math.pow(1 + v.r / 100, v.n),
+  'est.pow': (v) => (Math.pow(1 + v.r / 100, v.n) * (v.a ?? 1)) / (v.div ?? 1),
 };
 const solveKey = (p: Problem) => `${p.skill}.${p.type.replace(/^(f2k|k2f)_(usd|jpy|eur)$/, '$1')}`;
 
@@ -1659,7 +1826,7 @@ export function selfTest(o: { log?: (s: string) => void; per?: number } = {}): b
       }
       // 보여 주는 정답이 다시 읽힌다
       const shownNum = p.show.replace(/^약 /, '').replace(new RegExp(joinUnit(p.unit).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$'), '');
-      const back = p.form ? parseKR(shownNum) && parseKR(shownNum)!.value : Number(shownNum.replace(/,/g, ''));
+      const back = p.input === 'kr' ? parseKR(shownNum) && parseKR(shownNum)!.value : Number(shownNum.replace(/,/g, ''));
       if (!p.tol && back !== p.answer) bad(`보이는 정답이 다름 ${key} ${p.show}`);
       const issues = lint(p);
       if (issues.length) {

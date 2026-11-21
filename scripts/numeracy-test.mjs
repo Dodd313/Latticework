@@ -4,8 +4,9 @@
 //    반올림, 허용 오차, 끊어 쓰기, 채점(정답은 맞고 한 칸 어긋난 답은 틀림)도 함께 본다.
 // 3) 난이도: 수준 1, 2 는 암산 수준인지 본다(문장 속 수의 유효숫자, 정확한 답의 소수 자리). 수준마다 문장 속 수의 최대 유효숫자 분포를 찍는다.
 // 4) 예시: SAMPLE=30 이면 수준 1 문제를 무작위로 30개 찍는다.
+// 5) 조합 수: 수준마다 유형마다 서로 다른 문제 문장이 500 개 아래면 실패(COUNT_T=30000 번 뽑아 센다. 0 이면 건너뛴다).
 // 11차 시안(motion-lab/v11/numeracy-gen.js)과의 대조는 2026-11-21 수준 1, 2 를 다시 만들면서 뺐다(시안은 옛 생성기 그대로다).
-// 사용: node scripts/numeracy-test.mjs   (PER=2000, PER_CHECK=20000, SAMPLE=0 이 기본)
+// 사용: node scripts/numeracy-test.mjs   (PER=2000, PER_CHECK=20000, SAMPLE=0, COUNT_T=30000 이 기본)
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -102,20 +103,20 @@ function solve(p) {
   }
   if (p.skill === 'fx') {
     if (/^f2k_/.test(T)) {
-      m = q.match(/^(.+?)일 때 (.+?) ?(달러|엔|유로)(은|는) 몇 (만 원|억 원)\?$/) || fail();
+      m = q.match(/^(.+?)일 때 (.+?) ?(달러|엔|유로)(은|는) 몇 (원|만 원|억 원|조 원)\?$/) || fail();
       const R = rate(m[1]);
       const cur = { usd: '달러', jpy: '엔', eur: '유로' }[R.c];
       if (cur !== m[3]) throw new Error('화폐 다름 ' + q);
       const amt = kr(m[2]);
       const w = (amt / R.per) * R.r;
-      return { v: m[5] === '만 원' ? w / 1e4 : w / 1e8, unit: m[5] };
+      return { v: w / { 원: 1, '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 }[m[5]], unit: m[5] };
     }
     if (/^k2f_/.test(T)) {
-      m = q.match(/^(.+?)일 때 (.+? ?원)은 몇 (만 )?(달러|엔|유로)\?$/) || fail();
+      m = q.match(/^(.+?)일 때 (.+? ?원)은 몇 (만 |억 )?(달러|엔|유로)\?$/) || fail();
       const R = rate(m[1]);
       const w = wonAmt(m[2]);
       const f = (w / R.r) * R.per;
-      return { v: m[3] ? f / 1e4 : f, unit: (m[3] || '') + m[4] };
+      return { v: f / ({ '만 ': 1e4, '억 ': 1e8 }[m[3]] || 1), unit: (m[3] || '') + m[4] };
     }
     switch (T) {
       case 'usdmn2eok':
@@ -125,8 +126,10 @@ function solve(p) {
         m = q.match(/^(.+?)일 때 (.+ 원)은 몇 million 달러\?$/) || fail();
         return { v: wonAmt(m[2]) / rate(m[1]).r / 1e6, unit: 'million 달러' };
       case 'cross_jpy': {
-        m = q.match(/^(1달러가 [\d,]+원), (100엔이 [\d,]+원)일 때 1달러는 몇 엔\?$/) || fail();
-        return { v: rate(m[1]).r / (rate(m[2]).r / 100), unit: '엔' };
+        m = q.match(/^(1달러가 [\d,]+원), (100엔이 [\d,]+원)일 때 (\d)(달러는 몇 엔|만 엔은 몇 달러)\?$/) || fail();
+        const won1 = rate(m[1]).r, won100 = rate(m[2]).r;
+        if (m[4] === '달러는 몇 엔') return { v: (num(m[3]) * won1) / (won100 / 100), unit: '엔' };
+        return { v: (num(m[3]) * 1e4 * (won100 / 100)) / won1, unit: '달러' };
       }
       case 'cross_eur':
         m = q.match(/^(1유로가 [\d,]+원), (1달러가 [\d,]+원)일 때 1유로는 몇 달러\?$/) || fail();
@@ -158,7 +161,7 @@ function solve(p) {
   if (p.skill === 'ratio') {
     switch (T) {
       case 'margin':
-        m = q.match(/^매출 (.+ 원), 영업이익 (.+ 원)인 회사의 영업이익률은 몇 %\?$/) || fail();
+        m = q.match(/^매출 (.+ ?원), 영업이익 (.+ ?원)인 회사의 영업이익률은 몇 %\?$/) || fail();
         return { v: (100 * wonAmt(m[2])) / wonAmt(m[1]), unit: '%' };
       case 'per':
         m = q.match(/^주가 (.+원), EPS\(주당순이익\) (.+원)인 회사의 PER\(주가수익비율\)은 몇 배\?$/) || fail();
@@ -167,10 +170,10 @@ function solve(p) {
         m = q.match(/^시가총액 (.+ 원), 자기자본 (.+ 원)인 회사의 PBR\(주가순자산비율\)은 몇 배\?$/) || fail();
         return { v: wonAmt(m[1]) / wonAmt(m[2]), unit: '배' };
       case 'roe':
-        m = q.match(/^순이익 (.+ 원), 자기자본 (.+ 원)인 회사의 ROE\(자기자본이익률\)는 몇 %\?$/) || fail();
+        m = q.match(/^순이익 (.+ ?원), 자기자본 (.+ ?원)인 회사의 ROE\(자기자본이익률\)는 몇 %\?$/) || fail();
         return { v: (100 * wonAmt(m[1])) / wonAmt(m[2]), unit: '%' };
       case 'payout':
-        m = q.match(/^순이익 (.+ 원) 가운데 (.+ 원)을 배당금으로 줬다\. 배당성향은 몇 %\?$/) || fail();
+        m = q.match(/^순이익 (.+ ?원) 가운데 (.+ ?원)을 배당금으로 줬다\. 배당성향은 몇 %\?$/) || fail();
         return { v: (100 * wonAmt(m[2])) / wonAmt(m[1]), unit: '%' };
       case 'pchg': {
         m = q.match(/^주가가 (.+원)에서 (.+원)으로 (올랐|내렸)다\. 몇 % (올랐|내렸)나\?$/) || fail();
@@ -179,7 +182,7 @@ function solve(p) {
         return { v: (100 * Math.abs(b - a)) / a, unit: '%' };
       }
       case 'pp': {
-        m = q.match(/^기준금리가 ([\d.]+)%에서 ([\d.]+)%로 (올랐|내렸)다\. 몇 %p\(퍼센트포인트\) (올랐|내렸)나\?$/) || fail();
+        m = q.match(/^(?:기준금리|국고채 금리|예금 금리|대출 금리)가 ([\d.]+)%에서 ([\d.]+)%로 (올랐|내렸)다\. 몇 %p\(퍼센트포인트\) (올랐|내렸)나\?$/) || fail();
         const a = num(m[1]), b = num(m[2]);
         if ((b > a) !== (m[3] === '올랐')) throw new Error('방향 ' + q);
         return { v: Math.abs(b - a), unit: '%p' };
@@ -213,47 +216,62 @@ function solve(p) {
     switch (T) {
       case 'yoy':
       case 'yoy_r': {
-        m = q.match(/^작년 (매출|영업이익|순이익) (.+ 원), 올해 \1 (.+ 원)이면 전년보다 몇 % (늘었나|줄었나)\?$/) || fail();
+        m = q.match(/^작년 (매출|영업이익|순이익) (.+ ?원), 올해 \1 (.+ ?원)이면 전년보다 몇 % (늘었나|줄었나)\?$/) || fail();
         const a = wonAmt(m[2]), b = wonAmt(m[3]);
         if ((b > a) !== (m[4] === '늘었나')) throw new Error('방향 ' + q);
         return { v: (100 * Math.abs(b - a)) / a, unit: '%' };
       }
-      case 'r72_years':
-        m = q.match(/^72의 법칙\(72 ÷ 연 수익률\)으로 어림하면, 연 (\d+)%로 불어나는 돈이 두 배가 되기까지 몇 년\?$/) || fail();
-        return { v: 72 / num(m[1]), unit: '년' };
-      case 'r72_rate':
-        m = q.match(/^72의 법칙\(72 ÷ 연 수익률\)으로 어림하면, (\d+)년 만에 두 배가 된 투자의 연 수익률은 몇 %\?$/) || fail();
-        return { v: 72 / num(m[1]), unit: '%' };
-      case 'comp2':
-        m = q.match(/^매출 (.+ 원)이 해마다 (\d+)%씩 2년 늘면 몇 억 원\?$/) || fail();
-        return { v: (wonAmt(m[1]) * (1 + num(m[2]) / 100) ** 2) / 1e8, unit: '억 원' };
+      case 'r72_years': {
+        // 두 배마다 72 ÷ r 년. 네 배는 두 번.
+        m = q.match(/^72의 법칙\(72 ÷ 연 수익률\)으로 어림하면, 연 (\d+)%로 불어나는 (.+ ?원)이 (.+ ?원)이 되기까지 몇 년\?$/) || fail();
+        const times = Math.log2(wonAmt(m[3]) / wonAmt(m[2]));
+        if (Math.abs(times - Math.round(times)) > 1e-9) throw new Error('두 배의 거듭이 아님 ' + q);
+        return { v: (times * 72) / num(m[1]), unit: '년' };
+      }
+      case 'r72_rate': {
+        m = q.match(/^72의 법칙\(72 ÷ 연 수익률\)으로 어림하면, (.+ ?원)이 (\d+)년 만에 (.+ ?원)이 된 투자의 연 수익률은 몇 %\?$/) || fail();
+        const times = Math.log2(wonAmt(m[3]) / wonAmt(m[1]));
+        if (Math.abs(times - Math.round(times)) > 1e-9) throw new Error('두 배의 거듭이 아님 ' + q);
+        return { v: (times * 72) / num(m[2]), unit: '%' };
+      }
+      case 'comp2': {
+        const DIV = { 원: 1, '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 };
+        const sg = (w) => (/^늘/.test(w) ? 1 : -1);
+        m = q.match(/^(매출|영업이익|순이익) (.+ ?원)이 해마다 (\d+)%씩 2년 (늘면|줄면) 몇 (원|만 원|억 원|조 원)\?$/) || fail();
+        return { v: (wonAmt(m[2]) * (100 + sg(m[4]) * num(m[3])) ** 2) / 1e4 / DIV[m[5]], unit: m[5] };
+      }
       case 'cagr2':
-        m = q.match(/^매출이 2년 만에 (.+ 원)에서 (.+ 원)이 됐다\. CAGR\(연평균 성장률\)은 몇 %\?$/) || fail();
+        m = q.match(/^매출이 2년 만에 (.+ ?원)에서 (.+ ?원)이 됐다\. CAGR\(연평균 성장률\)은 몇 %\?$/) || fail();
         return { v: ((wonAmt(m[2]) / wonAmt(m[1])) ** (1 / 2) - 1) * 100, unit: '%' };
-      case 'comp3':
-        m = q.match(/^(.+ 원)을 연 (\d+)% 복리로 3년 굴리면 몇 만 원\?$/) || fail();
-        return { v: (wonAmt(m[1]) * (1 + num(m[2]) / 100) ** 3) / 1e4, unit: '만 원' };
+      case 'comp3': {
+        m = q.match(/^(.+ ?원)을 연 (\d+)% 복리로 3년 굴리면 몇 (원|만 원|억 원|조 원)\?$/) || fail();
+        return { v: (wonAmt(m[1]) * (100 + num(m[2])) ** 3) / 1e6 / { 원: 1, '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 }[m[3]], unit: m[3] };
+      }
       case 'cagr3':
-        m = q.match(/^(.+ 원)이 3년 만에 (.+ 원)이 됐다\. 연 복리 수익률은 몇 %\?$/) || fail();
+        m = q.match(/^(.+ ?원)이 3년 만에 (.+ ?원)이 됐다\. 연 복리 수익률은 몇 %\?$/) || fail();
         return { v: ((wonAmt(m[2]) / wonAmt(m[1])) ** (1 / 3) - 1) * 100, unit: '%' };
       case 'cagr_est':
-        m = q.match(/^매출이 (\d+)년 만에 ([\d.]+)배가 됐다\. CAGR\(연평균 성장률\)은 약 몇 %\?$/) || fail();
-        return { v: (num(m[2]) ** (1 / num(m[1])) - 1) * 100, unit: '%' };
+        if ((m = q.match(/^매출이 (\d+)년 만에 ([\d.]+)배가 됐다\. CAGR\(연평균 성장률\)은 약 몇 %\?$/))) return { v: (num(m[2]) ** (1 / num(m[1])) - 1) * 100, unit: '%' };
+        m = q.match(/^매출이 (\d+)년 만에 (.+ ?원)에서 (.+ ?원)이 됐다\. CAGR\(연평균 성장률\)은 약 몇 %\?$/) || fail();
+        return { v: ((wonAmt(m[3]) / wonAmt(m[2])) ** (1 / num(m[1])) - 1) * 100, unit: '%' };
       case 'mult_est':
-        m = q.match(/^연 (\d+)% 복리로 (\d+)년 굴리면 처음 금액의 약 몇 배\?$/) || fail();
-        return { v: (1 + num(m[1]) / 100) ** num(m[2]), unit: '배' };
+        if ((m = q.match(/^연 (\d+)% 복리로 (\d+)년 굴리면 처음 금액의 약 몇 배\?$/))) return { v: (1 + num(m[1]) / 100) ** num(m[2]), unit: '배' };
+        m = q.match(/^(.+ ?원)을 연 (\d+)% 복리로 (\d+)년 굴리면 약 몇 (만 원|억 원|조 원)\?$/) || fail();
+        return { v: (wonAmt(m[1]) * (1 + num(m[2]) / 100) ** num(m[3])) / { '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 }[m[4]], unit: m[4] };
     }
   }
   if (p.skill === 'pv') {
     switch (T) {
       case 'pv1':
       case 'pv2': {
-        m = q.match(/^할인율이 연 (\d+)%일 때, (\d)년 뒤에 받는 (.+ 원)의 현재가치는 몇 억 원\?$/) || fail();
-        return { v: wonAmt(m[3]) / (1 + num(m[1]) / 100) ** num(m[2]) / 1e8, unit: '억 원' };
+        const DIV = { 원: 1, '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 };
+        if (T === 'pv2' && (m = q.match(/^2년 뒤에 받는 (.+ ?원)의 현재가치가 (.+ ?원)이면 할인율은 연 몇 %\?$/))) return { v: (Math.sqrt(wonAmt(m[1]) / wonAmt(m[2])) - 1) * 100, unit: '%' };
+        m = q.match(/^할인율이 연 (\d+)%일 때, (\d)년 뒤에 받는 (.+ ?원)의 현재가치는 몇 (원|만 원|억 원|조 원)\?$/) || fail();
+        return { v: (wonAmt(m[3]) * 100 ** num(m[2])) / (100 + num(m[1])) ** num(m[2]) / DIV[m[4]], unit: m[4] };
       }
       case 'perp':
-        m = q.match(/^할인율이 연 (\d+)%일 때, 1년 뒤부터 해마다 (.+ 원)을 영원히 받는 권리의 현재가치는 몇 억 원\?$/) || fail();
-        return { v: wonAmt(m[2]) / (num(m[1]) / 100) / 1e8, unit: '억 원' };
+        m = q.match(/^할인율이 연 (\d+)%일 때, 1년 뒤부터 해마다 (.+ ?원)을 영원히 받는 권리의 현재가치는 몇 (원|만 원|억 원|조 원)\?$/) || fail();
+        return { v: wonAmt(m[2]) / (num(m[1]) / 100) / { 원: 1, '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 }[m[3]], unit: m[3] };
       case 'perp_g':
         m = q.match(/^1년 뒤에 (.+ 원)을 받고, 그 뒤 해마다 (\d+)%씩 늘려 영원히 받는다\. 할인율이 연 (\d+)%일 때 현재가치는 몇 억 원\?$/) || fail();
         return { v: wonAmt(m[1]) / ((num(m[3]) - num(m[2])) / 100) / 1e8, unit: '억 원' };
@@ -334,8 +352,9 @@ function solve(p) {
         m = q.match(/^순이익 (.+ 원), 발행주식 (.+) 주인 회사의 EPS\(주당순이익\)는 약 몇 원\?$/) || fail();
         return { v: wonAmt(m[1]) / kr(m[2]), unit: '원' };
       case 'pow':
-        m = q.match(/^연 (\d+)% 복리로 (\d+)년이면 처음 금액의 약 몇 배\?$/) || fail();
-        return { v: (1 + num(m[1]) / 100) ** num(m[2]), unit: '배' };
+        if ((m = q.match(/^연 (\d+)% 복리로 (\d+)년이면 처음 금액의 약 몇 배\?$/))) return { v: (1 + num(m[1]) / 100) ** num(m[2]), unit: '배' };
+        m = q.match(/^(.+ ?원)을 연 (\d+)% 복리로 (\d+)년 두면 약 몇 (만 원|억 원|조 원)\?$/) || fail();
+        return { v: (wonAmt(m[1]) * (1 + num(m[2]) / 100) ** num(m[3])) / { '만 원': 1e4, '억 원': 1e8, '조 원': 1e12 }[m[4]], unit: m[4] };
     }
   }
   throw new Error('풀이 없음 ' + p.skill + '.' + T);
@@ -454,6 +473,44 @@ for (const k of ks) console.log('  ' + k, errs[k].n, '\n     ' + errs[k].join('\
 console.log('3) 문장 속 수의 최대 유효숫자 분포(수준마다)');
 for (const S of N.SKILLS) console.log('  ' + S.id.padEnd(7) + [1, 2, 3, 4].map((lv) => `${lv}: ${JSON.stringify(mag[`${S.id}@${lv}`]?.dig ?? {})}`).join('  '));
 
+// ── 5) 조합 수 ──
+// 소유자 결정(2026-11-21): 난이도는 그대로 두고, 자주 풀어도 답을 외울 수 없게 숫자를 넓힌다.
+// 수준마다 유형마다 COUNT_T(30,000)번 뽑아 서로 다른 문제 문장과 서로 다른 답을 센다. 문장이 500 개 아래면 실패.
+// 1,000 문장과 100 답을 넘으면 거기서 멈추고 "+"를 붙인다(시간을 아끼려고). 답이 100 아래인 유형은 적어 두기만 한다:
+// 수준 1 의 비율(친한 %가 답), CAGR, 72의 법칙처럼 답이 몇 가지로 정해진 유형이다. COUNT_T=0 이면 건너뛴다.
+const COUNT_T = Number(process.env.COUNT_T ?? 30000);
+let countFail = 0;
+if (COUNT_T > 0) {
+  console.log(`5) 조합 수(수준마다 유형마다 최대 ${COUNT_T}번 뽑아 센 서로 다른 문장/답, 문장 500 아래면 실패)`);
+  const t5 = Date.now();
+  const fewAns = [];
+  for (const S of N.SKILLS) {
+    for (let lv = 1; lv <= S.levels.length; lv++) {
+      const row = [];
+      for (const t of [...new Set(S.levels[lv - 1].types)]) {
+        const qs = new Set();
+        const as = new Set();
+        let i = 0;
+        for (; i < COUNT_T && !(qs.size >= 1000 && as.size >= 100); i++) {
+          const p = N.makeProblem(S.id, lv, t, `count|${i}`);
+          qs.add(p.q);
+          as.add(p.tol ? p.raw : p.answer);
+        }
+        const done = i < COUNT_T ? '+' : '';
+        row.push(`${t} ${qs.size}${done}/${as.size}${done}`);
+        if (qs.size < 500) {
+          countFail++;
+          console.log(`  실패: ${S.id}.${t}@${lv} 문장 ${qs.size}`);
+        }
+        if (as.size < 100) fewAns.push(`${S.id}.${t}@${lv} ${as.size}`);
+      }
+      console.log(`  ${S.id.padEnd(7)}${lv}: ${row.join('  ')}`);
+    }
+  }
+  console.log(`  답이 100 가지 아래(답이 몇 가지로 정해진 유형): ${fewAns.join(', ')}`);
+  console.log(`  ${Date.now() - t5}ms, ${countFail ? '실패 ' + countFail + '건' : '통과'}`);
+}
+
 // ── 4) 수준 1 예시 ──
 const SAMPLE = Number(process.env.SAMPLE || 0);
 if (SAMPLE) {
@@ -466,4 +523,4 @@ if (SAMPLE) {
     console.log(`  ${String(i + 1).padStart(2)}. ${p.q}${p.note ? ` (${p.note})` : ''}  답 ${p.show}`);
   }
 }
-process.exit(ok1 && ks.length === 0 ? 0 : 1);
+process.exit(ok1 && ks.length === 0 && countFail === 0 ? 0 : 1);
