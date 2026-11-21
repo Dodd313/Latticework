@@ -1,5 +1,20 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "language": "korean",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/hooks/korean-reply-check.py\"",
+            "timeout": 20,
+            "statusMessage": "답변 언어 확인"
+          }
+        ]
+      }
+    ]
   }
 }
