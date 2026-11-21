@@ -50,7 +50,9 @@ Latticework 시사 앱: 작업 구조 공유 문서
 - 연속 기록: 연달아 달성한 발행일 수. 주말처럼 발행이 없는 날은 세지도 끊지도 않는다. 늦게 읽은 날은 끊긴다.
   오늘 화면 맨 위에 연속 일수, 이번 주 월~금 표식, 오늘 할 일 한 줄을 둔다. 목표를 채우는 순간 달성 화면이 뜬다.
 - 주간 리뷰: 이번 주 달성 현황, 이번 주 기사 다시 보기, 금요일에 발행되는 다섯 문항 퀴즈.
-- 앱 아이콘 교체는 보류 중이다 (시안 여섯 개는 디자인 캔버스에 있다).
+- 로고 (2026-11-21 확정): 세 면 상자. 흰 바탕에 옆 두 면은 #191f28, 윗면은 Toss 파랑 #3182f6. 어두운 바탕에서는 옆면만 흰색.
+  원본 SVG 는 assets/logo/ (python3 -I assets/logo/src/make_logo.py 로 다시 만든다. Inkscape 필요),
+  PNG 는 node scripts/make-icons.mjs. 앱 안의 표식과 글자 로고는 src/logo.tsx (40 px 아래는 틈을 넓힌 작은 판).
 - 기사 선정 기준(같은 날 추가 결정): 그날의 주가 등락이나 분기 실적이 아니라 자본시장의 구조를 다룬다.
   제도와 규칙의 변화, 지배권과 소유 구조의 변화, 주주 권리와 자본 배분, 시장 구조, 해외의 같은 유형.
   사용자가 든 사례는 방향을 보여 주는 예일 뿐이다. 지시문에 특정 사건 이름을 적지 않고 유형과 판단 질문으로 유도한다.
@@ -142,7 +144,7 @@ Latticework 시사 앱: 작업 구조 공유 문서
   data/users/{본인}/seen 에 저장된다. 내보내기는 version 3, 가져오기는 2 와 3 을 받는다.
 - Latti: docs/data/latti.json(늘 쓰는 줄 bank 와 하루 묶음 목록 daily). 고르는 규칙은 src/lattiLines.ts, 표식과 말풍선은 src/latti.tsx,
   모양은 src/lattiTypes.ts. 자체 주소 빌드만 받는다(Claude 링크 빌드는 src/cheer.ts 의 문장을 쓴다).
-  한 화면에 한 줄, 기사를 읽는 동안에는 말하지 않는다. 표식은 지금 앱 아이콘이다(LattiAvatar 하나만 바꾸면 된다).
+  한 화면에 한 줄, 기사를 읽는 동안에는 말하지 않는다. 표식은 앱 로고(세 면 상자)다(LattiAvatar 하나만 바꾸면 된다).
   고르는 순서: 상황(s)과 조건(when)이 맞는 줄 가운데 우선 단계(p)가 높은 것, 3일 안에 보인 줄은 피한다, 하루 묶음 줄은 무게 3배.
   기사가 없는 날에 기사를 말하는 줄은 when 에 "newsToday": ">=1" 을 붙인다.
 - Latti 하루 묶음은 아침 작업이 날마다 daily 목록 끝에 하나 덧붙인다(같은 date 의 묶음이 있으면 그것을 바꾼다).
@@ -228,7 +230,7 @@ Latticework 시사 앱: 작업 구조 공유 문서
 - web/mock-claude.js, web/sample-data.json   로컬 확인 전용 가짜 저장소와 예시 데이터
 - scripts/build-web.mjs  웹 빌드. out/ (Claude 링크용)과 docs/ (자체 주소용)를 함께 만든다
 - scripts/export-feed.mjs  데이터베이스에서 받은 문서를 docs/data/feed.json 하나로 묶는다
-- scripts/make-icons.mjs   홈 화면 아이콘을 그린다
+- scripts/make-icons.mjs   assets/logo/ 의 SVG 에서 아이콘 PNG 를 그린다(web/site/icons/, assets/)
 - web/site/              자체 주소용 겉 틀: index.html, sw.js, manifest.webmanifest, icons
 - scripts/shots.mjs      휴대폰 크기(390x844)로 전 화면을 띄워 그림으로 남기고 오류를 모은다(light | dark)
 - scripts/shots-site.mjs 자체 주소 빌드에서 복습을 끝까지 풀고, 마지막에 해금과 돌아보기를 띄워 본다

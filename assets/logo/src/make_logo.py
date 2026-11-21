@@ -161,9 +161,11 @@ def main():
     s = 256 * 0.19 / H
     ww, wh = W * s, H * s
     tw = max(256, ww); th = 256 + 48 + wh
-    inner = f'<g transform="translate({f((tw - 256) / 2)} 0)">{mark(big)}</g>'
-    inner += f'<path fill="{INK}" transform="translate({f((tw - ww) / 2)} {f(256 + 48)}) scale({f(s)})" d="{wd}"/>'
-    write("lockup.svg", doc("Latticework 시작 화면 묶음", inner, f"0 0 {f(tw)} {f(th)}", f(tw), f(th)))
+    for name, side, title in (("lockup.svg", INK, "Latticework 시작 화면 묶음"),
+                              ("lockup-reversed.svg", WHITE, "Latticework 시작 화면 묶음 어두운 바탕")):
+        inner = f'<g transform="translate({f((tw - 256) / 2)} 0)">{mark(big, BLUE, side)}</g>'
+        inner += f'<path fill="{side}" transform="translate({f((tw - ww) / 2)} {f(256 + 48)}) scale({f(s)})" d="{wd}"/>'
+        write(name, doc(title, inner, f"0 0 {f(tw)} {f(th)}", f(tw), f(th)))
     write("wordmark.svg", doc("Latticework", f'<path fill="{INK}" d="{wd}"/>', f"0 0 {f(W)} {f(H)}", f(W), f(H)))
 
     # 앱 코드(src/logo.tsx)에 넣을 경로
