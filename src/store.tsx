@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
-import { addDays, isWeekend, kstDate, todayKST } from './dates';
+import { addDays, kstDate, todayKST } from './dates';
 import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyState, Vocab, emptyStudy, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
@@ -397,13 +397,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (doc && doc.visibilityState === 'visible') void refresh();
         };
         doc?.addEventListener?.('visibilitychange', onVisible);
-        // 평일인데 오늘 자 기사가 아직 없으면 1분마다 다시 받아, 발행되는 대로 화면에 띄운다. 그 밖에는 15분마다.
+        // 오늘 자 기사가 아직 없으면 1분마다 다시 받아, 발행되는 대로 화면에 띄운다. 그 밖에는 15분마다.
+        // 기사는 주말과 공휴일에도 매일 나온다(2026-11-21 사용자 결정).
         let ticks = 0;
         const timer = setInterval(() => {
           ticks += 1;
           if (doc && doc.visibilityState !== 'visible') return;
           const today = todayKST();
-          const waiting = latest < today && !isWeekend(today);
+          const waiting = latest < today;
           if (waiting || ticks % 15 === 0) void refresh();
         }, 60 * 1000);
         unsubs.push(() => {
