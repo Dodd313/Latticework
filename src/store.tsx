@@ -1,11 +1,13 @@
 import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyState, Vocab, emptyStudy, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyDay, StudyState, Vocab, daysFromLog, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
 import { DAILY_TOTAL, NumItem, NumResult, NumState, SkillId, addSet, emptyNum, mergeNum, migrateNum, quotaDone } from './numeracy';
+import { SheetInfo, SheetRow, SheetSet, Snapshot, SyncConf, backoff, emptyConf, fromSheetRow, hash53, rowId, sheetAll, sheetBeacon, sheetInfo, sheetPost, toSheetRow, toSheetSet, validUrl, withIds } from './sync';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -76,6 +78,13 @@ const LOG_CAP = 6000;
 const LATTI_DATA_KEY = 'lw.latti.data.v1';
 // 수리 기록(분야마다 한 세트에 한 줄, 분야별 수준, 날짜별 할당). 기기에만 두고 내보내기에 함께 넣는다.
 const NUM_KEY = 'lw.num.v1';
+// 시트 보내기(src/sync.ts, ops/sheet-sync.gs). 설정(주소, 기기 id, 순번, 보낸 수)과 아직 시트가 받았다고 답하지 않은 줄.
+const SYNC_KEY = 'lw.sync.v1';
+const SYNC_Q_KEY = 'lw.sync.q.v1';
+const SYNC_EVERY = 3 * 60 * 1000;
+const SYNC_BATCH_ROWS = 400;
+const SYNC_BATCH_SETS = 300;
+const BEACON_MAX = 60000;
 // Latti 가 한 줄을 보여 준 시각(줄 id → 시각). 기기에만 둔다. 30일 지난 것은 버린다.
 const LATTI_HIST_KEY = 'lw.latti.hist.v1';
 const LATTI_HIST_DAYS = 30;
@@ -140,6 +149,10 @@ try {
 
 type Status = 'loading' | 'live' | 'offline';
 
+/** 설정 화면이 보는 시트 보내기 상태. pending 은 아직 시트가 받았다고 답하지 않은 줄 수, failing 은 마지막 시도가 실패했는지. */
+export type SyncView = { url: string; sent: number; lastAt: string | null; pending: number; failing: boolean };
+type SyncQueue = { rows: SheetRow[]; sets: SheetSet[] };
+
 /** 퀴즈 답 하나의 결과. prevRight, prevAnswered 는 이 답 전까지 맞힌 수와 답한 수(점수 칸이 없던 예전 답을 셀 때만 쓴다). */
 export type QuizMeta = { right: boolean; total: number; prevRight?: number; prevAnswered?: number };
 
@@ -172,6 +185,15 @@ type Store = {
   recordNum: (k: SkillId, lv: number, items: NumItem[], daily: boolean) => NumResult;
   exportData: () => string;
   importData: (json: string) => boolean;
+  sync: SyncView; // 시트 보내기 상태(보낼 때마다가 아니라 한 번 보내기를 마칠 때 바뀐다)
+  /** 웹 앱 주소를 기기에 적는다. 주소가 바뀌면 기기의 기록 전체를 다시 보낼 차례에 넣는다(시트가 같은 줄을 거른다). */
+  setSyncUrl: (url: string) => boolean;
+  /** 연결 시험: 빈 묶음을 보내 답을 받고, 시트의 개수를 읽는다. 실패면 null. */
+  testSync: () => Promise<SheetInfo | null>;
+  /** 시트의 개수만 읽는다(불러오기 제안). 실패면 null. */
+  probeSheet: () => Promise<SheetInfo | null>;
+  /** 시트의 기록을 모두 받아 기기의 기록과 합친다. 기억 상태는 풀이 기록을 다시 풀어 만든다. 실패면 null. */
+  restoreFromSheet: () => Promise<{ rows: number; sets: number } | null>;
 };
 
 const StoreCtx = createContext<Store | null>(null);
@@ -300,7 +322,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [studyData, setStudyData] = useState<StudyData | null>(() => loadLocal<StudyData>(STUDY_DATA_KEY));
   // 풀이 기록은 메모리에 두고 붙여 쓴다. 처음 필요할 때 한 번만 읽는다(최대 6,000줄).
   const logRef = useRef<LogRow[] | null>(null);
-  const getLog = useCallback(() => (logRef.current ??= loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? []), []);
+  // 시트 보내기 설정. 기기 id 는 처음 한 번 만든다(주소가 없어도 새 풀이 줄에 id 를 붙인다).
+  const syncRef = useRef<SyncConf | null>(null);
+  const getConf = useCallback((): SyncConf => {
+    if (!syncRef.current) {
+      const c = loadLocal<SyncConf>(SYNC_KEY);
+      syncRef.current = c && typeof c.device === 'string' && c.device ? { ...emptyConf(), ...c } : emptyConf();
+      if (!c) saveLater(SYNC_KEY, () => syncRef.current);
+    }
+    return syncRef.current;
+  }, []);
+  // id 가 없는 예전 줄에는 내용의 해시로 id 를 붙인다(어느 기기에서 붙여도 같다).
+  // 순번은 기록에 남은 이 기기 id 의 가장 큰 순번 뒤부터 잇는다(설정 저장이 늦어도 같은 id 가 두 번 나오지 않게).
+  const getLog = useCallback(() => {
+    if (!logRef.current) {
+      const raw = loadLocal<LogRow[]>(STUDY_LOG_KEY) ?? [];
+      const log = withIds(raw);
+      logRef.current = log;
+      if (log !== raw) saveLater(STUDY_LOG_KEY, () => logRef.current);
+      const conf = getConf();
+      const pre = conf.device + '.';
+      for (const r of log) if (r.id && r.id.startsWith(pre)) conf.seq = Math.max(conf.seq, Number(r.id.slice(pre.length)) || 0);
+    }
+    return logRef.current;
+  }, []);
   const [study, setStudy] = useState<StudyState>(() => {
     const st = loadLocal<StudyState>(STUDY_KEY);
     if (!st) return emptyStudy(todayKST());
@@ -614,11 +659,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setStudy(next);
     // 기기 안 보관은 조금 뒤에 한다(답을 확인하는 순간의 움직임을 막지 않게). 앱을 닫으면 바로 쓴다.
     saveLater(STUDY_KEY, () => studyRef.current);
-    const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade, ...(q.retry ? { r: 1 as const } : null) };
     const log = getLog();
+    const conf = getConf();
+    conf.seq += 1;
+    const row: LogRow = { t: now.toISOString(), u: q.unit, k: q.sect, q: q.key, ok: result.ok, n: result.attempts, sec: Math.round(result.sec), g: result.grade, ...(q.retry ? { r: 1 as const } : null), id: `${conf.device}.${conf.seq}` };
     log.push(row);
     if (log.length > LOG_CAP) log.splice(0, log.length - LOG_CAP);
     saveLater(STUDY_LOG_KEY, getLog);
+    saveLater(SYNC_KEY, getConf);
+    if (conf.url) enqueue([toSheetRow(row)], []);
   }, []);
 
   const recordNum = useCallback((k: SkillId, lv: number, items: NumItem[], daily: boolean): NumResult => {
@@ -626,7 +675,280 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     numRef.current = state;
     setNum(state);
     saveLater(NUM_KEY, () => numRef.current);
+    if (getConf().url) enqueue([], [toSheetSet(result.row)]);
     return result;
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────
+  // 시트 보내기. 줄은 기록하는 순간 차례(queue)에 넣고, 3분마다(화면이 보일 때), 앱을 열 때, 앱으로 돌아올 때 fetch 로 보낸다.
+  // 시트가 { ok: true } 로 답한 줄만 차례에서 뺀다. 화면을 떠날 때는 sendBeacon 으로 한 번 더 던지지만 보냈다고 적지 않는다.
+  // 실패하면 1분, 2분, 4분 ... 60분 뒤에 다시 한다. 화면은 기다리지 않는다.
+  // ─────────────────────────────────────────────────────────────
+  const queueRef = useRef<SyncQueue | null>(null);
+  const getQueue = useCallback((): SyncQueue => {
+    if (!queueRef.current) {
+      const q = loadLocal<SyncQueue>(SYNC_Q_KEY);
+      queueRef.current = { rows: Array.isArray(q?.rows) ? q!.rows : [], sets: Array.isArray(q?.sets) ? q!.sets : [] };
+    }
+    return queueRef.current;
+  }, []);
+  const viewOf = (): SyncView => {
+    const c = getConf();
+    const q = getQueue();
+    return { url: c.url, sent: c.sent, lastAt: c.lastAt ?? null, pending: c.url ? q.rows.length + q.sets.length : 0, failing: c.fail > 0 };
+  };
+  const [sync, setSyncView] = useState<SyncView>(() => viewOf());
+  const syncBusy = useRef(false);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastBeacon = useRef(0);
+
+  /** 차례에 넣는다. 이미 있는 id 는 넣지 않는다. */
+  const enqueue = (rows: SheetRow[], sets: SheetSet[]) => {
+    const q = getQueue();
+    if (rows.length) {
+      const have = new Set(q.rows.map((r) => r.id));
+      for (const r of rows) if (!have.has(r.id)) (have.add(r.id), q.rows.push(r));
+    }
+    if (sets.length) {
+      const have = new Set(q.sets.map((r) => r.id));
+      for (const r of sets) if (!have.has(r.id)) (have.add(r.id), q.sets.push(r));
+    }
+    saveLater(SYNC_Q_KEY, getQueue);
+  };
+
+  /**
+   * 오늘의 상태 한 줄(풀이 기록으로 다시 만들 수 없는 것). 지난번에 보낸 것과 같으면 null.
+   * 기록이 하나도 없는 기기(새 기기, 지운 뒤)는 보내지 않는다. 빈 상태가 시트의 마지막 상태가 되어 불러오기를 흐리지 않게.
+   */
+  const snapshotIfChanged = (): { snap: Snapshot; key: string } | null => {
+    const c = getConf();
+    const st = studyRef.current;
+    const nm = numRef.current;
+    if (!Object.keys(st.cards).length && !nm.sessions.length && !Object.keys(userRef.current.read).length) return null;
+    const body = { v: 1 as const, date: todayKST(), device: c.device, user: userRef.current, study: { start: st.start, days: st.days, xp: st.xp, cards: st.cards }, num: { start: nm.start, level: nm.level, days: nm.days } };
+    const key = hash53(JSON.stringify(body));
+    if (key === c.snapKey) return null;
+    return { snap: { ...body, at: new Date().toISOString() }, key };
+  };
+
+  const flushSync = useCallback(async (force = false) => {
+    const c = getConf();
+    const url = c.url;
+    if (!url || syncBusy.current) return;
+    if (!force && Date.now() < c.nextTry) return;
+    const q = getQueue();
+    let snap = snapshotIfChanged();
+    if (!q.rows.length && !q.sets.length && !snap) return;
+    syncBusy.current = true;
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    retryTimer.current = null;
+    try {
+      for (let loop = 0; loop < 50; loop++) {
+        const rows = q.rows.slice(0, SYNC_BATCH_ROWS);
+        const sets = q.sets.slice(0, SYNC_BATCH_SETS);
+        if (!rows.length && !sets.length && !snap) break;
+        await sheetPost(url, { device: c.device, rows, sets, ...(snap ? { snapshot: snap.snap } : null) });
+        if (getConf().url !== url) return; // 그사이 주소를 바꿨으면 이 결과는 버린다
+        const done = new Set(rows.map((r) => r.id));
+        const doneSets = new Set(sets.map((r) => r.id));
+        q.rows = q.rows.filter((r) => !done.has(r.id));
+        q.sets = q.sets.filter((r) => !doneSets.has(r.id));
+        c.sent += rows.length + sets.length;
+        c.lastAt = new Date().toISOString();
+        c.fail = 0;
+        c.nextTry = 0;
+        if (snap) c.snapKey = snap.key;
+        snap = null;
+        saveLater(SYNC_Q_KEY, getQueue);
+        saveLater(SYNC_KEY, getConf);
+      }
+    } catch {
+      if (getConf().url === url) {
+        c.fail += 1;
+        const wait = backoff(c.fail);
+        c.nextTry = Date.now() + wait;
+        saveLater(SYNC_KEY, getConf);
+        retryTimer.current = setTimeout(() => void flushSync(), wait);
+      }
+    } finally {
+      syncBusy.current = false;
+      setSyncView(viewOf());
+    }
+  }, []);
+
+  /** 화면을 떠날 때 한 번 던진다(64KB 안에서). 시트가 받았는지 알 수 없으므로 차례에서 빼지 않는다. */
+  const beaconSync = useCallback(() => {
+    const c = getConf();
+    if (!c.url || Date.now() - lastBeacon.current < 2000) return;
+    const q = getQueue();
+    const snap = snapshotIfChanged();
+    if (!q.rows.length && !q.sets.length && !snap) return;
+    lastBeacon.current = Date.now();
+    const rows = q.rows.slice(0, 200);
+    const sets = q.sets.slice(0, 100);
+    let body: Record<string, unknown> = { device: c.device, rows, sets, ...(snap ? { snapshot: snap.snap } : null) };
+    if (JSON.stringify(body).length > BEACON_MAX) body = { device: c.device, rows: rows.slice(0, 100), sets: sets.slice(0, 50) };
+    if (JSON.stringify(body).length <= BEACON_MAX) sheetBeacon(c.url, body);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const w = globalThis as any;
+    const doc = w.document;
+    const visible = () => !doc || doc.visibilityState === 'visible';
+    // 앱을 열 때: 첫 화면을 그린 뒤 조금 있다가 보낸다.
+    const first = setTimeout(() => void flushSync(true), 4000);
+    const timer = setInterval(() => visible() && void flushSync(), SYNC_EVERY);
+    const onVis = () => (visible() ? void flushSync(true) : beaconSync());
+    const onHide = () => beaconSync();
+    doc?.addEventListener?.('visibilitychange', onVis);
+    w.addEventListener?.('pagehide', onHide);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+      doc?.removeEventListener?.('visibilitychange', onVis);
+      w.removeEventListener?.('pagehide', onHide);
+    };
+  }, []);
+
+  /** 기기의 기록 전체를 차례에 넣는다(주소를 처음 적거나 바꿨을 때, 가져오기 뒤). */
+  const enqueueAll = () => {
+    enqueue(getLog().map(toSheetRow), numRef.current.sessions.map(toSheetSet));
+  };
+
+  const setSyncUrl = useCallback((raw: string): boolean => {
+    const url = raw.trim();
+    const c = getConf();
+    if (url && !validUrl(url)) return false;
+    if (url === c.url) return true;
+    c.url = url;
+    c.sent = 0;
+    c.lastAt = undefined;
+    c.snapKey = undefined;
+    c.fail = 0;
+    c.nextTry = 0;
+    queueRef.current = { rows: [], sets: [] };
+    if (url) enqueueAll();
+    saveLater(SYNC_Q_KEY, getQueue);
+    saveLater(SYNC_KEY, getConf);
+    setSyncView(viewOf());
+    return true;
+  }, []);
+
+  const probeSheet = useCallback(async (): Promise<SheetInfo | null> => {
+    const url = getConf().url;
+    if (!url) return null;
+    try {
+      return await sheetInfo(url);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const testSync = useCallback(async (): Promise<SheetInfo | null> => {
+    const c = getConf();
+    if (!c.url) return null;
+    try {
+      await sheetPost(c.url, { device: c.device, ping: 1, rows: [], sets: [] });
+      const info = await sheetInfo(c.url);
+      // 연결이 되면 기다리던 줄을 바로 보낸다.
+      c.fail = 0;
+      c.nextTry = 0;
+      void flushSync(true);
+      return info;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const restoreFromSheet = useCallback(async (): Promise<{ rows: number; sets: number } | null> => {
+    const url = getConf().url;
+    if (!url) return null;
+    let all;
+    try {
+      all = await sheetAll(url);
+    } catch {
+      return null;
+    }
+    const today = todayKST();
+    // 풀이 기록: 시트와 기기의 줄을 id 로 합친다(같은 줄은 한 번).
+    const byId = new Map<string, LogRow>();
+    for (const x of all.rows) {
+      const r = fromSheetRow(x);
+      if (r) byId.set(r.id!, r);
+    }
+    const fromSheet = byId.size;
+    for (const r of getLog()) byId.set(rowId(r), r.id ? r : { ...r, id: rowId(r) });
+    const merged = [...byId.values()].sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
+    const snaps = all.snapshots.slice().sort((a, b) => (a.date + a.at < b.date + b.at ? -1 : 1));
+
+    // 기억 상태: 합친 기록을 처음부터 다시 푼다. 기기의 것, 다시 푼 것, 상태 줄의 사본 가운데
+    // 항목마다 마지막으로 푼 때가 늦은 쪽(같으면 많이 푼 쪽)을 남긴다. 처음 답한 날은 가장 이른 날.
+    // 같은 때, 같은 횟수면 먼저 본 쪽을 남기므로 상태 줄의 사본(기기가 실제로 가졌던 값)을 다시 푼 것보다 먼저 본다.
+    // 문제 자료(study.json)를 아직 못 받은 때 다시 풀면 개념 문제의 수준을 모르기 때문이다.
+    const cur = studyRef.current;
+    const rebuilt = rebuildFromLog(merged, studyDataRef.current);
+    const cards: Record<string, Card> = { ...cur.cards };
+    for (const src of [...snaps.map((x) => x.study?.cards ?? {}), rebuilt.cards]) {
+      for (const [id, c] of Object.entries(src)) {
+        if (!c || typeof c.last !== 'string' || typeof c.s !== 'number') continue;
+        const old = cards[id];
+        const first = [old?.first, c.first].filter(Boolean).sort()[0];
+        if (!old || c.last > old.last || (c.last === old.last && c.reps > old.reps)) cards[id] = first ? { ...c, first } : c;
+        else if (first && first !== old.first) cards[id] = { ...old, first };
+      }
+    }
+    // 날짜별 푼 수: 기기, 시트의 상태 줄 가운데 많이 푼 쪽. 둘 다 없는 날만 풀이 기록으로 센다.
+    const total = (d: StudyDay) => d.lat + d.voc + (d.extra ?? 0);
+    const days: Record<string, StudyDay> = { ...cur.days };
+    for (const sn of snaps) for (const [d, v] of Object.entries(sn.study?.days ?? {})) if (v && (!days[d] || total(v) > total(days[d]))) days[d] = v;
+    for (const [d, v] of Object.entries(daysFromLog(merged))) if (!days[d]) days[d] = v;
+    const starts = [cur.start, rebuilt.start, ...snaps.map((x) => x.study?.start)].filter((x): x is string => !!x && /^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
+    const xp = Math.max(cur.xp, rebuilt.xp, ...snaps.map((x) => Number(x.study?.xp) || 0));
+    const nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp };
+    logRef.current = merged.slice(-LOG_CAP);
+    studyRef.current = nextStudy;
+    setStudy(nextStudy);
+    saveLater(STUDY_LOG_KEY, getLog);
+    saveLater(STUDY_KEY, () => studyRef.current);
+
+    // 수리: 세트 줄과 상태 줄(수준, 날짜별 할당)을 기기의 기록과 합친다(같은 세트는 한 번).
+    let nm = numRef.current;
+    // 수준은 수리를 가장 늦게 푼 기기의 상태를 따른다(그날 할당을 마쳤거나 추가 학습을 한 가장 늦은 날, 같으면 늦게 보낸 것).
+    const numActive = (x: Snapshot) => Object.entries(x.num?.days ?? {}).reduce((m, [d, v]) => ((v?.ks?.length || v?.x) && d > m ? d : m), '');
+    const lastNum = snaps
+      .filter((x) => x.num)
+      .sort((a, b) => (numActive(a) + a.at < numActive(b) + b.at ? -1 : 1))
+      .pop()?.num;
+    const level: Record<string, number> = { ...(lastNum?.level ?? {}) };
+    if (!lastNum) for (const x of all.sets) level[x.k] = Number(x.lv) || 1; // 상태 줄이 없으면 분야마다 마지막 세트의 수준
+    for (const sn of snaps.length ? snaps : [null]) {
+      const n0 = migrateNum({ start: sn?.num?.start ?? lastNum?.start ?? today, level, days: sn?.num?.days ?? {}, sessions: all.sets }, today);
+      if (n0) nm = mergeNum(nm, n0);
+    }
+    numRef.current = nm;
+    setNum(nm);
+    saveLater(NUM_KEY, () => numRef.current);
+
+    // 개인 기록(읽은 기사, 퀴즈, 본 해금 등): 기기별 마지막 상태를 차례로 합친다.
+    let u = userRef.current;
+    for (const sn of snaps) u = mergeUser(u, sn.user);
+    if (u !== userRef.current) {
+      userRef.current = u;
+      setUser(u);
+      saveLater(USER_KEY, () => userRef.current);
+    }
+    flushSaves();
+    // 시트에 없던 기기의 줄만 차례에 넣고, 합친 상태를 오늘의 상태 줄로 다시 보낸다.
+    const onSheet = new Set(all.rows.map((x) => String(x.id)));
+    const setsOnSheet = new Set(all.sets.map((x) => String(x.id)));
+    enqueue(
+      getLog().filter((r) => !onSheet.has(rowId(r))).map(toSheetRow),
+      nm.sessions.map(toSheetSet).filter((x) => !setsOnSheet.has(x.id)),
+    );
+    void flushSync(true);
+    return { rows: fromSheet, sets: all.sets.length };
   }, []);
 
   const studyAsked = useCallback((): Asked => {
@@ -731,7 +1053,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const exportData = useCallback(() => {
     // 버전 4: 수리 기록(num)을 더했다. 가져오기는 2, 3, 4 를 받는다(3 이하에는 num 이 없어 기기의 수리 기록을 그대로 둔다).
-    return JSON.stringify({ app: 'latticework-sisa', version: 4, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog(), num: numRef.current }, null, 2);
+    // sync 는 시트 웹 앱 주소(기기와 이 백업에만 둔다). 가져올 때 기기에 주소가 없으면 이것을 쓴다.
+    const url = getConf().url;
+    return JSON.stringify({ app: 'latticework-sisa', version: 4, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog(), num: numRef.current, ...(url ? { sync: { url } } : null) }, null, 2);
   }, []);
 
   const importData = useCallback(
@@ -744,7 +1068,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const st0 = parsed && parsed.study ? (parsed.study as StudyState) : null;
         if (st0 && st0.cards && Object.keys(st0.cards).length >= Object.keys(studyRef.current.cards).length) {
           if (Array.isArray(parsed.studyLog)) {
-            logRef.current = parsed.studyLog.slice(-LOG_CAP);
+            logRef.current = withIds(parsed.studyLog.slice(-LOG_CAP));
             saveLater(STUDY_LOG_KEY, getLog);
           }
           // 예전 내보내기(버전 2)에는 처음 답한 날이 없다. 풀이 기록으로 채운다.
@@ -772,6 +1096,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         writers.current.memos?.({ memos: merged.memos, updatedAt: now });
         writers.current.quiz?.({ answers: merged.quiz, scores: merged.scores, updatedAt: now });
         writers.current.seen?.({ ...merged.seen, updatedAt: now });
+        // 시트 주소: 기기에 없으면 백업의 것을 쓴다. 주소가 있으면 가져온 기록도 시트로 보낸다(시트가 같은 줄을 거른다).
+        const backupUrl = typeof parsed?.sync?.url === 'string' ? parsed.sync.url : '';
+        if (!getConf().url && backupUrl) setSyncUrl(backupUrl);
+        else if (getConf().url) enqueueAll();
         return true;
       } catch {
         return false;
@@ -781,8 +1109,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(
-    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti }),
-    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti],
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

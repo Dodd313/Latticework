@@ -216,7 +216,7 @@ export function TodayScreen() {
 
   const open = (key: GoalPart['key']) => {
     if (key === 'news') nav.push({ name: 'news' });
-    else if (key === 'num') nav.push({ name: 'num' });
+    else if (key === 'num') nav.push({ name: 'num', start: true }); // 수리는 다른 과제처럼 누르면 바로 문제(할당을 채웠으면 추가 학습)
     else nav.push({ name: 'study', sect: key });
   };
 

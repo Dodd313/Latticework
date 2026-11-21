@@ -3,6 +3,7 @@ import { AccessibilityInfo, Animated, Easing, Platform, ScrollView, TextInput, V
 import { MView, motionOff, NATIVE_DRIVER, WEB, webShake } from '../motion';
 import { BackBar } from '../nav';
 import { STANDALONE, useStore } from '../store';
+import type { SheetInfo } from '../sync';
 import { FONT_SANS, useTheme } from '../theme';
 import { Market } from '../types';
 import { Box, Divider, Icon, PrimaryButton, T, Tap } from '../ui';
@@ -63,6 +64,144 @@ function Segment({ value, onChange }: { value: Market; onChange: (m: Market) => 
 }
 
 type Result = '' | 'copied' | 'imported' | 'bad';
+
+/** 한국 시각으로 "11월 21일 12:04" */
+function whenKST(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  const d = new Date(t + 9 * 3600 * 1000);
+  const p2 = (n: number) => String(n).padStart(2, '0');
+  return `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 ${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`;
+}
+
+const count = (n: number) => `${n.toLocaleString('ko-KR')}건`;
+
+/**
+ * 구글 시트로 보내는 학습 기록. 웹 앱 주소는 이 기기와 내보낸 백업에만 둔다.
+ * 기기에 기록이 하나도 없고 주소가 있으면 시트에 있는 기록 수를 보이고 불러오기를 권한다(가려 덮지 않는 카드).
+ */
+function SheetBox() {
+  const t = useTheme();
+  const { sync, setSyncUrl, testSync, probeSheet, restoreFromSheet, study, num, user } = useStore();
+  const [url, setUrl] = useState(sync.url);
+  const [badUrl, setBadUrl] = useState(false);
+  const [test, setTest] = useState<'' | 'busy' | 'ok' | 'bad'>('');
+  const [info, setInfo] = useState<SheetInfo | null>(null);
+  const [restore, setRestore] = useState<'' | 'busy' | 'done' | 'bad'>('');
+  const [restored, setRestored] = useState(0);
+  const [offer, setOffer] = useState<SheetInfo | null>(null);
+  const empty = Object.keys(study.cards).length === 0 && num.sessions.length === 0 && Object.keys(user.read).length === 0;
+
+  useEffect(() => {
+    setOffer(null);
+    if (!sync.url || !empty) return;
+    let alive = true;
+    void probeSheet().then((i) => {
+      if (alive && i && i.rows + i.sets > 0) setOffer(i);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [sync.url, empty]);
+
+  const commit = (): boolean => {
+    const ok = setSyncUrl(url);
+    setBadUrl(!ok);
+    return ok;
+  };
+  const doTest = async () => {
+    if (!commit() || !url.trim()) return;
+    setTest('busy');
+    const i = await testSync();
+    setInfo(i);
+    setTest(i ? 'ok' : 'bad');
+  };
+  const doRestore = async () => {
+    if (!commit() || !url.trim()) return;
+    setRestore('busy');
+    const r = await restoreFromSheet();
+    setRestored(r ? r.rows + r.sets : 0);
+    setRestore(r ? 'done' : 'bad');
+    if (r) setOffer(null);
+  };
+
+  return (
+    <Box title="시트 기록" style={{ paddingBottom: 20 }}>
+      {offer ? (
+        <View style={{ backgroundColor: t.blueWeak, borderRadius: 14, padding: 14, marginTop: 6, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <T s={15} w="600" c={t.ink} style={{ flex: 1 }}>
+            {`시트에 기록 ${count(offer.rows + offer.sets)}이 있습니다`}
+          </T>
+          <PrimaryButton label={restore === 'busy' ? '불러오는 중' : '불러오기'} a11yLabel="시트 기록 불러오기" disabled={restore === 'busy'} onPress={() => void doRestore()} style={{ minHeight: 44, paddingHorizontal: 16, alignSelf: 'auto' }} />
+        </View>
+      ) : null}
+      <TextInput
+        nativeID="sheet-url"
+        accessibilityLabel="시트 웹 앱 주소"
+        value={url}
+        placeholder="웹 앱 주소 붙여 넣기"
+        placeholderTextColor={t.faint}
+        onChangeText={(v) => {
+          setUrl(v);
+          if (badUrl) setBadUrl(false);
+        }}
+        onSubmitEditing={() => void commit()}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="url"
+        style={{
+          height: 48,
+          marginTop: 6,
+          backgroundColor: t.layer,
+          borderWidth: 1,
+          borderColor: badUrl ? t.red : t.hair,
+          borderRadius: 12,
+          paddingHorizontal: 14,
+          fontFamily: FONT_SANS,
+          fontSize: 14,
+          color: t.ink,
+        }}
+      />
+      <View style={{ marginTop: 6 }}>
+        {sync.url ? (
+          <>
+            <Row label="보낸 기록" value={count(sync.sent)} />
+            <Divider />
+            <Row label="마지막으로 보낸 때" value={sync.lastAt ? whenKST(sync.lastAt) : '없음'} />
+            {sync.pending > 0 ? (
+              <>
+                <Divider />
+                <Row label="보낼 기록" value={count(sync.pending)} dot={sync.failing ? t.orange : undefined} />
+              </>
+            ) : null}
+          </>
+        ) : (
+          <Row label="시트" value="연결 안 됨" dot={t.p.grey400} />
+        )}
+        {test === 'ok' || test === 'bad' ? (
+          <>
+            <Divider />
+            <Row label="연결 시험" value={test === 'ok' && info ? '성공' : '실패'} dot={test === 'ok' ? t.green : t.red} />
+          </>
+        ) : null}
+        {restore === 'done' || restore === 'bad' ? (
+          <>
+            <Divider />
+            <Row label="불러온 기록" value={restore === 'done' ? count(restored) : '실패'} dot={restore === 'done' ? t.green : t.red} />
+          </>
+        ) : null}
+      </View>
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+        <View style={{ flex: 1 }}>
+          <PrimaryButton label={test === 'busy' ? '시험 중' : '연결 시험'} a11yLabel="연결 시험" disabled={!url.trim() || test === 'busy'} onPress={() => void doTest()} style={{ paddingHorizontal: 12 }} />
+        </View>
+        <View style={{ flex: 1.45 }}>
+          <PrimaryButton label={restore === 'busy' ? '불러오는 중' : '시트에서 불러오기'} a11yLabel="시트에서 불러오기" weak disabled={!url.trim() || restore === 'busy'} onPress={() => void doRestore()} style={{ paddingHorizontal: 12 }} />
+        </View>
+      </View>
+    </Box>
+  );
+}
 
 const SHAKE: [number[], number[]] = [
   [0, 0.2, 0.4, 0.6, 0.8, 1],
@@ -194,6 +333,8 @@ export function SettingsScreen() {
               ) : null}
             </MView>
           </Box>
+
+          {STANDALONE ? <SheetBox /> : null}
 
           <Box title="정보" style={{ paddingBottom: 8 }}>
             <Row label="버전" value={APP_VERSION} />

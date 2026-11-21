@@ -5,7 +5,7 @@
 // 받기:   GET ?info=1 은 개수만, ?after=N&limit=M 은 풀이 기록 N 번째부터(after=0 이면 수리 세트와 기기별 마지막 상태도 함께).
 // Apps Script 는 응답을 다른 주소(googleusercontent.com)로 넘겨(302) 돌려준다. fetch 가 따라가므로 따로 할 일은 없다.
 // 같은 id 는 시트가 한 번만 적는다. 그래서 sendBeacon 과 fetch 로 같은 묶음이 두 번 가도 된다.
-import type { LogRow, Section, StudyDay } from './study';
+import type { Card, LogRow, Section, StudyDay } from './study';
 import type { NumDay, NumSession } from './numeracy';
 import type { UserData } from './types';
 
@@ -32,7 +32,8 @@ export type Snapshot = {
   at: string;
   device: string;
   user: UserData;
-  study: { start: string; days: Record<string, StudyDay>; xp: number };
+  /** cards 는 기억 상태의 사본. 풀이 기록이 빠진 항목(기기 기록이 6,000줄을 넘어 앞이 잘린 경우 등)을 살리는 데만 쓴다. */
+  study: { start: string; days: Record<string, StudyDay>; xp: number; cards?: Record<string, Card> };
   num: { start: string; level: Record<string, number>; days: Record<string, NumDay> };
 };
 export type SheetAll = { rows: SheetRow[]; sets: SheetSet[]; snapshots: Snapshot[] };
