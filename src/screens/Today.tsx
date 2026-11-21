@@ -193,6 +193,7 @@ const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
   news: { name: '뉴스', icon: 'news' },
   voc: { name: '영단어', icon: 'word' },
   lat: { name: 'Latticework', icon: 'lattice' },
+  num: { name: '수리', icon: 'calc' },
 };
 
 export function TodayScreen() {
@@ -210,10 +211,12 @@ export function TodayScreen() {
     news: { color: t.blue, ink: t.blueText, bg: t.blueWeak },
     voc: { color: t.purple, ink: t.purple, bg: t.purpleWeak },
     lat: { color: t.green, ink: t.greenText, bg: t.greenWeak },
+    num: { color: t.orange, ink: t.orangeText, bg: t.orangeWeak },
   };
 
   const open = (key: GoalPart['key']) => {
     if (key === 'news') nav.push({ name: 'news' });
+    else if (key === 'num') nav.push({ name: 'num' });
     else nav.push({ name: 'study', sect: key });
   };
 
@@ -225,7 +228,8 @@ export function TodayScreen() {
       const unread = todayDay?.articles.find((a) => !user.read[a.id]);
       if (unread) nav.push({ name: 'article', id: unread.id });
       else nav.push({ name: 'news' });
-    } else open(next.key);
+    } else if (next.key === 'num') nav.push({ name: 'num', start: true });
+    else open(next.key);
   };
 
   // 저녁 퀴즈: 열렸고 기사를 다 읽었거나, 이미 다 풀었을 때만 뉴스 카드 아래에 둔다.
@@ -243,7 +247,9 @@ export function TodayScreen() {
   const solvedToday = rec ? rec.lat + rec.voc + (rec.extra ?? 0) : 0;
   const readToday = todayDay ? todayDay.articles.filter((a) => !!user.read[a.id]).length : 0;
   const hourKST = kstHour();
-  const extraToday = rec?.extra ?? 0;
+  // 할당을 넘겨 더 푼 문제 수(영단어, Latticework, 수리)
+  const extraToday = goals.extraOf(today);
+  const numStarted = (parts.find((p) => p.key === 'num')?.done ?? 0) > 0;
   const homeCtx = useMemo(() => {
     const yesterday = addDays(today, -1);
     const tomorrow = addDays(today, 1);
@@ -278,7 +284,7 @@ export function TodayScreen() {
     }
     if (!latPart || latPart.complete) latDue = 0;
     if (!vocPart || vocPart.complete) vocDue = 0;
-    const started = doneCount > 0 || solvedToday > 0 || readToday > 0;
+    const started = doneCount > 0 || solvedToday > 0 || readToday > 0 || numStarted;
     const quota = allDone ? (extraToday > 0 ? 'extra' : 'done') : started ? 'partial' : 'none';
     const newsToday = todayDay ? todayDay.articles.length - readToday : 0;
     return {
@@ -297,7 +303,7 @@ export function TodayScreen() {
       concept: quota === 'none' ? (latDue > 0 ? dueName : undefined) : quota === 'partial' ? lastName : nextName,
       yConcept: yName,
     };
-  }, [today, parts, study, studyData, doneCount, allDone, solvedToday, readToday, extraToday, streak, todayDay, hourKST]);
+  }, [today, parts, study, studyData, doneCount, allDone, solvedToday, readToday, extraToday, numStarted, streak, todayDay, hourKST]);
   const home = useLattiSay(
     ['home', 'greet'],
     homeCtx,

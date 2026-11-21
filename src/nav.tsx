@@ -6,14 +6,16 @@ import { Icon, IconName, T, Tap } from './ui';
 
 export type TabName = 'today' | 'archive' | 'knowledge';
 
-/** study 의 focus 는 개념 id(그 개념부터 묻는 Latticework 세션), weekly 의 id 는 주간 종합 퀴즈의 ISO 주 이름 */
+/** study 의 focus 는 개념 id(그 개념부터 묻는 Latticework 세션), weekly 의 id 는 주간 종합 퀴즈의 ISO 주 이름, num 은 수리 구역 */
 export type Route =
   | { name: 'article'; id: string }
   | { name: 'settings' }
   | { name: 'quiz'; date: string }
   | { name: 'news' }
   | { name: 'study'; sect: 'lat' | 'voc'; focus?: string }
-  | { name: 'weekly'; id: string };
+  | { name: 'weekly'; id: string }
+  /** 수리 구역. start 면 오늘 할당 세트를 바로 연다(홈의 이어서 하기) */
+  | { name: 'num'; start?: boolean };
 
 /** 화면 이동 동작. 앱이 떠 있는 동안 바뀌지 않으므로, 이것만 쓰는 화면은 탭을 바꿔도 다시 그려지지 않는다. */
 export type Nav = {

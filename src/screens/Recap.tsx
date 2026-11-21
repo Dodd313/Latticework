@@ -410,7 +410,32 @@ function PeriodCard({ stats: st, due, width }: CardProps) {
           { label: '연속', to: st.streak, unit: '일' },
         ]}
       />
+      {st.num.sets > 0 ? <NumLine sets={st.num.sets} change={st.num.change} /> : null}
     </>
+  );
+}
+
+/** 수리 한 줄: 기간의 세트 수와, 같은 분야 같은 수준에서 문제당 시간이 얼마나 바뀌었는지 */
+function NumLine({ sets, change }: { sets: number; change: number | null }) {
+  const t = useTheme();
+  const ch = change == null || change === 0 ? null : change < 0 ? `${-change}% 단축` : `${change}% 늘어남`;
+  return (
+    <View accessible accessibilityLabel={`수리 ${sets}세트${ch ? ' ' + ch : ''}`} style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: t.layer, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 16 }}>
+      <Icon name="calc" size={18} color={t.orangeText} />
+      <T s={15} w="600" c={t.sub} lh={22 / 15} style={{ flex: 1 }}>
+        수리
+      </T>
+      <T s={15} w="700" mono lh={22 / 15}>
+        {`${sets}세트`}
+      </T>
+      {ch ? (
+        <View style={{ height: 24, paddingHorizontal: 8, borderRadius: 8, backgroundColor: change! < 0 ? t.greenWeak : t.p.grey100, justifyContent: 'center' }}>
+          <T s={13} w="700" c={change! < 0 ? t.greenText : t.sub} mono>
+            {ch}
+          </T>
+        </View>
+      ) : null}
+    </View>
   );
 }
 

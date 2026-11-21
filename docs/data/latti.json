@@ -118,7 +118,8 @@
     "mrecap.news": "월간 돌아보기 뉴스 카드. read, wq(주간 종합 퀴즈 횟수), newsDays(기사를 읽은 날 수)",
     "mrecap.close": "월간 돌아보기 마지막 장. month, xpS, solved, level, levelUp",
     "unlock.missed": "14일 넘게 못 본 해금을 묶은 한 장. n",
-    "unlock.more": "학문 카드 3장 뒤 \"외 N개\" 한 장. n"
+    "unlock.more": "학문 카드 3장 뒤 \"외 N개\" 한 장. n",
+    "num.finish": "수리 세트 마침. total, right, acc, extra(추가 학습), faster(지난번보다 빨라진 분야가 있으면 1), fastSkill(가장 많이 줄인 분야 이름), gain(그 분야에서 줄인 초), best(이 수준 최고 기록), levelUp, streak, streakUp"
   },
   "slots": "{key} 는 ctx 값, {key|을} 은 값 뒤에 맞는 조사(을/를, 이/가, 은/는, 과/와, 으로/로, 이에요/예요, 이랑/랑). part, day, weekend, acc, left 는 저절로 계산한다. 영어 이름 뒤에 조사를 붙이려면 ctx 에 {key}Read(읽는 소리)를 함께 준다.",
   "bank": [
@@ -2405,6 +2406,87 @@
       "id": "mrecap.close.06",
       "s": "mrecap.close",
       "t": "한 달 동안 잘 해 왔어요. 다음 달도 같이 해요."
+    },
+    {
+      "id": "num.finish.01",
+      "s": "num.finish",
+      "t": "{fastSkill}에서 {gain}초 줄였어요.",
+      "when": {
+        "gain": ">0"
+      },
+      "p": 1
+    },
+    {
+      "id": "num.finish.02",
+      "s": "num.finish",
+      "t": "{fastSkill|이} 지난번보다 빨라졌어요.",
+      "when": {
+        "faster": ">=1"
+      }
+    },
+    {
+      "id": "num.finish.03",
+      "s": "num.finish",
+      "t": "수준이 올랐어요. 다음 세트부터 숫자가 조금 커져요.",
+      "when": {
+        "levelUp": true
+      },
+      "p": 2
+    },
+    {
+      "id": "num.finish.04",
+      "s": "num.finish",
+      "t": "{total}문제 모두 맞혔어요. 계산이 손에 붙었어요.",
+      "when": {
+        "acc": "100"
+      }
+    },
+    {
+      "id": "num.finish.05",
+      "s": "num.finish",
+      "t": "틀린 문제는 풀이를 한 번 더 읽어 두면 돼요.",
+      "when": {
+        "acc": "<80"
+      }
+    },
+    {
+      "id": "num.finish.06",
+      "s": "num.finish",
+      "t": "오늘 수리는 끝났어요. 내일은 다른 두 분야예요.",
+      "when": {
+        "extra": false
+      }
+    },
+    {
+      "id": "num.finish.07",
+      "s": "num.finish",
+      "t": "추가 학습까지 했네요. 속도는 조금씩 붙어요.",
+      "when": {
+        "extra": true
+      }
+    },
+    {
+      "id": "num.finish.08",
+      "s": "num.finish",
+      "t": "연속 {streak}일째예요. 숫자 감각도 같이 쌓여요.",
+      "when": {
+        "streakUp": true
+      },
+      "p": 1
+    },
+    {
+      "id": "num.finish.09",
+      "s": "num.finish",
+      "t": "이 수준에서 가장 빠른 세트였어요.",
+      "when": {
+        "best": true
+      },
+      "p": 1
+    },
+    {
+      "id": "num.finish.10",
+      "s": "num.finish",
+      "t": "빠르기보다 정확하게 푸는 게 먼저예요."
     }
   ],
   "daily": [

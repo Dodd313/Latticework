@@ -155,19 +155,19 @@ function Seg({ color, delay }: { color: string; delay: number }) {
 }
 
 
-const PART_NAME = { news: '뉴스', voc: '영단어', lat: 'Latticework' } as const;
+const PART_NAME = { news: '뉴스', voc: '영단어', lat: 'Latticework', num: '수리' } as const;
 
 /** 달력에서 고른 하루: 과제별 막대와, 마친 날이면 그날 기사. */
 function DaySheet({ date, onClose }: { date: string | null; onClose: () => void }) {
   const t = useTheme();
   const nav = useNav();
-  const { days, user, study, studyData } = useStore();
+  const { days, user, study, studyData, num } = useStore();
   const goals = useGoals();
   // 닫히는 동안에도 내용이 남아 있도록 마지막 날짜를 붙잡아 둔다.
   const last = useRef<string | null>(null);
   if (date) last.current = date;
   const d = date ?? last.current;
-  const parts = d ? partsOf(d, days, user, study, !!studyData, goals.today) : [];
+  const parts = d ? partsOf(d, days, user, study, !!studyData, goals.today, num) : [];
   const done = !!d && goals.statusOf(d) === 'done';
   const extra = d ? goals.extraOf(d) : 0;
   const articles = d ? days.find((x) => x.date === d)?.articles ?? [] : [];

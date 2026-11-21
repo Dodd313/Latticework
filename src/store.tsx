@@ -5,6 +5,7 @@ import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyState, Vocab, emptySt
 import { LearnedTree, UnlockEvent, UnlockPlan, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
+import { DAILY_TOTAL, NumItem, NumResult, NumState, SkillId, addSet, emptyNum, mergeNum, migrateNum, quotaDone } from './numeracy';
 
 // 저장소 연결.
 // 지금은 페이지를 띄운 쪽이 주는 문서 저장소를 쓴다. 기사와 실은 모두가 읽는 공용 문서,
@@ -73,6 +74,8 @@ const STUDY_KEY = 'lw.study.state.v1';
 const STUDY_LOG_KEY = 'lw.study.log.v1';
 const LOG_CAP = 6000;
 const LATTI_DATA_KEY = 'lw.latti.data.v1';
+// 수리 기록(분야마다 한 세트에 한 줄, 분야별 수준, 날짜별 할당). 기기에만 두고 내보내기에 함께 넣는다.
+const NUM_KEY = 'lw.num.v1';
 // Latti 가 한 줄을 보여 준 시각(줄 id → 시각). 기기에만 둔다. 30일 지난 것은 버린다.
 const LATTI_HIST_KEY = 'lw.latti.hist.v1';
 const LATTI_HIST_DAYS = 30;
@@ -164,6 +167,9 @@ type Store = {
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
   recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => void;
+  num: NumState; // 수리 기록
+  /** 수리 한 분야 한 세트를 마쳤다고 적는다. daily 면 오늘 할당으로 센다(할당을 이미 채운 분야면 추가 학습). */
+  recordNum: (k: SkillId, lv: number, items: NumItem[], daily: boolean) => NumResult;
   exportData: () => string;
   importData: (json: string) => boolean;
 };
@@ -306,6 +312,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   });
   const studyRef = useRef(study);
   studyRef.current = study;
+
+  // 수리: 처음 여는 날을 시작일로 적어 둔다(그날부터 하루 목표에 든다. 그 전 날의 기록은 그대로).
+  const [num, setNum] = useState<NumState>(() => {
+    const today = todayKST();
+    const raw = loadLocal<unknown>(NUM_KEY);
+    const st = (raw ? migrateNum(raw, today) : null) ?? emptyNum(today);
+    if (!raw) saveLater(NUM_KEY, () => numRef.current);
+    return st;
+  });
+  const numRef = useRef(num);
+  numRef.current = num;
 
   const [latti, setLatti] = useState<LattiData | null>(() => loadLocal<LattiData>(LATTI_DATA_KEY));
   const lattiHistRef = useRef<Record<string, number> | null>(null);
@@ -604,6 +621,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLater(STUDY_LOG_KEY, getLog);
   }, []);
 
+  const recordNum = useCallback((k: SkillId, lv: number, items: NumItem[], daily: boolean): NumResult => {
+    const { state, result } = addSet(numRef.current, todayKST(), k, lv, items, daily, new Date().toISOString());
+    numRef.current = state;
+    setNum(state);
+    saveLater(NUM_KEY, () => numRef.current);
+    return result;
+  }, []);
+
   const studyAsked = useCallback((): Asked => {
     const today = todayKST();
     const keys = new Set<string>();
@@ -705,7 +730,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const studyLog = useCallback(() => getLog(), []);
 
   const exportData = useCallback(() => {
-    return JSON.stringify({ app: 'latticework-sisa', version: 3, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog() }, null, 2);
+    // 버전 4: 수리 기록(num)을 더했다. 가져오기는 2, 3, 4 를 받는다(3 이하에는 num 이 없어 기기의 수리 기록을 그대로 둔다).
+    return JSON.stringify({ app: 'latticework-sisa', version: 4, exportedAt: new Date().toISOString(), data: userRef.current, study: studyRef.current, studyLog: getLog(), num: numRef.current }, null, 2);
   }, []);
 
   const importData = useCallback(
@@ -727,6 +753,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           setStudy(st);
           saveLater(STUDY_KEY, () => studyRef.current);
         }
+        // 수리 기록은 합친다(기기에서 채운 날도, 파일에서 채운 날도 남는다. 같은 파일을 두 번 가져와도 늘지 않는다).
+        // 버전 3 이하에는 num 이 없으므로 기기의 수리 기록을 그대로 둔다.
+        const n0 = parsed && parsed.num ? migrateNum(parsed.num, todayKST()) : null;
+        if (n0) {
+          const merged = mergeNum(numRef.current, n0);
+          numRef.current = merged;
+          setNum(merged);
+          saveLater(NUM_KEY, () => numRef.current);
+        }
         const merged = mergeUser(userRef.current, incoming);
         userRef.current = merged;
         setUser(merged);
@@ -746,8 +781,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(
-    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, latti, lattiHist, noteLatti }),
-    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, latti, lattiHist, noteLatti],
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
@@ -769,10 +804,13 @@ export function dayDone(day: Day, read: Record<string, string>): boolean {
  */
 export type DayStatus = 'done' | 'late' | 'pending' | 'missed' | 'none';
 
-/** 하루 목표를 이루는 과제 하나. 뉴스는 발행된 날에만, 영단어와 Latticework 는 복습을 시작한 날부터 매일 있다. */
-export type GoalPart = { key: 'news' | 'voc' | 'lat'; done: number; total: number; complete: boolean; late?: boolean };
+/**
+ * 하루 목표를 이루는 과제 하나. 뉴스는 발행된 날에만, 영단어와 Latticework 는 복습을 시작한 날부터 매일 있다.
+ * 수리는 처음 연 날(num.start)부터 매일 12문제(2026-11-21 소유자 결정: 하루 목표와 연속 기록에 든다).
+ */
+export type GoalPart = { key: 'news' | 'voc' | 'lat' | 'num'; done: number; total: number; complete: boolean; late?: boolean };
 
-export function partsOf(date: string, days: Day[], user: UserData, study: StudyState, hasStudy: boolean, today: string): GoalPart[] {
+export function partsOf(date: string, days: Day[], user: UserData, study: StudyState, hasStudy: boolean, today: string, num?: NumState | null): GoalPart[] {
   const parts: GoalPart[] = [];
   const day = days.find((d) => d.date === date);
   if (day && day.articles.length > 0) {
@@ -789,6 +827,10 @@ export function partsOf(date: string, days: Day[], user: UserData, study: StudyS
     const latTotal = rec ? rec.latGoal : LAT_GOAL;
     if (latTotal > 0) parts.push({ key: 'lat', done: rec?.lat ?? 0, total: latTotal, complete: !!rec && rec.lat >= rec.latGoal });
   }
+  if (hasStudy && num && num.start <= date) {
+    const done = quotaDone(num, date);
+    parts.push({ key: 'num', done, total: DAILY_TOTAL, complete: done >= DAILY_TOTAL });
+  }
   return parts;
 }
 
@@ -802,11 +844,11 @@ export function statusFromParts(parts: GoalPart[], date: string, today: string):
 
 /** 화면에서 쓰는 목표 묶음: 날짜별 상태, 연속 기록, 오늘의 과제. */
 export function useGoals() {
-  const { days, user, study, studyData } = useStore();
+  const { days, user, study, studyData, num } = useStore();
   const today = todayKST();
   return useMemo(() => {
     const hasStudy = !!studyData;
-    const statusOf = (date: string): DayStatus => (date > today ? 'none' : statusFromParts(partsOf(date, days, user, study, hasStudy, today), date, today));
+    const statusOf = (date: string): DayStatus => (date > today ? 'none' : statusFromParts(partsOf(date, days, user, study, hasStudy, today, num), date, today));
     const firstNews = days.length ? days[days.length - 1].date : today;
     const earliest = hasStudy && study.start < firstNews ? study.start : firstNews;
     // 연속 기록: 오늘부터 거슬러 올라가며 센다. 오늘 남은 것과 할 일이 없던 날은 세지도 끊지도 않는다.
@@ -826,11 +868,11 @@ export function useGoals() {
       else run = 0;
       if (run > longest) longest = run;
     }
-    const parts = partsOf(today, days, user, study, hasStudy, today);
-    /** 그날 할당량을 넘겨 더 푼 문제 수 */
-    const extraOf = (date: string): number => study.days[date]?.extra ?? 0;
+    const parts = partsOf(today, days, user, study, hasStudy, today, num);
+    /** 그날 할당량을 넘겨 더 푼 문제 수(영단어, Latticework, 수리) */
+    const extraOf = (date: string): number => (study.days[date]?.extra ?? 0) + (hasStudy ? (num.days[date]?.x ?? 0) : 0);
     return { today, statusOf, extraOf, streak, longest, parts, status: statusFromParts(parts, today, today), hasStudy };
-  }, [days, user, study, studyData, today]);
+  }, [days, user, study, studyData, num, today]);
 }
 
 export function findArticle(days: Day[], id: string) {
@@ -877,7 +919,7 @@ export function useKnowledge(): { data: StudyData | null; tree: LearnedTree | nu
 
 /** 오늘 보여 줄 돌아보기(주간 또는 월간). 없으면 null. 기간 안에 한 일이 있는지만 가볍게 본다. */
 export function useRecapDue(): { show: Period; alsoSeen: string[] } | null {
-  const { user, study } = useStore();
+  const { user, study, num } = useStore();
   const goals = useGoals();
   return useMemo(() => {
     const today = goals.today;
@@ -890,12 +932,13 @@ export function useRecapDue(): { show: Period; alsoSeen: string[] } | null {
       for (const d of dates) {
         const sd = study.days[d];
         if (sd && sd.lat + sd.voc + (sd.extra ?? 0) > 0) return true;
+        if (num.days[d]?.ks.length || num.days[d]?.x) return true;
         if (goals.statusOf(d) === 'done') return true;
       }
       return reads.some((d) => d >= from && d <= to);
     };
     return recapDue(today, user.seen?.recaps, active);
-  }, [user.read, user.seen, study.days, goals]);
+  }, [user.read, user.seen, study.days, num.days, goals]);
 }
 
 /** 돌아보기 한 기간의 숫자. 풀이 기록을 읽으므로 돌아보기 화면 안에서만 부른다. */
@@ -906,9 +949,9 @@ export function usePeriodStats(p: Period | null): PeriodStats | null {
   return useMemo(
     () =>
       p
-        ? periodStats(p, { today: goals.today, days: s.days, user: s.user, study: s.study, data: s.studyData, log: s.studyLog(), reviews: s.reviews, statusOf: goals.statusOf, extraOf: goals.extraOf, streak: goals.streak })
+        ? periodStats(p, { today: goals.today, days: s.days, user: s.user, study: s.study, data: s.studyData, log: s.studyLog(), reviews: s.reviews, statusOf: goals.statusOf, extraOf: goals.extraOf, streak: goals.streak, num: s.studyData ? s.num : null })
         : null,
-    [key, goals, s.days, s.user, s.study, s.studyData, s.reviews],
+    [key, goals, s.days, s.user, s.study, s.studyData, s.reviews, s.num],
   );
 }
 

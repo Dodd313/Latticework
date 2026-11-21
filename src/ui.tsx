@@ -116,7 +116,12 @@ export type IconName =
   | 'flag'
   | 'lock'
   | 'graphFill'
-  | 'fit';
+  | 'fit'
+  | 'calc'
+  | 'star'
+  | 'up'
+  | 'clock'
+  | 'erase';
 
 export function Icon({ name, size = 24, color, bold, sw: swIn }: { name: IconName; size?: number; color?: string; bold?: boolean; sw?: number }) {
   const t = useTheme();
@@ -237,6 +242,39 @@ export function Icon({ name, size = 24, color, bold, sw: swIn }: { name: IconNam
         <>
           <Path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" {...common} strokeWidth={swIn ?? 2.1} />
           <Circle cx={12} cy={12} r={2} {...solid} />
+        </>
+      );
+      break;
+    case 'calc':
+      // 수리: 굵은 나눗셈 기호(점 둘과 가로 막대)
+      body = (
+        <>
+          <Rect x={4} y={10.4} width={16} height={3.2} rx={1.6} {...solid} />
+          <Circle cx={12} cy={5.6} r={2.2} {...solid} />
+          <Circle cx={12} cy={18.4} r={2.2} {...solid} />
+        </>
+      );
+      break;
+    case 'star':
+      body = <Path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1L3.2 9.4l6.1-.8z" {...solid} />;
+      break;
+    case 'up':
+      body = <Path d="M6 14.5l6-6 6 6" {...common} strokeWidth={swIn ?? 3} />;
+      break;
+    case 'clock':
+      body = (
+        <>
+          <Circle cx={12} cy={13} r={8} {...common} />
+          <Path d="M12 9v4.2l2.6 1.6M9.5 2.8h5" {...common} />
+        </>
+      );
+      break;
+    case 'erase':
+      // 지우기 단추: 왼쪽이 뾰족한 상자와 x
+      body = (
+        <>
+          <Path d="M9 5.5h10a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H9L3.5 12z" {...common} />
+          <Path d="M11.5 9.5l5 5M16.5 9.5l-5 5" {...common} />
         </>
       );
       break;
@@ -1245,4 +1283,56 @@ export const VERDICT_LABEL = { hit: '적중', miss: '빗나감', open: '미확�
 
 export function verdictTone(v: 'hit' | 'miss' | 'open'): Tone {
   return v === 'hit' ? 'blue' : v === 'miss' ? 'orange' : 'neutral';
+}
+
+// ─────────────────────────────────────────────────────────────
+// 나눔 단추
+// ─────────────────────────────────────────────────────────────
+
+/** 나눔 단추: 회색 바탕(모서리 12) 위 흰 손잡이가 고른 칸으로 미끄러진다(quick 스프링). 지식 탭과 수리 화면이 같이 쓴다. */
+export function Segmented<K extends string>({ items, value, onChange, style }: { items: { key: K; label: string }[]; value: K; onChange: (k: K) => void; style?: StyleProp<ViewStyle> }) {
+  const t = useTheme();
+  const [w, setW] = useState(0);
+  const i = items.findIndex((s) => s.key === value);
+  const cell = w > 0 ? (w - 6) / items.length : 0;
+  const thumb = useRef<any>(null);
+  const prev = useRef(i);
+  const nativeX = useRef(new Animated.Value(i)).current;
+  useLayoutEffect(() => {
+    const from = prev.current;
+    prev.current = i;
+    if (from === i || !cell) {
+      nativeX.setValue(i);
+      return;
+    }
+    if (WEB) {
+      if (motionOff()) return;
+      const tw = webTween(thumb, { spring: 'quick' }, (v) => ({ transform: `translateX(${((v - i) * cell).toFixed(2)}px)` }), { from, to: i });
+      return () => tw?.anim.cancel();
+    }
+    spring(nativeX, i, 'quick').start();
+  }, [i, cell]);
+  const shadow: any = Platform.OS === 'web' ? { boxShadow: t.mode === 'dark' ? 'none' : '0 1px 2px rgba(0,23,51,.06), 0 3px 10px rgba(0,23,51,.06)' } : { shadowColor: '#001733', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 };
+  const thumbBg = t.mode === 'dark' ? t.p.grey300 : t.card;
+  return (
+    <View accessibilityRole="tablist" onLayout={(e) => setW(e.nativeEvent.layout.width)} style={[{ marginTop: 10, height: 40, padding: 3, borderRadius: 12, backgroundColor: t.p.grey100, flexDirection: 'row' }, style]}>
+      {cell ? (
+        WEB ? (
+          <View ref={thumb} style={[{ position: 'absolute', top: 3, bottom: 3, left: 3 + i * cell, width: cell, borderRadius: 9, backgroundColor: thumbBg }, shadow]} />
+        ) : (
+          <Animated.View style={[{ position: 'absolute', top: 3, bottom: 3, left: 3, width: cell, borderRadius: 9, backgroundColor: thumbBg, transform: [{ translateX: nativeX.interpolate({ inputRange: [0, 1], outputRange: [0, cell] }) }] }, shadow]} />
+        )
+      ) : null}
+      {items.map((s) => {
+        const on = s.key === value;
+        return (
+          <Tap key={s.key} role="tab" selected={on} label={s.label} press="none" onPress={() => !on && onChange(s.key)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <T s={15} w="600" c={on ? t.ink : t.mute} lh={1.4} style={{ letterSpacing: -0.2 }}>
+              {s.label}
+            </T>
+          </Tap>
+        );
+      })}
+    </View>
+  );
 }

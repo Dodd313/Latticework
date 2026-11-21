@@ -1,10 +1,10 @@
 // 지식 탭: 제목 "지식"과 나눔 단추(Latticework / 뉴스 / 단어장). 시안 motion-lab/v8/knowledge.html, v9/graph-a.html.
 import React, { startTransition, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, View } from 'react-native';
-import { CSS_EASE, WEB, motionOff, spring, webAnimate, webTween } from '../motion';
+import { Platform, StyleSheet, View } from 'react-native';
+import { CSS_EASE, WEB, motionOff, webAnimate } from '../motion';
 import { useNavTab, useNodeRequest } from '../nav';
 import { useTheme } from '../theme';
-import { T, Tap } from '../ui';
+import { Segmented, T } from '../ui';
 import { KnowledgeGraph } from './KnowledgeGraph';
 import { KnowledgeNews } from './KnowledgeNews';
 import { KnowledgeVocab } from './KnowledgeVocab';
@@ -107,61 +107,13 @@ export function KnowledgeScreen() {
         <T s={26} w="700" lh={35 / 26} role="heading" level={1}>
           지식
         </T>
-        <Segmented value={seg} onChange={setSeg} />
+        <Segmented items={SEGS} value={seg} onChange={setSeg} />
       </View>
       <View style={{ flex: 1 }}>
         {pane('graph', <KnowledgeGraph active={tabOn && seg === 'graph'} />)}
         {pane('news', <KnowledgeNews />)}
         {pane('vocab', <KnowledgeVocab />)}
       </View>
-    </View>
-  );
-}
-
-/** 나눔 단추: 회색 바탕(모서리 12) 위 흰 손잡이가 고른 칸으로 미끄러진다(quick 스프링) */
-function Segmented({ value, onChange }: { value: Seg; onChange: (s: Seg) => void }) {
-  const t = useTheme();
-  const [w, setW] = useState(0);
-  const i = SEGS.findIndex((s) => s.key === value);
-  const cell = w > 0 ? (w - 6) / SEGS.length : 0;
-  const thumb = useRef<any>(null);
-  const prev = useRef(i);
-  const nativeX = useRef(new Animated.Value(i)).current;
-  useLayoutEffect(() => {
-    const from = prev.current;
-    prev.current = i;
-    if (from === i || !cell) {
-      nativeX.setValue(i);
-      return;
-    }
-    if (WEB) {
-      if (motionOff()) return;
-      const tw = webTween(thumb, { spring: 'quick' }, (v) => ({ transform: `translateX(${((v - i) * cell).toFixed(2)}px)` }), { from, to: i });
-      return () => tw?.anim.cancel();
-    }
-    spring(nativeX, i, 'quick').start();
-  }, [i, cell]);
-  const shadow: any = Platform.OS === 'web' ? { boxShadow: t.mode === 'dark' ? 'none' : '0 1px 2px rgba(0,23,51,.06), 0 3px 10px rgba(0,23,51,.06)' } : { shadowColor: '#001733', shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 };
-  const thumbBg = t.mode === 'dark' ? t.p.grey300 : t.card;
-  return (
-    <View accessibilityRole="tablist" onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ marginTop: 10, height: 40, padding: 3, borderRadius: 12, backgroundColor: t.p.grey100, flexDirection: 'row' }}>
-      {cell ? (
-        WEB ? (
-          <View ref={thumb} style={[{ position: 'absolute', top: 3, bottom: 3, left: 3 + i * cell, width: cell, borderRadius: 9, backgroundColor: thumbBg }, shadow]} />
-        ) : (
-          <Animated.View style={[{ position: 'absolute', top: 3, bottom: 3, left: 3, width: cell, borderRadius: 9, backgroundColor: thumbBg, transform: [{ translateX: nativeX.interpolate({ inputRange: [0, 1], outputRange: [0, cell] }) }] }, shadow]} />
-        )
-      ) : null}
-      {SEGS.map((s) => {
-        const on = s.key === value;
-        return (
-          <Tap key={s.key} role="tab" selected={on} label={s.label} press="none" onPress={() => !on && onChange(s.key)} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <T s={15} w="600" c={on ? t.ink : t.mute} lh={1.4} style={{ letterSpacing: -0.2 }}>
-              {s.label}
-            </T>
-          </Tap>
-        );
-      })}
     </View>
   );
 }

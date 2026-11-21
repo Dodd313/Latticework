@@ -8,6 +8,7 @@ import { addDays, dayDiff, isoWeekId, kstDate, mondayOf, monthDays, monthOf, shi
 import { firstOf, taxIndex, learnedTree } from './knowledge';
 import { LogRow, StudyData, StudyState, levelOf, vocKind, xpFor } from './study';
 import { Day, Review, UserData } from './types';
+import { NumState, numPeriod } from './numeracy';
 
 export type Period = {
   kind: 'week' | 'month';
@@ -81,6 +82,8 @@ export type PeriodStats = {
     weeklyTaken: number;
   };
   xp: { gained: number; level: number; levelFrom: number };
+  /** 수리: 세트 수, 문제 수, 맞힌 수, 같은 분야 같은 수준에서 첫 세트 대비 마지막 세트 중앙값 변화율(%)의 중앙값 */
+  num: { sets: number; n: number; ok: number; change: number | null };
 };
 
 export type PeriodInput = {
@@ -94,6 +97,7 @@ export type PeriodInput = {
   statusOf: (d: string) => string;
   extraOf: (d: string) => number;
   streak: number;
+  num?: NumState | null;
 };
 
 /** 퀴즈 하나의 점수: 저장된 점수가 있으면 그것, 없으면 고른 답과 문항으로 센다. */
@@ -268,5 +272,7 @@ export function periodStats(p: Period, input: PeriodInput): PeriodStats {
   const gained = rows.reduce((n, r) => n + xpFor(r.g), 0);
   const xp = { gained, level: levelOf(study.xp), levelFrom: levelOf(Math.max(0, study.xp - gained)) };
 
-  return { period: p, dates, doneDays, extra, streak, lat, voc, news, xp };
+  const num = input.num ? numPeriod(input.num, from, to) : { sets: 0, n: 0, ok: 0, change: null };
+
+  return { period: p, dates, doneDays, extra, streak, lat, voc, news, xp, num };
 }

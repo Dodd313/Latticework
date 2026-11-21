@@ -1,5 +1,5 @@
 // Latti 하루 묶음 검사. 아침 동기화가 docs/data/latti.json 에 묶음을 덧붙인 뒤 커밋하기 전에 돌린다.
-// 사용: node scripts/latti-check.mjs [날짜]   (날짜를 주면 그 묶음만, 없으면 daily 전체)
+// 사용: node scripts/latti-check.mjs [날짜] [--bank]   (날짜를 주면 그 묶음만, 없으면 daily 전체. --bank 면 늘 쓰는 줄 bank 도 본다)
 // 앱과 같은 규칙(src/lattiLines.ts 의 lint)으로 본다. 문제가 있으면 줄마다 이유를 찍고 1 로 끝난다.
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -22,7 +22,9 @@ for (const name of ['dates', 'lattiTypes', 'lattiLines']) {
 const { lint } = await import(pathToFileURL(join(out, 'lattiLines.mjs')).href);
 
 const data = JSON.parse(readFileSync(join(root, 'docs/data/latti.json'), 'utf8'));
-const only = process.argv[2];
+const args = process.argv.slice(2);
+const withBank = args.includes('--bank');
+const only = args.find((a) => a !== '--bank');
 const situations = new Set(Array.isArray(data.situations) ? data.situations : Object.keys(data.situations ?? {}));
 const bankIds = new Set((data.bank ?? []).map((l) => l.id));
 let bad = 0;
@@ -40,6 +42,21 @@ for (const batch of data.daily ?? []) {
     if (why.length) {
       bad++;
       console.log(`${batch.date} ${line.id}: ${line.t}\n  ${why.join(', ')}`);
+    }
+  }
+}
+if (withBank) {
+  const ids = new Set();
+  for (const line of data.bank ?? []) {
+    seen++;
+    const why = [...lint(line.t, data.rules ?? undefined, { allowLatin: true })];
+    for (const s of [].concat(line.s ?? [])) if (!situations.has(s)) why.push(`모르는 상황 ${s}`);
+    if (!line.id) why.push('id 없음');
+    else if (ids.has(line.id)) why.push(`겹치는 id ${line.id}`);
+    ids.add(line.id);
+    if (why.length) {
+      bad++;
+      console.log(`bank ${line.id}: ${line.t}\n  ${why.join(', ')}`);
     }
   }
 }

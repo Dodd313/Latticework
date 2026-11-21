@@ -12,13 +12,17 @@ import { useTheme } from '../theme';
 import { Chip, Icon, LipButton, OptionState, OptionTile, ProgressBar, Rich, Ring, StatCard, T, Tap } from '../ui';
 
 // 아래 단추 줄과 피드백 판의 아래 여백. 자체 주소에서는 아이폰 홈 막대 영역을 더한다.
-const FOOT_PAD: any = typeof BOTTOM_PAD === 'number' ? 28 : 'calc(28px + env(safe-area-inset-bottom, 0px))';
-const PANEL_PAD: any = typeof BOTTOM_PAD === 'number' ? 104 : 'calc(104px + env(safe-area-inset-bottom, 0px))';
+export const FOOT_PAD: any = typeof BOTTOM_PAD === 'number' ? 28 : 'calc(28px + env(safe-area-inset-bottom, 0px))';
+export const PANEL_PAD: any = typeof BOTTOM_PAD === 'number' ? 104 : 'calc(104px + env(safe-area-inset-bottom, 0px))';
 const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 type Phase = 'answer' | 'hint' | 'right' | 'wrong' | 'think' | 'grade';
-/** cheer: 판 머리의 한 줄. latti 면 Latti 말풍선으로, 아니면 예전 응원 문장 자리에 그린다. */
-type Fb = { ok: boolean; title?: string; cheer?: string; latti?: boolean; body?: string };
+/**
+ * cheer: 판 머리의 한 줄. latti 면 Latti 말풍선으로, 아니면 예전 응원 문장 자리에 그린다.
+ * title 은 오답이면 정답 보기, 정답이면 머리 글자(없으면 "정답" 또는 cheer). aside 는 머리 오른쪽 짧은 값(수리의 걸린 시간),
+ * note 는 풀이 위의 굵은 한 줄(수리의 틀린 이유).
+ */
+export type Fb = { ok: boolean; title?: string; cheer?: string; latti?: boolean; body?: string; aside?: string; note?: string };
 
 /** 레벨 안에서의 경험치: [현재, 다음 레벨까지 필요한 양] */
 function within(xp: number, lv: number): [number, number] {
@@ -71,7 +75,7 @@ function SlideInWeb({ delay, children, style, since }: SlideInProps) {
     </View>
   );
 }
-const SlideIn = WEB ? SlideInWeb : SlideInNative;
+export const SlideIn = WEB ? SlideInWeb : SlideInNative;
 
 /** 열릴 때 한 번: 투명에서 나타나며 y 만큼 올라오고 scale 에서 1 로. */
 type EnterProps = { delay?: number; duration?: number; easing?: (x: number) => number; y?: number; scale?: number; children: React.ReactNode; style?: StyleProp<ViewStyle> };
@@ -111,7 +115,7 @@ function EnterWeb({ delay = 0, duration = 400, easing = EASE_OUT, y = 0, scale =
     </View>
   );
 }
-const Enter = WEB ? EnterWeb : EnterNative;
+export const Enter = WEB ? EnterWeb : EnterNative;
 
 /** 선택지 하나의 반응: 틀리면 옆으로 흔들리고, 맞으면 1.03 배로 한 번 커진다. */
 const TILE_SHAKE: [number[], number[]] = [
@@ -400,7 +404,7 @@ function PanelWeb({ fb, onHeight }: { fb: Fb | null; onHeight: (h: number) => vo
     </View>
   );
 }
-const Panel = WEB ? PanelWeb : PanelNative;
+export const Panel = WEB ? PanelWeb : PanelNative;
 
 const PANEL_BOX: ViewStyle = { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 2, maxHeight: '78%', paddingTop: 20, paddingHorizontal: 16, paddingBottom: PANEL_PAD };
 
@@ -420,29 +424,41 @@ function PanelBody({ shown, ic, tx, body, iconRef, textRef, bodyRef }: { shown: 
         >
           {ok ? <Icon name="check" size={20} color={t.green} sw={3.4} /> : <Icon name="x" size={18} color={t.red} sw={3.4} />}
         </MView>
-        <MView ref={textRef} style={[{ flex: 1 }, tx]}>
-          {ok ? (
-            <T type="t3" w="700" c={ink}>
-              {shown.latti ? '정답' : (shown.cheer ?? '')}
+        <MView ref={textRef} style={[{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }, tx]}>
+          <View style={{ flex: 1 }}>
+            {ok ? (
+              <T type="t3" w="700" c={ink}>
+                {shown.title ?? (shown.latti ? '정답' : (shown.cheer ?? ''))}
+              </T>
+            ) : (
+              <>
+                <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
+                  {shown.title ?? ''}
+                </Rich>
+                {shown.cheer && !shown.latti ? (
+                  <T type="t6" w="600" c={ink} style={{ marginTop: 2 }}>
+                    {shown.cheer}
+                  </T>
+                ) : null}
+              </>
+            )}
+          </View>
+          {shown.aside ? (
+            <T s={17} w="700" c={ink} mono lh={1.4} style={ok ? null : { opacity: 0.8 }}>
+              {shown.aside}
             </T>
-          ) : (
-            <>
-              <Rich type="t3" w="700" c={ink} style={{ letterSpacing: -0.3 }}>
-                {shown.title ?? ''}
-              </Rich>
-              {shown.cheer && !shown.latti ? (
-                <T type="t6" w="600" c={ink} style={{ marginTop: 2 }}>
-                  {shown.cheer}
-                </T>
-              ) : null}
-            </>
-          )}
+          ) : null}
         </MView>
       </View>
       {shown.latti && shown.cheer ? <LattiSays text={shown.cheer} size={24} bubble="m" tone="white" delay={160} style={{ marginTop: 14, alignSelf: 'flex-start' }} /> : null}
-      {shown.body ? (
-        <MView ref={bodyRef} style={[{ marginTop: 8 }, body]}>
-          {ok ? (
+      {shown.body || shown.note ? (
+        <MView ref={bodyRef} style={[{ marginTop: 8, gap: 6 }, body]}>
+          {shown.note ? (
+            <T type="t6" w="700" c={ink}>
+              {shown.note}
+            </T>
+          ) : null}
+          {!shown.body ? null : ok ? (
             <Rich type="t6" w="600" c={ink}>
               {shown.body}
             </Rich>
