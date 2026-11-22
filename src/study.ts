@@ -19,7 +19,7 @@ export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox' 
 
 /** mis: 흔한 실수(어색한 연어). bad 는 term 과 같은 자리에 들어가는 꼴이라 빈칸과 정의 문제의 오답으로 쓴다. */
 export type VocMistake = { bad: string; good: string; why: string };
-export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string; pos?: string; mis?: VocMistake[] };
+export type Vocab = { id: string; deck: 'fin' | 'gen' | 'toeic'; term: string; level: string; ko: string; def: string; ex?: string; similar?: string; formal?: string; group?: string; pos?: string; mis?: VocMistake[]; added?: string };
 
 /** 오늘 이미 낸 문제와 항목. 같은 날 같은 문제를 다시 내지 않는 데 쓴다. */
 export type Asked = { keys: Set<string>; units: Set<string> };
@@ -399,10 +399,11 @@ export function buildVoc(data: StudyData, state: StudyState, today: string, now:
   const weakest = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const due = weakest.filter((v) => state.cards[v.id].due <= today);
   const untouched = (v: Vocab) => !asked.units.has(v.id);
-  // 새 표현은 단어장을 번갈아 가져온다. 토익 어휘를 가장 자주 넣는다.
+  // 새 표현은 단어장을 번갈아 가져온다. 금융 영어를 가장 자주, 그다음 회화와 면접 표현, 토익 어휘 순이다 (2026-11-22 사용자 결정).
+  // 한 단어장이 바닥나면 남은 단어장에서 계속 채운다.
   const decks: Record<Vocab['deck'], Vocab[]> = { toeic: [], gen: [], fin: [] };
   fresh.forEach((v) => decks[v.deck]?.push(v));
-  const turn: Vocab['deck'][] = ['toeic', 'gen', 'toeic', 'fin'];
+  const turn: Vocab['deck'][] = ['fin', 'gen', 'fin', 'toeic'];
   const mixed: Vocab[] = [];
   for (let i = 0, guard = 0; mixed.length < fresh.length && guard < fresh.length * 8; i++, guard++) {
     const next = decks[turn[i % turn.length]].shift();
