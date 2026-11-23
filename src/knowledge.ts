@@ -257,6 +257,28 @@ export function unlockPlan(events: UnlockEvent[], seen: Record<string, string> |
 }
 
 /**
+ * 예전 id 로 본 해금을 새 id 에도 옮겨 적는다. 마디의 was 에 예전 id 가 있으면, 그 예전 id 를 본 날을 새 id 를 본 날로 본다.
+ * 지도에서 본 마디 목록(mapIds)도 같은 방법으로 넓힌다.
+ */
+export function carrySeen<T extends Record<string, string> | undefined>(seen: T, nodes: { id: string; was?: string[] }[] | undefined): T {
+  if (!seen || !nodes?.length) return seen;
+  let out: Record<string, string> | null = null;
+  for (const n of nodes) {
+    if (!n.was?.length || seen[n.id]) continue;
+    const at = n.was.map((w) => seen[w]).filter(Boolean).sort()[0];
+    if (at) (out ??= { ...seen })[n.id] = at;
+  }
+  return (out ?? seen) as T;
+}
+
+export function carryIds(ids: string[] | undefined, nodes: { id: string; was?: string[] }[] | undefined): string[] | undefined {
+  if (!ids || !nodes?.length) return ids;
+  const has = new Set(ids);
+  const add = nodes.filter((n) => !has.has(n.id) && n.was?.some((w) => has.has(w))).map((n) => n.id);
+  return add.length ? [...ids, ...add] : ids;
+}
+
+/**
  * 지도에서 반짝일 것: since(지도를 마지막으로 본 날) 뒤에 생긴 마디와 개념, 그리고 그날 생겼지만 지도를 볼 때(sinceIds)는 없던 것.
  * since 가 없으면 오늘 생긴 것.
  */

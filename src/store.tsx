@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
 import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyDay, StudyState, Vocab, daysFromLog, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
-import { LearnedTree, UnlockEvent, UnlockPlan, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
+import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
 import { DAILY_TOTAL, NumItem, NumResult, NumState, SkillId, addSet, emptyNum, mergeNum, migrateNum, quotaDone } from './numeracy';
@@ -1248,7 +1248,10 @@ export function useKnowledge(): { data: StudyData | null; tree: LearnedTree | nu
   const tree = treeFor(studyData, study.cards);
   const events = eventsFor(tree);
   const seen = user.seen;
-  return useMemo(() => ({ data: studyData, tree, events, plan: unlockPlan(events, seen?.unlocks, today), fresh: freshSince(events, seen?.map, today, seen?.mapIds) }), [studyData, tree, events, seen, today]);
+  return useMemo(() => {
+    const nodes = studyData?.nodes;
+    return { data: studyData, tree, events, plan: unlockPlan(events, carrySeen(seen?.unlocks, nodes), today), fresh: freshSince(events, seen?.map, today, carryIds(seen?.mapIds, nodes)) };
+  }, [studyData, tree, events, seen, today]);
 }
 
 /** 오늘 보여 줄 돌아보기(주간 또는 월간). 없으면 null. 기간 안에 한 일이 있는지만 가볍게 본다. */

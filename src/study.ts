@@ -9,7 +9,8 @@ import { addDays, kstDate } from './dates';
 export type TaxRank = 'discipline' | 'branch' | 'topic';
 
 /** 지식 분류의 마디 하나. color 와 domain 은 학문에만 있다. */
-export type TaxNode = { id: string; ko: string; short?: string; en?: string; rank: TaxRank; parent: string | null; color?: string; domain?: string };
+/** was 는 이 마디의 예전 id. 분과 이름과 구성을 바꿀 때(예: 기준 개론서를 따라 고칠 때) 예전 마디를 이미 본 사람에게 해금을 다시 띄우지 않으려고 둔다. */
+export type TaxNode = { id: string; ko: string; short?: string; en?: string; rank: TaxRank; parent: string | null; color?: string; domain?: string; was?: string[] };
 
 /** node 는 이 개념이 달린 마디(분과나 주제). field, topic 은 예전 자료에만 있고 읽지 않는다. */
 /**
