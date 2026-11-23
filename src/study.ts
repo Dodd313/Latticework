@@ -12,7 +12,11 @@ export type TaxRank = 'discipline' | 'branch' | 'topic';
 export type TaxNode = { id: string; ko: string; short?: string; en?: string; rank: TaxRank; parent: string | null; color?: string; domain?: string };
 
 /** node 는 이 개념이 달린 마디(분과나 주제). field, topic 은 예전 자료에만 있고 읽지 않는다. */
-export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string };
+/**
+ * 개념 하나. 약어 개념은 abbr(약어)와 full(영어 풀네임)을 두고, name 은 늘 "약어 (풀네임)" 꼴이다(2026-11-23 소유자 결정).
+ * 문제 글에서도 약어가 처음 나올 때는 "약어(풀네임)"으로 쓴다. 풀네임이 답을 드러내는 "약자 묻기" 문제는 만들지 않는다.
+ */
+export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string };
 
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string };
