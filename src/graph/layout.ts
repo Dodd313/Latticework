@@ -385,6 +385,12 @@ export const chainOf = (n: GNode): string[] => {
   return s;
 };
 
+/**
+ * 지도에는 약어의 풀네임을 적지 않는다(2026-11-23 소유자 결정). "CAPM (Capital Asset Pricing Model)" 은 "CAPM",
+ * "CAPM(Capital Asset Pricing Model)의 확장" 은 "CAPM의 확장". 영어로 시작하는 괄호만 지우고 한국어 괄호(예: 건류(코킹))는 둔다.
+ */
+export const graphName = (s: string): string => s.replace(/\s*\((?=[A-Za-z])[^()]*\)/g, '').trim() || s;
+
 /** 배운 나무로 지도 배치를 만든다. 같은 나무면 늘 같은 결과다. */
 export function build(tree: LearnedTree): GraphModel & { crossings: number } {
   const N = new Map<string, GNode>();
@@ -392,8 +398,8 @@ export function build(tree: LearnedTree): GraphModel & { crossings: number } {
     N.set(x.id, {
       id: x.id,
       kind: RANK[x.rank],
-      ko: x.ko,
-      short: x.short || x.ko,
+      ko: graphName(x.ko),
+      short: graphName(x.short || x.ko),
       en: x.en,
       at: x.at,
       parent: null,

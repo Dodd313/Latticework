@@ -17,7 +17,9 @@ export type TaxNode = { id: string; ko: string; short?: string; en?: string; ran
  * 개념 하나. 약어 개념은 abbr(약어)와 full(영어 풀네임)을 두고, name 은 늘 "약어 (풀네임)" 꼴이다(2026-11-23 소유자 결정).
  * 문제 글에서도 약어가 처음 나올 때는 "약어(풀네임)"으로 쓴다. 풀네임이 답을 드러내는 "약자 묻기" 문제는 만들지 않는다.
  */
-export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string };
+/** card 는 지식 카드 본문(정의, 특징, 구분 등). 앱은 아직 문제만 쓰고, 카드는 드라이브 문서와 앞으로의 개념 보기에 쓴다. */
+export type ConceptCard = { ko?: string; def: string; traits: string[]; measure?: string; contrast: { with: string; diff: string }[]; example?: string; analogy?: string; src: { title: string; url: string }[]; added?: string };
+export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string; card?: ConceptCard };
 
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string };
@@ -245,6 +247,57 @@ function disciplineOf(data: StudyData, cid: string): TaxNode | null {
   return idx.get(cid) ?? null;
 }
 
+const branchCache = new WeakMap<StudyData, Map<string, string>>();
+/** 개념이 속한 분과 id(없으면 학문 id, 그것도 없으면 개념이 달린 마디). */
+function branchOf(data: StudyData, c: Concept): string {
+  let idx = branchCache.get(data);
+  if (!idx) {
+    idx = new Map();
+    const nodes = new Map((data.nodes ?? []).map((n) => [n.id, n]));
+    for (const x of data.concepts) {
+      let n = nodes.get(x.node);
+      for (let guard = 0; n && n.rank !== 'branch' && n.parent && guard < 8; guard++) n = nodes.get(n.parent);
+      idx.set(x.id, n?.id ?? x.node);
+    }
+    branchCache.set(data, idx);
+  }
+  return idx.get(c.id) ?? c.node;
+}
+
+/**
+ * 한 학문, 한 분과만 몰려 나오지 않게 섞는다(2026-11-23 소유자 지적: CAPM 문제만 나온다).
+ * 학문을 돌아가며 하나씩, 같은 학문 안에서는 분과를 돌아가며 하나씩 꺼낸다. 각 무리 안의 원래 순서(약한 순서, 자료 순서)는 지킨다.
+ */
+export function mixByField(data: StudyData, list: Concept[]): Concept[] {
+  const discs = new Map<string, Map<string, Concept[]>>();
+  for (const c of list) {
+    const d = disciplineOf(data, c.id)?.id ?? '';
+    const b = branchOf(data, c);
+    const m = discs.get(d) ?? new Map<string, Concept[]>();
+    discs.set(d, m);
+    const arr = m.get(b) ?? [];
+    m.set(b, arr);
+    arr.push(c);
+  }
+  const queues = [...discs.values()].map((m) => {
+    const lanes = [...m.values()];
+    const out: Concept[] = [];
+    for (let i = 0; lanes.some((l) => l.length); i++) {
+      const lane = lanes[i % lanes.length];
+      const x = lane.shift();
+      if (x) out.push(x);
+    }
+    return out;
+  });
+  const out: Concept[] = [];
+  for (let i = 0; queues.some((q) => q.length); i++) {
+    const q = queues[i % queues.length];
+    const x = q.shift();
+    if (x) out.push(x);
+  }
+  return out;
+}
+
 /** 그 마디(학문, 분과, 주제)에 바로 달리거나 아래 마디에 달린 개념 */
 export function conceptsOfNode(data: StudyData, nodeId: string): Concept[] {
   const nodes = new Map((data.nodes ?? []).map((n) => [n.id, n]));
@@ -305,9 +358,11 @@ export function buildLatFocus(data: StudyData, state: StudyState, today: string,
 
 function latOrder(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak', asked: Asked): Concept[] {
   const seen = data.concepts.filter((c) => state.cards[c.id]);
-  const fresh = data.concepts.filter((c) => !state.cards[c.id]);
-  const weakest = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
-  const due = weakest.filter((c) => state.cards[c.id].due <= today);
+  // 새 개념과 빈자리를 채우는 복습은 학문과 분과를 번갈아 낸다. 복습할 때가 된 개념(due)은 약한 순서 그대로.
+  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id]));
+  const byWeak = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
+  const due = byWeak.filter((c) => state.cards[c.id].due <= today);
+  const weakest = mixByField(data, byWeak);
   const untouched = (c: Concept) => !asked.units.has(c.id);
 
   const order: Concept[] = [];
