@@ -121,28 +121,29 @@
    "conceptIds": "기존 개념 id(alpha, beta, capm …)는 그대로 둔다(FSRS 기록이 붙어 있다). 새 개념 id는 <분과 slug>-<용어> 형식으로 쓴다.",
    "dedupe": "이름이 같아도 합치지 않는다. 같은 분과 후보이고 정의 문장이 같을 때만 같은 개념이다(알파: 젠센 알파와 유의수준 α는 다르다).",
    "reorg": "분할, 병합, 이름 변경, 이동은 이벤트만 남기고 해금하지 않는다. 옛 이름은 aliases에 남긴다. 자동 병합은 없다. 소유자가 요청할 때만 합친다.",
-   "fewBranches": "분과는 되도록 늘리지 않는다(2026-11-23 소유자 지시). 새 개념이 참조 목록의 어느 분과 범위에도 딱 맞지 않으면 먼저 가장 가까운 기존 분과의 범위를 넓혀 담는다. 그래도 담을 수 없을 때만 새 분과를 제안하고, 소유자 확인 뒤에 목록에 더한다. 수집함 자료의 목차나 순서를 분과의 근거로 쓰지 않는다. 근거는 분과마다 정한 기준 개론서(basis)다.",
+   "fewBranches": "분과는 되도록 늘리지 않는다(2026-11-23 소유자 지시). 새 개념이 참조 목록의 어느 분과 범위에도 딱 맞지 않으면 먼저 가장 가까운 기존 분과의 범위를 넓혀 담는다. 그래도 담을 수 없을 때만 새 분과를 제안하고, 소유자 확인 뒤에 목록에 더한다. 수집함 자료의 목차나 순서를 분과의 근거로 쓰지 않는다. 근거는 학문마다 정한 기준 개론서의 부 구성이다. 개념이 기존 분과에 맞지 않을 때 분과를 새로 만들지 말고 그 책의 부 가운데 가장 가까운 분과에 둔다.",
    "textbook": "기준 개론서 고르기(2026-11-23 소유자 결정): 학문마다 개론서 한 권. (1) 저명: 세계 주요 대학 학부 입문 강의에서 널리 쓰이고 여러 판을 거듭한 표준 개론서. (2) 최신: 가장 최근 판을 쓰고, 비슷하게 저명한 후보 가운데 더 최근에 개정된 쪽을 고른다. (3) 학문 전체를 덮는 입문서. 분과는 그 책의 부(Part) 구성에서 나오고, 부가 없으면 같은 질문을 다루는 연속된 장 묶음이다. 분과 이름은 부 제목을 자연스러운 한국어 학술 용어로 옮긴다. 소유자의 드라이브 폴더 이름보다 책의 구성이 우선한다. 책이 다루지 않는 내용을 위해 소유자가 승인한 분과만 같은 규칙으로 고른 별도 개론서를 둔다.",
    "newDisciplineAuto": "새 학문 자동 처리(2026-11-23 소유자 결정): 수집함 처리 중 어떤 개념의 집이 참조 목록에 없는 학문이면, 대화에서 묻지 않고 textbook 규칙으로 개론서를 정하고 부 구성에서 분과를 만든 뒤 참조 목록에 더한다. 그다음 노드를 study.json 에 기록하면 앱이 큰 해금(새 학문)과 가벼운 해금(새 분과)을 띄운다. 정한 개론서와 분과는 그날 보고에 한 줄로 알린다. 화학, 지구과학, 지리학처럼 어떤 학문이 새로 열려도 표준 이름과 분과를 이 규칙으로 붙인다.",
-   "abbr": "약어(2026-11-23 소유자 결정): 약어 개념은 abbr 와 full 을 두고 이름을 \"약어 (풀네임)\" 꼴로 쓴다. 정의, 특징, 문제, 해설 글에서도 약어가 처음 나오면 \"약어(풀네임)\"으로 쓴다. 풀네임이 정답을 드러내는 \"약자 묻기\" 문제는 만들지 않고, 인식 문제는 이름을 주고 정의를 고르게 한다."
+   "abbr": "약어(2026-11-23 소유자 결정): 약어 개념은 abbr 와 full 을 두고 이름을 \"약어 (풀네임)\" 꼴로 쓴다. 정의, 특징, 문제, 해설 글에서도 약어가 처음 나오면 \"약어(풀네임)\"으로 쓴다. 풀네임이 정답을 드러내는 \"약자 묻기\" 문제는 만들지 않고, 인식 문제는 이름을 주고 정의를 고르게 한다.",
+   "ownerFolders": "소유자 드라이브 폴더 이름은 분과 이름의 근거가 아니다. 이름과 구성은 기준 개론서의 부 구성을 따른다(2026-11-23 소유자 지시). 예전 이름은 aliases 와 was 에 남긴다."
   },
   "rulings": [
    {
     "id": "R01",
     "match": "인지 현상 그 자체(휴리스틱, 인지편향, 확증편향)",
-    "home": "psy-judgment",
+    "home": "psy-cognition",
     "reason": "현상을 처음 정의하고 실험으로 다루는 곳"
    },
    {
     "id": "R02",
     "match": "효용함수로 쓴 선택 모형(전망이론, 손실회피, 쌍곡할인)",
-    "home": "econ-behavioral",
+    "home": "econ-labor",
     "reason": "모형의 형식이 경제학의 선택 이론"
    },
    {
     "id": "R03",
     "match": "자산시장에서 나타나는 현상(처분효과, 모멘텀, 거품)",
-    "home": "fin-efficiency",
+    "home": "fin-equilibrium",
     "reason": "가격과 수익률 자료로 정의된다"
    },
    {
@@ -154,7 +155,7 @@
    {
     "id": "R05",
     "match": "증명 기법(귀류법, 대우증명, 수학적 귀납법)",
-    "home": "logic-proof",
+    "home": "logic-formal",
     "reason": "소유자 Drive 논리학/증명. 수학 참조 목록에는 증명 분과를 두지 않는다"
    },
    {
@@ -166,7 +167,7 @@
    {
     "id": "R07",
     "match": "귀납의 문제, 반증가능성, 패러다임",
-    "home": "phil-science",
+    "home": "phil-epistemology (귀납의 문제, 반증가능성, 패러다임). 귀납 논증의 형식 자체는 logic-inductive",
     "reason": "정당화에 대한 질문. 귀납 논증의 형식 자체는 logic-reasoning"
    },
    {
@@ -178,7 +179,7 @@
    {
     "id": "R09",
     "match": "신경과학(뉴런, 도파민, 보상예측오차)",
-    "home": "bio-neuro",
+    "home": "bio-animals",
     "reason": "ISCED에 신경과학 항목이 없다. 행동 수준의 학습은 psy-memory와 '기반'으로 잇는다"
    },
    {
@@ -190,7 +191,7 @@
    {
     "id": "R11",
     "match": "마케팅",
-    "home": "mgmt-marketing",
+    "home": "mgmt-planning",
     "reason": "ISCED 0414는 따로 있지만 경영학 안에 둔다"
    },
    {
@@ -202,19 +203,19 @@
    {
     "id": "R13",
     "match": "과적합, 규제화(regularization), 교차검증",
-    "home": "cs-ai",
+    "home": "cs-applications",
     "reason": "기계학습 교재의 표제어. 회귀 이론과는 '기반'으로 잇는다"
    },
    {
     "id": "R14",
     "match": "환율",
-    "home": "환율 결정 이론은 econ-international, 환위험 관리와 이자율 평형 거래는 fin-international",
+    "home": "환율 결정 이론은 econ-international, 환위험 관리와 이자율 평형 거래는 fin-applied",
     "reason": "질문이 '왜 그 값인가'면 경제학, '어떻게 대응하나'면 재무학"
    },
    {
     "id": "R15",
     "match": "값비싼 신호",
-    "home": "생물의 핸디캡 원리는 bio-behavior, 시장 신호(Spence)는 econ-info",
+    "home": "생물의 핸디캡 원리는 bio-animals, 시장 신호(Spence)는 econ-labor",
     "reason": "이름이 같은 다른 개념. '유사'로 잇는다"
    },
    {
@@ -226,20 +227,20 @@
    {
     "id": "R17",
     "match": "회계기준 밖의 성과지표(EBITDA, FCF)",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "reason": "회계기준 안의 인식과 측정만 acct-financial. EBITDA는 이미 이 판례대로 놓였다"
    },
    {
     "id": "R18",
     "match": "업종·섹터 분석(투자 관점)",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "reason": "Drive 섹터/는 투자자의 업종 분석. 원자재 수급 구조 자체를 다룰 때만 econ-resources"
    },
    {
     "id": "R19",
     "match": "화폐의 시간가치, 복리, 현재가치",
-    "home": "fin-valuation",
-    "reason": "재무 개론의 첫 장. 지수 증가 일반은 math-calculus와 '기반'으로 잇는다"
+    "home": "fin-corporate",
+    "reason": "화폐의 시간가치와 현재가치는 기업재무 기준 개론서 Brealey·Myers·Allen·Edmans 1부(Value)의 첫 장들이다. 재무학 기준 개론서(Investments)에는 따로 부가 없다. 지수 증가 일반은 수학과 기반으로 잇는다(2026-11-23 개론서 기준으로 고침)."
    },
    {
     "id": "R20",
@@ -250,13 +251,13 @@
    {
     "id": "R21",
     "match": "비교우위, 기회비용",
-    "home": "econ-basics",
+    "home": "econ-markets",
     "reason": "Mankiw Part 1"
    },
    {
     "id": "R22",
     "match": "경쟁우위, 해자",
-    "home": "mgmt-strategy",
+    "home": "mgmt-planning",
     "reason": "Porter. 밸류에이션의 성장 가정과는 '응용'으로 잇는다"
    },
    {
@@ -269,7 +270,13 @@
     "id": "R24",
     "match": "원자재의 생산 공정, 등급과 품질 지표, 채굴 방식, 가격 지수와 가격 체계(예: 고로, 코크스, 석탄화도, CSR, PLV, 상대가격, 원가곡선)",
     "home": "econ-resources",
-    "reason": "2026-11-23 소유자 승인. 원자재 지식을 한곳에 모아 학문이 잘게 흩어지지 않게 한다. 화학 반응 일반이나 지질 일반의 정의 자체를 묻는 문제만 정의처 학문으로 보낸다. 투자 지표로서의 회사 성과(가격 실현율, 현금 판매원가)는 재무학 쪽."
+    "reason": "2026-11-23 소유자 승인. 원자재 지식을 한곳에 모아 학문이 잘게 흩어지지 않게 한다. 화학 반응 일반이나 지질 일반의 정의 자체를 묻는 문제만 정의처 학문으로 보낸다. 투자 지표로서의 회사 성과(가격 실현율, 현금 판매원가)는 재무학 쪽. FOB, CFR 같은 무역 인도 조건과 정박기간, 체선료도 원자재 무역 맥락에서 이 분과의 주제 \"무역 조건과 해상운송\"에 둔다(경제학 기준 개론서의 국제경제 부는 거시경제를 다루어 인코텀즈가 없다)."
+   },
+   {
+    "id": "R25",
+    "match": "가추(최선의 설명으로의 추론), 가설 추론",
+    "home": "logic-inductive",
+    "reason": "논리학 기준 개론서 Hurley 3부(귀납논리)의 과학적 추론 장에서 다룬다(2026-11-23)."
    }
   ],
   "thresholds": [
@@ -317,7 +324,7 @@
     "en": "Finance",
     "domain": "social",
     "color": "#3182f6",
-    "textbook": "Bodie, Kane, Marcus, Investments (BKM); 기업재무는 Brealey, Myers, Allen",
+    "textbook": "Zvi Bodie, Alex Kane, Alan J. Marcus, Nicholas M. Racculia, Investments, 2026 Release (출판사는 13th edition 계열의 2026 Release로, 일부 판매처는 14th edition으로 표기), McGraw Hill, 2026",
     "labels": {
      "isced": "0412",
      "ford": "5.2",
@@ -330,25 +337,33 @@
     ],
     "branches": [
      {
-      "slug": "fin-capital-markets",
-      "name": "자본시장이론",
-      "short": "자본시장",
-      "en": "Capital Market Theory",
-      "basis": "BKM Part II-III, ch.24",
-      "labels": {
-       "jel": "G11, G12"
-      },
+      "slug": "fin-portfolio",
+      "name": "투자환경과 포트폴리오 이론",
+      "short": "포트폴리오 이론",
+      "en": "Investment Environment and Portfolio Theory",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part I-II, ch.1-8 (작은 서론 Part I을 Part II에 합침)",
       "scope": [
-       "위험과 수익",
-       "자본배분",
-       "분산투자",
-       "효율적 경계",
-       "지수모형",
-       "CAPM",
-       "APT",
-       "다요인모형",
-       "베타",
-       "성과평가"
+       "금융상품과 증권 거래",
+       "위험과 수익률, 역사적 기록",
+       "위험자산 자본배분과 샤프비율",
+       "효율적 분산투자",
+       "지수모형(index model)"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "fin-equilibrium",
+      "name": "자본시장 균형",
+      "short": "자본시장 균형",
+      "en": "Equilibrium in Capital Markets",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part III, ch.9-13",
+      "scope": [
+       "CAPM (Capital Asset Pricing Model, 자본자산가격결정모형)",
+       "APT (Arbitrage Pricing Theory, 차익거래가격결정이론)와 다요인모형",
+       "효율적 시장가설",
+       "행동재무와 기술적 분석",
+       "증권 수익률의 실증 연구"
       ],
       "topicSeeds": [
        "자본배분",
@@ -356,96 +371,44 @@
        "지수모형",
        "CAPM",
        "APT",
-       "다요인모형"
-      ],
-      "aliasesBranch": [
-       "포트폴리오 이론",
-       "자산가격결정",
-       "Capital Market Theory"
-      ],
-      "note": "소유자 Drive 폴더 이름. 표준 두 분과(포트폴리오 이론 G11, 자산가격결정 G12)를 하나로 묶었다. 개념 50개를 넘으면 이 둘로 나눈다. 포트폴리오 성과평가(샤프 비율, 젠슨의 알파, 트레이너 지수, 정보 비율, BKM 24장)도 여기에 둔다. 위험조정 성과 지표는 이 분과의 위험과 수익 개념을 그대로 쓰기 때문이다(2026-11-23 소유자 지시: 분과를 늘리지 않는다)."
-     },
-     {
-      "slug": "fin-efficiency",
-      "name": "시장효율성과 행동재무",
-      "short": "행동재무",
-      "en": "Market Efficiency and Behavioral Finance",
-      "basis": "BKM ch.11-12",
-      "labels": {
-       "jel": "G14, G41"
-      },
-      "scope": [
-       "효율적 시장가설",
-       "이상현상",
-       "처분효과",
-       "모멘텀",
-       "투자자 편향"
-      ],
-      "topicSeeds": [
+       "다요인모형",
        "효율적 시장가설",
        "이상현상"
+      ],
+      "was": [
+       "fin-capital-markets",
+       "fin-efficiency"
       ]
      },
      {
       "slug": "fin-fixed-income",
-      "name": "채권과 금리",
+      "name": "채권",
       "short": "채권",
-      "en": "Fixed Income",
-      "basis": "BKM Part IV",
-      "labels": {
-       "jel": "E43"
-      },
+      "en": "Fixed-Income Securities",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part IV, ch.14-16",
       "scope": [
-       "채권가격",
-       "듀레이션",
-       "볼록성",
-       "기간구조"
+       "채권 가격과 수익률",
+       "금리 기간구조",
+       "채권 포트폴리오 관리와 듀레이션"
       ],
       "topicSeeds": [
        "듀레이션",
        "기간구조"
-      ]
-     },
-     {
-      "slug": "fin-derivatives",
-      "name": "파생상품",
-      "short": "파생",
-      "en": "Derivatives",
-      "basis": "BKM Part VI",
-      "labels": {
-       "jel": "G13"
-      },
-      "scope": [
-       "옵션",
-       "선물",
-       "스왑",
-       "풋콜 패리티"
       ],
-      "topicSeeds": [
-       "옵션 가격결정",
-       "선물 가격결정"
+      "was": [
+       "fin-fixed-income"
       ]
      },
      {
-      "slug": "fin-valuation",
-      "name": "밸류에이션",
-      "short": "밸류에이션",
-      "en": "Valuation",
-      "basis": "BKM Part V, Brealey Part 1",
-      "labels": {
-       "jel": "G32"
-      },
+      "slug": "fin-analysis",
+      "name": "증권분석",
+      "short": "증권분석",
+      "en": "Security Analysis",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part V, ch.17-19",
       "scope": [
-       "DCF",
-       "상대가치",
-       "멀티플",
-       "자본비용",
-       "WACC",
-       "재무제표 분석",
-       "EBITDA",
-       "산업분석",
-       "현재가치",
-       "복리"
+       "거시경제 분석과 산업 분석",
+       "주식가치 평가모형",
+       "재무제표 분석"
       ],
       "topicSeeds": [
        "화폐의 시간가치",
@@ -455,9 +418,47 @@
        "재무비율 분석",
        "산업분석"
       ],
-      "aliasesBranch": [
-       "Valuation",
-       "가치평가"
+      "was": [
+       "fin-valuation"
+      ]
+     },
+     {
+      "slug": "fin-derivatives",
+      "name": "옵션·선물과 파생상품",
+      "short": "옵션·선물과 파생상품",
+      "en": "Options, Futures, and Other Derivatives",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part VI, ch.20-23",
+      "scope": [
+       "옵션 시장과 옵션 가치평가",
+       "선물·선도 시장",
+       "선물과 스왑을 이용한 위험관리"
+      ],
+      "topicSeeds": [
+       "옵션 가격결정",
+       "선물 가격결정"
+      ],
+      "was": [
+       "fin-derivatives"
+      ]
+     },
+     {
+      "slug": "fin-applied",
+      "name": "응용 포트폴리오 관리",
+      "short": "응용 포트폴리오 관리",
+      "en": "Applied Portfolio Management",
+      "basis": "Bodie·Kane·Marcus·Racculia 『Investments』 2026 Release Part VII, ch.24-28",
+      "scope": [
+       "포트폴리오 성과평가(알파, 샤프비율, 젠센 측정치)",
+       "국제 분산투자",
+       "대체자산과 헤지펀드",
+       "적극적 포트폴리오 관리 이론",
+       "투자정책과 CFA (Chartered Financial Analyst) Institute 체계"
+      ],
+      "topicSeeds": [
+       "이자율 평형"
+      ],
+      "was": [
+       "fin-international"
       ]
      },
      {
@@ -465,58 +466,186 @@
       "name": "기업재무",
       "short": "기업재무",
       "en": "Corporate Finance",
-      "basis": "Brealey Part 5-6",
-      "labels": {
-       "jel": "G35"
-      },
+      "basis": "소유자 승인 별도 분과. Brealey·Myers·Allen·Edmans 『Principles of Corporate Finance』 15판(2025 Release) 전체(Part One Value ch.1-6, Part Two Risk ch.7-9 등 12개 부)",
       "scope": [
-       "자본구조",
-       "배당",
-       "자사주 매입",
-       "주주환원",
-       "레버리지"
+       "가치평가와 자본예산",
+       "자본비용과 위험",
+       "배당정책과 자본구조",
+       "부채조달과 위험관리",
+       "재무계획, 운전자본, 인수합병과 기업지배구조"
       ],
       "topicSeeds": [
        "MM 정리",
        "주주환원"
-      ]
-     },
-     {
-      "slug": "fin-international",
-      "name": "국제재무",
-      "short": "국제재무",
-      "en": "International Finance",
-      "basis": "BKM ch.25",
-      "labels": {
-       "jel": "G15"
-      },
-      "scope": [
-       "환위험",
-       "환헤지",
-       "이자율 평형"
       ],
-      "topicSeeds": [
-       "이자율 평형"
-      ]
+      "was": [
+       "fin-corporate"
+      ],
+      "textbook": "Richard A. Brealey, Stewart C. Myers, Franklin Allen, Alex Edmans, Principles of Corporate Finance, 15th edition (2025 Release), McGraw Hill, 2025"
      },
      {
       "slug": "fin-institutions",
       "name": "금융기관",
       "short": "금융기관",
       "en": "Financial Institutions",
-      "basis": "Mishkin Part 3",
-      "labels": {
-       "jel": "G2"
-      },
+      "basis": "소유자 승인 별도 분과. Saunders·Cornett·Erhemjamts 『Financial Markets and Institutions』 2024 Release 전체",
       "scope": [
-       "은행",
-       "보험",
-       "펀드",
-       "뱅크런"
+       "금융시장 개관과 금리 결정",
+       "증권시장(화폐·채권·주식·외환·파생상품 시장)",
+       "상업은행과 규제",
+       "기타 금융기관(보험, 증권사, 투자회사, 연기금)",
+       "금융기관의 위험관리"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "fin-institutions"
+      ],
+      "textbook": "Anthony Saunders, Marcia Millon Cornett, Otgo Erhemjamts, Financial Markets and Institutions, 2024 Release, McGraw Hill, 2024"
      }
-    ]
+    ],
+    "textbookWhy": "Bodie·Kane·Marcus(BKM) 『Investments』는 세계 주요 대학 투자론 강의의 표준 교재다. 원래 결과는 13판(©2024)을 최신판으로 보았다. 그러나 검색해 보니 Nicholas M. Racculia가 공저자로 더해진 『Investments: 2026 Release』가 2026년 1-2월에 나왔다(미국판 ISBN 9781265417550, 국제학생판 ISBN 9781265967031). 규칙 2(최신)에 따라 기준을 2026 Release로 바꾼다. 2026 Release 국제학생판 목차에서도 7개 부 구성(Part II Portfolio Theory and Practice ch.5-8, Part III Equilibrium in Capital Markets ch.9-13, Part IV Fixed-Income Securities ch.14-16, Part V Security Analysis ch.17-19, Part VII Applied Portfolio Management ch.24-28)이 13판과 같으므로 분과는 그대로 둔다. 작은 서론인 Part I은 Part II에 합쳐 분과 6개를 만들었다. 기존 '자본시장이론'은 드라이브 폴더 이름을 딴 것이었다. 소유자 지시(폴더 이름보다 기준 개론서 우선)에 따라 Part III 제목대로 '자본시장 균형'으로 바꾼다. 성과평가는 책에서 Part VII ch.24(Portfolio Performance Evaluation)에 있으므로 응용 포트폴리오 관리 분과로 보낸다. 샤프비율이 처음 나오는 곳은 Part II ch.6(위험자산 자본배분)이다. 기업재무와 금융기관은 이 책이 다루지 않는다. 그래서 소유자가 승인한 별도 분과로 두고, 같은 규칙으로 개론서를 따로 골랐다. 기업재무는 Brealey·Myers·Allen·Edmans(BMA) 15판(2025 Release, 2025년 5월)으로 정했다. Berk·DeMarzo는 6판(2023년 7월)이 최신이고 7판 근거가 없다. 2026년 9월에 나오는 Global Edition도 같은 6판이다. 그래서 BMA보다 오래된 것으로 본다. BMA는 2026 Release가 나왔다는 근거가 없다(2026 Release가 나온 책은 자매서인 『Fundamentals of Corporate Finance』다). 금융기관은 Saunders·Cornett·Erhemjamts 『Financial Markets and Institutions』 2024 Release가 Mishkin·Eakins 10판(2023년 8월)보다 근소하게 최근이라 이쪽을 유지한다.",
+    "textbookCandidates": [
+     {
+      "book": "Bodie, Kane, Marcus, Racculia, Investments",
+      "latest": "2026 Release, McGraw Hill, 2026년 1-2월 (ISBN 9781265417550 / 국제학생판 9781265967031)",
+      "note": "채택. 13판(©2024)을 대체하는 최신 개정 출간본. Racculia가 공저자로 더해짐"
+     },
+     {
+      "book": "Bodie, Kane, Marcus, Investments",
+      "latest": "13th ed., McGraw Hill, ©2024",
+      "note": "원래 결과가 고른 판. 2026 Release가 나와서 밀림"
+     },
+     {
+      "book": "Bodie, Kane, Marcus, Essentials of Investments",
+      "latest": "2024 Release 확인, 그 이후 판은 확인 못 함",
+      "note": "같은 저자들의 학부용 축약판. 출판사는 『Investments』를 MBA 교재로 소개한다. 학부 입문 기준을 엄격히 따르면 대안이 될 수 있어 후보로 남김"
+     },
+     {
+      "book": "Brealey, Myers, Allen, Edmans, Principles of Corporate Finance",
+      "latest": "15th ed. (2025 Release), McGraw Hill, 2025년 5월, ISBN 9781265087586",
+      "note": "기업재무 별도 분과 개론서로 채택. 출판사는 '책 역사상 가장 큰 개정'으로 소개. 2026 Release 근거 없음"
+     },
+     {
+      "book": "Berk, DeMarzo, Corporate Finance",
+      "latest": "6th ed., Pearson, 2023년 7월 (©2024). Global Edition 6판 재간행 2026년 9월",
+      "note": "기업재무 후보. 7판 근거 없음. 실제 개정이 BMA 2025 Release보다 오래돼서 밀림"
+     },
+     {
+      "book": "Saunders, Cornett, Erhemjamts, Financial Markets and Institutions",
+      "latest": "2024 Release, McGraw Hill, 2024년 (ISBN 9781266825811)",
+      "note": "금융기관 별도 분과 개론서로 채택. 2025, 2026 Release 근거 없음"
+     },
+     {
+      "book": "Mishkin, Eakins, Financial Markets and Institutions",
+      "latest": "10th ed., Pearson, 2023년 8월 (©2024)",
+      "note": "금융기관 후보. 저명도는 비슷하고 개정이 조금 더 오래돼서 밀림"
+     },
+     {
+      "book": "Saunders, Cornett, Erhemjamts, Financial Institutions Management",
+      "latest": "11th ed., McGraw Hill, 2023 (©2024)",
+      "note": "위험관리 중심의 심화서라 개론서 기준에 맞지 않음"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Part I",
+      "title": "Introduction (서론)",
+      "chapters": "ch.1-4"
+     },
+     {
+      "no": "Part II",
+      "title": "Portfolio Theory and Practice (포트폴리오 이론과 실제)",
+      "chapters": "ch.5-8"
+     },
+     {
+      "no": "Part III",
+      "title": "Equilibrium in Capital Markets (자본시장 균형)",
+      "chapters": "ch.9-13"
+     },
+     {
+      "no": "Part IV",
+      "title": "Fixed-Income Securities (채권)",
+      "chapters": "ch.14-16"
+     },
+     {
+      "no": "Part V",
+      "title": "Security Analysis (증권분석)",
+      "chapters": "ch.17-19"
+     },
+     {
+      "no": "Part VI",
+      "title": "Options, Futures, and Other Derivatives (옵션, 선물과 기타 파생상품)",
+      "chapters": "ch.20-23"
+     },
+     {
+      "no": "Part VII",
+      "title": "Applied Portfolio Management (응용 포트폴리오 관리)",
+      "chapters": "ch.24-28"
+     }
+    ],
+    "textbookUnverified": [
+     "2026 Release의 판 번호: 출판사 페이지는 13th edition 계열의 2026 Release로, 독일 판매처(Kulturkaufhaus)는 14th edition으로 적는다. 출간일도 2026년 1월 13일(미국판)과 2월 13일, 6월 15일(국제학생판)로 출처마다 다르다.",
+     "2026 Release의 Part II, III, IV, V, VII 제목과 장 범위는 국제학생판 목차 검색 결과로 확인했다. Part I(Introduction, ch.1-4)과 Part VI(Options, Futures, and Other Derivatives, ch.20-23)는 13판 구성으로 추정했다. 출판사 페이지는 이 환경에서 열리지 않았다.",
+     "2026 Release ch.26 제목이 Alternative Assets인지 Hedge Funds인지 출처마다 다르다.",
+     "BMA 2025 Release 판 번호: 출판사·Schweitzer는 15th edition으로, 호주 판매처(QBD) 한 곳은 14th edition으로 적는다. Part One Value(ch.1-6), Part Two Risk(ch.7-9), 마지막 Part Twelve Conclusion만 확인했고 중간 부의 장 범위는 확인하지 못했다.",
+     "Saunders·Cornett·Erhemjamts 『Financial Markets and Institutions』 2024 Release의 판 번호(9판인지)와 부 구성은 확인하지 못했다. scope는 이전 판 구성으로 추정했다.",
+     "fin-capital-markets 카드는 책 구성상 세 곳으로 갈린다. 샤프비율과 지수모형 알파는 fin-portfolio(ch.6, ch.8), CAPM 알파는 fin-equilibrium(ch.9), 성과평가는 fin-applied(ch.24)로 간다. mapFromOld에는 대표 분과만 적었으므로 카드별 재배치가 필요하다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Investments: 2026 Release (Amazon US, ISBN 9781265417550)",
+      "url": "https://www.amazon.com/Investments-2026-Release-Zvi-Bodie/dp/1265417555"
+     },
+     {
+      "title": "Investments: 2026 Release ISE (Amazon UK, ISBN 9781265967031)",
+      "url": "https://www.amazon.co.uk/Investments-Release-Zvi-Bodie-Professor/dp/1265967032"
+     },
+     {
+      "title": "Investments: 2026 Release ISE (McGraw Hill UK)",
+      "url": "https://www.mheducation.co.uk/investments-2026-release-ise-9781265967031-emea-group"
+     },
+     {
+      "title": "Investments / Bodie, Kane, Marcus, Racculia (ESCP Business School 도서관 목록)",
+      "url": "https://libraries.escp.eu/Default/doc/SYRACUSE/306318/investments-zvi-bodie-alex-kane-alan-j-marcus-nicholas-m-racculia?_lg=en-US"
+     },
+     {
+      "title": "Investments: 2026 Release ISE (Waterstones)",
+      "url": "https://www.waterstones.com/book/investments-2026-release-ise/zvi-bodie/alex-kane/9781265967031"
+     },
+     {
+      "title": "Bodie Preface Investments 13e (McGraw Hill)",
+      "url": "https://info.mheducation.com/rs/128-SJW-347/images/Bodie_Preface_Investments_13e.pdf"
+     },
+     {
+      "title": "Principles of Corporate Finance: 2025 Release ISE (McGraw Hill UK)",
+      "url": "https://www.mheducation.co.uk/principles-of-corporate-finance-2025-release-ise-9781265087586-emea-group"
+     },
+     {
+      "title": "Principles of Corporate Finance 2025 Release ISE (Schweitzer)",
+      "url": "https://www.schweitzer-online.de/en/buch/Brealey/Principles-Corporate-Finance-2025-Release-ISE/9781265087586/A72610914/"
+     },
+     {
+      "title": "Berk DeMarzo Corporate Finance 6th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/corporate-finance/P200000009791/9780137844777"
+     },
+     {
+      "title": "Berk DeMarzo Corporate Finance, Global Edition, 6th edition (Pearson UK)",
+      "url": "https://www.pearson.com/en-gb/subject-catalog/p/corporate-finance-global-edition/P200000009910"
+     },
+     {
+      "title": "ISE Product Flyer Saunders 2024 (McGraw Hill)",
+      "url": "https://info.mheducation.com/rs/128-SJW-347/images/ISE-Product-Flyer-Saunders-2024.pdf?version=0"
+     },
+     {
+      "title": "Mishkin Eakins Financial Markets and Institutions 10th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/financial-markets-and-institutions/P200000009817"
+     },
+     {
+      "title": "Saunders Cornett Financial Institutions Management 11e ISE",
+      "url": "https://www.mheducation.ca/financial-institutions-management-ise-9781266138225-can"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "econ",
@@ -524,7 +653,7 @@
     "en": "Economics",
     "domain": "social",
     "color": "#18a5a7",
-    "textbook": "Mankiw, Principles of Economics",
+    "textbook": "N. Gregory Mankiw, Principles of Economics, 11th edition, Cengage, 2026",
     "labels": {
      "isced": "0311",
      "ford": "5.2",
@@ -535,252 +664,312 @@
     ],
     "branches": [
      {
-      "slug": "econ-basics",
-      "name": "경제적 사고",
-      "short": "경제적 사고",
-      "en": "Thinking Like an Economist",
-      "basis": "Mankiw Part 1",
-      "labels": {
-       "jel": "A1"
-      },
+      "slug": "econ-markets",
+      "name": "시장의 작동과 후생",
+      "short": "시장의 작동과 후생",
+      "en": "How Markets Work and Welfare",
+      "basis": "Mankiw 11판 Part I-III (서론 Part I을 합침)",
       "scope": [
-       "기회비용",
-       "한계적 사고",
-       "인센티브",
-       "비교우위",
-       "교환의 이익"
+       "경제학의 10대 원리와 경제학적 사고",
+       "교역의 이득과 비교우위",
+       "수요와 공급, 탄력성",
+       "정부정책과 가격통제",
+       "소비자잉여, 생산자잉여, 조세의 비용, 국제무역"
       ],
       "topicSeeds": [
-       "비교우위"
+       "비교우위",
+       "수요와 공급",
+       "탄력성"
+      ],
+      "was": [
+       "econ-basics",
+       "econ-markets"
       ]
      },
      {
-      "slug": "econ-markets",
-      "name": "시장과 가격",
-      "short": "시장과 가격",
-      "en": "Supply, Demand and Prices",
-      "basis": "Mankiw Part 2",
-      "labels": {
-       "jel": "D4"
-      },
+      "slug": "econ-public",
+      "name": "공공부문의 경제학",
+      "short": "공공부문의 경제학",
+      "en": "The Economics of the Public Sector",
+      "basis": "Mankiw 11판 Part IV",
       "scope": [
-       "수요와 공급",
-       "가격탄력성",
-       "가격통제",
-       "조세 귀착"
+       "외부효과",
+       "공공재와 공유자원",
+       "조세제도의 설계"
       ],
       "topicSeeds": [
-       "수요와 공급",
-       "탄력성"
+       "외부효과"
+      ],
+      "was": [
+       "econ-welfare"
       ]
      },
      {
       "slug": "econ-firms",
-      "name": "기업과 시장구조",
-      "short": "시장구조",
-      "en": "Firms and Market Structure",
-      "basis": "Mankiw Part 5",
-      "labels": {
-       "jel": "L1"
-      },
+      "name": "기업행동과 산업조직",
+      "short": "기업행동과 산업조직",
+      "en": "Firm Behavior and the Organization of Industry",
+      "basis": "Mankiw 11판 Part V",
       "scope": [
        "생산비용",
-       "완전경쟁",
+       "경쟁시장",
        "독점",
-       "과점",
-       "진입장벽"
+       "독점적 경쟁",
+       "과점과 게임이론"
       ],
       "topicSeeds": [
-       "독점"
-      ]
-     },
-     {
-      "slug": "econ-games",
-      "name": "게임이론",
-      "short": "게임이론",
-      "en": "Game Theory",
-      "basis": "Mankiw ch.17, Dixit-Nalebuff",
-      "labels": {
-       "jel": "C7"
-      },
-      "scope": [
-       "내쉬균형",
-       "죄수의 딜레마",
-       "신뢰할 수 있는 위협",
-       "반복게임"
-      ],
-      "topicSeeds": [
+       "독점",
        "죄수의 딜레마"
+      ],
+      "was": [
+       "econ-firms",
+       "econ-games"
       ]
      },
      {
-      "slug": "econ-info",
-      "name": "정보와 제도",
-      "short": "정보경제",
-      "en": "Information and Institutions",
-      "basis": "Mankiw ch.22",
-      "labels": {
-       "jel": "D8"
-      },
+      "slug": "econ-labor",
+      "name": "노동시장과 미시경제 심화",
+      "short": "노동시장과 미시경제 심화",
+      "en": "Labor Markets and Topics for Further Study",
+      "basis": "Mankiw 11판 Part VI-VII",
       "scope": [
-       "역선택",
-       "도덕적 해이",
-       "시장 신호",
-       "주인-대리인"
+       "생산요소시장",
+       "소득과 차별",
+       "소득불평등과 빈곤",
+       "소비자 선택이론",
+       "정보 비대칭, 정치경제학, 행동경제학"
       ],
       "topicSeeds": [
-       "주인-대리인 문제"
-      ]
-     },
-     {
-      "slug": "econ-welfare",
-      "name": "후생과 시장실패",
-      "short": "시장실패",
-      "en": "Welfare and Market Failure",
-      "basis": "Mankiw Part 3-4",
-      "labels": {
-       "jel": "D6, H2"
-      },
-      "scope": [
-       "소비자잉여",
-       "외부효과",
-       "공공재",
-       "코즈 정리",
-       "공유지의 비극"
+       "주인-대리인 문제",
+       "전망이론"
       ],
-      "topicSeeds": [
-       "외부효과"
+      "was": [
+       "econ-info",
+       "econ-behavioral"
       ]
      },
      {
-      "slug": "econ-macro",
-      "name": "거시경제와 경기변동",
-      "short": "거시경제",
-      "en": "Macroeconomics and Business Cycles",
-      "basis": "Mankiw Part 8, 12",
-      "labels": {
-       "jel": "E3"
-      },
+      "slug": "econ-longrun",
+      "name": "거시경제 지표와 장기 경제",
+      "short": "거시경제 지표와 장기 경제",
+      "en": "Macroeconomic Data and the Long Run",
+      "basis": "Mankiw 11판 Part VIII-X",
       "scope": [
-       "GDP",
+       "국민소득과 생활비 측정",
+       "생산과 경제성장",
+       "저축, 투자, 금융시스템",
        "실업",
-       "인플레이션",
-       "경기순환",
-       "총수요"
+       "통화제도, 통화량 증가와 인플레이션"
       ],
       "topicSeeds": [
-       "총수요-총공급"
-      ]
-     },
-     {
-      "slug": "econ-money",
-      "name": "화폐와 통화정책",
-      "short": "통화정책",
-      "en": "Money and Monetary Policy",
-      "basis": "Mankiw Part 10",
-      "labels": {
-       "jel": "E5"
-      },
-      "scope": [
-       "중앙은행",
-       "기준금리",
-       "통화량",
-       "화폐수량설"
+       "화폐수량설",
+       "솔로우 모형"
       ],
-      "topicSeeds": [
-       "화폐수량설"
+      "was": [
+       "econ-money",
+       "econ-growth"
       ]
-     },
-     {
-      "slug": "econ-fiscal",
-      "name": "재정정책",
-      "short": "재정정책",
-      "en": "Fiscal Policy",
-      "basis": "Mankiw ch.34",
-      "labels": {
-       "jel": "H6"
-      },
-      "scope": [
-       "정부지출",
-       "국가부채",
-       "승수"
-      ],
-      "topicSeeds": []
      },
      {
       "slug": "econ-international",
-      "name": "국제경제",
-      "short": "국제경제",
-      "en": "International Economics",
-      "basis": "Mankiw Part 11",
-      "labels": {
-       "jel": "F1, F3"
-      },
+      "name": "개방경제 거시경제학",
+      "short": "개방경제 거시경제학",
+      "en": "The Macroeconomics of Open Economies",
+      "basis": "Mankiw 11판 Part XI",
       "scope": [
-       "무역",
-       "관세",
-       "환율 결정",
-       "국제수지"
+       "개방경제의 기본 개념(순수출, 순자본유출)",
+       "환율과 구매력평가",
+       "개방경제 거시경제이론"
       ],
       "topicSeeds": [
        "환율 결정 이론"
+      ],
+      "was": [
+       "econ-international"
       ]
      },
      {
-      "slug": "econ-growth",
-      "name": "경제성장",
-      "short": "경제성장",
-      "en": "Economic Growth",
-      "basis": "Mankiw ch.25",
-      "labels": {
-       "jel": "O4"
-      },
+      "slug": "econ-shortrun",
+      "name": "단기 경기변동",
+      "short": "단기 경기변동",
+      "en": "Short-Run Economic Fluctuations",
+      "basis": "Mankiw 11판 Part XII-XIII (맺음말 Part XIII을 합침)",
       "scope": [
-       "솔로우 모형",
-       "생산성",
-       "수확체감"
+       "총수요와 총공급",
+       "통화정책과 재정정책이 총수요에 미치는 영향",
+       "인플레이션과 실업의 단기 상충관계(필립스 곡선)",
+       "거시경제정책 논쟁"
       ],
       "topicSeeds": [
-       "솔로우 모형"
-      ]
-     },
-     {
-      "slug": "econ-behavioral",
-      "name": "행동경제학",
-      "short": "행동경제학",
-      "en": "Behavioral Economics",
-      "basis": "Thaler, Misbehaving",
-      "labels": {
-       "jel": "D9"
-      },
-      "scope": [
-       "전망이론",
-       "손실회피",
-       "쌍곡할인",
-       "심적 회계",
-       "넛지"
+       "총수요-총공급"
       ],
-      "topicSeeds": [
-       "전망이론"
+      "was": [
+       "econ-macro",
+       "econ-fiscal"
       ]
      },
      {
       "slug": "econ-resources",
       "name": "자원·원자재 경제",
-      "short": "원자재",
+      "short": "자원·원자재 경제",
       "en": "Resource and Commodity Economics",
-      "basis": "자원경제학 개론",
-      "labels": {
-       "jel": "Q3, Q4"
-      },
+      "basis": "소유자 승인 별도 분과. Radetzki·Wårell 3판 전체. 판례: 원자재의 공정, 품질, 가격 지식은 이 분과에 모으고, 순수한 화학이나 지질 정의를 묻는 문제만 원래 학문으로 보낸다",
       "scope": [
-       "원자재 수급",
-       "에너지 시장",
-       "농산물 가격"
+       "원자재 생산·소비의 세계 지리와 역사적 틀",
+       "원자재 가격 형성과 장기 추세",
+       "원자재 거래소와 가격 결정 방식(FOB (Free On Board, 본선인도) 등 인도 조건 포함)",
+       "자원 고갈과 공급 대응",
+       "무역정책, 카르텔, 국가 소유, 자원 민족주의",
+       "원자재 생산 공정",
+       "등급과 품질 지표",
+       "채굴 방식",
+       "가격 지수와 가격 체계",
+       "무역 인도 조건(인코텀즈)과 해상운송"
       ],
-      "topicSeeds": []
+      "topicSeeds": [
+       "제철과 석탄",
+       "석탄 품질 지표",
+       "원자재 가격 체계",
+       "무역 조건과 해상운송"
+      ],
+      "was": [
+       "econ-resources"
+      ],
+      "textbook": "Marian Radetzki, Linda Wårell, A Handbook of Primary Commodities in the Global Economy, 3rd edition, Cambridge University Press, 2021"
      }
-    ]
+    ],
+    "textbookWhy": "Mankiw 『Principles of Economics』는 세계에서 가장 널리 쓰이는 경제원론 교재다. 11판은 2026년에 나왔다(저작권 표기 2027). 비슷하게 저명한 Krugman·Wells 『Economics』는 7판(2024년 3월, ©2024)이 최신이고 8판 근거는 없으므로 Mankiw가 더 최근이다. 책의 13개 부를 같은 질문을 다루는 이웃 부끼리 묶어 7개 분과로 만들었다. 서론은 시장 부에 합치고, 마지막 맺음말(Final Thoughts)은 단기 경기변동에 합쳤다. 자원·원자재 경제는 소유자가 승인한 별도 분과다. 원자재 시장의 지리, 가격 형성, 거래소, 고갈, 카르텔을 한 권으로 다루는 개론서로는 Radetzki·Wårell 『A Handbook of Primary Commodities in the Global Economy』가 대표적이다. 이 책은 Cambridge University Press에서 2008년, 2017년(2판), 2021년(3판)에 나왔고, 3판이 가장 최신이다. Tietenberg·Lewis 12판(2023)이 더 최근이고 저명하지만, 환경경제학과 자연자원 관리가 중심이다. 원자재의 공정, 품질, 가격 지식을 모으려는 분과 목적(소유자 승인 판례)과 범위가 맞지 않는다. 게임이론, 정보경제학, 행동경제학은 Mankiw에서 각각 과점(Part V)과 심화 주제(Part VII)에 들어 있어 별도 분과를 두지 않는다.",
+    "textbookCandidates": [
+     {
+      "book": "N. Gregory Mankiw, Principles of Economics",
+      "latest": "11th ed., Cengage, 2026 (©2027)",
+      "note": "채택. 가장 최근에 개정된 대표 경제원론"
+     },
+     {
+      "book": "Paul Krugman, Robin Wells, Economics",
+      "latest": "7th ed., Macmillan Learning, 2024년 3월 (©2024)",
+      "note": "저명도는 비슷하고 개정이 더 오래돼서 밀림. 8판 근거 없음"
+     },
+     {
+      "book": "Marian Radetzki, Linda Wårell, A Handbook of Primary Commodities in the Global Economy",
+      "latest": "3rd ed., Cambridge University Press, 2020년 인쇄 (©2021)",
+      "note": "자원·원자재 경제 별도 분과 개론서로 채택. 2008년(초판), 2017년(2판)에 이은 최신판"
+     },
+     {
+      "book": "Tom Tietenberg, Lynne Lewis, Environmental and Natural Resource Economics",
+      "latest": "12th ed., Routledge, 2023년 7월 (©2024)",
+      "note": "더 최근이지만 환경·자원 관리 중심이라 원자재 시장 개론으로는 범위가 맞지 않아 후보로만 둠"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Part I",
+      "title": "Introduction (서론)",
+      "chapters": "ch.1-3"
+     },
+     {
+      "no": "Part II",
+      "title": "How Markets Work (시장의 작동)",
+      "chapters": "ch.4-6"
+     },
+     {
+      "no": "Part III",
+      "title": "Markets and Welfare (시장과 후생)",
+      "chapters": "ch.7-9"
+     },
+     {
+      "no": "Part IV",
+      "title": "The Economics of the Public Sector (공공부문의 경제학)",
+      "chapters": "ch.10-12"
+     },
+     {
+      "no": "Part V",
+      "title": "Firm Behavior and the Organization of Industry (기업행동과 산업조직)",
+      "chapters": "ch.13-17"
+     },
+     {
+      "no": "Part VI",
+      "title": "The Economics of Labor Markets (노동시장의 경제학)",
+      "chapters": "ch.18-20"
+     },
+     {
+      "no": "Part VII",
+      "title": "Topics for Further Study (심화 주제)",
+      "chapters": "ch.21-22"
+     },
+     {
+      "no": "Part VIII",
+      "title": "The Data of Macroeconomics (거시경제 자료)",
+      "chapters": "ch.23-24"
+     },
+     {
+      "no": "Part IX",
+      "title": "The Real Economy in the Long Run (장기의 실물경제)",
+      "chapters": "ch.25-28"
+     },
+     {
+      "no": "Part X",
+      "title": "Money and Prices in the Long Run (장기의 화폐와 물가)",
+      "chapters": "ch.29-30"
+     },
+     {
+      "no": "Part XI",
+      "title": "The Macroeconomics of Open Economies (개방경제의 거시경제학)",
+      "chapters": "ch.31-32"
+     },
+     {
+      "no": "Part XII",
+      "title": "Short-Run Economic Fluctuations (단기 경기변동)",
+      "chapters": "ch.33-35"
+     },
+     {
+      "no": "Part XIII",
+      "title": "Final Thoughts (맺음말)",
+      "chapters": "ch.36"
+     }
+    ],
+    "textbookUnverified": [
+     "Mankiw 11판의 존재, 연도, 부 제목과 장 번호를 이번 검증에서 직접 확인하지 못했다. cengage.com은 이 환경에서 열리지 않았고 검색 한도도 다 썼다. 부 구성과 장 번호는 8-10판 구조로 추정했다.",
+     "Krugman·Wells 『Economics』 출판사 페이지 하나에 'Seventh Edition ©2027' 표기가 있다. 7판을 2027년판으로 다시 낸 것인지 확인하지 못했다. 8판이 나왔다면 Mankiw 11판과 다시 비교해야 한다.",
+     "Radetzki·Wårell 판수 표기 차이는 풀렸다. Cambridge 판은 2008년(초판), 2017년(2판), 2021년(3판)이고, 그 앞에 1990년 Blackwell판(A Guide to Primary Commodities in the World Economy)이 있어 '4번째 판'으로도 불린다. 연도는 인쇄 2020년, 저작권 2021년이다.",
+     "Radetzki·Wårell 3판의 장 구성(서론, 역사적 틀, 무역정책, 에너지 등 일부만 확인)을 다 확인하지 못했다. scope는 출판사 소개문과 일부 장 제목을 근거로 적었다.",
+     "econ-welfare는 후생 개념(Part III, econ-markets)과 시장실패(Part IV, econ-public)로 갈린다. 대표 분과만 적었다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Principles of Economics 11e, Mankiw (Cengage)",
+      "url": "https://www.cengage.com/c/principles-of-economics-11e-mankiw/9798214050348/"
+     },
+     {
+      "title": "Mankiw Principles of Economics 8e contents (toc.uni.li)",
+      "url": "https://toc.uni.li/FLMF044157.pdf"
+     },
+     {
+      "title": "Krugman Wells Economics 7e (Macmillan Learning)",
+      "url": "https://www.macmillanlearning.com/college/ca/product/Economics/p/1319415903"
+     },
+     {
+      "title": "A Handbook of Primary Commodities in the Global Economy, 3rd ed. (Cambridge Core)",
+      "url": "https://www.cambridge.org/core/product/592D4AAC93DF6EE6DA7E0E5E2BDCDCAC"
+     },
+     {
+      "title": "Radetzki Wårell 3rd ed. introduction (Cambridge Core)",
+      "url": "https://www.cambridge.org/core/books/handbook-of-primary-commodities-in-the-global-economy/introduction/AF9FCE5CF79AD1501A9E672978E3C1F5"
+     },
+     {
+      "title": "Radetzki Wårell 3rd ed. copyright info",
+      "url": "https://assets.cambridge.org/97811088/41542/copyright/9781108841542_copyright_info.pdf"
+     },
+     {
+      "title": "Radetzki Wårell 2nd ed. frontmatter (2017)",
+      "url": "https://assets.cambridge.org/97811071/29801/frontmatter/9781107129801_frontmatter.pdf"
+     },
+     {
+      "title": "Tietenberg Lewis Environmental and Natural Resource Economics 12e (Routledge)",
+      "url": "https://www.routledge.com/Environmental-and-Natural-Resource-Economics/Tietenberg-Lewis/p/book/9781032101187"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "acct",
@@ -788,7 +977,7 @@
     "en": "Accounting",
     "domain": "social",
     "color": "#6b7684",
-    "textbook": "Kieso, Intermediate Accounting",
+    "textbook": "Tracie L. Miller-Nobles, Stephanie Poindexter, Brenda Mattison, Principles of Accounting, 15th edition (Horngren's Accounting 후속판), Pearson, 2026",
     "labels": {
      "isced": "0411",
      "jel": "M41"
@@ -798,57 +987,193 @@
     ],
     "branches": [
      {
-      "slug": "acct-financial",
-      "name": "재무회계",
-      "short": "재무회계",
-      "en": "Financial Accounting",
-      "basis": "Kieso Part 1-3",
-      "labels": {
-       "jel": "M41"
-      },
+      "slug": "acct-cycle",
+      "name": "회계순환과정",
+      "short": "회계순환과정",
+      "en": "The Accounting Cycle",
+      "basis": "Principles of Accounting 15판 ch.1-4 (장 번호는 Horngren's Accounting 14판 기준 추정)",
       "scope": [
-       "수익인식",
-       "자산 측정",
-       "부채 측정",
-       "회계기준",
-       "발생주의"
+       "회계등식과 재무제표",
+       "거래 기록과 분개",
+       "수정분개",
+       "결산과 회계순환 완료"
       ],
       "topicSeeds": [
        "수익인식"
+      ],
+      "was": [
+       "acct-financial"
       ]
      },
      {
-      "slug": "acct-managerial",
-      "name": "관리회계",
-      "short": "관리회계",
-      "en": "Managerial Accounting",
-      "basis": "Horngren",
-      "labels": {
-       "jel": "M41"
-      },
+      "slug": "acct-assets",
+      "name": "상품매매와 자산 회계",
+      "short": "상품매매와 자산 회계",
+      "en": "Merchandising and Assets",
+      "basis": "Principles of Accounting 15판 ch.5-10",
       "scope": [
-       "원가계산",
-       "예산",
-       "손익분기점"
+       "상품매매업 회계",
+       "재고자산 평가",
+       "회계정보시스템",
+       "내부통제와 현금",
+       "수취채권",
+       "유형자산, 천연자원, 무형자산"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      },
      {
-      "slug": "acct-tax",
-      "name": "세무회계",
-      "short": "세무",
-      "en": "Tax Accounting",
-      "basis": "Kieso ch.19",
-      "labels": {
-       "jel": "H25"
-      },
+      "slug": "acct-liabilities",
+      "name": "부채와 자본",
+      "short": "부채와 자본",
+      "en": "Liabilities and Equity",
+      "basis": "Principles of Accounting 15판 ch.11-15",
       "scope": [
-       "법인세",
-       "이연법인세"
+       "유동부채와 급여 회계(급여세 포함)",
+       "조합기업",
+       "주식회사와 자본",
+       "장기부채(사채)",
+       "투자"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "acct-tax"
+      ]
+     },
+     {
+      "slug": "acct-statements",
+      "name": "현금흐름표와 재무제표 분석",
+      "short": "현금흐름표와 재무제표 분석",
+      "en": "Cash Flows and Financial Statement Analysis",
+      "basis": "Principles of Accounting 15판 ch.16-17",
+      "scope": [
+       "현금흐름표 작성(직접법, 간접법)",
+       "재무비율 분석",
+       "수평·수직 분석"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "acct-managerial",
+      "name": "관리회계와 원가계산",
+      "short": "관리회계와 원가계산",
+      "en": "Managerial Accounting and Costing",
+      "basis": "Principles of Accounting 15판 ch.18-22",
+      "scope": [
+       "관리회계의 개념과 원가 분류",
+       "개별원가계산",
+       "종합원가계산",
+       "CVP (Cost-Volume-Profit, 원가-조업도-이익) 분석",
+       "변동원가계산"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "acct-managerial"
+      ]
+     },
+     {
+      "slug": "acct-decisions",
+      "name": "예산, 성과평가와 의사결정",
+      "short": "예산, 성과평가와 의사결정",
+      "en": "Budgeting, Performance Evaluation, and Decisions",
+      "basis": "Principles of Accounting 15판 ch.23-27",
+      "scope": [
+       "종합예산",
+       "변동예산과 표준원가",
+       "책임회계와 성과평가",
+       "단기 의사결정",
+       "자본투자 의사결정"
+      ],
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "기존 Kieso 『Intermediate Accounting』은 중급 재무회계 전문서라 학부 입문 개론서 규칙에 맞지 않는다. 재무회계와 관리회계를 한 권으로 덮는 입문서 후보는 둘이다. 하나는 Pearson 『Principles of Accounting』 15판으로, Horngren 계열인 『Horngren's Accounting』의 후속판이며 2026년 2월에 나왔다(©2027). 다른 하나는 Weygandt·Kimmel·Mitchell 『Accounting Principles』 15판으로, 2024년 4월에 나왔다. 둘 다 15판을 거듭한 대표 입문서라 저명도가 비슷하므로 더 최근에 개정된 Pearson 쪽을 골랐다. 이 책에는 부가 없어 같은 질문을 다루는 연속된 장 묶음 6개로 나누었다. 세무회계는 입문서가 따로 다루지 않으므로 급여세와 법인세가 나오는 부채 분과로 보낸다.",
+    "textbookCandidates": [
+     {
+      "book": "Miller-Nobles, Poindexter, Mattison, Principles of Accounting (구 Horngren's Accounting)",
+      "latest": "15th ed., Pearson, 2026년 2월 (©2027)",
+      "note": "채택. 재무회계와 관리회계를 모두 다룸"
+     },
+     {
+      "book": "Weygandt, Kimmel, Mitchell, Accounting Principles",
+      "latest": "15th ed., Wiley, 2024년 4월",
+      "note": "저명도는 비슷하고 개정이 더 오래돼서 밀림"
+     },
+     {
+      "book": "Miller-Nobles, Mattison, Horngren's Financial & Managerial Accounting",
+      "latest": "8th ed., Pearson, 2024년 5월",
+      "note": "같은 계열의 축약판. Principles of Accounting 15판보다 오래됨"
+     },
+     {
+      "book": "Kieso, Weygandt, Warfield, Intermediate Accounting",
+      "latest": "19th ed., Wiley",
+      "note": "중급 재무회계 전문서라 개론서 기준에서 제외"
+     }
+    ],
+    "parts": [
+     {
+      "no": "장 묶음 1",
+      "title": "회계순환과정 (Accounting and the Business Environment ~ Completing the Accounting Cycle)",
+      "chapters": "ch.1-4"
+     },
+     {
+      "no": "장 묶음 2",
+      "title": "상품매매와 자산 (Merchandising, Inventory, Accounting Information Systems, Internal Control and Cash, Receivables, Plant Assets)",
+      "chapters": "ch.5-10"
+     },
+     {
+      "no": "장 묶음 3",
+      "title": "부채와 자본 (Current Liabilities and Payroll, Partnerships, Corporations, Long-Term Liabilities, Investments)",
+      "chapters": "ch.11-15"
+     },
+     {
+      "no": "장 묶음 4",
+      "title": "현금흐름표와 재무제표 분석 (Statement of Cash Flows, Financial Statement Analysis)",
+      "chapters": "ch.16-17"
+     },
+     {
+      "no": "장 묶음 5",
+      "title": "관리회계와 원가계산 (Introduction to Managerial Accounting, Job Order Costing, Process Costing, Cost-Volume-Profit, Variable Costing)",
+      "chapters": "ch.18-22"
+     },
+     {
+      "no": "장 묶음 6",
+      "title": "예산, 성과평가, 의사결정 (Master Budgets, Flexible Budgets and Standard Costs, Responsibility Accounting, Short-Term and Capital Investment Decisions)",
+      "chapters": "ch.23-27"
+     }
+    ],
+    "textbookUnverified": [
+     "이번 검증에서는 회계학 후보를 다시 검색하지 못했다(검색 한도 소진, 출판사 페이지 접속 불가). 판, 연도, 저자는 앞 사서의 출처를 그대로 따랐다.",
+     "Pearson Principles of Accounting 15판의 장 구성과 장 번호를 확인하지 못했다. 장 묶음과 장 번호는 Horngren's Accounting 14판 구성으로 추정했다. 저자가 바뀌어 장 구성이 달라졌을 수 있다.",
+     "이 책에 부(Part) 구분이 없는지 확인하지 못했다.",
+     "출간일이 출처마다 다르다(2026년 1월 12일, 2월 19일, 2월 24일). 저작권 표기는 2027이다.",
+     "세무회계(acct-tax)는 입문서가 거의 다루지 않는다. 별도 분과가 필요하면 소유자 승인이 필요하다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Principles of Accounting, 15th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/principles-of-accounting/P200000013517/9780135423288"
+     },
+     {
+      "title": "Horngren's Accounting, 14th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/horngrens-accounting/P200000009824/9780137998104"
+     },
+     {
+      "title": "Horngren's Financial & Managerial Accounting, 8th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/horngrens-financial--managerial-accounting/P200000009827/9780137858644"
+     },
+     {
+      "title": "Accounting Principles 15e, Weygandt Kimmel Mitchell (Lehmanns)",
+      "url": "https://lehmanns.de/shop/wirtschaft/69098071-9781394254798-accounting-principles"
+     },
+     {
+      "title": "Intermediate Accounting, 19th Edition (WileyPLUS)",
+      "url": "https://www.wileyplus.com/intermediate-accounting-19th-edition-eprof23641/"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "mgmt",
@@ -856,7 +1181,7 @@
     "en": "Management",
     "domain": "social",
     "color": "#4e5968",
-    "textbook": "Porter, Competitive Strategy; Kotler, Marketing Management",
+    "textbook": "Richard L. Daft, Management, 15th edition, Cengage, 2025",
     "labels": {
      "isced": "0413(0414 마케팅 포함)"
     },
@@ -865,57 +1190,168 @@
     ],
     "branches": [
      {
-      "slug": "mgmt-strategy",
-      "name": "경쟁전략",
-      "short": "경쟁전략",
-      "en": "Competitive Strategy",
-      "basis": "Porter",
-      "labels": {
-       "jel": "L21, M21"
-      },
+      "slug": "mgmt-foundations",
+      "name": "경영의 기초와 경영환경",
+      "short": "경영의 기초와 경영환경",
+      "en": "Introduction and the Environment of Management",
+      "basis": "Daft 15판 Part I-II, ch.1-6 (작은 서론 Part I을 Part II에 합침)",
       "scope": [
-       "경쟁우위",
-       "해자",
-       "다섯 가지 힘",
-       "규모의 경제"
+       "경영자의 역할과 경영 역량",
+       "경영사상의 발전",
+       "외부환경과 기업문화",
+       "글로벌 경영",
+       "경영윤리와 CSR (Corporate Social Responsibility, 기업의 사회적 책임)"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "mgmt-planning",
+      "name": "계획",
+      "short": "계획",
+      "en": "Planning",
+      "basis": "Daft 15판 Part III, ch.7-9",
+      "scope": [
+       "계획 수립과 목표 설정",
+       "전략 수립과 실행",
+       "경영 의사결정"
       ],
       "topicSeeds": [
        "다섯 가지 힘"
+      ],
+      "was": [
+       "mgmt-strategy",
+       "mgmt-marketing"
       ]
      },
      {
-      "slug": "mgmt-marketing",
-      "name": "마케팅",
-      "short": "마케팅",
-      "en": "Marketing",
-      "basis": "Kotler",
-      "labels": {
-       "jel": "M31"
-      },
+      "slug": "mgmt-organizing",
+      "name": "조직화",
+      "short": "조직화",
+      "en": "Organizing",
+      "basis": "Daft 15판 Part IV, ch.10-13",
       "scope": [
-       "브랜드",
-       "포지셔닝",
-       "가격 전략"
+       "조직구조 설계",
+       "변화와 혁신 관리",
+       "인적자원 관리",
+       "다양성과 포용"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      },
      {
-      "slug": "mgmt-organization",
-      "name": "조직과 리더십",
-      "short": "조직",
-      "en": "Organizations",
-      "basis": "Robbins",
-      "labels": {
-       "jel": "M12"
-      },
+      "slug": "mgmt-leading",
+      "name": "지휘",
+      "short": "지휘",
+      "en": "Leading",
+      "basis": "Daft 15판 Part V, ch.14-18",
       "scope": [
-       "조직 구조",
-       "인센티브 설계",
-       "리더십"
+       "개인 행동의 이해",
+       "리더십",
+       "동기부여",
+       "커뮤니케이션",
+       "팀 운영"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "mgmt-organization"
+      ]
+     },
+     {
+      "slug": "mgmt-controlling",
+      "name": "통제",
+      "short": "통제",
+      "en": "Controlling",
+      "basis": "Daft 15판 Part VI, ch.19",
+      "scope": [
+       "품질과 성과 관리",
+       "통제 체계와 성과 측정"
+      ],
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "기존 기준인 Porter 『Competitive Strategy』와 Kotler 『Marketing Management』는 각각 하위 분야 전문서라 개론서 규칙에 맞지 않는다. 경영학 전체를 덮는 학부 입문서(경영학원론)의 대표 후보는 둘이다. Daft 『Management』 15판은 2025년 2월에 나왔고(©2026), Robbins·Coulter·Long 『Management』 16판은 2024년 4월에 나왔다(©2025). 둘 다 판을 많이 거듭한 표준 교재라 저명도가 비슷하므로 더 최근에 개정된 Daft 15판을 골랐다. 6개 부 가운데 작은 서론(Part I)은 경영환경(Part II)에 합쳐 5개 분과로 만들었다. 마케팅은 이 책이 다루지 않으므로 전략이 있는 '계획' 분과로 임시로 옮긴다. 별도 분과로 둘지는 소유자 승인 사항이다.",
+    "textbookCandidates": [
+     {
+      "book": "Richard L. Daft, Management",
+      "latest": "15th ed., Cengage, 2025년 2월 (©2026)",
+      "note": "채택. 가장 최근에 개정된 대표 경영학원론"
+     },
+     {
+      "book": "Stephen P. Robbins, Mary A. Coulter, Lori Long, Management",
+      "latest": "16th ed., Pearson, 2024년 4월 (©2025)",
+      "note": "저명도는 비슷하고 개정이 더 오래돼서 밀림"
+     },
+     {
+      "book": "Michael E. Porter, Competitive Strategy",
+      "latest": "1980년 초판 (이후 재간행)",
+      "note": "전략 전문서라 개론서 기준에서 제외"
+     },
+     {
+      "book": "Philip Kotler, Kevin Lane Keller, Marketing Management",
+      "latest": "(최신판 미확인)",
+      "note": "마케팅 전문서라 개론서 기준에서 제외"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Part I",
+      "title": "Introduction to Management (경영학 입문)",
+      "chapters": "ch.1-2"
+     },
+     {
+      "no": "Part II",
+      "title": "The Environment of Management (경영환경)",
+      "chapters": "ch.3-6"
+     },
+     {
+      "no": "Part III",
+      "title": "Planning (계획)",
+      "chapters": "ch.7-9"
+     },
+     {
+      "no": "Part IV",
+      "title": "Organizing (조직화)",
+      "chapters": "ch.10-13"
+     },
+     {
+      "no": "Part V",
+      "title": "Leading (지휘)",
+      "chapters": "ch.14-18"
+     },
+     {
+      "no": "Part VI",
+      "title": "Controlling (통제)",
+      "chapters": "ch.19"
+     }
+    ],
+    "textbookUnverified": [
+     "이번 검증에서는 경영학 후보를 다시 검색하지 못했다(검색 한도 소진). 판, 연도는 앞 사서의 출처를 그대로 따랐다.",
+     "Daft 15판 Part II의 장 범위(ch.3-6)는 Part III가 ch.7에서 시작한다는 사실에서 추정했다. Part I(ch.1-2), Part III(ch.7-9), Part IV(ch.10-13), Part V(ch.14-18), Part VI(ch.19)는 앞 사서가 판매처 목차로 확인했다.",
+     "각 분과 scope의 장 제목은 이전 판 구성으로 추정했다.",
+     "마케팅(mgmt-marketing)은 Daft 책이 다루지 않는다. 별도 분과로 둘지는 소유자 승인이 필요하다. 그때까지는 mgmt-planning으로 임시로 옮긴다.",
+     "Kotler 『Marketing Management』 최신판은 확인하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Daft Management 15e (Cengage)",
+      "url": "https://www.cengage.com/c/management-15e-daft/9798214042367/"
+     },
+     {
+      "title": "Daft Management 15e (Schweitzer)",
+      "url": "https://www.schweitzer-online.de/en/buch/Daft/Management/9798214042367/A71790372/"
+     },
+     {
+      "title": "Robbins Coulter Long Management 16th edition (Pearson)",
+      "url": "https://www.pearson.com/subject-catalog/p/management/P200000010325/9780138090630"
+     },
+     {
+      "title": "Robbins Management Global Edition 16th edition (Pearson UK)",
+      "url": "https://www.pearson.com/en-gb/subject-catalog/p/management-global-edition/P200000011567/9781292462691"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "stat",
@@ -923,7 +1359,7 @@
     "en": "Statistics",
     "domain": "formal",
     "color": "#03b26c",
-    "textbook": "Freedman, Pisani, Purves, Statistics",
+    "textbook": "Richard D. De Veaux, Paul F. Velleman, David E. Bock, Stats: Data and Models, 6th edition, Pearson, 2026",
     "labels": {
      "isced": "0542",
      "ford": "1.1",
@@ -936,40 +1372,78 @@
     "branches": [
      {
       "slug": "stat-descriptive",
-      "name": "기술통계",
-      "short": "기술통계",
-      "en": "Descriptive Statistics",
-      "basis": "Freedman Part I-II",
-      "labels": {},
+      "name": "자료의 탐색과 이해",
+      "short": "자료의 탐색과 이해",
+      "en": "Exploring and Understanding Data",
+      "basis": "Stats: Data and Models 6판 Part I, ch.1-5",
       "scope": [
-       "평균",
-       "분산",
-       "표준편차",
-       "분포의 모양"
+       "자료와 변수의 종류",
+       "범주형 자료의 표와 그래프",
+       "양적 자료의 분포 표현과 요약",
+       "분포 비교",
+       "표준편차, z점수와 정규모형"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "stat-descriptive"
+      ]
+     },
+     {
+      "slug": "stat-regression",
+      "name": "변수 간 관계의 탐색",
+      "short": "변수 간 관계의 탐색",
+      "en": "Exploring Relationships Between Variables",
+      "basis": "Stats: Data and Models 6판 Part II",
+      "scope": [
+       "산점도와 상관",
+       "선형회귀",
+       "회귀분석의 주의점(잔차, 영향점)",
+       "자료 변환(re-expression)"
+      ],
+      "topicSeeds": [
+       "선형회귀"
+      ],
+      "was": [
+       "stat-regression",
+       "stat-timeseries"
+      ]
+     },
+     {
+      "slug": "stat-design",
+      "name": "자료 수집: 표본조사와 실험",
+      "short": "자료 수집: 표본조사와 실험",
+      "en": "Gathering Data",
+      "basis": "Stats: Data and Models 6판 Part III",
+      "scope": [
+       "무작위성의 이해와 시뮬레이션",
+       "표본조사와 표본추출 방법",
+       "관찰연구와 무작위 실험",
+       "대조군, 블록화, 교란"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "stat-causal"
+      ]
      },
      {
       "slug": "stat-probability",
-      "name": "확률과 확률분포",
-      "short": "확률",
-      "en": "Probability",
-      "basis": "Freedman Part IV",
-      "labels": {
-       "msc": "60",
-       "anzsrc": "490506"
-      },
+      "name": "무작위성과 확률",
+      "short": "무작위성과 확률",
+      "en": "Randomness and Probability",
+      "basis": "Stats: Data and Models 6판 Part IV",
       "scope": [
-       "확률법칙",
-       "조건부확률",
-       "베이즈 정리",
-       "정규분포",
-       "중심극한정리",
-       "기댓값"
+       "확률의 정의와 규칙",
+       "조건부확률과 베이즈 규칙",
+       "확률변수와 기댓값",
+       "이항분포 등 확률모형"
       ],
       "topicSeeds": [
        "베이즈 정리",
        "중심극한정리"
+      ],
+      "was": [
+       "stat-probability",
+       "stat-bayes"
       ]
      },
      {
@@ -977,96 +1451,140 @@
       "name": "통계적 추론",
       "short": "통계적 추론",
       "en": "Statistical Inference",
-      "basis": "Freedman Part VI-VIII",
-      "labels": {
-       "msc": "62F",
-       "jel": "C12",
-       "anzsrc": "490509"
-      },
+      "basis": "Stats: Data and Models 6판 Part V-VI",
       "scope": [
-       "추정",
-       "신뢰구간",
-       "가설검정",
-       "검정통계량",
-       "유의수준",
-       "p값"
+       "표본분포 모형",
+       "비율의 신뢰구간과 가설검정",
+       "오류의 종류와 검정력",
+       "평균에 대한 추론(t분포)",
+       "두 집단 비교와 대응표본"
       ],
       "topicSeeds": [
        "가설검정"
+      ],
+      "was": [
+       "stat-inference"
       ]
      },
      {
-      "slug": "stat-regression",
-      "name": "회귀분석",
-      "short": "회귀",
-      "en": "Regression",
-      "basis": "Freedman Part III",
-      "labels": {
-       "msc": "62J",
-       "jel": "C2"
-      },
+      "slug": "stat-relations",
+      "name": "변수 간 관계에 대한 추론",
+      "short": "변수 간 관계에 대한 추론",
+      "en": "Inference When Variables Are Related",
+      "basis": "Stats: Data and Models 6판 Part VII",
       "scope": [
-       "상관",
-       "선형회귀",
-       "결정계수",
-       "다중공선성"
+       "카이제곱 검정(적합도, 독립성)",
+       "회귀에 대한 추론",
+       "분산분석(ANOVA, Analysis of Variance)",
+       "다중회귀"
       ],
-      "topicSeeds": [
-       "선형회귀"
-      ]
-     },
-     {
-      "slug": "stat-bayes",
-      "name": "베이즈 통계",
-      "short": "베이즈",
-      "en": "Bayesian Statistics",
-      "basis": "Gelman, Bayesian Data Analysis",
-      "labels": {
-       "msc": "62F15"
-      },
-      "scope": [
-       "사전확률",
-       "사후확률",
-       "베이즈 갱신"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "stat-timeseries",
-      "name": "시계열 분석",
-      "short": "시계열",
-      "en": "Time Series",
-      "basis": "Hamilton",
-      "labels": {
-       "msc": "62M10",
-       "jel": "C22"
-      },
-      "scope": [
-       "자기상관",
-       "정상성",
-       "랜덤워크"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "stat-causal",
-      "name": "실험과 인과추론",
-      "short": "인과추론",
-      "en": "Experiments and Causal Inference",
-      "basis": "Freedman Part I ch.1-2",
-      "labels": {
-       "msc": "62K",
-       "jel": "C9"
-      },
-      "scope": [
-       "무작위 배정",
-       "교란변수",
-       "생존편향",
-       "선택편향"
-      ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "기존 Freedman·Pisani·Purves 『Statistics』는 4판(2007) 이후 개정이 없어, 규칙 2에 따라 더 최신의 저명한 개론서에 밀린다. 비교한 후보는 Moore·McCabe·Craig IPS(Introduction to the Practice of Statistics) 10판(2021), Moore·Notz·Fligner BPS(The Basic Practice of Statistics) 9판(2021), Agresti·Franklin·Klingenberg 5판(2021), Triola 14판(2025년 재간행, ©2026)이다. 이 가운데 De Veaux·Velleman·Bock 『Stats: Data and Models』 6판이 2026년 2월에 나와(©2027) 가장 최근에 개정됐고, 미국 대학 입문 통계에서 널리 쓰이는 표준 교재다. 7개 부 가운데 같은 질문(표본에서 모집단으로의 추론)을 다루는 Part V와 Part VI를 합쳐 6개 분과로 만들었다. 베이즈 통계와 시계열은 이 입문서 범위 밖이므로 각각 확률 분과(조건부확률, 베이즈 규칙)와 회귀 분과로 보낸다.",
+    "textbookCandidates": [
+     {
+      "book": "De Veaux, Velleman, Bock, Stats: Data and Models",
+      "latest": "6th ed., Pearson, 2026년 2월 (©2027)",
+      "note": "채택. 가장 최근에 개정된 저명 입문서"
+     },
+     {
+      "book": "Moore, McCabe, Craig, Introduction to the Practice of Statistics",
+      "latest": "10th ed., Macmillan, 2021",
+      "note": "저명하지만 개정이 더 오래돼서 밀림"
+     },
+     {
+      "book": "Moore, Notz, Fligner, The Basic Practice of Statistics",
+      "latest": "9th ed., Macmillan, 2021",
+      "note": "개정이 더 오래돼서 밀림"
+     },
+     {
+      "book": "Agresti, Franklin, Klingenberg, Statistics: The Art and Science of Learning from Data",
+      "latest": "5th ed., Pearson, 2021",
+      "note": "개정이 더 오래돼서 밀림"
+     },
+     {
+      "book": "Mario F. Triola, Elementary Statistics",
+      "latest": "14th ed., Pearson, 2025년 1월 재간행 (©2026, 초판 2021)",
+      "note": "같은 14판의 재간행이라 실제 개정은 2021년. 밀림"
+     },
+     {
+      "book": "Freedman, Pisani, Purves, Statistics",
+      "latest": "4th ed., W. W. Norton, 2007",
+      "note": "기존 기준. 오래 개정되지 않아 밀림"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Part I",
+      "title": "Exploring and Understanding Data (자료의 탐색과 이해)",
+      "chapters": "ch.1-5"
+     },
+     {
+      "no": "Part II",
+      "title": "Exploring Relationships Between Variables (변수 간 관계의 탐색)",
+      "chapters": "ch.6-9"
+     },
+     {
+      "no": "Part III",
+      "title": "Gathering Data (자료 수집)",
+      "chapters": "ch.10-12"
+     },
+     {
+      "no": "Part IV",
+      "title": "Randomness and Probability (무작위성과 확률)",
+      "chapters": "ch.13-16"
+     },
+     {
+      "no": "Part V",
+      "title": "From the Data at Hand to the World at Large (표본에서 모집단으로)",
+      "chapters": "ch.17-20"
+     },
+     {
+      "no": "Part VI",
+      "title": "Learning About the World (세상에 대해 배우기)",
+      "chapters": "ch.21-23"
+     },
+     {
+      "no": "Part VII",
+      "title": "Inference When Variables Are Related (변수 간 관계에 대한 추론)",
+      "chapters": "ch.24 이후"
+     }
+    ],
+    "textbookUnverified": [
+     "이번 검증에서는 통계학 후보를 다시 검색하지 못했다(검색 한도 소진). 판, 연도는 앞 사서의 출처를 그대로 따랐다.",
+     "6판 Part I(ch.1-5)과 Part II, III의 제목은 앞 사서가 확인했다. Part II-VII의 장 범위와 Part V-VII의 제목은 5판 구성으로 추정했다.",
+     "6판에 Part VIII 이후 부(분산분석, 다중회귀 심화, 비모수 등)가 따로 있는지 확인하지 못했다.",
+     "베이즈 통계(stat-bayes)와 시계열(stat-timeseries)은 이 입문서 범위 밖이다. 대표 분과로만 옮겼고, 별도 분과로 둘지는 소유자 승인 사항이다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Stats: Data and Models, 6th edition (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/stats-data-and-models/P200000013607/9780135568842"
+     },
+     {
+      "title": "Stats: Data and Models, 5th edition (Pearson)",
+      "url": "https://www.pearson.com/store/en-us/p/stats-data-and-models/P200000006160"
+     },
+     {
+      "title": "Introduction to the Practice of Statistics 10e (Macmillan Learning)",
+      "url": "https://www.macmillanlearning.com/college/us/product/Introduction-to-the-Practice-of-Statistics/p/1319244440"
+     },
+     {
+      "title": "The Basic Practice of Statistics 9e (Macmillan Learning)",
+      "url": "https://store.macmillanlearning.com/us/product/The-Basic-Practice-of-Statistics/p/1319244378"
+     },
+     {
+      "title": "Agresti Statistics: The Art and Science of Learning from Data 5e (Pearson)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/statistics-the-art-and-science-of-learning-from-data/P200000006061/9780136879992"
+     },
+     {
+      "title": "Triola Elementary Statistics 14th edition (Pearson)",
+      "url": "https://www.pearson.com/en-gb/subject-catalog/p/elementary-statistics/P200000006399/9780135379950"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "math",
@@ -1074,7 +1592,7 @@
     "en": "Mathematics",
     "domain": "formal",
     "color": "#2272eb",
-    "textbook": "Stewart, Calculus; Strang, Linear Algebra; Rosen, Discrete Mathematics",
+    "textbook": "Joel Hass, Christopher Heil, Przemyslaw Bogacki, Maurice D. Weir (George B. Thomas Jr. 원저), Thomas' Calculus: Early Transcendentals, 15th, Pearson, 2023",
     "labels": {
      "isced": "0541",
      "msc": "00-58"
@@ -1084,23 +1602,91 @@
     ],
     "branches": [
      {
-      "slug": "math-calculus",
-      "name": "미적분과 해석",
-      "short": "미적분",
-      "en": "Calculus and Analysis",
-      "basis": "Stewart",
-      "labels": {
-       "msc": "26"
-      },
+      "slug": "math-differential",
+      "name": "극한과 미분",
+      "short": "극한과 미분",
+      "en": "Limits and Differentiation",
+      "basis": "Thomas 15판 ch.1-4",
       "scope": [
-       "극한",
-       "미분",
-       "적분",
-       "지수함수",
-       "로그"
+       "함수와 그래프",
+       "극한과 연속",
+       "도함수와 미분법",
+       "평균값 정리",
+       "일변수 최적화 문제",
+       "로피탈 정리"
       ],
       "topicSeeds": [
        "지수 증가"
+      ],
+      "was": [
+       "math-calculus"
+      ]
+     },
+     {
+      "slug": "math-integral",
+      "name": "적분",
+      "short": "적분",
+      "en": "Integration",
+      "basis": "Thomas 15판 ch.5-8",
+      "scope": [
+       "정적분과 미적분학의 기본정리",
+       "넓이, 부피, 일 같은 정적분의 응용",
+       "적분으로 정의한 로그와 지수, 쌍곡선함수",
+       "치환적분과 부분적분",
+       "이상적분"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "math-series",
+      "name": "급수와 매개곡선",
+      "short": "급수와 매개곡선",
+      "en": "Series and Parametric Curves",
+      "basis": "Thomas 15판 ch.9-10",
+      "scope": [
+       "수열의 수렴",
+       "무한급수와 수렴 판정법",
+       "거듭제곱급수",
+       "테일러 급수와 매클로린 급수",
+       "매개방정식과 극좌표"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "math-multivariable",
+      "name": "다변수 미적분과 벡터 해석",
+      "short": "다변수 미적분과 벡터 해석",
+      "en": "Multivariable and Vector Calculus",
+      "basis": "Thomas 15판 ch.11-15",
+      "scope": [
+       "벡터와 공간기하",
+       "벡터값 함수와 공간 운동",
+       "편미분과 기울기",
+       "다변수 극값과 라그랑주 승수(미적분 관점)",
+       "중적분",
+       "선적분, 그린 정리, 발산 정리, 스토크스 정리"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "math-diffeq",
+      "name": "미분방정식",
+      "short": "미분방정식",
+      "en": "Differential Equations",
+      "basis": "Thomas 15판 ch.16-17",
+      "scope": [
+       "방향장과 오일러 방법",
+       "변수분리형 방정식과 1계 선형 미분방정식",
+       "인구 증가 모형",
+       "2계 선형 미분방정식",
+       "포식자-피식자 계"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "math-diffeq"
       ]
      },
      {
@@ -1108,67 +1694,160 @@
       "name": "선형대수",
       "short": "선형대수",
       "en": "Linear Algebra",
-      "basis": "Strang",
-      "labels": {
-       "msc": "15"
-      },
+      "basis": "Strang 6판 (예외 교재)",
       "scope": [
-       "행렬",
-       "벡터",
-       "고유값"
+       "벡터와 행렬",
+       "연립일차방정식과 소거법",
+       "네 개의 기본 부분공간",
+       "직교성과 최소제곱",
+       "행렬식",
+       "고윳값과 고유벡터",
+       "특잇값 분해(SVD, Singular Value Decomposition)",
+       "선형변환",
+       "최적화의 선형대수: 경사하강법, 라그랑주 승수, 선형계획",
+       "데이터로부터 학습"
       ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "math-diffeq",
-      "name": "미분방정식",
-      "short": "미분방정식",
-      "en": "Differential Equations",
-      "basis": "Boyce",
-      "labels": {
-       "msc": "34, 35"
-      },
-      "scope": [
-       "상미분방정식",
-       "평형점",
-       "안정성"
+      "topicSeeds": [],
+      "was": [
+       "math-linear",
+       "math-optimization"
       ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "math-optimization",
-      "name": "최적화",
-      "short": "최적화",
-      "en": "Optimization",
-      "basis": "Boyd, Convex Optimization",
-      "labels": {
-       "msc": "49, 90"
-      },
-      "scope": [
-       "라그랑주 승수",
-       "선형계획",
-       "볼록성 조건"
-      ],
-      "topicSeeds": []
+      "textbook": "Gilbert Strang, Introduction to Linear Algebra, 6th ed., Wellesley-Cambridge Press, 2023"
      },
      {
       "slug": "math-discrete",
       "name": "이산수학",
       "short": "이산수학",
       "en": "Discrete Mathematics",
-      "basis": "Rosen",
-      "labels": {
-       "msc": "05"
-      },
+      "basis": "Rosen 9판 (예외 교재)",
       "scope": [
-       "순열",
-       "조합",
-       "그래프 이론",
-       "비둘기집 원리"
+       "명제와 증명",
+       "집합, 함수, 관계",
+       "수학적 귀납법과 재귀",
+       "정수론과 암호의 기초",
+       "경우의 수와 이산확률",
+       "그래프와 트리",
+       "부울대수"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "math-discrete"
+      ],
+      "textbook": "Kenneth H. Rosen, Discrete Mathematics and Its Applications, 9th ed. (2025 Release), McGraw Hill, 2025"
      }
-    ]
+    ],
+    "textbookWhy": "[교체] 원안은 Stewart 9판(©2021)이었다. Thomas는 1951년 초판 이후 15판을 거듭했고 Stewart와 함께 세계 학부 미적분 입문의 양대 표준 교재이며 Pearson이 펴낸다. 둘 다 비슷하게 저명하므로 규칙 2에 따라 더 최근에 개정된 쪽을 고른다. Thomas 15판은 미국판 2022년 말~2023년, Global Edition ©2024(2024년 8월 2일)로 Stewart 9판(©2021)보다 새롭다. Stewart 10판은 서점 한 곳에 ©2028 목록만 있고 Cengage에서는 확인되지 않는다. 10판이 정식으로 나오면 다시 비교한다. [예외] 수학은 학부 입문 한 권으로 전체가 덮이지 않는다. 미적분 교재는 선형대수와 이산수학을 다루지 않고, 이 둘은 따로 1학년 필수 과목이다. 그래서 규칙 3의 예외를 둔다. 주 교재는 Thomas 하나로 하고 다섯 분과를 거기서 낸다. 선형대수는 Strang 6판(2023, Lay 6판 ©2021보다 최신이며 Lay 7판은 찾지 못함), 이산수학은 Rosen 9판(2025 Release, 2025년 3월, Epp보다 널리 쓰이고 최신)을 분과 textbook에 적는다. Thomas에는 부가 없어서 같은 질문을 다루는 연속된 장 묶음으로 나눴다. 15판은 미분방정식(16-17장)을 책 끝으로 옮겼으므로 미분방정식 분과의 장 범위가 원안과 달라진다. 최적화는 Strang 6판 9장 'Linear Algebra in Optimization'이 다루므로 선형대수 분과로 보낸다.",
+    "textbookCandidates": [
+     {
+      "book": "Hass, Heil, Bogacki, Weir, Thomas' Calculus: Early Transcendentals (Pearson)",
+      "latest": "15th ed., 미국판 ISBN 9780137559824, Global Edition ©2024(2024년 8월 2일)",
+      "note": "채택. Stewart와 비슷하게 저명하고 더 최근 판"
+     },
+     {
+      "book": "Stewart, Clegg, Watson, Calculus: Early Transcendentals (Cengage)",
+      "latest": "9th ed., ©2021",
+      "note": "저명하지만 Thomas 15판보다 오래됨. 10판(©2028, Redlin 공저)은 서점 한 곳 목록뿐이고 출판사 확인 안 됨"
+     },
+     {
+      "book": "Strang, Introduction to Linear Algebra (Wellesley-Cambridge Press)",
+      "latest": "6th ed., 2023",
+      "note": "선형대수 분과의 예외 교재로 채택"
+     },
+     {
+      "book": "Lay, Lay, McDonald, Linear Algebra and Its Applications (Pearson)",
+      "latest": "6th ed., ©2021(2020년 1월 24일 출간)",
+      "note": "저명하지만 Strang 6판보다 오래됨. 7판은 찾지 못함"
+     },
+     {
+      "book": "Rosen, Discrete Mathematics and Its Applications (McGraw Hill)",
+      "latest": "9th ed. (2025 Release), 2025년 3월 12일",
+      "note": "이산수학 분과의 예외 교재로 채택"
+     },
+     {
+      "book": "Kreyszig, Advanced Engineering Mathematics (Wiley)",
+      "latest": "10th ed., 2011",
+      "note": "공학수학이고 오래 개정되지 않음"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Ch.1-4",
+      "title": "Functions; Limits and Continuity; Derivatives; Applications of Derivatives",
+      "chapters": "1-4"
+     },
+     {
+      "no": "Ch.5-8",
+      "title": "Integrals; Applications of Definite Integrals; Integrals and Transcendental Functions; Techniques of Integration",
+      "chapters": "5-8"
+     },
+     {
+      "no": "Ch.9-10",
+      "title": "Infinite Sequences and Series; Parametric Equations and Polar Coordinates",
+      "chapters": "9-10"
+     },
+     {
+      "no": "Ch.11-15",
+      "title": "Vectors and the Geometry of Space; Vector-Valued Functions and Motion in Space; Partial Derivatives; Multiple Integrals; Integrals and Vector Fields",
+      "chapters": "11-15"
+     },
+     {
+      "no": "Ch.16-17",
+      "title": "First-Order Differential Equations; Second-Order Differential Equations",
+      "chapters": "16-17"
+     },
+     {
+      "no": "Ch.18-19 (온라인)",
+      "title": "Complex Functions; Fourier Series and Wavelets",
+      "chapters": "18-19 (온라인 장, 분과에 넣지 않음)"
+     }
+    ],
+    "textbookUnverified": [
+     "Thomas ET 15판 미국판(ISBN 9780137559824)의 정확한 출간일과 저작권 연도. 비ET판은 ©2023, Global Edition은 ©2024로 확인했고, year에는 2023을 적었다.",
+     "Thomas ET 15판 미국판의 저자 표기(Hass, Heil, Bogacki, Weir 넷인지, 일부 목록처럼 셋인지).",
+     "Thomas ET 15판의 장 번호: 6, 7, 8, 9, 15, 16, 17장은 검색 결과로 확인했다. 1-5장, 10-14장 제목은 앞뒤 순서와 14판 기준으로 맞춘 것이다. 17장(2계 미분방정식)이 인쇄본인지 온라인 장인지 확인하지 못했다. pearson.com이 이 환경에서 직접 열리지 않았다.",
+     "Stewart 10판(©2028, ISBN 9798214948980)의 실제 존재 여부. 정식 출간되면 Thomas와 다시 비교해야 한다.",
+     "Strang 6판의 9장(Linear Algebra in Optimization)은 원안 검색으로 확인됐다. 10장 Learning from Data와 그 뒤 장 제목은 공식 목차를 직접 열지 못했다.",
+     "Rosen 9판(2025 Release)의 장 구성."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Pearson, Thomas' Calculus: Early Transcendentals 15th ed. (미국, ISBN 9780137559824)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/thomas-calculus-early-transcendentals/P200000007104/9780137559824"
+     },
+     {
+      "title": "Pearson UK, Thomas' Calculus: Early Transcendentals 15th ed. Global Edition (2024년 8월 2일, ©2024)",
+      "url": "https://www.pearson.com/en-gb/subject-catalog/p/thomas-calculus-early-transcendentals/P200000010771/9781292745817"
+     },
+     {
+      "title": "Pearson Benelux, Thomas' Calculus: Early Transcendentals 15th ed. 장 목록",
+      "url": "https://benelux.pearson.com/products/thomas-calculus-early-transcendentals-15th-edition-etextbook"
+     },
+     {
+      "title": "Pearson, Thomas' Calculus 15th ed. (비ET판, 2022년 12월 29일, ©2023)",
+      "url": "https://www.pearson.com/store/en-us/p/thomas-calculus/P200000007103"
+     },
+     {
+      "title": "Cengage, Calculus: Early Transcendentals 9e (Stewart, Clegg, Watson)",
+      "url": "https://www.cengage.com/c/calculus-early-transcendentals-9e-stewart/9781337613927"
+     },
+     {
+      "title": "ecampus, Calculus Early Transcendentals 10th(미확인 목록)",
+      "url": "https://www.ecampus.com/calculus-early-transcendentals-10th/bk/9798214948980"
+     },
+     {
+      "title": "MIT, Introduction to Linear Algebra 6th ed. (2023)",
+      "url": "https://math.mit.edu/~gs/linearalgebra/ila6/indexila6.html"
+     },
+     {
+      "title": "Pearson, Linear Algebra and Its Applications 6th ed. (Lay, McDonald, Lay)",
+      "url": "https://www.pearson.com/store/p/linear-algebra-and-its-applications/P100002823023/9780135851203"
+     },
+     {
+      "title": "Schweitzer, Rosen, Discrete Mathematics and Its Applications 2025 Release ISE (9th ed., 2025년 3월 12일)",
+      "url": "https://www.schweitzer-online.de/en/buch/Rosen/Discrete-Mathematics-Its-Applications-2025-Release-ISE/9781266191541/A72610875/"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "logic",
@@ -1176,7 +1855,7 @@
     "en": "Logic",
     "domain": "formal",
     "color": "#a234c7",
-    "textbook": "Copi, Introduction to Logic; 증명은 Velleman, How to Prove It",
+    "textbook": "Patrick J. Hurley, A Concise Introduction to Logic, 14th, Cengage Learning, 2024",
     "labels": {
      "isced": "0223 안(소유자 예외)",
      "kdc": "170(철학 아래 강목)",
@@ -1188,74 +1867,133 @@
     ],
     "branches": [
      {
-      "slug": "logic-reasoning",
-      "name": "추론과 논증",
-      "short": "추론",
-      "en": "Reasoning and Argument",
-      "basis": "Copi Part I",
-      "labels": {
-       "anzsrc": "500308"
-      },
+      "slug": "logic-informal",
+      "name": "비형식논리",
+      "short": "비형식논리",
+      "en": "Informal Logic",
+      "basis": "Hurley Part I, ch.1-3",
       "scope": [
-       "연역",
-       "귀납법",
-       "가추",
-       "논증의 구조",
-       "타당성과 건전성"
+       "논증, 전제, 결론",
+       "연역과 귀납의 구분",
+       "타당성, 건전성, 강도",
+       "의미와 정의의 종류",
+       "관련성의 오류와 약한 귀납의 오류",
+       "전제 가정의 오류, 애매성의 오류, 문법적 유비의 오류"
       ],
       "topicSeeds": [
        "귀납 논증"
+      ],
+      "was": [
+       "logic-reasoning",
+       "logic-fallacies"
       ]
      },
      {
-      "slug": "logic-fallacies",
-      "name": "오류",
-      "short": "오류",
-      "en": "Fallacies",
-      "basis": "Copi ch.4",
-      "labels": {},
-      "scope": [
-       "형식적 오류",
-       "비형식적 오류",
-       "허수아비",
-       "순환논증"
-      ],
-      "topicSeeds": []
-     },
-     {
       "slug": "logic-formal",
-      "name": "명제논리와 술어논리",
+      "name": "형식논리",
       "short": "형식논리",
-      "en": "Propositional and Predicate Logic",
-      "basis": "Copi Part II",
-      "labels": {
-       "msc": "03B"
-      },
+      "en": "Formal Logic",
+      "basis": "Hurley Part II, ch.4-8",
       "scope": [
-       "진리표",
-       "양화사",
-       "불완전성 정리"
+       "정언명제와 대당사각형",
+       "벤 다이어그램과 정언삼단논법",
+       "논리 연산자와 진리표",
+       "자연연역의 추론 규칙과 대치 규칙",
+       "조건증명과 간접증명",
+       "양화사와 술어논리, 관계 술어와 동일성"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "logic-formal",
+       "logic-proof"
+      ]
      },
      {
-      "slug": "logic-proof",
-      "name": "증명 방법",
-      "short": "증명",
-      "en": "Methods of Proof",
-      "basis": "Velleman ch.3",
-      "labels": {
-       "msc": "97E50(미확인)"
-      },
+      "slug": "logic-inductive",
+      "name": "귀납논리",
+      "short": "귀납논리",
+      "en": "Inductive Logic",
+      "basis": "Hurley Part III, ch.9-14",
       "scope": [
-       "귀류법",
-       "대우증명",
-       "수학적 귀납법",
-       "반례"
+       "유비추론과 법적, 도덕적 추론",
+       "인과와 밀의 방법",
+       "확률 계산",
+       "통계적 추론과 그 오용",
+       "가설 연역과 과학적 추론",
+       "과학과 미신의 구분"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "미국 학부 논리학 입문 강의에서 가장 널리 쓰이는 교재이고, 14판까지 나왔으며 Cengage가 펴낸다(©2024, 2023년 3월 출간). Copi, Cohen, Rodych 『Introduction to Logic』도 똑같이 저명하지만 최신판이 15판(2019)이고 16판은 찾지 못했다. 그래서 규칙 2에 따라 Hurley를 고른다. [수정] 원안은 책에 부가 없다고 보고 장 묶음 다섯 개로 나눴지만, 이 책은 Part I Informal Logic(1-3장), Part II Formal Logic(4-8장), Part III Inductive Logic(9-14장)의 세 부로 되어 있다(11판, 12판 목차로 확인). 규칙 4에 따라 분과는 부에서 낸다. 세 개로 규칙의 하한(3개)을 채우므로 더 쪼개지 않는다. 비형식적 오류는 Part I, 정언논리와 기호논리는 Part II에 합쳤다. 증명 방법(조건증명, 간접증명)은 7장 자연연역에 들어 있으므로 형식논리 분과로 간다.",
+    "textbookCandidates": [
+     {
+      "book": "Hurley, A Concise Introduction to Logic (Cengage)",
+      "latest": "14th ed., ©2024 (2023년 3월 출간)",
+      "note": "채택. 13판은 Lori Watson 공저"
+     },
+     {
+      "book": "Copi, Cohen, Rodych, Introduction to Logic (Routledge)",
+      "latest": "15th ed., 2019",
+      "note": "저명한 고전이지만 Hurley 14판보다 오래됨. 16판 목록 없음"
+     },
+     {
+      "book": "Velleman, How to Prove It (Cambridge University Press)",
+      "latest": "3rd ed., 2019",
+      "note": "수학적 증명 전문서라 학문 전체 개론서가 아님"
+     }
+    ],
+    "parts": [
+     {
+      "no": "I",
+      "title": "Informal Logic",
+      "chapters": "1-3 (Basic Concepts; Language: Meaning and Definition; Informal Fallacies)"
+     },
+     {
+      "no": "II",
+      "title": "Formal Logic",
+      "chapters": "4-8 (Categorical Propositions; Categorical Syllogisms; Propositional Logic; Natural Deduction in Propositional Logic; Predicate Logic)"
+     },
+     {
+      "no": "III",
+      "title": "Inductive Logic",
+      "chapters": "9-14 (Analogy and Legal and Moral Reasoning; Causality and Mill's Methods; Probability; Statistical Reasoning; Hypothetical/Scientific Reasoning; Science and Superstition)"
+     }
+    ],
+    "textbookUnverified": [
+     "14판에도 Part I-III 구분이 그대로 있는지: 11판, 12판 목차로만 확인했다.",
+     "14판의 2-14장 제목: 1장 Basic Concepts만 14판 목록으로 확인했고, 나머지는 13판 기준이다.",
+     "Hurley 14판의 저자 표기: 13판은 Hurley와 Lori Watson 공저였다. 14판 목록은 Hurley 단독으로 보이나 표지 확인은 못 했다.",
+     "출간 연도: 서점은 2023년 3월, Cengage는 ©2024. year에는 2024를 적었다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Cengage, A Concise Introduction to Logic 14e (ISBN 9780357798683)",
+      "url": "https://www.cengage.com/c/a-concise-introduction-to-logic-14e-hurley/9780357798683"
+     },
+     {
+      "title": "WebAssign, A Concise Introduction to Logic 14th edition",
+      "url": "https://www.webassign.net/features/textbooks/hlogic14/details.html"
+     },
+     {
+      "title": "Schweitzer, Hurley, A Concise Introduction to Logic 14th (9780357798683)",
+      "url": "https://www.schweitzer-online.de/en/buch/Hurley/Concise-Introduction-Logic/9780357798683/A65535163/"
+     },
+     {
+      "title": "studylib, Hurley 11판 목차(Part I-III)",
+      "url": "https://studylib.net/doc/27009538/patrick2012"
+     },
+     {
+      "title": "WebAssign, A Concise Introduction to Logic 13th edition",
+      "url": "https://www.webassign.net/features/textbooks/hlogic13/details.html"
+     },
+     {
+      "title": "Routledge, Introduction to Logic 15th ed. (Copi, Cohen, Rodych)",
+      "url": "https://www.routledge.com/Introduction-to-Logic/Copi-Cohen-Rodych/p/book/9781138500860"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "cs",
@@ -1263,7 +2001,7 @@
     "en": "Computer Science",
     "domain": "formal",
     "color": "#fe9800",
-    "textbook": "Kurose-Ross(네트워크), Silberschatz(데이터베이스, 운영체제), CLRS(알고리즘)",
+    "textbook": "Nell Dale, John Lewis, Computer Science Illuminated, 8th, Jones & Bartlett Learning, 2025",
     "labels": {
      "isced": "061(narrow로 묶음)",
      "ford": "1.2",
@@ -1276,60 +2014,58 @@
     ],
     "branches": [
      {
-      "slug": "cs-database",
-      "name": "데이터베이스",
-      "short": "DB",
-      "en": "Databases",
-      "basis": "Silberschatz, Database System Concepts",
-      "labels": {
-       "acm": "Information systems > Data management systems"
-      },
+      "slug": "cs-information",
+      "name": "정보 표현",
+      "short": "정보 표현",
+      "en": "Information Representation",
+      "basis": "Dale-Lewis Part 1-2, ch.1-3",
       "scope": [
-       "SQL",
-       "DDL",
-       "스키마",
-       "DB 정규화",
-       "트랜잭션",
-       "인덱스"
+       "컴퓨팅의 역사와 추상화 층위",
+       "이진수와 진법 변환",
+       "수, 텍스트, 오디오, 이미지, 비디오의 데이터 표현",
+       "데이터 압축"
       ],
-      "topicSeeds": [
-       "SQL"
+      "topicSeeds": [],
+      "was": [
+       "cs-information"
       ]
      },
      {
-      "slug": "cs-web",
-      "name": "웹",
-      "short": "웹",
-      "en": "The Web",
-      "basis": "MDN Learn",
-      "labels": {
-       "acm": "Information systems > World Wide Web"
-      },
+      "slug": "cs-hardware",
+      "name": "하드웨어",
+      "short": "하드웨어",
+      "en": "Hardware",
+      "basis": "Dale-Lewis Part 3, ch.4-5",
       "scope": [
-       "HTTP",
-       "HTML",
-       "브라우저",
-       "API"
+       "논리 게이트와 회로",
+       "폰 노이만 구조",
+       "CPU(Central Processing Unit), 메모리, 입출력 장치",
+       "저장 장치"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      },
      {
-      "slug": "cs-algorithms",
-      "name": "알고리즘과 자료구조",
-      "short": "알고리즘",
-      "en": "Algorithms and Data Structures",
-      "basis": "CLRS",
-      "labels": {
-       "acm": "Theory of computation > Design and analysis of algorithms"
-      },
+      "slug": "cs-programming",
+      "name": "프로그래밍과 알고리즘",
+      "short": "프로그래밍과 알고리즘",
+      "en": "Programming and Algorithms",
+      "basis": "Dale-Lewis Part 4, ch.6-9 + Part 8, ch.18",
       "scope": [
-       "복잡도",
-       "정렬",
-       "탐색",
-       "그래프 알고리즘"
+       "기계어, 어셈블리어, 의사코드",
+       "문제 해결과 알고리즘",
+       "탐색과 정렬",
+       "추상 자료형: 스택, 큐, 리스트, 트리, 그래프",
+       "객체지향 설계와 고급 언어",
+       "알고리즘 복잡도와 빅오 표기",
+       "계산 가능성, 정지 문제, P와 NP"
       ],
       "topicSeeds": [
        "빅오 표기"
+      ],
+      "was": [
+       "cs-algorithms",
+       "cs-programming"
       ]
      },
      {
@@ -1337,101 +2073,152 @@
       "name": "운영체제",
       "short": "운영체제",
       "en": "Operating Systems",
-      "basis": "Silberschatz, Operating System Concepts",
-      "labels": {
-       "acm": "Software and its engineering > Operating systems"
-      },
+      "basis": "Dale-Lewis Part 5, ch.10-11",
       "scope": [
-       "프로세스",
-       "메모리",
-       "파일 시스템"
+       "운영체제의 역할",
+       "메모리 관리",
+       "프로세스 관리와 CPU 스케줄링",
+       "파일 시스템과 디렉터리",
+       "디스크 스케줄링"
       ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "cs-networks",
-      "name": "네트워크",
-      "short": "네트워크",
-      "en": "Networks",
-      "basis": "Kurose-Ross",
-      "labels": {
-       "acm": "Networks"
-      },
-      "scope": [
-       "TCP/IP",
-       "DNS",
-       "라우팅"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "cs-programming",
-      "name": "프로그래밍 언어",
-      "short": "프로그래밍",
-      "en": "Programming Languages",
-      "basis": "SICP",
-      "labels": {
-       "acm": "Software and its engineering > Software notations and tools"
-      },
-      "scope": [
-       "타입",
-       "함수",
-       "컴파일"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "cs-ai",
-      "name": "인공지능과 기계학습",
-      "short": "AI",
-      "en": "AI and Machine Learning",
-      "basis": "Russell-Norvig; Hastie-Tibshirani-Friedman",
-      "labels": {
-       "acm": "Computing methodologies > Machine learning"
-      },
-      "scope": [
-       "모델 학습",
-       "과적합",
-       "규제화",
-       "평가 지표",
-       "신경망"
-      ],
-      "topicSeeds": [
-       "신경망"
+      "topicSeeds": [],
+      "was": [
+       "cs-systems"
       ]
      },
      {
-      "slug": "cs-information",
-      "name": "정보이론",
-      "short": "정보이론",
-      "en": "Information Theory",
-      "basis": "Cover-Thomas",
-      "labels": {
-       "acm": "Mathematics of computing > Information theory"
-      },
+      "slug": "cs-applications",
+      "name": "응용 계층",
+      "short": "응용",
+      "en": "Applications and Artificial Intelligence",
+      "basis": "Dale-Lewis Part 6, ch.12-14",
       "scope": [
-       "정보 엔트로피",
-       "부호화",
-       "채널 용량"
+       "정보시스템: 스프레드시트와 데이터베이스 관리 시스템",
+       "관계형 데이터베이스와 SQL(Structured Query Language)",
+       "인공지능: 지식 표현, 전문가 시스템, 신경망, 자연어 처리",
+       "시뮬레이션, 그래픽스, 게임"
       ],
-      "topicSeeds": []
+      "topicSeeds": [
+       "SQL",
+       "신경망"
+      ],
+      "was": [
+       "cs-database",
+       "cs-ai"
+      ]
      },
      {
-      "slug": "cs-security",
-      "name": "보안",
-      "short": "보안",
-      "en": "Security",
-      "basis": "Anderson, Security Engineering",
-      "labels": {
-       "acm": "Security and privacy"
-      },
+      "slug": "cs-communications",
+      "name": "통신과 보안",
+      "short": "통신과 보안",
+      "en": "Communications and Security",
+      "basis": "Dale-Lewis Part 7, ch.15-17",
       "scope": [
-       "암호",
-       "인증"
+       "네트워크의 종류와 프로토콜",
+       "인터넷과 TCP/IP(Transmission Control Protocol/Internet Protocol)",
+       "월드와이드웹과 HTML(HyperText Markup Language)",
+       "컴퓨터 보안, 암호, 악성코드"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "cs-web",
+       "cs-networks",
+       "cs-security"
+      ]
      }
-    ]
+    ],
+    "textbookWhy": "컴퓨터과학 전체를 한 권으로 훑는 학부 입문(CS0) 교재 가운데 가장 최근에 개정된 저명한 책이다. 8판까지 나왔고 Jones & Bartlett Learning이 펴낸다(2023년 11월 21일 출간, ©2025). 정보 계층부터 통신 계층까지 층위로 나뉜 부 구성이 있어 분과를 책에서 그대로 낼 수 있다. 같은 부류의 대표 교재인 Brookshear, Brylow 『Computer Science: An Overview』는 비슷하게 저명하지만 최신이 13판(2018년 3월, ©2019)이고 14판은 찾지 못했다. 규칙 2에 따라 Dale, Lewis 8판을 고른다. 기존 분류는 네트워크, 데이터베이스, 운영체제, 알고리즘마다 전문서를 따로 썼는데, 규칙 3에 맞지 않아 바꾼다. 서론 부(Laying the Groundwork, 1장)는 이웃한 정보 계층에 합쳤다. [수정] 원안은 마지막 부(In Conclusion, 18장 Limitations of Computing) 한 장을 따로 분과로 두었다. 이것은 서론과 같은 작은 맺음 부라 규칙 4에 따라 합친다. 바로 옆 부인 통신 계층과는 내용이 이어지지 않으므로, 알고리즘 복잡도와 계산 가능성을 다루는 프로그래밍 계층 분과에 넣는다. 그래서 분과는 6개다. 데이터베이스는 12장 Information Systems에 있어 응용 분과로 간다.",
+    "textbookCandidates": [
+     {
+      "book": "Dale, Lewis, Computer Science Illuminated (Jones & Bartlett Learning)",
+      "latest": "8th ed., 2023년 11월 21일 출간, ©2025",
+      "note": "채택. 층위별 부 구성"
+     },
+     {
+      "book": "Brookshear, Brylow, Computer Science: An Overview (Pearson)",
+      "latest": "13th ed., 2018년 3월, ©2019 (Global Edition ©2027 재발행 목록 있음)",
+      "note": "비슷하게 저명하지만 2018년 이후 새 판이 없음"
+     },
+     {
+      "book": "Schneider, Gersting, Invitation to Computer Science (Cengage)",
+      "latest": "8th ed., 2018",
+      "note": "덜 최신"
+     }
+    ],
+    "parts": [
+     {
+      "no": "1",
+      "title": "Laying the Groundwork",
+      "chapters": "1 (The Big Picture)"
+     },
+     {
+      "no": "2",
+      "title": "The Information Layer",
+      "chapters": "2-3"
+     },
+     {
+      "no": "3",
+      "title": "The Hardware Layer",
+      "chapters": "4-5"
+     },
+     {
+      "no": "4",
+      "title": "The Programming Layer",
+      "chapters": "6-9"
+     },
+     {
+      "no": "5",
+      "title": "The Operating Systems Layer",
+      "chapters": "10-11"
+     },
+     {
+      "no": "6",
+      "title": "The Applications Layer",
+      "chapters": "12-14"
+     },
+     {
+      "no": "7",
+      "title": "The Communications Layer",
+      "chapters": "15-17"
+     },
+     {
+      "no": "8",
+      "title": "In Conclusion",
+      "chapters": "18 (Limitations of Computing)"
+     }
+    ],
+    "textbookUnverified": [
+     "8판에도 층위(부) 제목과 장 범위가 이전 판과 같은지: 8판 장 제목은 1장 The Big Picture 등 일부만 서점 목록으로 확인했다. 층위 구성은 7판 이전 기준이다.",
+     "2-9장, 13-17장의 정확한 장 제목과 8판에서 새로 생긴 절의 위치.",
+     "저명성 비교(Dale-Lewis와 Brookshear)는 판수와 보급 범위로 판단했다. 채택 대학 수를 비교한 자료는 찾지 못했다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Jones & Bartlett Learning, Computer Science Illuminated 8th ed.",
+      "url": "https://jblearning.com/catalog/productdetails/9781284275094"
+     },
+     {
+      "title": "Barnes & Noble, Computer Science Illuminated 8th ed. (2023년 11월 21일)",
+      "url": "https://www.barnesandnoble.com/w/computer-science-illuminated-with-navigate-advantage-access-nell-dale/1146938301"
+     },
+     {
+      "title": "ECU 도서관 목록, Computer Science Illuminated 8th ed. ([2025])",
+      "url": "https://librarycatalog.ecu.edu/catalog/6748491"
+     },
+     {
+      "title": "Skillsoft, Computer Science Illuminated, Eighth Edition",
+      "url": "https://www.skillsoft.com/book/computer-science-illuminated-eighth-edition-6914d11d-d38a-482d-8cde-db657444bde6"
+     },
+     {
+      "title": "O'Reilly, Computer Science Illuminated 7th ed. 'The Information Layer'",
+      "url": "https://www.oreilly.com/library/view/computer-science-illuminated/9781284055917/12_chapter3.xhtml"
+     },
+     {
+      "title": "Pearson, Computer Science: An Overview 13th ed.",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/computer-science-an-overview/P200000003351/9780134875460"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "psy",
@@ -1439,7 +2226,7 @@
     "en": "Psychology",
     "domain": "social",
     "color": "#f04452",
-    "textbook": "Myers, Psychology",
+    "textbook": "David G. Myers, C. Nathan DeWall, June Gruber, Psychology, 14th, Worth Publishers (Macmillan Learning), 2024",
     "labels": {
      "isced": "0313",
      "ford": "5.1",
@@ -1450,128 +2237,294 @@
     ],
     "branches": [
      {
-      "slug": "psy-judgment",
-      "name": "판단과 의사결정",
-      "short": "판단",
-      "en": "Judgment and Decision Making",
-      "basis": "Myers ch.9; Kahneman",
-      "labels": {
-       "psycinfo": "2340 안(독립 코드 없음)"
-      },
+      "slug": "psy-foundations",
+      "name": "심리과학과 생물학적 기초",
+      "short": "심리과학과 생물학적 기초",
+      "en": "Psychological Science and Biological Bases",
+      "basis": "Myers ch.1-3",
       "scope": [
-       "휴리스틱",
-       "인지편향",
-       "확증편향",
-       "닻내림",
-       "가용성"
+       "심리학의 역사와 범위",
+       "연구 방법과 통계적 추론",
+       "신경계와 뇌",
+       "내분비계",
+       "의식, 수면과 꿈",
+       "향정신성 약물"
       ],
-      "topicSeeds": [
-       "휴리스틱과 편향"
-      ]
+      "topicSeeds": [],
+      "was": []
      },
      {
-      "slug": "psy-memory",
-      "name": "학습과 기억",
-      "short": "기억",
-      "en": "Learning and Memory",
-      "basis": "Myers ch.7-8",
-      "labels": {
-       "psycinfo": "2343"
-      },
+      "slug": "psy-development",
+      "name": "본성, 양육과 발달",
+      "short": "본성, 양육과 발달",
+      "en": "Nature, Nurture, and Development",
+      "basis": "Myers ch.4-5",
       "scope": [
-       "망각곡선",
-       "간격 반복",
-       "인출 연습",
-       "조건형성"
+       "행동유전학과 진화심리학",
+       "문화와 성별의 다양성",
+       "태아기와 영아기",
+       "아동기 인지발달과 애착",
+       "청소년기와 성인기"
       ],
-      "topicSeeds": [
-       "조작적 조건형성"
-      ]
-     },
-     {
-      "slug": "psy-motivation",
-      "name": "동기와 정서",
-      "short": "동기",
-      "en": "Motivation and Emotion",
-      "basis": "Myers ch.11-12",
-      "labels": {
-       "psycinfo": "2360"
-      },
-      "scope": [
-       "보상",
-       "습관",
-       "감정",
-       "몰입"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "psy-social",
-      "name": "사회심리",
-      "short": "사회심리",
-      "en": "Social Psychology",
-      "basis": "Myers ch.14; Cialdini",
-      "labels": {
-       "psycinfo": "3000(미확인)"
-      },
-      "scope": [
-       "동조",
-       "권위",
-       "사회적 증거",
-       "상호성",
-       "일관성"
-      ],
-      "topicSeeds": [
-       "설득의 원리"
+      "topicSeeds": [],
+      "was": [
+       "psy-development"
       ]
      },
      {
       "slug": "psy-perception",
       "name": "감각과 지각",
-      "short": "지각",
+      "short": "감각과 지각",
       "en": "Sensation and Perception",
       "basis": "Myers ch.6",
-      "labels": {
-       "psycinfo": "2320(미확인)"
-      },
       "scope": [
-       "착시",
-       "주의",
-       "대비 효과"
+       "역치와 감각 순응",
+       "시각 처리와 지각 조직화",
+       "청각",
+       "촉각, 통증, 미각, 후각, 신체 감각",
+       "지각 갖춤새와 맥락 효과"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "psy-perception"
+      ]
      },
      {
-      "slug": "psy-development",
-      "name": "발달심리",
-      "short": "발달",
-      "en": "Developmental Psychology",
-      "basis": "Myers ch.5",
-      "labels": {
-       "psycinfo": "2800(미확인)"
-      },
+      "slug": "psy-memory",
+      "name": "학습과 기억",
+      "short": "학습과 기억",
+      "en": "Learning and Memory",
+      "basis": "Myers ch.7-8",
       "scope": [
-       "애착",
-       "인지발달"
+       "고전적 조건형성",
+       "조작적 조건형성과 강화 계획",
+       "관찰학습",
+       "기억의 부호화, 저장, 인출",
+       "망각과 기억 왜곡"
       ],
-      "topicSeeds": []
+      "topicSeeds": [
+       "조작적 조건형성"
+      ],
+      "was": [
+       "psy-memory"
+      ]
      },
      {
-      "slug": "psy-personality",
-      "name": "성격과 개인차",
-      "short": "성격",
-      "en": "Personality",
-      "basis": "Myers ch.13",
-      "labels": {
-       "psycinfo": "3100(미확인)"
-      },
+      "slug": "psy-cognition",
+      "name": "사고, 언어, 지능",
+      "short": "사고, 언어, 지능",
+      "en": "Thinking, Language, and Intelligence",
+      "basis": "Myers ch.9-10",
       "scope": [
-       "5요인",
-       "지능"
+       "개념과 문제 해결",
+       "휴리스틱과 판단 편향",
+       "프레이밍과 의사결정",
+       "언어 습득과 사고",
+       "지능 이론과 검사",
+       "지능의 유전과 환경"
       ],
-      "topicSeeds": []
+      "topicSeeds": [
+       "휴리스틱과 편향"
+      ],
+      "was": [
+       "psy-judgment"
+      ]
+     },
+     {
+      "slug": "psy-motivation",
+      "name": "동기, 정서, 건강",
+      "short": "동기, 정서, 건강",
+      "en": "Motivation, Emotion, and Health",
+      "basis": "Myers ch.11-12",
+      "scope": [
+       "동기 이론과 욕구 위계",
+       "배고픔, 성, 소속, 성취 동기",
+       "정서 이론과 정서 표현",
+       "스트레스와 건강",
+       "행복과 긍정심리"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "psy-motivation"
+      ]
+     },
+     {
+      "slug": "psy-social",
+      "name": "사회심리와 성격",
+      "short": "사회심리와 성격",
+      "en": "Social Psychology and Personality",
+      "basis": "Myers ch.13-14",
+      "scope": [
+       "귀인과 태도",
+       "동조와 복종",
+       "집단 영향과 설득",
+       "편견, 공격성, 이타성",
+       "정신역동 이론과 인본주의 이론",
+       "특성 이론과 사회인지 이론"
+      ],
+      "topicSeeds": [
+       "설득의 원리"
+      ],
+      "was": [
+       "psy-social",
+       "psy-personality"
+      ]
+     },
+     {
+      "slug": "psy-clinical",
+      "name": "심리장애와 치료",
+      "short": "심리장애와 치료",
+      "en": "Psychological Disorders and Therapy",
+      "basis": "Myers ch.15-16",
+      "scope": [
+       "심리장애의 분류와 진단",
+       "불안장애와 기분장애",
+       "조현병과 성격장애",
+       "심리치료 기법",
+       "생의학적 치료와 예방"
+      ],
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "세계적으로 가장 많이 쓰이는 심리학 입문 교재이고, 14판(©2024)까지 나왔으며 Macmillan Learning 계열 Worth가 펴낸다. 이번 판에 June Gruber가 공저자로 들어왔다. 가장 가까운 경쟁서인 Schacter, Gilbert, Nock 『Psychology』는 6판(©2023)으로 Myers 14판보다 오래되고 보급 범위도 좁다. 같은 저자들의 『Introducing Psychology』 6판(2024)은 축약판이라 학문 전체 개론서 기준에서 Myers를 앞서지 않는다. 책은 16개 장(56개 모듈)이고 부가 없어서 같은 질문을 다루는 연속된 장 묶음으로 나눴다. 기존 '판단과 의사결정'은 9장 Thinking and Language에, 성격은 14장에 있어 사회심리와 함께 묶었다.",
+    "textbookCandidates": [
+     {
+      "book": "Myers, DeWall, Gruber, Psychology (Worth/Macmillan Learning)",
+      "latest": "14th ed., ©2024 (2024년 4월 15일 판형 있음)",
+      "note": "채택"
+     },
+     {
+      "book": "Schacter, Gilbert, Nock, Psychology (Worth/Macmillan Learning)",
+      "latest": "6th ed., ©2023",
+      "note": "저명하지만 Myers 14판보다 오래되고 보급 범위가 좁음"
+     },
+     {
+      "book": "Schacter, Gilbert, Wegner, Nock, Introducing Psychology (Worth/Macmillan Learning)",
+      "latest": "6th ed., 2024년 2월 15일",
+      "note": "축약판"
+     },
+     {
+      "book": "Gray, Bjorklund, Psychology (Worth/Macmillan Learning)",
+      "latest": "확인 못 함",
+      "note": "보급 범위가 Myers보다 좁음"
+     }
+    ],
+    "parts": [
+     {
+      "no": "Ch.1",
+      "title": "Thinking Critically With Psychological Science",
+      "chapters": "Modules 1-3"
+     },
+     {
+      "no": "Ch.2",
+      "title": "The Biology of Mind",
+      "chapters": "Modules 4-7"
+     },
+     {
+      "no": "Ch.3",
+      "title": "Consciousness and the Two-Track Mind",
+      "chapters": "Modules 8-10"
+     },
+     {
+      "no": "Ch.4",
+      "title": "Nature, Nurture, and Human Diversity",
+      "chapters": "Modules 11-13"
+     },
+     {
+      "no": "Ch.5",
+      "title": "Developing Through the Life Span",
+      "chapters": "Modules 14-17"
+     },
+     {
+      "no": "Ch.6",
+      "title": "Sensation and Perception",
+      "chapters": "Modules 18-20"
+     },
+     {
+      "no": "Ch.7",
+      "title": "Learning",
+      "chapters": "Modules 21-23"
+     },
+     {
+      "no": "Ch.8",
+      "title": "Memory",
+      "chapters": "Modules 24-26"
+     },
+     {
+      "no": "Ch.9",
+      "title": "Thinking and Language",
+      "chapters": "Modules 27-28"
+     },
+     {
+      "no": "Ch.10",
+      "title": "Intelligence",
+      "chapters": "Modules 29-31"
+     },
+     {
+      "no": "Ch.11",
+      "title": "What Drives Us: Hunger, Sex, Friendship, and Achievement",
+      "chapters": "모듈 범위 미확인"
+     },
+     {
+      "no": "Ch.12",
+      "title": "Emotions, Stress, and Health",
+      "chapters": "모듈 범위 미확인"
+     },
+     {
+      "no": "Ch.13",
+      "title": "Social Psychology",
+      "chapters": "모듈 범위 미확인"
+     },
+     {
+      "no": "Ch.14",
+      "title": "Personality",
+      "chapters": "모듈 범위 미확인"
+     },
+     {
+      "no": "Ch.15",
+      "title": "Psychological Disorders",
+      "chapters": "모듈 범위 미확인"
+     },
+     {
+      "no": "Ch.16",
+      "title": "Therapy",
+      "chapters": "…-Modules 55-56"
+     }
+    ],
+    "textbookUnverified": [
+     "1-7장, 9-10장의 장 번호, 제목, 모듈 범위는 원안 검색 결과에 기댔다. 8장 모듈 범위(24-26)는 앞뒤 번호로 추정했다.",
+     "11-16장 제목과 모듈 범위는 13판 기준과 마지막 모듈(55 Evaluating Psychotherapies, 56 The Biomedical Therapies and Preventing Psychological Disorders)로 맞췄다. macmillanlearning.com 목차 탭을 직접 열지 못했다.",
+     "출판사 표기: Worth Publishers와 Macmillan Learning 가운데 표지 표기.",
+     "Gray-Bjorklund의 최신 판과 연도."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Macmillan Learning, Psychology 14th Edition (Myers, DeWall, Gruber)",
+      "url": "https://www.macmillanlearning.com/college/us/product/Psychology/p/1319426891"
+     },
+     {
+      "title": "Macmillan Learning Store, Psychology 14e (ISBN 9781319426897)",
+      "url": "https://store.macmillanlearning.com/us/p/9781319426897"
+     },
+     {
+      "title": "Myers 14e Flyer 2024",
+      "url": "https://go.macmillanlearning.com/rs/122-CFG-317/images/Myers-14e_Flyer_2024.pdf"
+     },
+     {
+      "title": "Booktopia, Psychology 14 Edition (2024년 4월 15일, ISBN 9781319545147)",
+      "url": "https://booktopia.com.au/psychology-david-g-myers/book/9781319545147.html"
+     },
+     {
+      "title": "Macmillan Learning Store, Schacter, Gilbert, Nock, Psychology 6th ed. (©2023)",
+      "url": "https://store.macmillanlearning.com/us/product/Psychology/p/1319340482"
+     },
+     {
+      "title": "Macmillan Learning Store, Introducing Psychology 6th ed.",
+      "url": "https://store.macmillanlearning.com/us/product/Introducing-Psychology/p/1319432212"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "phys",
@@ -1579,7 +2532,7 @@
     "en": "Physics",
     "domain": "natural",
     "color": "#1b64da",
-    "textbook": "Halliday, Resnick, Walker, Fundamentals of Physics",
+    "textbook": "Hugh D. Young, Roger A. Freedman, University Physics with Modern Physics, 16th, Pearson, 2026",
     "labels": {
      "isced": "0533",
      "ford": "1.3"
@@ -1593,111 +2546,199 @@
       "name": "역학",
       "short": "역학",
       "en": "Mechanics",
-      "basis": "Halliday Part 1",
-      "labels": {},
+      "basis": "Young-Freedman Part I, ch.1-14",
       "scope": [
-       "뉴턴 법칙",
-       "운동량 보존",
-       "에너지 보존",
-       "관성"
+       "단위, 물리량, 벡터",
+       "운동학과 뉴턴 법칙",
+       "일, 에너지, 운동량",
+       "회전과 각운동량",
+       "중력과 평형",
+       "유체역학",
+       "주기 운동과 진동"
       ],
       "topicSeeds": [
        "뉴턴 운동 법칙"
+      ],
+      "was": [
+       "phys-mechanics",
+       "phys-complex"
       ]
      },
      {
       "slug": "phys-waves",
-      "name": "파동",
-      "short": "파동",
-      "en": "Waves",
-      "basis": "Halliday Part 2",
-      "labels": {},
+      "name": "파동과 음향",
+      "short": "파동과 음향",
+      "en": "Waves and Acoustics",
+      "basis": "Young-Freedman Part II, ch.15-16",
       "scope": [
-       "진동",
-       "간섭",
-       "공명"
+       "역학적 파동",
+       "파동의 중첩과 정상파",
+       "소리와 청각",
+       "도플러 효과"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "phys-waves"
+      ]
      },
      {
       "slug": "phys-thermo",
-      "name": "열역학과 통계역학",
+      "name": "열역학",
       "short": "열역학",
       "en": "Thermodynamics",
-      "basis": "Halliday Part 2",
-      "labels": {
-       "physh": "Statistical Physics & Thermodynamics"
-      },
+      "basis": "Young-Freedman Part III, ch.17-20",
       "scope": [
-       "열역학 엔트로피",
-       "열역학 법칙",
-       "평형"
+       "온도와 열",
+       "물질의 열적 성질과 기체 분자 운동론",
+       "열역학 제1법칙",
+       "열역학 제2법칙과 엔트로피"
       ],
       "topicSeeds": [
        "열역학 제2법칙"
+      ],
+      "was": [
+       "phys-thermo"
       ]
      },
      {
       "slug": "phys-em",
       "name": "전자기학",
-      "short": "전자기",
+      "short": "전자기학",
       "en": "Electromagnetism",
-      "basis": "Halliday Part 3-4",
-      "labels": {},
+      "basis": "Young-Freedman Part IV, ch.21-32",
       "scope": [
-       "전기장",
-       "자기장",
-       "맥스웰 방정식"
+       "전하와 전기장",
+       "가우스 법칙과 전위",
+       "전기용량과 직류 회로",
+       "자기장과 자기력",
+       "전자기 유도와 인덕턴스",
+       "교류 회로",
+       "전자기파"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "phys-em"
+      ]
      },
      {
       "slug": "phys-optics",
       "name": "광학",
       "short": "광학",
       "en": "Optics",
-      "basis": "Halliday Part 4",
-      "labels": {},
+      "basis": "Young-Freedman Part V, ch.33-36",
       "scope": [
-       "굴절",
+       "빛의 본성과 전파",
+       "기하광학과 렌즈",
+       "간섭",
        "회절"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "phys-optics"
+      ]
      },
      {
       "slug": "phys-modern",
       "name": "현대물리",
       "short": "현대물리",
       "en": "Modern Physics",
-      "basis": "Halliday Part 5",
-      "labels": {},
+      "basis": "Young-Freedman Part VI, ch.37-45",
       "scope": [
-       "불확정성",
-       "중첩",
-       "시간 지연",
-       "질량-에너지"
+       "특수 상대성 이론",
+       "광자와 물질파",
+       "양자역학: 파동함수와 원자 구조",
+       "분자와 응집물질",
+       "핵물리",
+       "입자물리와 우주론"
       ],
       "topicSeeds": [
        "양자역학",
        "상대성이론"
+      ],
+      "was": [
+       "phys-modern"
       ]
+     }
+    ],
+    "textbookWhy": "Halliday, Resnick, Walker 『Fundamentals of Physics』와 함께 세계 학부 일반물리 입문의 양대 표준 교재다. 16판까지 나왔고 Pearson이 펴낸다(2026년 2월 16일 출간, ©2027). 두 책이 비슷하게 저명하므로 규칙 2에 따라 더 최근에 개정된 쪽을 고른다. Halliday 최신판은 12판(2021년 10월)이고 13판은 찾지 못했다. 책은 역학, 파동/음향, 열역학, 전자기학, 광학, 현대물리의 여섯 부로 나뉘어 있어 분과를 부에서 그대로 낸다. 파동/음향 부는 두 장으로 작지만 서론 같은 부가 아니라 독립된 주제라 그대로 둔다. [수정] 16판 현대물리 부는 37-45장이다(43장 Molecules and Condensed Matter, 44장 Nuclear Physics, 45장 Particle Physics and Cosmology). 원안의 '37-44 또는 37-45'를 37-45로 고쳤다. 기존 복잡계 분과(Strogatz)는 이 책의 어느 부에도 대응하지 않아 가장 가까운 역학(14장 주기 운동)으로 보낸다.",
+    "textbookCandidates": [
+     {
+      "book": "Young, Freedman, University Physics with Modern Physics (Pearson)",
+      "latest": "16th ed., 2026년 2월 16일 출간, ©2027",
+      "note": "채택. 6부 구성"
      },
      {
-      "slug": "phys-complex",
-      "name": "복잡계",
-      "short": "복잡계",
-      "en": "Complex Systems",
-      "basis": "Strogatz, Nonlinear Dynamics and Chaos",
-      "labels": {},
-      "scope": [
-       "혼돈",
-       "임계점",
-       "멱법칙",
-       "창발"
-      ],
-      "topicSeeds": []
+      "book": "Halliday, Resnick, Walker, Fundamentals of Physics (Wiley)",
+      "latest": "12th ed., 2021년 10월 (©2022)",
+      "note": "비슷하게 저명하지만 더 오래됨. 13판 목록 없음"
+     },
+     {
+      "book": "Serway, Jewett, Physics for Scientists and Engineers (Cengage)",
+      "latest": "10th ed., 2018년경(미확인)",
+      "note": "더 오래됨"
      }
-    ]
+    ],
+    "parts": [
+     {
+      "no": "I",
+      "title": "Mechanics",
+      "chapters": "1-14"
+     },
+     {
+      "no": "II",
+      "title": "Waves/Acoustics",
+      "chapters": "15-16"
+     },
+     {
+      "no": "III",
+      "title": "Thermodynamics",
+      "chapters": "17-20"
+     },
+     {
+      "no": "IV",
+      "title": "Electromagnetism",
+      "chapters": "21-32"
+     },
+     {
+      "no": "V",
+      "title": "Optics",
+      "chapters": "33-36"
+     },
+     {
+      "no": "VI",
+      "title": "Modern Physics",
+      "chapters": "37-45"
+     }
+    ],
+    "textbookUnverified": [
+     "year: Pearson 목록은 2026년 2월 16일 출간, ©2027로 적는다. year에는 출간 연도 2026을 적었다.",
+     "16판 42장 제목: Pearson 캐나다 목록이 41장과 같은 제목(Quantum Mechanics II: Atomic Structure)을 되풀이해 목록 오류로 보인다. 37-41장, 43-45장, 21장, 32장, 33-36장은 검색 결과로 확인했다. pearson.com이 이 환경에서 직접 열리지 않았다.",
+     "Halliday 13판이 없는지는 Wiley 목록으로 직접 확인하지 못했다(검색에서 12판까지만 나옴).",
+     "phys-complex를 phys-mechanics로 보낸 것은 근사다. 이 책은 비선형 동역학과 카오스를 따로 다루지 않는다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Pearson, University Physics with Modern Physics 16th edition (ISBN 9780135342282)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/university-physics-with-modern-physics/P200000012703/9780135342282"
+     },
+     {
+      "title": "Pearson Canada, University Physics with Modern Physics 16th edition (ISBN 9780135341858)",
+      "url": "https://www.pearson.com/en-ca/subject-catalog/p/university-physics-with-modern-physics/P200000012703/9780135341858"
+     },
+     {
+      "title": "Pearson, Young University Physics 16e AP Physics C Mechanics Correlation",
+      "url": "https://www.pearson.com/content/dam/global-store/en-us/schools/states/Oklahoma-review/YoungUniversityPhysics16eAPPhysicsCMechanicsCorrelation.pdf"
+     },
+     {
+      "title": "WileyPLUS, Halliday and Resnick's Fundamentals of Physics 12th Edition",
+      "url": "https://www.wileyplus.com:443/physics/halliday-fundamentals-of-physics-12e-eprof21332/"
+     },
+     {
+      "title": "Wikipedia, Fundamentals of Physics",
+      "url": "https://en.wikipedia.org/wiki/Fundamentals_of_Physics"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "chem",
@@ -1705,55 +2746,202 @@
     "en": "Chemistry",
     "domain": "natural",
     "color": "#029359",
-    "textbook": "Zumdahl, Chemistry",
+    "textbook": "Steven S. Zumdahl, Susan A. Zumdahl, Donald J. DeCoste, Chemistry, 11판, Cengage, 2024",
     "labels": {
      "isced": "0531"
     },
     "aliases": [],
     "branches": [
      {
-      "slug": "chem-structure",
-      "name": "원자와 결합",
-      "short": "원자",
-      "en": "Atoms and Bonding",
-      "basis": "Zumdahl ch.2-9",
-      "labels": {},
+      "slug": "chem-foundations",
+      "name": "화학의 기초와 화학량론",
+      "short": "화학의 기초와 화학량론",
+      "en": "Chemical Foundations, Stoichiometry, and Thermochemistry",
+      "basis": "Zumdahl 11판 1-6장",
       "scope": [
-       "원자 구조",
-       "화학 결합",
-       "주기율"
+       "측정과 단위, 유효숫자",
+       "원자, 분자, 이온, 화학식과 명명법",
+       "몰, 화학량론, 한계 반응물, 수득률",
+       "수용액 반응: 침전, 산염기, 산화·환원 반응의 기초와 산화수",
+       "기체 법칙과 기체 운동론",
+       "열화학: 엔탈피, 헤스의 법칙, 연소열과 발열량"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
      },
      {
-      "slug": "chem-reactions",
-      "name": "반응과 평형",
-      "short": "반응",
-      "en": "Reactions and Equilibrium",
-      "basis": "Zumdahl ch.12-17",
-      "labels": {},
+      "slug": "chem-structure",
+      "name": "원자 구조, 결합과 물질의 상태",
+      "short": "원자 구조, 결합과 물질의 상태",
+      "en": "Atomic Structure, Bonding, and States of Matter",
+      "basis": "Zumdahl 11판 7-11장",
       "scope": [
-       "반응속도",
-       "촉매",
-       "화학 평형",
-       "르샤틀리에"
+       "양자역학적 원자 모형과 전자 배치",
+       "주기율과 주기적 성질",
+       "이온 결합, 공유 결합, 전기음성도, 루이스 구조",
+       "VSEPR(Valence Shell Electron Pair Repulsion, 원자가 껍질 전자쌍 반발) 이론과 분자 모양",
+       "혼성 궤도와 분자 궤도 이론",
+       "분자간 힘, 고체의 구조(금속, 이온, 공유 그물 결정)",
+       "상변화와 상평형 그림",
+       "용해도, 용액의 농도, 총괄성"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "chem-structure"
+      ]
+     },
+     {
+      "slug": "chem-equilibrium",
+      "name": "반응속도와 화학평형",
+      "short": "반응속도와 화학평형",
+      "en": "Kinetics and Chemical Equilibrium",
+      "basis": "Zumdahl 11판 12-16장",
+      "scope": [
+       "반응 속도, 속도 법칙, 활성화 에너지, 촉매",
+       "평형 상수와 르샤틀리에 원리",
+       "산과 염기, pH(수소 이온 농도 지수), 완충 용액, 적정",
+       "용해도곱과 착이온 평형"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "chem-reactions"
+      ]
+     },
+     {
+      "slug": "chem-thermodynamics",
+      "name": "화학열역학과 전기화학",
+      "short": "화학열역학과 전기화학",
+      "en": "Chemical Thermodynamics and Electrochemistry",
+      "basis": "Zumdahl 11판 17-18장",
+      "scope": [
+       "엔트로피, 깁스 자유 에너지, 자발성",
+       "자유 에너지와 평형 상수의 관계",
+       "산화·환원 반응, 전지 전위, 네른스트 식",
+       "전기분해와 금속 제련의 전기화학 원리",
+       "순수한 화학 정의로서의 '환원'은 이 분과로 보낸다(원자재 공정 지식은 경제학 자원·원자재 경제로 보낸다)"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "chem-elements",
+      "name": "핵화학과 원소의 화학",
+      "short": "핵화학과 원소의 화학",
+      "en": "Nuclear and Descriptive Chemistry",
+      "basis": "Zumdahl 11판 19-21장",
+      "scope": [
+       "방사성 붕괴, 핵분열과 핵융합",
+       "대표 원소(족별) 화학",
+       "전이 금속과 배위 화합물",
+       "금속의 산출과 야금의 화학적 원리"
+      ],
+      "topicSeeds": [],
+      "was": []
      },
      {
       "slug": "chem-organic",
-      "name": "유기화학",
-      "short": "유기",
-      "en": "Organic Chemistry",
-      "basis": "Zumdahl ch.21-22",
-      "labels": {},
+      "name": "유기화학과 생체 분자",
+      "short": "유기화학과 생체 분자",
+      "en": "Organic and Biological Molecules",
+      "basis": "Zumdahl 11판 22장",
       "scope": [
-       "탄소 화합물",
-       "고분자"
+       "탄화수소와 작용기",
+       "고분자",
+       "단백질, 탄수화물, 핵산 등 생체 분자"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "chem-organic"
+      ]
      }
-    ]
+    ],
+    "textbookWhy": "일반화학 입문 강의의 표준 교재로는 Brown·LeMay 『Chemistry: The Central Science』, Zumdahl 『Chemistry』, Tro 『Chemistry: A Molecular Approach』가 꼽히며, 저명도는 서로 비슷하다. 셋 다 여러 판을 거듭했고 주요 대학 일반화학과 AP(Advanced Placement, 대학 과목 선이수제) 화학에서 널리 쓰인다. 규칙 2에 따라 가장 최근에 개정된 책을 골랐다. Zumdahl 11판은 2024년 판권이다. Brown·LeMay 15판은 2023년 판권(2022년 3월 출간)이고 Tro 6판은 2023년 판권(2022년 4월 출간)이다. 이번 검색에서 Brown 16판과 Tro 7판은 나오지 않았다. 지금 기준인 Zumdahl과 같은 계열이어서 기존 분류와도 이어진다. 책에 부(Part)가 없으므로 같은 질문을 다루는 연속된 장을 묶었다. 검증 과정에서 10-11장(액체, 고체, 용액)을 7-9장(구조와 결합)에 합쳤다. 두 묶음 모두 '구조가 성질을 정한다'는 같은 질문을 다루기 때문이다. 그래서 분과는 6개다.",
+    "textbookCandidates": [
+     {
+      "book": "Brown, LeMay, Bursten, Murphy, Woodward, Stoltzfus, Chemistry: The Central Science (Pearson)",
+      "latest": "15판, 2023년 판권(2022-03 출간)",
+      "note": "가장 널리 알려진 표준 교재지만 Zumdahl 11판보다 1년 오래되었다. 2026년 11월 검색에서 16판은 나오지 않았다. 16판이 나오면 다시 비교한다."
+     },
+     {
+      "book": "Nivaldo J. Tro, Chemistry: A Molecular Approach (Pearson)",
+      "latest": "6판, 2023년 판권(2022-04 출간) / Global Edition 2025년",
+      "note": "7판은 검색되지 않았다. Global Edition은 같은 판을 지역용으로 다시 낸 것이어서 개정 시점으로 보지 않았다."
+     },
+     {
+      "book": "Atkins, Jones, Laverman, Chemical Principles (Macmillan)",
+      "latest": "미확인",
+      "note": "원리를 강조해 수준이 높은 편이다. 입문 표준성은 위 세 권보다 낮다고 판단했다."
+     }
+    ],
+    "parts": [
+     {
+      "no": "묶음 1",
+      "title": "화학의 기초, 화학량론, 기체, 열화학 (Chemical Foundations; Atoms, Molecules, and Ions; Stoichiometry; Types of Chemical Reactions and Solution Stoichiometry; Gases; Thermochemistry)",
+      "chapters": "1-6장"
+     },
+     {
+      "no": "묶음 2",
+      "title": "원자 구조, 화학 결합, 물질의 상태 (Atomic Structure and Periodicity; Bonding: General Concepts; Covalent Bonding: Orbitals; Liquids and Solids; Properties of Solutions)",
+      "chapters": "7-11장"
+     },
+     {
+      "no": "묶음 3",
+      "title": "반응속도와 화학평형 (Chemical Kinetics; Chemical Equilibrium; Acids and Bases; Acid-Base Equilibria; Solubility and Complex Ion Equilibria)",
+      "chapters": "12-16장"
+     },
+     {
+      "no": "묶음 4",
+      "title": "화학열역학과 전기화학 (Spontaneity, Entropy, and Free Energy; Electrochemistry)",
+      "chapters": "17-18장"
+     },
+     {
+      "no": "묶음 5",
+      "title": "핵화학과 원소의 화학 (The Nucleus: A Chemist's View; The Representative Elements; Transition Metals and Coordination Chemistry)",
+      "chapters": "19-21장"
+     },
+     {
+      "no": "묶음 6",
+      "title": "유기 분자와 생체 분자 (Organic and Biological Molecules)",
+      "chapters": "22장"
+     }
+    ],
+    "textbookUnverified": [
+     "Zumdahl 11판 전체 목차는 출판사 페이지에서 직접 확인하지 못했다. 장 번호와 장 제목은 10판의 22장 구성을 따랐다. 제3자 자료로 11판과 일치함을 확인한 것은 21장과 22장뿐이다.",
+     "Brown 16판과 Tro 7판이 없다는 판단은 2026년 11월 검색 결과에 나오지 않았다는 데만 근거한다. 출판사 목록에서 직접 확인하지는 못했다.",
+     "주요 대학 채택률을 비교한 자료는 찾지 못했다. 세 후보의 저명도가 비슷하다는 판단은 판 수와 통상적인 평판에 근거한다.",
+     "Atkins 『Chemical Principles』의 최신 판과 연도는 확인하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Cengage, Chemistry 11th Edition (Zumdahl, Zumdahl, DeCoste), ©2024",
+      "url": "https://www.cengage.com/c/chemistry-11e-zumdahl-zumdahl-decoste/9780357850671/"
+     },
+     {
+      "title": "Cengage International Edition 11e (2024)",
+      "url": "https://au.cengage.com/c/chemistry-cengage-international-edition-11e-zumdahl-zumdahl-decoste/9798214446141/"
+     },
+     {
+      "title": "Pearson, Chemistry: The Central Science 15th edition",
+      "url": "https://pearson.com/en-us/subject-catalog/p/chemistry-the-central-science/P200000006933/9780137542970"
+     },
+     {
+      "title": "WorldCat, Chemistry: the central science 15판(Pearson, 2023)",
+      "url": "https://search.worldcat.org/oclc/1293917447"
+     },
+     {
+      "title": "Savvas, Chemistry: The Central Science 15th Edition ©2023",
+      "url": "https://www.savvas.com/solutions/ap-honors-electives/ap-programs/science/chemistry-ap/chemistry-the-central-science"
+     },
+     {
+      "title": "Pearson+, Chemistry: A Molecular Approach 6th edition",
+      "url": "https://pearson.com/store/en-us/pearsonplus/p/9780137832217"
+     },
+     {
+      "title": "LibreTexts, Map: Chemistry (Zumdahl and DeCoste) (장 구성 참고)",
+      "url": "https://chem.libretexts.org/Bookshelves/General_Chemistry/Map%3A_Chemistry_(Zumdahl_and_Decoste)"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "bio",
@@ -1761,7 +2949,7 @@
     "en": "Biology",
     "domain": "natural",
     "color": "#15c47e",
-    "textbook": "Campbell Biology",
+    "textbook": "Lisa A. Urry, Peter V. Minorsky, Kerry L. Hull, Rebecca B. Orr, Campbell Biology, 13판, Pearson, 2025",
     "labels": {
      "isced": "0511(0512 생화학 포함)",
      "ford": "1.6"
@@ -1773,111 +2961,212 @@
     ],
     "branches": [
      {
-      "slug": "bio-evolution",
-      "name": "진화",
-      "short": "진화",
-      "en": "Evolution",
-      "basis": "Campbell Unit 4",
-      "labels": {},
+      "slug": "bio-cell",
+      "name": "생명의 화학과 세포",
+      "short": "생명의 화학과 세포",
+      "en": "Chemistry of Life and the Cell",
+      "basis": "Campbell 13판 1장, Unit 1-2",
       "scope": [
-       "자연선택",
-       "적응",
-       "공진화",
-       "진화적 안정 전략"
+       "생물학의 주제와 과학적 탐구",
+       "물, 탄소, 생체 고분자",
+       "세포 구조와 막 수송",
+       "대사, 효소, 세포 호흡, 광합성",
+       "세포 신호 전달과 세포 주기"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "bio-cell"
+      ]
+     },
+     {
+      "slug": "bio-genetics",
+      "name": "유전학",
+      "short": "유전학",
+      "en": "Genetics",
+      "basis": "Campbell 13판 Unit 3",
+      "scope": [
+       "감수분열과 멘델 유전",
+       "염색체 유전",
+       "DNA(deoxyribonucleic acid, 디옥시리보핵산) 복제와 유전자 발현",
+       "유전자 발현 조절",
+       "바이러스",
+       "DNA(deoxyribonucleic acid, 디옥시리보핵산) 기술과 생명공학"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "bio-genetics"
+      ]
+     },
+     {
+      "slug": "bio-evolution",
+      "name": "진화의 메커니즘",
+      "short": "진화의 메커니즘",
+      "en": "Mechanisms of Evolution",
+      "basis": "Campbell 13판 Unit 4",
+      "scope": [
+       "다윈과 자연선택",
+       "집단 유전학",
+       "종 분화",
+       "생명의 역사와 대진화"
       ],
       "topicSeeds": [
        "자연선택"
+      ],
+      "was": [
+       "bio-evolution"
+      ]
+     },
+     {
+      "slug": "bio-diversity",
+      "name": "생물 다양성의 진화사",
+      "short": "생물 다양성의 진화사",
+      "en": "Evolutionary History of Biological Diversity",
+      "basis": "Campbell 13판 Unit 5",
+      "scope": [
+       "계통과 분류",
+       "원핵생물과 원생생물",
+       "식물과 균류의 다양성",
+       "동물의 다양성(무척추동물, 척추동물)"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "bio-plants",
+      "name": "식물의 구조와 기능",
+      "short": "식물의 구조와 기능",
+      "en": "Plant Form and Function",
+      "basis": "Campbell 13판 Unit 6",
+      "scope": [
+       "식물의 구조와 생장",
+       "물질 수송",
+       "토양과 식물 영양",
+       "생식과 생명공학",
+       "식물의 환경 반응"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "bio-animals",
+      "name": "동물의 구조와 기능",
+      "short": "동물의 구조와 기능",
+      "en": "Animal Form and Function",
+      "basis": "Campbell 13판 Unit 7",
+      "scope": [
+       "동물 생리의 기본 원리와 항상성",
+       "영양, 순환, 호흡, 면역, 배설",
+       "내분비와 생식, 발생",
+       "신경계, 감각과 운동",
+       "동물 행동"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "bio-physiology",
+       "bio-neuro",
+       "bio-behavior"
       ]
      },
      {
       "slug": "bio-ecology",
       "name": "생태학",
-      "short": "생태",
+      "short": "생태학",
       "en": "Ecology",
-      "basis": "Campbell Unit 8",
-      "labels": {},
+      "basis": "Campbell 13판 Unit 8",
       "scope": [
-       "개체군",
-       "먹이그물",
-       "니치",
-       "수용력"
+       "생태학과 생물권",
+       "개체군 생태학",
+       "군집 생태학",
+       "생태계와 물질 순환",
+       "보전 생물학과 지구 변화"
       ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "bio-genetics",
-      "name": "유전학",
-      "short": "유전",
-      "en": "Genetics",
-      "basis": "Campbell Unit 3",
-      "labels": {},
-      "scope": [
-       "유전",
-       "돌연변이",
-       "형질 발현",
-       "DNA"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "bio-cell",
-      "name": "세포와 분자",
-      "short": "세포",
-      "en": "Cells and Molecules",
-      "basis": "Campbell Unit 1-2",
-      "labels": {},
-      "scope": [
-       "세포 구조",
-       "효소",
-       "ATP",
-       "대사"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "bio-physiology",
-      "name": "생리학",
-      "short": "생리",
-      "en": "Physiology",
-      "basis": "Campbell Unit 7",
-      "labels": {},
-      "scope": [
-       "항상성",
-       "호르몬",
-       "면역"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "bio-neuro",
-      "name": "신경생물학",
-      "short": "신경",
-      "en": "Neurobiology",
-      "basis": "Campbell ch.48-49; Kandel",
-      "labels": {},
-      "scope": [
-       "뉴런",
-       "도파민",
-       "보상예측오차",
-       "시냅스 가소성"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "bio-behavior",
-      "name": "동물행동학",
-      "short": "동물행동",
-      "en": "Animal Behavior",
-      "basis": "Campbell ch.51; Dawkins",
-      "labels": {},
-      "scope": [
-       "혈연선택",
-       "핸디캡 원리",
-       "이기적 유전자"
-      ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "bio-ecology"
+      ]
      }
-    ]
+    ],
+    "textbookWhy": "『Campbell Biology』는 세계 주요 대학 학부 일반생물학과 AP(Advanced Placement, 대학 과목 선이수제) 생물에서 가장 널리 쓰이는 표준 개론서다. 13판까지 나왔고, Pearson 목록은 13판 출간일을 2025년 12월 15일로 적는다. Raven 『Biology』 같은 다른 후보보다 저명도와 최신성이 모두 앞선다. 책은 서장(1장) 뒤에 Unit 1-8로 구성된다. 작은 Unit 1(생명의 화학)은 Unit 2(세포)에 합쳤다. 그래서 분과는 7개다. Unit 6(식물)과 Unit 7(동물)은 각각 장 수가 많은 큰 단원이어서 합치지 않았다.",
+    "textbookCandidates": [
+     {
+      "book": "Raven, Johnson, Mason, Losos, Duncan, Biology (McGraw Hill)",
+      "latest": "미확인(13판 무렵)",
+      "note": "저명한 경쟁 교재다. 다만 Campbell보다 채택이 적고 최근 개정 시점도 Campbell 13판(2025-12)보다 이르다고 판단했다."
+     },
+     {
+      "book": "OpenStax, Biology 2e",
+      "latest": "2판",
+      "note": "무료 교재로 널리 쓰이지만 표준 개론서로서의 위상과 판 수에서 Campbell에 밀린다."
+     }
+    ],
+    "parts": [
+     {
+      "no": "1장 + Unit 1",
+      "title": "Evolution, the Themes of Biology, and Scientific Inquiry / The Chemistry of Life",
+      "chapters": "1-5장(12판 기준)"
+     },
+     {
+      "no": "Unit 2",
+      "title": "The Cell",
+      "chapters": "6-12장(12판 기준)"
+     },
+     {
+      "no": "Unit 3",
+      "title": "Genetics",
+      "chapters": "13-21장(12판 기준)"
+     },
+     {
+      "no": "Unit 4",
+      "title": "Mechanisms of Evolution",
+      "chapters": "22-25장(12판 기준)"
+     },
+     {
+      "no": "Unit 5",
+      "title": "The Evolutionary History of Biological Diversity",
+      "chapters": "26-34장(12판 기준)"
+     },
+     {
+      "no": "Unit 6",
+      "title": "Plant Form and Function",
+      "chapters": "35-39장(12판 기준)"
+     },
+     {
+      "no": "Unit 7",
+      "title": "Animal Form and Function",
+      "chapters": "40-51장(12판 기준)"
+     },
+     {
+      "no": "Unit 8",
+      "title": "Ecology",
+      "chapters": "52-56장(12판 기준)"
+     }
+    ],
+    "textbookUnverified": [
+     "13판 판권 연도는 확인하지 못했다. year 필드의 2025는 출간일(2025-12-15) 기준이다. Pearson의 관행대로라면 판권은 2026년일 가능성이 높다.",
+     "13판 저자 목록(Urry, Minorsky, Hull, Orr)은 Pearson 목록 검색 결과에만 근거한다. 12판 공저자인 Cain과 Wasserman이 빠졌는지는 확인하지 못했다.",
+     "Unit 4, 5, 8의 제목은 제3자 목록에서만 확인했다.",
+     "Unit별 장 번호는 12판 구성을 따랐다. 13판의 장 번호는 확인하지 못했다.",
+     "Raven 『Biology』의 최신 판과 연도는 확인하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Pearson, Campbell's Biology 13th edition (9780135455890)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/campbells-biology/P200000014184/9780135455890"
+     },
+     {
+      "title": "Pearson+, Campbell Biology 13th edition",
+      "url": "https://www.pearson.com/en-us/pearsonplus/p/9780135455890"
+     },
+     {
+      "title": "Campbell Biology (13th Ed) 단원 목록 (제3자 목록)",
+      "url": "https://chemistry.com.pk/books/campbell-biology-13e/"
+     },
+     {
+      "title": "Wikipedia, Campbell Biology",
+      "url": "https://en.wikipedia.org/wiki/Campbell_Biology"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "earth",
@@ -1885,41 +3174,201 @@
     "en": "Earth Science",
     "domain": "natural",
     "color": "#8b95a1",
-    "textbook": "Tarbuck, Earth Science",
+    "textbook": "Edward J. Tarbuck, Frederick K. Lutgens, Dennis G. Tasa, Earth Science, 16판, Pearson, 2025",
     "labels": {
      "isced": "0532"
     },
     "aliases": [],
     "branches": [
      {
-      "slug": "earth-geology",
-      "name": "지질",
-      "short": "지질",
-      "en": "Geology",
-      "basis": "Tarbuck Unit 1-3",
-      "labels": {},
+      "slug": "earth-materials",
+      "name": "지구 물질",
+      "short": "지구 물질",
+      "en": "Earth Materials",
+      "basis": "Tarbuck 16판 서장, Part I",
       "scope": [
-       "판구조론",
-       "암석",
-       "광물 자원"
+       "지구과학의 범위와 지구계",
+       "광물의 구조와 성질",
+       "화성암, 퇴적암, 변성암과 암석의 순환",
+       "석탄 같은 유기 퇴적암의 성인과 분류(매서럴(maceral, 석탄 조직 성분) 같은 순수한 암석학 정의는 이 분과로 보낸다)",
+       "광상과 에너지 자원의 지질학적 산출"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "earth-geology"
+      ]
      },
      {
-      "slug": "earth-climate",
-      "name": "대기와 기후",
-      "short": "기후",
-      "en": "Atmosphere and Climate",
-      "basis": "Tarbuck Unit 6",
-      "labels": {},
+      "slug": "earth-tectonics",
+      "name": "지구 내부의 작용",
+      "short": "지구 내부의 작용",
+      "en": "Forces Within",
+      "basis": "Tarbuck 16판 Part II",
       "scope": [
-       "기후변화",
-       "온실효과",
-       "해류"
+       "판구조론",
+       "지진과 지구 내부 구조",
+       "화산과 화성 활동",
+       "지각 변형과 조산 운동"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "earth-surface",
+      "name": "지표의 형성",
+      "short": "지표의 형성",
+      "en": "Sculpting Earth's Surface",
+      "basis": "Tarbuck 16판 Part III",
+      "scope": [
+       "풍화, 토양, 매스무브먼트",
+       "하천과 지하수",
+       "빙하, 사막, 바람"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "earth-history",
+      "name": "지구의 역사",
+      "short": "지구의 역사",
+      "en": "Deciphering Earth's History",
+      "basis": "Tarbuck 16판 Part IV",
+      "scope": [
+       "상대 연대와 절대 연대, 지질 시대",
+       "지질 시대를 거친 지구와 생명의 진화"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "earth-ocean",
+      "name": "해양",
+      "short": "해양",
+      "en": "The Global Ocean",
+      "basis": "Tarbuck 16판 Part V",
+      "scope": [
+       "해저 지형",
+       "해수의 성질과 해양 생물",
+       "해류, 파도, 조석, 해안"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "earth-atmosphere",
+      "name": "대기와 기후",
+      "short": "대기와 기후",
+      "en": "Earth's Dynamic Atmosphere",
+      "basis": "Tarbuck 16판 Part VI",
+      "scope": [
+       "대기의 조성, 구조, 기온",
+       "수분, 구름, 강수",
+       "기압과 바람",
+       "기상 시스템과 악기상",
+       "세계 기후와 기후 변화"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "earth-climate"
+      ]
+     },
+     {
+      "slug": "earth-astronomy",
+      "name": "우주 속의 지구",
+      "short": "우주 속의 지구",
+      "en": "Earth's Place in the Universe",
+      "basis": "Tarbuck 16판 Part VII",
+      "scope": [
+       "현대 천문학의 기원",
+       "태양계",
+       "빛, 망원경, 태양",
+       "항성, 은하, 우주론"
+      ],
+      "topicSeeds": [],
+      "was": []
      }
-    ]
+    ],
+    "textbookWhy": "지질학, 해양학, 대기과학, 천문학을 함께 덮는 학부 입문 지구과학의 표준 개론서다. 16판까지 나왔고, Pearson 목록은 16판 출간일을 2025년 10월 2일로 적는다. 지질학을 포함하는 이 앱의 지구과학 범위와 맞는다. Marshak 『Earth: Portrait of a Planet』처럼 지질학만 다루는 책은 학문 전체를 덮지 못해 밀린다. 책은 서장 뒤에 Part I-VII로 구성된다. 서장은 Part I에 합치고, 부마다 하나씩 7개 분과를 만들었다. 장 번호는 16판에서 확인하지 못했다. 이전 결과가 적은 1-24장 범위는 근거가 없어 15판 장 번호로 바꿔 적었다. 15판은 번호 없는 서장과 1-21장으로 되어 있다.",
+    "textbookCandidates": [
+     {
+      "book": "Stephen Marshak, Earth: Portrait of a Planet (W. W. Norton)",
+      "latest": "미확인",
+      "note": "저명한 지질학 개론이다. 대기, 해양, 천문을 덮지 않아 학문 전체용 개론서로 쓰지 않았다."
+     },
+     {
+      "book": "Lutgens, Tarbuck, Tasa, Foundations of Earth Science (Pearson)",
+      "latest": "9판",
+      "note": "같은 저자의 축약판이다. 정본인 Earth Science를 택했다."
+     },
+     {
+      "book": "Tarbuck, Lutgens, Tasa, Earth: An Introduction to Physical Geology (Pearson)",
+      "latest": "미확인",
+      "note": "지질학만 다루는 책이다."
+     }
+    ],
+    "parts": [
+     {
+      "no": "서장 + Part I",
+      "title": "Introduction to Earth Science / Earth Materials",
+      "chapters": "16판 번호 미확인(15판: 서장, 1-2장)"
+     },
+     {
+      "no": "Part II",
+      "title": "Forces Within",
+      "chapters": "16판 번호 미확인(15판에서는 Part III, 5-7장)"
+     },
+     {
+      "no": "Part III",
+      "title": "Sculpting Earth's Surface",
+      "chapters": "16판 번호 미확인(15판에서는 Part II, 3-4장)"
+     },
+     {
+      "no": "Part IV",
+      "title": "Deciphering Earth's History",
+      "chapters": "16판 번호 미확인(15판: 8-9장)"
+     },
+     {
+      "no": "Part V",
+      "title": "The Global Ocean",
+      "chapters": "16판 번호 미확인(15판: 10-12장)"
+     },
+     {
+      "no": "Part VI",
+      "title": "Earth's Dynamic Atmosphere",
+      "chapters": "16판 번호 미확인(15판: 13-17장)"
+     },
+     {
+      "no": "Part VII",
+      "title": "Earth's Place in the Universe",
+      "chapters": "16판 번호 미확인(15판: 18-21장)"
+     }
+    ],
+    "textbookUnverified": [
+     "16판 장 번호는 하나도 확인하지 못했다. 괄호 안의 15판 장 번호도 출처로 확인한 것이 아니라 15판 구성을 기억에 기대 적은 것이다.",
+     "16판에서 Part II(내부의 작용)와 Part III(지표 형성)의 순서가 15판과 바뀌었다는 점은 이전 결과의 검색 요약에만 근거한다.",
+     "16판 저자 목록에 Tarbuck, Lutgens, Tasa 외의 공저자가 더해졌는지는 확인하지 못했다.",
+     "16판 연도는 Pearson AU 페이지 검색 결과(2025-10-02)에만 근거한다. 판권 연도는 확인하지 못했다.",
+     "Marshak 『Earth: Portrait of a Planet』의 최신 판은 확인하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Pearson, Earth Science 16th edition (AU 페이지, 출간일 2025-10-02)",
+      "url": "https://www.pearson.com/en-au/subject-catalog/p/earth-science/P200000012562/9780135335277"
+     },
+     {
+      "title": "Pearson, Earth Science 16th edition (US)",
+      "url": "https://www.pearson.com/en-us/subject-catalog/p/earth-science/P200000012562/9780135335079"
+     },
+     {
+      "title": "Pearson+, Earth Science 16th edition",
+      "url": "https://www.pearson.com/en-us/pearsonplus/p/9780135335277"
+     },
+     {
+      "title": "Barnes & Noble, Earth Science (Tarbuck, Lutgens, Tasa)",
+      "url": "https://www.barnesandnoble.com/w/earth-science-edward-tarbuck/1126364253"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
    },
    {
     "slug": "phil",
@@ -1927,80 +3376,365 @@
     "en": "Philosophy",
     "domain": "humanities",
     "color": "#d22030",
-    "textbook": "Blackburn, Think",
+    "textbook": "Louis P. Pojman, Lewis Vaughn (편), Philosophy: The Quest for Truth, 12판, Oxford University Press, 2023",
     "labels": {
      "isced": "0223(논리 제외)"
     },
     "aliases": [],
     "branches": [
      {
+      "slug": "phil-religion",
+      "name": "철학의 방법과 종교철학",
+      "short": "철학의 방법과 종교철학",
+      "en": "What Is Philosophy and Philosophy of Religion",
+      "basis": "Pojman·Vaughn 12판 Part 1-2",
+      "scope": [
+       "철학이란 무엇인가, 비판적 추론의 기초",
+       "신 존재 논증(존재론적, 우주론적, 설계 논증)",
+       "악의 문제",
+       "신앙과 이성"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
       "slug": "phil-epistemology",
       "name": "인식론",
       "short": "인식론",
-      "en": "Epistemology",
-      "basis": "Blackburn ch.1",
-      "labels": {},
+      "en": "Knowledge",
+      "basis": "Pojman·Vaughn 12판 Part 3",
       "scope": [
-       "지식의 정의",
        "회의주의",
-       "정당화"
+       "합리론과 경험론",
+       "지식의 정의와 게티어 문제",
+       "귀납의 문제와 과학적 지식",
+       "진리와 합리성, 페미니즘 인식론"
       ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "phil-metaphysics",
-      "name": "형이상학",
-      "short": "형이상학",
-      "en": "Metaphysics",
-      "basis": "Blackburn ch.3, 6",
-      "labels": {},
-      "scope": [
-       "인과",
-       "자유의지",
-       "실재"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "phil-ethics",
-      "name": "윤리학",
-      "short": "윤리",
-      "en": "Ethics",
-      "basis": "Blackburn ch.8",
-      "labels": {},
-      "scope": [
-       "공리주의",
-       "의무론",
-       "덕 윤리"
-      ],
-      "topicSeeds": []
-     },
-     {
-      "slug": "phil-science",
-      "name": "과학철학",
-      "short": "과학철학",
-      "en": "Philosophy of Science",
-      "basis": "Okasha, Philosophy of Science",
-      "labels": {},
-      "scope": [
-       "귀납의 문제",
-       "반증가능성",
-       "패러다임"
-      ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "phil-epistemology",
+       "phil-science"
+      ]
      },
      {
       "slug": "phil-mind",
       "name": "심리철학",
       "short": "심리철학",
       "en": "Philosophy of Mind",
-      "basis": "Blackburn ch.2",
-      "labels": {},
+      "basis": "Pojman·Vaughn 12판 Part 4",
       "scope": [
-       "심신 문제",
-       "의식"
+       "심신 문제: 이원론, 행동주의, 동일론, 기능주의",
+       "의식과 감각질",
+       "인격 동일성"
       ],
-      "topicSeeds": []
+      "topicSeeds": [],
+      "was": [
+       "phil-mind"
+      ]
+     },
+     {
+      "slug": "phil-freewill",
+      "name": "자유의지와 결정론",
+      "short": "자유의지와 결정론",
+      "en": "Freedom of the Will and Determinism",
+      "basis": "Pojman·Vaughn 12판 Part 5",
+      "scope": [
+       "강한 결정론, 자유의지론, 양립가능론",
+       "도덕적 책임",
+       "인과와 필연"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "phil-metaphysics"
+      ]
+     },
+     {
+      "slug": "phil-ethics",
+      "name": "윤리학",
+      "short": "윤리학",
+      "en": "Ethics",
+      "basis": "Pojman·Vaughn 12판 Part 6",
+      "scope": [
+       "윤리적 상대주의와 이기주의",
+       "공리주의, 의무론, 덕 윤리",
+       "도덕적 운과 도덕적 성인",
+       "메타윤리"
+      ],
+      "topicSeeds": [],
+      "was": [
+       "phil-ethics"
+      ]
+     },
+     {
+      "slug": "phil-political",
+      "name": "정치철학",
+      "short": "정치철학",
+      "en": "Political Philosophy",
+      "basis": "Pojman·Vaughn 12판 Part 7",
+      "scope": [
+       "국가의 정당성과 사회계약론",
+       "정의론(롤스, 노직)",
+       "자유와 평등",
+       "무정부주의"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "phil-meaning",
+      "name": "삶의 의미와 실천 철학",
+      "short": "삶의 의미와 실천 철학",
+      "en": "Meaning of Life and Philosophy in Action",
+      "basis": "Pojman·Vaughn 12판 Part 8-9",
+      "scope": [
+       "삶의 의미와 부조리",
+       "죽음",
+       "실존주의",
+       "기후 변화 등 현실 문제에 철학 적용"
+      ],
+      "topicSeeds": [],
+      "was": []
+     }
+    ],
+    "textbookWhy": "미국 대학 철학 입문 강의는 대개 고전과 현대 원전을 주제별로 묶은 선집 교재를 쓴다. 대표 교재로 Perry·Bratman·Fischer 『Introduction to Philosophy』(OUP(Oxford University Press, 옥스퍼드 대학 출판부)), Pojman·Vaughn 『Philosophy: The Quest for Truth』(OUP), Feinberg·Shafer-Landau 『Reason and Responsibility』(Cengage)가 꼽힌다. 출간을 확인한 판 가운데서는 Pojman·Vaughn 12판(2023)이 가장 최근이다. Perry 9판은 2021년, Feinberg 16판은 2017년에 나왔다. 지금 기준인 Blackburn 『Think』(1999)는 개정되지 않은 단독 저자 교양서여서 규칙 2에 따라 밀린다. 다만 Perry 10판(ISBN 978-0-19-783735-1)이 2026년 9월 30일 출간 예정으로 서점 목록에 올라 있었고, 그 날짜는 이미 지났다. 이 환경에서는 실제 출간을 확인하지 못해 확인된 판인 Pojman 12판을 잠정 기준으로 둔다. Perry 10판 출간이 확인되면 규칙 2에 따라 Perry 10판으로 바꾸고 그 부 구성으로 분과를 다시 짜야 한다. 부 구성은 철학이란 무엇인가, 종교철학, 지식, 심리철학, 자유의지와 결정론, 윤리학, 정치철학, 삶의 의미, 실천 철학 순이다. 작은 서론부는 종교철학에, 마지막 실천부는 삶의 의미에 합쳐 7개 분과로 나눴다.",
+    "textbookCandidates": [
+     {
+      "book": "John Perry, Michael Bratman, John Martin Fischer, Introduction to Philosophy: Classical and Contemporary Readings (OUP)",
+      "latest": "9판 2021-06 확인 / 10판 2026-09-30 출간 예정 목록만 있음(미확인)",
+      "note": "가장 저명한 선집 가운데 하나이고 채택도 많다. 출간 예정일이 이미 지났으므로 출간이 확인되는 대로 이 책이 기준이 된다. 9판 부 구성은 이전 결과에서 Philosophy, God and Evil, Knowledge and Reality, Minds, Bodies, and Persons, Ethics in Society, Existential Issues, Puzzles and Paradoxes로 적었으나, 이것도 이번에 다시 확인하지 못했다."
+     },
+     {
+      "book": "Joel Feinberg, Russ Shafer-Landau, Reason and Responsibility (Cengage)",
+      "latest": "16판, 2017",
+      "note": "오래 개정되지 않아 밀린다."
+     },
+     {
+      "book": "Simon Blackburn, Think (OUP)",
+      "latest": "1999년 초판 이후 개정 없음",
+      "note": "지금 기준 책이다. 오래 개정되지 않았고 대학 입문 강의 표준 교재로서의 위상도 위 선집들보다 낮다."
+     }
+    ],
+    "parts": [
+     {
+      "no": "Part 1-2",
+      "title": "What Is Philosophy? / Philosophy of Religion",
+      "chapters": "서론부와 종교철학부"
+     },
+     {
+      "no": "Part 3",
+      "title": "Knowledge",
+      "chapters": "지식부"
+     },
+     {
+      "no": "Part 4",
+      "title": "Philosophy of Mind: The Mind-Body Problem",
+      "chapters": "심리철학부"
+     },
+     {
+      "no": "Part 5",
+      "title": "Freedom of the Will and Determinism",
+      "chapters": "자유의지부"
+     },
+     {
+      "no": "Part 6",
+      "title": "Ethics",
+      "chapters": "윤리학부"
+     },
+     {
+      "no": "Part 7",
+      "title": "Political Philosophy",
+      "chapters": "정치철학부"
+     },
+     {
+      "no": "Part 8-9",
+      "title": "What Is the Meaning of Life? / Philosophy in Action",
+      "chapters": "삶의 의미부와 실천부"
+     }
+    ],
+    "textbookUnverified": [
+     "Perry·Bratman·Fischer 10판의 실제 출간 여부를 확인하지 못했다. 출간 예정일 2026-09-30은 이미 지났다. 이번 검색에서 나온 것은 서점의 출간 예정 목록 하나뿐이다. global.oup.com과 schweitzer-online.de 페이지 읽기는 이 환경 네트워크에서 막혔다. 출간이 확인되면 기준 개론서를 바꿔야 한다.",
+     "Pojman·Vaughn 12판의 부 번호와 부 제목은 이전 판 구성과 12판 서점 목록 일부로 맞춰 본 것이다. 12판 전체 목차는 확인하지 못했다. 특히 '자유의지와 결정론', '정치철학', '삶의 의미', '실천 철학' 부가 12판에도 그대로 있는지 확인하지 못했다.",
+     "12판 출간일은 서점마다 2023-01-04와 2023-06-22로 다르다.",
+     "Pojman·Vaughn 13판이 나왔는지는 검색 한도를 다 써서 확인하지 못했다.",
+     "Solomon·Higgins·Martin 『Introducing Philosophy』, Vaughn 『Philosophy Here and Now』 등 다른 입문서의 최신 판은 비교하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "OUP, Philosophy: The Quest for Truth 12e (ebook)",
+      "url": "https://global.oup.com/ushe/product/philosophy-9780197612835"
+     },
+     {
+      "title": "OUP Learning Link, Pojman, Vaughn 12e",
+      "url": "https://learninglink.oup.com/access/pojman-vaughn12e"
+     },
+     {
+      "title": "Readings, Philosophy: The Quest for Truth 12th edition (2023)",
+      "url": "https://readings.com.au/product/9780197612811/philosophy-the-quest-for-truth-12th-edition--pojman--2023--9780197612811"
+     },
+     {
+      "title": "Wikipedia, Philosophy: The Quest for Truth",
+      "url": "https://en.wikipedia.org/wiki/Philosophy:_The_Quest_for_Truth"
+     },
+     {
+      "title": "OUP Learning Link, Perry, Bratman, Fischer 9e",
+      "url": "https://learninglink.oup.com/access/perry9e"
+     },
+     {
+      "title": "Readings, Introduction to Philosophy 9판 (2021)",
+      "url": "https://readings.com.au/product/9780197543825/introduction-to-philosophy--john-fischer--2021--9780197543825"
+     },
+     {
+      "title": "Schweitzer Online, Perry Introduction to Philosophy 10th ed. 출간 예정 목록 (2026-09-30)",
+      "url": "https://www.schweitzer-online.de/en/buch/Perry/Introduction-Philosophy/9780197837351/A76502370/"
+     },
+     {
+      "title": "Cengage, Reason and Responsibility 16e",
+      "url": "https://www.cengage.com/c/reason-and-responsibility-16e-feinberg-shafer-landau/9781305502444"
+     }
+    ],
+    "textbookChosen": "2026-11-23"
+   },
+   {
+    "slug": "geo",
+    "name": "지리학",
+    "en": "Geography",
+    "domain": "social",
+    "color": "#8a6d3b",
+    "textbook": "Mark D. Bjelland, David H. Kaplan, Jon C. Malinowski, Arthur Getis, Introduction to Geography, 16판, McGraw Hill, 2022",
+    "textbookWhy": "지리학은 자연지리와 인문지리로 나뉘고, 표준 교재도 대개 한쪽만 다룬다. 자연지리는 Christopherson 『Geosystems』, 인문지리는 Fouberg·Murphy 『Human Geography』와 Rubenstein 『The Cultural Landscape』가 대표적이다. 규칙 3(학문당 한 권)에 따라 두 쪽을 함께 덮는 대학 입문 개론서인 Getis 계열 『Introduction to Geography』를 골랐다. 16판까지 거듭했고 McGraw Hill에서 나온다. 16판은 도서관 목록에 2022년 판으로 올라 있다(서점 목록은 2021-04 출간). 부가 없으므로 13개 장을 연속된 주제 묶음으로 나눴다. 검증 과정에서 한 장짜리 도시 묶음(11장)을 바로 앞 경제지리(9-10장)에 합쳤다. 그래서 분과는 4개다. 12장 자원지리는 원자재 판례에 따라 공간 분포와 환경 측면만 맡는다. 원자재의 공정, 품질, 가격 지식은 경제학 자원·원자재 경제 분과로 보낸다.",
+    "textbookCandidates": [
+     {
+      "book": "Robert W. Christopherson 외, Geosystems: An Introduction to Physical Geography (Pearson)",
+      "latest": "미확인(11판 무렵)",
+      "note": "자연지리만 다룬다. 지리학 전체를 덮는 한 권이 아니어서 밀린다."
+     },
+     {
+      "book": "Erin H. Fouberg, Alexander B. Murphy, Human Geography: People, Place, and Culture (Wiley)",
+      "latest": "미확인(13판 무렵)",
+      "note": "인문지리만 다룬다."
+     },
+     {
+      "book": "James M. Rubenstein, The Cultural Landscape: An Introduction to Human Geography (Pearson)",
+      "latest": "미확인(14판 무렵)",
+      "note": "인문지리만 다룬다."
+     }
+    ],
+    "parts": [
+     {
+      "no": "묶음 1",
+      "title": "지리학의 기초와 자연지리 (Introduction: Some Background Basics; 지도와 공간 정보(제목 미확인); Physical Geography: Landforms; 날씨, 기후, 토양, 식생(제목 미확인))",
+      "chapters": "1-4장"
+     },
+     {
+      "no": "묶음 2",
+      "title": "인구, 문화, 정치 (Population Geography; Cultural Geography; Human Interaction; Political Geography)",
+      "chapters": "5-8장"
+     },
+     {
+      "no": "묶음 3",
+      "title": "경제지리와 도시 (Economic Geography: Agriculture and Primary Activities; Economic Geography: Manufacturing and Services; An Urban World)",
+      "chapters": "9-11장"
+     },
+     {
+      "no": "묶음 4",
+      "title": "자원과 환경 (The Geography of Natural Resources; Human Impact on the Environment)",
+      "chapters": "12-13장"
+     }
+    ],
+    "textbookUnverified": [
+     "16판 2장과 4장 제목은 확인하지 못했다. 1장, 3장, 5-13장 제목만 검색 결과로 확인했다.",
+     "McGraw Hill 페이지 한 곳에 '더 새로운 판이 있다'는 표시가 있다. 별도 ISBN 9781260430356 목록도 있다. 이것이 17판이나 Evergreen 개정판인지 확인하지 못했다. mheducation.com과 libcat.library.tamu.edu 페이지 읽기는 이 환경 네트워크에서 막혔다. 새 판이면 규칙 2에 따라 그 판으로 바꿔야 한다.",
+     "저자 목록은 판매처마다 다르다(Arthur Getis, Judith Getis, Jerome Fellmann 포함 여부).",
+     "연도는 도서관 목록 2022, 서점 목록 2021-04로 다르다.",
+     "주요 대학 지리학 입문 강의에서 이 책이 얼마나 쓰이는지 비교한 자료는 찾지 못했다. 주요 연구 대학은 자연지리와 인문지리를 따로 가르치는 경우가 많아, 이 책의 '세계 주요 대학 표준 개론서' 지위는 화학이나 생물학 기준서보다 약하다.",
+     "Geosystems, Human Geography, The Cultural Landscape의 최신 판은 확인하지 않았다."
+    ],
+    "textbookSrc": [
+     {
+      "title": "Texas A&M 도서관 목록, Introduction to geography 16th ed. (2022)",
+      "url": "https://libcat.library.tamu.edu/Record/in00005653706"
+     },
+     {
+      "title": "McGraw Hill, Introduction to Geography (Bjelland, Kaplan, Malinowski) 16판",
+      "url": "https://www.mheducation.com/highered/product/introduction-geography-bjelland-kaplan/9781260364132.html"
+     },
+     {
+      "title": "McGraw Hill, Introduction to Geography 다른 ISBN(9781260430356) 목록",
+      "url": "https://www.mheducation.com/highered/product/introduction-geography-bjelland-kaplan/9781260430356.html"
+     },
+     {
+      "title": "McGraw Hill Canada, Introduction to Geography ISE",
+      "url": "https://www.mheducation.ca/product/introduction-to-geography-ise-9781260598216-can-group"
+     },
+     {
+      "title": "16판 앞부분 미리보기 PDF (목차 확인용, 제3자 호스팅)",
+      "url": "https://studentebookhub.com/wp-content/uploads/2024/preview/9781260364132.pdf"
+     }
+    ],
+    "textbookChosen": "2026-11-23",
+    "labels": {},
+    "aliases": [
+     "지리"
+    ],
+    "branches": [
+     {
+      "slug": "geo-physical",
+      "name": "자연지리",
+      "en": "Physical Geography",
+      "basis": "Getis·Bjelland 16판 1-4장",
+      "scope": [
+       "지리학의 핵심 개념: 위치, 장소, 지역, 공간 상호작용",
+       "지도, 좌표, 지도 투영, GIS(Geographic Information System, 지리 정보 시스템)와 원격탐사",
+       "지형의 분포",
+       "기후대, 토양, 식생의 분포",
+       "지구과학과의 경계: 지형·기후의 형성 과정과 순수한 지질 정의는 지구과학으로, 공간 분포와 지역 비교는 이 분과로 보낸다"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "geo-human",
+      "name": "인문지리",
+      "en": "Population, Cultural, and Political Geography",
+      "basis": "Getis·Bjelland 16판 5-8장",
+      "scope": [
+       "인구 분포, 인구 변천, 이주",
+       "언어, 종교, 민족의 지리",
+       "인간 상호작용과 확산",
+       "국가, 국경, 지정학, 해상 교통로와 해협 같은 전략 지점"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "geo-economic",
+      "name": "경제지리와 도시지리",
+      "en": "Economic and Urban Geography",
+      "basis": "Getis·Bjelland 16판 9-11장",
+      "scope": [
+       "1차 산업(농업, 임업, 어업, 광업)의 입지와 분포",
+       "제조업 입지론과 산업 집적",
+       "서비스업과 세계화",
+       "교통과 무역의 공간 구조(가격과 시장 구조 분석은 경제학으로 보낸다)",
+       "도시화와 도시 체계",
+       "도시 내부 구조와 토지 이용, 세계 도시와 도시 문제"
+      ],
+      "topicSeeds": [],
+      "was": []
+     },
+     {
+      "slug": "geo-environment",
+      "name": "자원과 환경",
+      "en": "Natural Resources and Human Impact",
+      "basis": "Getis·Bjelland 16판 12-13장",
+      "scope": [
+       "천연자원의 분류와 공간 분포, 매장 지역",
+       "에너지 자원과 광물 자원의 지역별 산출(공정·품질·가격 지식은 경제학 자원·원자재 경제로 보낸다)",
+       "인간 활동이 환경에 미치는 영향",
+       "기후 변화와 지속 가능성의 지리"
+      ],
+      "topicSeeds": [],
+      "was": []
      }
     ]
    }
@@ -2008,22 +3742,22 @@
   "goldenSet": [
    {
     "input": "손실회피",
-    "home": "econ-behavioral",
+    "home": "econ-labor",
     "ruling": "R02"
    },
    {
     "input": "확증편향",
-    "home": "psy-judgment",
+    "home": "psy-cognition",
     "ruling": "R01"
    },
    {
     "input": "처분효과",
-    "home": "fin-efficiency",
+    "home": "fin-equilibrium",
     "ruling": "R03"
    },
    {
     "input": "전망이론",
-    "home": "econ-behavioral",
+    "home": "econ-labor",
     "ruling": "R02"
    },
    {
@@ -2038,12 +3772,12 @@
    },
    {
     "input": "귀류법",
-    "home": "logic-proof",
+    "home": "logic-formal",
     "ruling": "R05"
    },
    {
     "input": "수학적 귀납법",
-    "home": "logic-proof",
+    "home": "logic-formal",
     "ruling": "R05"
    },
    {
@@ -2053,17 +3787,17 @@
    },
    {
     "input": "귀납의 문제",
-    "home": "phil-science",
+    "home": "phil-epistemology",
     "ruling": "R07"
    },
    {
     "input": "반증가능성",
-    "home": "phil-science",
+    "home": "phil-epistemology",
     "ruling": "R07"
    },
    {
     "input": "귀납 논증",
-    "home": "logic-reasoning",
+    "home": "logic-informal",
     "ruling": "R07"
    },
    {
@@ -2078,7 +3812,7 @@
    },
    {
     "input": "도파민 보상예측오차",
-    "home": "bio-neuro",
+    "home": "bio-animals",
     "ruling": "R09"
    },
    {
@@ -2093,7 +3827,7 @@
    },
    {
     "input": "과적합",
-    "home": "cs-ai",
+    "home": "cs-applications",
     "ruling": "R13"
    },
    {
@@ -2103,17 +3837,17 @@
    },
    {
     "input": "이자율 평형",
-    "home": "fin-international",
+    "home": "fin-applied",
     "ruling": "R14"
    },
    {
     "input": "핸디캡 원리",
-    "home": "bio-behavior",
+    "home": "bio-animals",
     "ruling": "R15"
    },
    {
     "input": "시장 신호(Spence)",
-    "home": "econ-info",
+    "home": "econ-labor",
     "ruling": "R15"
    },
    {
@@ -2123,22 +3857,22 @@
    },
    {
     "input": "EBITDA",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "ruling": "R17"
    },
    {
     "input": "이연법인세",
-    "home": "acct-tax",
+    "home": "acct-liabilities",
     "ruling": null
    },
    {
     "input": "수익인식",
-    "home": "acct-financial",
+    "home": "acct-cycle",
     "ruling": "R17"
    },
    {
     "input": "원자재 업종 분석",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "ruling": "R18"
    },
    {
@@ -2148,7 +3882,7 @@
    },
    {
     "input": "복리",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "ruling": "R19"
    },
    {
@@ -2158,22 +3892,22 @@
    },
    {
     "input": "비교우위",
-    "home": "econ-basics",
+    "home": "econ-markets",
     "ruling": "R21"
    },
    {
     "input": "기회비용",
-    "home": "econ-basics",
+    "home": "econ-markets",
     "ruling": "R21"
    },
    {
     "input": "경제적 해자",
-    "home": "mgmt-strategy",
+    "home": "mgmt-planning",
     "ruling": "R22"
    },
    {
     "input": "CAPM 검증에서 모수와 추정치",
-    "home": "fin-capital-markets",
+    "home": "fin-equilibrium",
     "ruling": "R23"
    },
    {
@@ -2183,7 +3917,7 @@
    },
    {
     "input": "DCF",
-    "home": "fin-valuation",
+    "home": "fin-analysis",
     "ruling": null
    },
    {
@@ -2203,7 +3937,7 @@
    },
    {
     "input": "DB 정규화",
-    "home": "cs-database",
+    "home": "cs-applications",
     "ruling": null
    }
   ]
@@ -2279,56 +4013,88 @@
     "concepts": []
    },
    {
-    "id": "n:fin-capital-markets",
+    "id": "n:cs-applications",
     "rank": "branch",
-    "name": "자본시장이론",
-    "short": "자본시장",
-    "en": "Capital Market Theory",
-    "parent": "n:fin",
-    "ref": "fin-capital-markets",
-    "createdAt": "2026-11-18",
-    "createdBy": "seed",
-    "aliases": [
-     "포트폴리오 이론",
-     "자산가격결정"
-    ],
+    "name": "응용 계층",
+    "short": "응용",
+    "en": "The Applications Layer",
+    "parent": "n:cs",
+    "ref": "cs-applications",
+    "createdAt": "2026-11-23",
+    "createdBy": "개론서 기준 개편",
+    "aliases": [],
     "status": "active",
-    "concepts": []
-   },
-   {
-    "id": "n:fin-valuation",
-    "rank": "branch",
-    "name": "밸류에이션",
-    "short": "밸류에이션",
-    "en": "Valuation",
-    "parent": "n:fin",
-    "ref": "fin-valuation",
-    "createdAt": "2026-11-18",
-    "createdBy": "seed",
-    "aliases": [
-     "Valuation",
-     "가치평가"
-    ],
-    "status": "active",
-    "concepts": [
-     "ebitda",
-     "wacc"
+    "concepts": [],
+    "was": [
+     "n:cs-database"
     ]
    },
    {
-    "id": "n:logic-reasoning",
+    "id": "n:logic-inductive",
     "rank": "branch",
-    "name": "추론과 논증",
-    "short": "추론",
-    "en": "Reasoning and Argument",
+    "name": "귀납논리",
+    "short": "귀납논리",
+    "en": "Inductive Logic",
     "parent": "n:logic",
-    "ref": "logic-reasoning",
-    "createdAt": "2026-11-18",
-    "createdBy": "seed",
+    "ref": "logic-inductive",
+    "createdAt": "2026-11-23",
+    "createdBy": "개론서 기준 개편",
     "aliases": [],
     "status": "active",
-    "concepts": [
-     "abduction"
+    "concepts": [],
+    "was": [
+     "n:logic-reasoning"
+    ]
+   },
+   {
+    "id": "n:fin-analysis",
+    "rank": "branch",
+    "name": "증권분석",
+    "short": "증권분석",
+    "en": "Security Analysis",
+    "parent": "n:fin",
+    "ref": "fin-analysis",
+    "createdAt": "2026-11-23",
+    "createdBy": "개론서 기준 개편",
+    "aliases": [],
+    "status": "active",
+    "concepts": [],
+    "was": [
+     "n:fin-valuation"
+    ]
+   },
+   {
+    "id": "n:fin-equilibrium",
+    "rank": "branch",
+    "name": "자본시장 균형",
+    "short": "자본시장 균형",
+    "en": "Equilibrium in Capital Markets",
+    "parent": "n:fin",
+    "ref": "fin-equilibrium",
+    "createdAt": "2026-11-23",
+    "createdBy": "개론서 기준 개편",
+    "aliases": [],
+    "status": "active",
+    "concepts": [],
+    "was": [
+     "n:fin-capital-markets"
+    ]
+   },
+   {
+    "id": "n:fin-portfolio",
+    "rank": "branch",
+    "name": "투자환경과 포트폴리오 이론",
+    "short": "포트폴리오 이론",
+    "en": "Investment Environment and Portfolio Theory",
+    "parent": "n:fin",
+    "ref": "fin-portfolio",
+    "createdAt": "2026-11-23",
+    "createdBy": "개론서 기준 개편",
+    "aliases": [],
+    "status": "active",
+    "concepts": [],
+    "was": [
+     "n:fin-capital-markets"
     ]
    },
    {
@@ -2348,28 +4114,12 @@
     ]
    },
    {
-    "id": "n:cs-database",
-    "rank": "branch",
-    "name": "데이터베이스",
-    "short": "DB",
-    "en": "Databases",
-    "parent": "n:cs",
-    "ref": "cs-database",
-    "createdAt": "2026-11-18",
-    "createdBy": "seed",
-    "aliases": [],
-    "status": "active",
-    "concepts": [
-     "ddl"
-    ]
-   },
-   {
     "id": "n:fin-capital-allocation",
     "rank": "topic",
     "name": "자본배분",
     "short": "자본배분",
     "en": "Capital Allocation",
-    "parent": "n:fin-capital-markets",
+    "parent": "n:fin-portfolio",
     "createdAt": "2026-11-18",
     "createdBy": "seed",
     "aliases": [],
@@ -2391,7 +4141,7 @@
     "name": "최적 위험 포트폴리오",
     "short": "최적 위험 포트폴리오",
     "en": "Optimal Risky Portfolio",
-    "parent": "n:fin-capital-markets",
+    "parent": "n:fin-portfolio",
     "createdAt": "2026-11-18",
     "createdBy": "seed",
     "aliases": [
@@ -2414,7 +4164,7 @@
     "name": "지수모형",
     "short": "지수모형",
     "en": "Index Models",
-    "parent": "n:fin-capital-markets",
+    "parent": "n:fin-portfolio",
     "createdAt": "2026-11-18",
     "createdBy": "seed",
     "aliases": [],
@@ -2436,7 +4186,7 @@
     "name": "CAPM",
     "short": "CAPM",
     "en": "Capital Asset Pricing Model",
-    "parent": "n:fin-capital-markets",
+    "parent": "n:fin-equilibrium",
     "createdAt": "2026-11-18",
     "createdBy": "seed",
     "aliases": [],
@@ -2458,7 +4208,7 @@
     "name": "APT",
     "short": "APT",
     "en": "Arbitrage Pricing Theory",
-    "parent": "n:fin-capital-markets",
+    "parent": "n:fin-equilibrium",
     "createdAt": "2026-11-18",
     "createdBy": "seed",
     "aliases": [],
@@ -2477,7 +4227,7 @@
    {
     "id": "abduction",
     "name": "가추",
-    "node": "n:logic-reasoning",
+    "node": "n:logic-inductive",
     "path": "논리학 > 추론과 논증 > 가추",
     "questions": 5
    },
@@ -2624,14 +4374,14 @@
    {
     "id": "ddl",
     "name": "DDL",
-    "node": "n:cs-database",
+    "node": "n:cs-applications",
     "path": "소프트웨어 > 데이터베이스 > DDL",
     "questions": 5
    },
    {
     "id": "ebitda",
     "name": "EBITDA",
-    "node": "n:fin-valuation",
+    "node": "n:fin-analysis",
     "path": "재무학 > 밸류에이션 > EBITDA",
     "questions": 5
    },
@@ -2764,7 +4514,7 @@
    {
     "id": "wacc",
     "name": "WACC",
-    "node": "n:fin-valuation",
+    "node": "n:fin-analysis",
     "path": "재무학 > 밸류에이션 > WACC",
     "questions": 5
    }

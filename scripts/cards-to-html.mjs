@@ -48,8 +48,8 @@ for (const g of doc.groups) {
       out.push('<p><b>문제</b></p><ol>');
       for (const q of c.questions) {
         const ans = q.t === 'ox' ? (q.a ? 'O' : 'X') : q.o?.[q.a];
-        const opts = q.t === 'mc' && q.o ? `<br>보기: ${q.o.map((o, i) => `${i + 1}) ${esc(o)}`).join(' / ')}` : '';
-        out.push(`<li>[${LV[q.lv] ?? q.lv}] ${esc(q.q)}${opts}<br>정답: ${esc(ans)}. ${esc(q.w)}</li>`);
+        const opts = q.t === 'mc' && q.o ? '<ul>' + q.o.map((o) => `<li>${esc(o)}</li>`).join('') + '</ul>' : '';
+        out.push(`<li>${LV[q.lv] ?? q.lv}: ${esc(q.q)}${opts}<p>정답: ${esc(ans)}. ${esc(q.w)}</p></li>`);
       }
       out.push('</ol>');
     }
