@@ -1,0 +1,653 @@
+[
+ {
+  "key": "fob",
+  "card": {
+   "name": "FOB (본선인도)",
+   "en": "Free On Board",
+   "def": "FOB는 매도인이 수출 통관을 마친 물품을 지정 선적항에서 매수인이 지정한 선박에 실어 인도하는 인코텀즈 규칙이다.",
+   "traits": [
+    "위험은 물품이 매수인이 지정한 선박에 실린(on board) 순간 매수인에게 넘어가며, 2010년판부터 예전의 ship's rail(뱃전) 기준 대신 이 표현을 쓴다.",
+    "매도인은 수출 통관과 선적까지의 비용을 맡고, 해상 운임과 수입 통관은 매수인이 맡는다.",
+    "보험은 어느 쪽에도 의무가 아니지만, 적재 뒤 위험을 지는 매수인이 보통 스스로 든다.",
+    "해상과 내수로 운송에만 쓰는 규칙이고, 컨테이너처럼 배에 싣기 전 터미널에서 넘기는 화물에는 FCA를 쓰는 편이 권장된다."
+   ],
+   "measure": "계약에는 'FOB 선적항 이름, Incoterms 2020'처럼 선적항과 판 연도를 함께 적는다. 비용으로 보면 CFR 가격은 대략 FOB 가격에 해상 운임을 더한 값이고, CIF는 여기에 보험료를 더한 값이다.",
+   "contrast": [
+    {
+     "with": "CFR과 CIF",
+     "diff": "위험이 선적항 본선 적재 때 넘어가는 점은 같지만, CFR과 CIF는 매도인이 목적항까지 운임을 내고 CIF는 보험까지 들어 준다."
+    },
+    {
+     "with": "FCA",
+     "diff": "FCA는 모든 운송 수단에 쓸 수 있고, 위험이 배에 싣기 전 지정 장소에서 운송인에게 넘길 때 옮겨 간다."
+    }
+   ],
+   "example": "한국 제철소가 호주 항구 FOB 조건으로 석탄을 톤당 200달러에 샀다. 운임 톤당 25달러와 보험료 톤당 1달러는 제철소가 따로 낸다. 그래서 도착항까지 드는 비용은 톤당 226달러이고, 배에 실린 뒤 항해 중 생긴 손상의 위험도 제철소가 진다.",
+   "analogy": "택배 상자를 상대가 보낸 트럭 짐칸에 올려놓는 순간 내 책임이 끝나는 것과 같다.",
+   "src": [
+    {
+     "title": "ICC, Incoterms rules 2010 소개 페이지 (iccwbo.org)",
+     "url": "https://iccwbo.org/business-solutions/incoterms-rules/incoterms-rules-2010/",
+     "what": "검색 결과 요약으로 확인: 인도 지점으로서 ship's rail 언급이 모두 빠지고, 물품이 선박에 'on board'된 때 인도된다는 표현으로 바뀌었다. 페이지는 직접 열지 못했다."
+    },
+    {
+     "title": "ICC Academy, Incoterms 2020: FCA or FOB?",
+     "url": "https://academy.iccwbo.org/incoterms/article/incoterms-2020-fca-or-fob/",
+     "what": "검색 결과 요약으로 확인: 컨테이너 화물은 보통 배 옆이 아니라 컨테이너 터미널에서 넘기고 며칠씩 머물 수 있어 FCA가 더 알맞다. FOB에서는 컨테이너가 실릴 때까지 매도인이 위험을 진다."
+    },
+    {
+     "title": "Reed Smith, Incoterms 2010: What you need to know (Part 2)",
+     "url": "https://reedsmith.com/en/perspectives/2010/11/incoterms-2010--what-you-need-to-know-part-2",
+     "what": "검색 결과 요약으로 확인: 위험은 ship's rail 통과가 아니라 물품이 선박에 실린 때 넘어가며, 뱃전 통과 시점을 둘러싼 분쟁을 피하려고 바꿨다."
+    },
+    {
+     "title": "Trade Finance Global, Free on Board (FOB) Incoterms 2020 안내서",
+     "url": "https://www.tradefinanceglobal.com/wp-content/uploads/2020/01/Free_on_Board_FOB.pdf",
+     "what": "검색 결과 요약으로 확인: A5에서 매도인은 매수인을 위해 보험을 들 의무가 없고 요청 시 보험에 필요한 정보만 준다. B5에서 매수인도 매도인에게 보험 의무가 없다."
+    },
+    {
+     "title": "UPS, Free on Board (FOB) 용어 설명",
+     "url": "https://www.ups.com/us/en/supplychain/resources/glossary-term/free-on-board",
+     "what": "검색 결과 요약으로 확인: FOB는 해상과 내수로 운송에만 쓰는 인코텀즈 규칙이고, 매도인이 수출 통관을 한 뒤 매수인이 지정한 선박에 실어 인도한다."
+    },
+    {
+     "title": "U.S. International Trade Administration, Know Your Incoterms",
+     "url": "https://trade.gov/know-your-incoterms",
+     "what": "검색 결과 요약으로 확인: 11개 규칙을 모든 운송 수단용 7개와 해상·내수로용 4개로 나누며, FCA는 앞쪽, FOB는 뒤쪽에 속한다."
+    },
+    {
+     "title": "DHL, FCA vs FOB key differences",
+     "url": "https://www.dhl.com/discover/en-global/logistics-advice/logistics-insights/fca-vs-fob-key-differences",
+     "what": "검색 결과 요약으로 확인: FOB는 해상과 내수로 전용이고 FCA는 모든 운송 수단에 쓸 수 있다. 배에 싣기 전 넘기는 컨테이너 화물에는 FOB가 대체로 맞지 않는다."
+    },
+    {
+     "title": "DHL, Incoterms 2020 안내",
+     "url": "https://www.dhl.com/fr-en/home/our-divisions/freight/customer-service/incoterms-2020.html",
+     "what": "검색 결과 요약으로 확인: FOB에서 위험은 물품이 선박에 실린 때 넘어간다. CFR에는 보험 의무가 없고, CIF에서는 매도인이 최소 보험을 들어 준다."
+    }
+   ],
+   "questions": [
+    {
+     "lv": 1,
+     "t": "mc",
+     "q": "매도인이 수출 통관을 마친 물품을 지정 선적항에서 매수인이 지정한 선박에 실어 인도하는 규칙은?",
+     "o": [
+      "FCA",
+      "FOB",
+      "CFR",
+      "EXW"
+     ],
+     "a": 1,
+     "h": "배를 정하는 쪽이 누구인지 살핀다.",
+     "w": "FOB는 매수인이 정한 본선에 실어 인도하는 규칙이다. FCA는 지정 장소에서 운송인에게 넘기고, CFR은 매도인이 운송 계약을 맺어 운임을 내며, EXW는 매도인 영업소에서 인도한다.",
+     "from": "def"
+    },
+    {
+     "lv": 2,
+     "t": "ox",
+     "q": "FOB는 항공과 도로를 포함한 모든 운송 수단에 쓸 수 있다.",
+     "a": false,
+     "h": "이름 속 'Board'가 무엇을 가리키는지 생각해 본다.",
+     "w": "FOB는 해상과 내수로 운송 전용이다. 모든 운송 수단에 쓰는 규칙은 FCA 같은 다른 규칙이다.",
+     "from": "traits"
+    },
+    {
+     "lv": 3,
+     "t": "mc",
+     "q": "위험이 선적항 본선 적재 때 넘어가는 점은 CFR과 같지만, 해상 운임을 매수인이 내는 규칙은?",
+     "o": [
+      "CIF",
+      "FCA",
+      "FOB",
+      "DAP"
+     ],
+     "a": 2,
+     "h": "운임을 누가 내는지만 CFR과 다르다.",
+     "w": "FOB는 위험 이전 지점이 CFR과 같고 운임은 매수인이 낸다. CIF는 매도인이 운임과 보험을 내고, FCA는 배에 싣기 전 운송인에게 넘길 때 위험이 옮겨 가며, DAP는 목적지에서 인도한다.",
+     "from": "contrast"
+    },
+    {
+     "lv": 4,
+     "t": "mc",
+     "q": "한국 제철소가 호주 항구 FOB 조건으로 석탄을 톤당 200달러에 샀다. 운임은 톤당 25달러, 보험료는 톤당 1달러이고 제철소가 따로 낸다. 도착항까지 제철소가 내는 톤당 비용은?",
+     "o": [
+      "200달러",
+      "201달러",
+      "225달러",
+      "226달러"
+     ],
+     "a": 3,
+     "h": "FOB 가격에 빠져 있는 비용을 모두 더한다.",
+     "w": "FOB 가격에는 운임과 보험료가 들어 있지 않으므로 200달러에 25달러와 1달러를 더한 226달러가 된다. 200달러와 201달러는 운임을 빠뜨렸고, 225달러는 보험료를 빠뜨렸다.",
+     "from": "example"
+    }
+   ],
+   "notes": "출처 확인 상태: 이 세션에서도 iccwbo.org, ups.com, reedsmith.com 등은 네트워크에서 막혀 직접 열지 못했고, 모든 내용을 웹 검색 결과 요약으로 대조했다. ICC Incoterms 2020 FOB 원문(A1~A10, B1~B10)을 직접 읽으려면 세션 네트워크 설정에서 iccwbo.org를 허용해야 한다. 이번 검증에서 고친 점: 보험은 FOB에서 매수인의 의무가 아니다(A5, B5 모두 의무 없음). 위험을 지는 매수인이 보통 스스로 드는 것이라 특징을 따로 나눠 바로잡았다. 컨테이너에 FCA를 권하는 점은 DHL에 더해 ICC Academy 글로도 확인했다. 북미 국내 거래의 'FOB shipping point' 같은 표현은 인코텀즈와 뜻이 다르다. 소유권 이전 시점은 인코텀즈가 정하지 않는다. 소유자의 11/23 메모('배에 실어 주는 순간까지의 가격, 운임은 사는 쪽이 낸다')는 확인된 내용과 맞는다. example과 lv4의 톤당 200달러, 25달러, 1달러는 계산용 가상 숫자이고 실제 시세가 아니다."
+  },
+  "issues": [
+   {
+    "field": "traits[1]",
+    "problem": "'해상 운임과 보험, 수입 통관은 매수인이 맡는다'고 적어 보험을 매수인의 의무처럼 썼다. Incoterms 2020 FOB의 A5와 B5는 양쪽 모두 상대에게 보험을 들 의무가 없다고 정한다.",
+    "fix": "보험을 빼고 '해상 운임과 수입 통관은 매수인이 맡는다'로 고쳤다. 보험은 별도 특징으로 '어느 쪽에도 의무가 아니지만 위험을 지는 매수인이 보통 든다'고 적었다."
+   },
+   {
+    "field": "traits",
+    "problem": "해상·내수로 전용과 컨테이너 FCA 권고가 따로 있어 보험 특징을 넣으면 4개를 넘었다.",
+    "fix": "운송 수단 제한과 컨테이너 FCA 권고를 한 문장으로 합쳐 특징을 4개로 맞췄다."
+   },
+   {
+    "field": "contrast[0], questions",
+    "problem": "'CFR와 CIF'는 조사가 어색하다. CFR은 받침 있는 소리(알)로 끝나므로 '과'가 맞다.",
+    "fix": "'CFR과 CIF', 'CFR과 CIF는'으로 고쳤다."
+   },
+   {
+    "field": "questions[0].h",
+    "problem": "힌트 '인도 장소가 배 위라는 점이 이름에 들어 있다'는 CFR도 본선 인도라 구분에 도움이 안 되고, 이름만 보고 답을 고르게 만든다.",
+    "fix": "정의의 핵심인 '매수인이 지정한 선박'을 가리키도록 '배를 정하는 쪽이 누구인지 살핀다'로 바꿨다. 해설에 CFR은 매도인이 운송 계약을 맺는다는 점을 더했다."
+   },
+   {
+    "field": "questions[3].w",
+    "problem": "해설이 'FOB에서는 운임과 보험을 매수인이 맡으므로'라고 써서 보험이 매수인 의무라는 오해를 되풀이했다.",
+    "fix": "'FOB 가격에는 운임과 보험료가 들어 있지 않으므로'로 고쳤다."
+   },
+   {
+    "field": "src",
+    "problem": "컨테이너 FCA 권고가 DHL 해설 하나에만 기대고 있었고, 보험 의무 근거가 없었다. CFR 브라질 안내 등 중복 출처가 있었다.",
+    "fix": "ICC Academy 글, Trade Finance Global FOB 안내서(A5, B5), trade.gov를 더하고 중복된 DHL 브라질 페이지 두 개는 뺐다. 모든 what에 검색 요약으로 확인했음을 밝혔다."
+   },
+   {
+    "field": "notes",
+    "problem": "'운임과 보험의 매수인 부담을 확인했다'는 기록이 사실과 맞지 않았다.",
+    "fix": "보험 의무가 없다는 점을 바로잡은 기록으로 바꾸고, 이번 세션의 확인 상태를 갱신했다."
+   }
+  ],
+  "unverified": [
+   "ICC Incoterms 2020 FOB 규칙 원문(A1~A10, B1~B10)과 사용자 안내 문구는 직접 읽지 못했다. iccwbo.org, ups.com, reedsmith.com, brp.com이 네트워크에서 막혀 모든 사실을 웹 검색 결과 요약으로만 대조했다.",
+   "수출 통관 조항의 '해당하는 경우(where applicable)' 단서는 원문으로 확인하지 못해 카드에 넣지 않았다.",
+   "CIF 최소 보험이 Institute Cargo Clauses (C) 수준이라는 세부 조건은 확인하지 못해 카드에 넣지 않았다.",
+   "measure의 'CFR은 대략 FOB에 운임을 더한 값, CIF는 여기에 보험료를 더한 값'은 규칙 이름과 비용 분담에서 나오는 상거래 관행의 근사이며, ICC 원문의 문장은 아니다."
+  ]
+ },
+ {
+  "key": "csr",
+  "card": {
+   "name": "CSR (반응 후 코크스 강도)",
+   "en": "Coke Strength after Reaction",
+   "def": "CSR은 고온에서 이산화탄소와 반응시킨 코크스를 드럼에서 굴린 뒤 체 위에 덩어리로 남은 무게 비율로, 반응 뒤에도 코크스가 얼마나 버티는지 나타내는 지표다.",
+   "traits": [
+    "CRI 시험을 마친 같은 시료를 I형 드럼에서 굴려서 잰다.",
+    "값이 높을수록 좋은 코크스이며, CRI와는 강한 음의 상관을 보인다.",
+    "고로에서 코크스는 장입물을 받치고 가스와 쇳물이 지나가게 하는 골격이라, 반응 뒤 강도가 낮으면 가루가 생겨 통기성이 떨어진다.",
+    "시험 조건은 표준마다 조금 다르다. ASTM은 19.0~22.4mm 입자와 9.5mm 체를, 중국 GB/T 4000-2008은 23~25mm 입자와 10mm 체를 쓴다."
+   ],
+   "measure": "ASTM D5341은 19.0~22.4mm로 고른 코크스 200g을 1,100°C에서 CO2와 2시간 반응시킨 뒤, I형 드럼에서 30분 동안 600회 돌리고 9.5mm 체로 거른다. CSR(%)은 체 위에 남은 무게를 반응 뒤 무게로 나누고 100을 곱한 값이다.",
+   "contrast": [
+    {
+     "with": "CRI (코크스 반응성 지수)",
+     "diff": "CRI는 반응으로 잃은 무게 비율이라 낮을수록 좋고, CSR은 반응 뒤 드럼에서 버틴 비율이라 높을수록 좋다."
+    }
+   ],
+   "example": "코크스 200g을 반응시켰더니 160g이 남았다. 이때 CRI는 (200-160)/200으로 20%다. 이 160g을 드럼에서 굴린 뒤 체 위에 남은 무게가 104g이면 CSR은 104/160으로 65%다.",
+   "analogy": "불에 그을린 벽돌을 흔들어 보고 덩어리로 얼마나 남는지 재는 것과 같다.",
+   "src": [
+    {
+     "title": "ASTM D5341/D5341M-19 Standard Test Method for Measuring Coke Reactivity Index (CRI) and Coke Strength After Reaction (CSR)",
+     "url": "https://store.astm.org/d5341_d5341m-19.html",
+     "what": "표준 이름, 덩어리 코크스를 고온에서 CO2와 반응시킨 뒤 I형 시험기(I-tester)로 강도를 잰다는 점, 고로에서 반응과 마모로 생긴 가루가 장입물 통기성을 떨어뜨린다는 시험 의의를 확인했다. 원문은 열지 못하고 ASTM과 ANSI 목록의 검색 요약으로 확인했다."
+    },
+    {
+     "title": "ASTM D5341/D5341M-19 사본 (Scribd)",
+     "url": "https://www.scribd.com/document/527443246/ASTM-D5341-D5341M-19",
+     "what": "시험용 입자를 22.4mm 체와 19.0mm 체 사이 분량으로 고른다는 점, 드럼 시험 뒤 9.5mm 체 위에 남은 무게로 CSR을 계산한다는 점, 30분 동안 600회 회전한다는 점을 확인했다. 비공식 사본이며 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "ISO 18894:2018 Coke — Determination of coke reactivity index (CRI) and coke strength after reaction (CSR)",
+     "url": "https://www.iso.org/standard/72266.html",
+     "what": "같은 시험의 국제 표준이며 고로용 코크스(CRI 약 33 미만, CSR 약 55 초과)를 주 대상으로 한다는 점, 2006년판이 CSR을 CRI 시험 뒤 드럼에서 굴려 10.0mm 또는 9.5mm 체 위에 남은 백분율로 정의한다는 점을 확인했다. 미리보기 쪽의 검색 요약으로 확인했다."
+    },
+    {
+     "title": "GB/T 4000 코크스 반응성과 반응 후 강도 시험법 (chinesestandard.net 목록) 및 PMC 논문 PMC8510098",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8510098",
+     "what": "GB/T 4000-2008에 따라 23~25mm 코크스 200g을 1,100°C, CO2 100%에서 2시간 반응시키고, CSR은 I형 드럼 600회 뒤 10mm 이상 남은 비율이라는 점을 확인했다. 현행판은 GB/T 4000-2017이다. 검색 요약으로 확인했다."
+    },
+    {
+     "title": "PMC 논문 PMC8746142",
+     "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC8746142",
+     "what": "코크스가 고로에서 가스와 액체가 지나가게 하는 골격 역할을 하고, 좋은 야금용 코크스는 CRI가 낮고 CSR이 높아야 한다는 점을 확인했다. 검색 요약으로 확인했다."
+    },
+    {
+     "title": "Metallurgical coke - Properties and consequences for the blast furnace (Techniques de l'Ingénieur M7341)",
+     "url": "https://www.techniques-ingenieur.fr/en/resources/materials-th11/metal-manufacturing-processes-and-recycling-ti554/metallurgical-coke-m7341",
+     "what": "고로에서 코크스의 주 역할이 장입물의 기계적 지지, 통기성 확보, 환원가스 CO 재생, 열 공급이라는 점을 확인했다."
+    },
+    {
+     "title": "Serenčíšová et al., Acta Geodynamica et Geomaterialia 15(3), 2018",
+     "url": "https://www.irsm.cas.cz/materialy/acta_content/2018_doi/Serencisova_AGG_2018_0023.pdf",
+     "what": "CRI와 CSR 사이에 강한 음의 상관(R² = 0.977)이 있다는 점을 확인했다. 이 수치는 저자들이 Menéndez 등의 연구를 인용한 것이다."
+    },
+    {
+     "title": "Ryan and Price, BCGS Paper 1993-1-45",
+     "url": "https://cmscontent.nrs.gov.bc.ca/geoscience/publicationcatalogue/Paper/BCGS_P1993-01-45_Ryan.pdf",
+     "what": "CRI는 반응 중 줄어든 무게의 백분율이고, CSR은 드럼에서 꺼낸 탄소 물질 가운데 일정 크기 이상인 비율이라는 정의를 확인했다(앞선 편집자 확인, 이번 검증에서는 다시 열지 못함)."
+    }
+   ],
+   "questions": [
+    {
+     "lv": 1,
+     "t": "mc",
+     "q": "CO2와 반응시킨 코크스를 드럼에서 굴린 뒤 체 위에 덩어리로 남은 무게 비율을 뜻하는 지표는?",
+     "o": [
+      "CRI (코크스 반응성 지수)",
+      "CSR (반응 후 코크스 강도)",
+      "DI (드럼 강도 지수)",
+      "회분 함량"
+     ],
+     "a": 1,
+     "h": "반응을 거친 뒤 한 번 더 거치는 시험을 떠올린다.",
+     "w": "반응 뒤 드럼에서 버틴 비율은 CSR이다. CRI는 반응으로 줄어든 무게 비율, DI는 반응 없이 드럼에 굴린 강도, 회분은 성분 지표다.",
+     "from": "def"
+    },
+    {
+     "lv": 2,
+     "t": "ox",
+     "q": "CSR은 값이 낮을수록 고로에 좋은 코크스다.",
+     "a": false,
+     "h": "강도를 나타내는 숫자가 커지면 어떤 뜻인지 생각한다.",
+     "w": "CSR은 반응 뒤에도 덩어리로 남은 비율이라 높을수록 좋다. 낮을수록 좋은 쪽은 CRI다.",
+     "from": "traits"
+    },
+    {
+     "lv": 3,
+     "t": "mc",
+     "q": "CRI와 CSR을 비교한 설명으로 맞는 것은?",
+     "o": [
+      "CRI는 반응으로 잃은 무게 비율이고 CSR은 반응 뒤 남은 강도다",
+      "CRI는 드럼 시험 결과이고 CSR은 반응으로 잃은 무게 비율이다",
+      "두 지표 모두 값이 높을수록 좋은 코크스를 뜻한다",
+      "두 지표는 서로 다른 시료를 따로 준비해서 잰다"
+     ],
+     "a": 0,
+     "h": "어느 지표가 무게 감소를 재고 어느 지표가 드럼을 쓰는지 나눠 본다.",
+     "w": "CRI는 반응 중 무게 감소, CSR은 그 시료를 드럼에서 굴린 뒤 남은 비율이다. 두 지표는 같은 시료로 이어서 재고, CRI는 낮을수록 좋다.",
+     "from": "contrast"
+    },
+    {
+     "lv": 4,
+     "t": "mc",
+     "q": "코크스 200g을 반응시켰더니 160g이 남았다. 이 160g을 드럼에서 굴린 뒤 체 위에 남은 무게는 104g이었다. CSR은 얼마인가?",
+     "o": [
+      "52%",
+      "65%",
+      "80%",
+      "20%"
+     ],
+     "a": 1,
+     "h": "분모에는 처음 무게가 아니라 반응 뒤 무게를 넣는다.",
+     "w": "CSR은 104를 160으로 나눈 65%다. 52%는 처음 무게 200g으로 나눈 값이고, 20%는 CRI, 80%는 반응 뒤 남은 무게의 비율이다.",
+     "from": "example"
+    }
+   ],
+   "notes": "이 세션에서는 store.astm.org, en.wikipedia.org, pmc.ncbi.nlm.nih.gov, www.jstage.jst.go.jp, www.irsm.cas.cz, cdn.standards.iteh.ai 호스트가 막혀 원문을 직접 열지 못했고, 모든 확인은 검색 요약으로 했다. ASTM 절차는 신일본제철(Nippon Steel) 시험법을 본떴다(ASTM 목록 요약). 자료의 'PLV 규격 CSR 약 71' 같은 상품 규격값은 시간이 지나면 바뀌므로 카드에 넣지 않았다."
+  },
+  "issues": [
+   {
+    "field": "measure",
+    "problem": "ASTM D5341 조건을 19~21mm(20±1mm) 입자와 10mm 체로 적었다. ASTM 원문 발췌와 이를 인용한 논문은 19.0~22.4mm 입자와 9.5mm 체를 쓴다. 20±1mm와 10mm는 신일본제철 방식이나 다른 표준의 값이다.",
+    "fix": "ASTM 기준을 19.0~22.4mm, 9.5mm 체로 고쳤다. 확인되지 않은 'CO2 1기압'은 뺐다."
+   },
+   {
+    "field": "def",
+    "problem": "정의에 '10mm 이상'을 넣었지만 표준마다 9.5mm와 10mm 체를 쓰므로 어느 한쪽에 고정하면 틀린다(ISO 18894:2006은 둘 다 허용).",
+    "fix": "'체 위에 덩어리로 남은 무게 비율'로 바꾸고, 체 크기 차이는 traits와 measure에 적었다."
+   },
+   {
+    "field": "traits[3]",
+    "problem": "'반응성이 아주 높은 코크스 평가에는 맞지 않는다는 지적'은 출처 원문을 열지 못해 확인하지 못했다. GB/T 4000의 23~25mm는 2008년판 기준인데 판을 밝히지 않았다.",
+    "fix": "표준 사이의 입자와 체 크기 차이로 바꾸고 GB/T 4000-2008로 판을 밝혔다."
+   },
+   {
+    "field": "example, questions[3]",
+    "problem": "예시 CRI 35%는 ISO 18894의 주 적용 범위(CRI 약 33 미만)를 벗어나 고로용 코크스 예시로 어색하다.",
+    "fix": "반응 뒤 160g, 체 위 104g으로 바꿔 CRI 20%, CSR 65%가 되게 했다. 4번 문제 보기와 해설도 맞췄다."
+   },
+   {
+    "field": "questions[0]",
+    "problem": "'10mm 이상' 표현이 정의와 같은 문제를 안고 있고, 보기 '휘발분 함량'은 너무 쉽게 걸러지는 오답이었다.",
+    "fix": "문장을 '체 위에 덩어리로 남은'으로 고치고, 오답 하나를 반응 없이 드럼 강도를 재는 'DI (드럼 강도 지수)'로 바꿨다."
+   },
+   {
+    "field": "src",
+    "problem": "위키백과의 19~21mm 값과 ISIJ 논문의 20±1mm 값이 ASTM 원문 발췌(19.0~22.4mm)와 어긋난다. Serenčíšová 논문의 R² 0.977은 저자 자신의 결과가 아니라 Menéndez 등을 인용한 값이다.",
+    "fix": "위키백과와 ISIJ 출처를 뺐다. ISO 18894와 Techniques de l'Ingénieur를 더했다. R² 수치가 인용값임을 what에 밝혔다."
+   }
+  ],
+  "unverified": [
+   "ASTM D5341 원문 페이지를 직접 열지 못했다. 200g, 1,100°C, 2시간, 600회 30분, 9.5mm 체, 19.0~22.4mm 입자는 사본 발췌와 논문, 특허의 검색 요약으로 맞춰 본 것이다.",
+   "'CO2 1기압' 조건은 확인하지 못해 카드에서 뺐다.",
+   "반응성이 아주 높은 코크스에는 CSR 시험이 맞지 않는다는 지적(Nomura 등)은 원문을 열지 못해 카드에서 뺐다.",
+   "GB/T 4000-2017 현행판이 2008년판의 23~25mm, 10mm 조건을 그대로 두었는지는 확인하지 못했다.",
+   "ISO 18894:2018 현행판이 9.5mm와 10.0mm 체를 둘 다 허용하는지는 2006년판 정의로만 확인했다.",
+   "Ryan and Price 출처는 이번 검증에서 다시 열지 못했다."
+  ]
+ },
+ {
+  "key": "caking",
+  "card": {
+   "name": "점결성",
+   "en": "Caking property",
+   "def": "점결성은 석탄을 공기 없이 가열할 때 입자가 물러져 서로 엉겨 붙고 한 덩어리로 굳는 성질이다.",
+   "traits": [
+    "역청탄을 공기 없이 약 300~550℃로 가열하면 일시적으로 물러지는 가소 단계를 거친다. 이때 휘발분이 나오며 입자가 부풀고 서로 들러붙었다가 다시 굳는다.",
+    "점결성이 있다고 모두 코크스용은 아니다. 고로에 쓸 수 있는 코크스를 만들 만큼 점결성이 강한 석탄만 코킹탄이라 한다.",
+    "도가니 팽창 지수(FSI/CSN)가 높으면 점결성이 강하다고 본다. 다만 ASTM D720은 이 값으로 코크스로 안에서의 팽창을 판정하는 것을 권하지 않는다."
+   ],
+   "measure": "도가니 팽창 지수는 ISO 501에서는 CSN(crucible swelling number), ASTM D720에서는 FSI(free-swelling index)라고 부르며 같은 지표다. 가열한 뒤 남은 코크스 버튼을 1~9번 표준 윤곽과 비교해 값을 정한다. 가소 단계에서 녹는 정도는 ASTM D2639의 기슬러 유동도로 잰다. 최대 유동도는 ddpm(분당 눈금 수)으로 적고, 고화 온도에서 초기 연화 온도를 뺀 값을 가소 범위로 적는다.",
+   "contrast": [
+    {
+     "with": "코크스화성",
+     "diff": "점결성은 가열할 때 엉겨 붙는 성질이다. 코크스화성은 그 결과 고로에 쓸 수 있는 코크스를 만드는 능력이라서 점결성보다 조건이 더 좁다."
+    },
+    {
+     "with": "가소성",
+     "diff": "가소성은 가열 중 석탄이 잠깐 녹아 끈적해지는 상태를 말한다. 점결성은 그 상태를 거쳐 입자들이 한 덩어리로 굳는 결과를 가리킨다."
+    }
+   ],
+   "example": "석탄 시료 두 개를 같은 조건에서 시험했다. A의 FSI는 8, B의 FSI는 1이다. A는 크게 부푼 코크스 버튼을 남기므로 B보다 점결성이 강하다고 본다. 그러나 FSI만 보고 코크스로 안에서의 팽창이나 코크스 품질을 확정하지는 않는다.",
+   "analogy": "떡가루를 찌면 말랑해졌다가 한 덩어리 떡으로 굳는 것과 비슷하다.",
+   "src": [
+    {
+     "title": "Britannica, caking coal",
+     "url": "https://www.britannica.com/science/caking-coal",
+     "what": "가열할 때 물러지며 엉겨 붙는 석탄을 점결탄이라 한다. 그중 고로에 쓸 수 있는 성질의 코크스를 만드는 강한 점결탄을 코킹탄이라 한다. 코킹탄은 모두 점결탄이지만 점결탄이 모두 코크스 제조에 맞지는 않는다. 페이지가 이 환경에서 열리지 않아 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "ISO 501:2025 Hard coal - Determination of the crucible swelling number",
+     "url": "https://www.iso.org/standard/86994.html",
+     "what": "현행판은 2025년 5월에 나온 5판이다. 덮개 있는 도가니에서 석탄을 가열해 팽창성을 재는 방법을 정한다. CSN이 FSI로도 불린다는 주석이 있다. 가장 가까운 표준 윤곽의 번호를 값으로 삼는다. 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "ASTM D720/D720M-25 Standard Test Method for Free-Swelling Index of Coal",
+     "url": "https://store.astm.org/d0720_d0720m-25.html",
+     "what": "적용 범위에 따르면 소규모 경험적 시험이고, 결과는 연료로 태울 때의 점결 특성을 보여 주는 지표로 쓸 수 있다. 의의와 용도 항목에는 산화 정도를 대략 보여 준다는 내용과, 코크스로 안에서의 팽창을 판정하는 방법으로는 권하지 않는다는 내용이 있다. 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "ASTM D2639/D2639M-23 Plastic Properties of Coal by the Constant-Torque Gieseler Plastometer",
+     "url": "https://cdn.standards.iteh.ai/samples/114803/02a4a466fb9d4e6fb4a38d6625da5d8d/ASTM-D2639-D2639M-23.pdf",
+     "what": "최대 유동도는 교반기의 최대 회전 속도이며 ddpm으로 적는다. 초기 연화 온도는 처음으로 1.0 ddpm 이상이 되는 온도다. 가소 범위는 고화 온도에서 초기 연화 온도를 뺀 값이다. 고화 온도의 정의는 판마다 조금 다르다. 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "US Patent 12613176, Method for evaluating thermoplasticity of coal or caking additive",
+     "url": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/12613176",
+     "what": "코크스용 석탄과 점결재는 약 300~550℃에서 가소화되며, 휘발분 때문에 부풀고 입자끼리 붙어 반성 코크스 덩어리가 된다. 이후 약 1000℃까지 가열하면 수축하며 단단한 코크스가 된다. 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "SGS, Rheology of coal",
+     "url": "https://www.sgs.com/en/services/rheology-of-coal",
+     "what": "기슬러 유동도 시험으로 최대 유동도와 가소 범위를 잰다. 가소 범위는 초기 연화 온도와 재고화 온도의 차이이고, 최대 유동도는 ddpm으로 적는다. 검색 결과 발췌로 확인했다."
+    },
+    {
+     "title": "US Bureau of Mines RI 3989, Free-Swelling Index of Coal",
+     "url": "https://onemine.org/documents/ri-3989-an-investigation-of-a-laboratory-test-for-determination-of-the-free-swelling-index-of-coal",
+     "what": "곱게 간 석탄 1g을 실리카 도가니에서 가열한다. 버튼의 최대 단면적에 가장 가까운 표준 윤곽 번호를 지수로 삼는다. 1948년 개정판(RI 4238)은 1~9번 표준 윤곽을 쓴다. 검색 결과 발췌로 확인했다."
+    }
+   ],
+   "questions": [
+    {
+     "lv": 1,
+     "t": "mc",
+     "q": "석탄을 공기 없이 가열할 때 입자가 물러져 서로 엉겨 붙고 한 덩어리로 굳는 성질은 무엇인가?",
+     "o": [
+      "분쇄성",
+      "점결성",
+      "코크스 반응성",
+      "자연 발화성"
+     ],
+     "a": 1,
+     "h": "가루가 덩어리가 되는 성질이다.",
+     "w": "가열하면 입자가 엉겨 붙어 덩어리가 되는 성질은 점결성이다. 분쇄성은 잘 갈리는 정도, 코크스 반응성은 코크스가 가스와 반응하는 정도, 자연 발화성은 저절로 불이 붙는 성질이다.",
+     "from": "def"
+    },
+    {
+     "lv": 2,
+     "t": "ox",
+     "q": "점결성이 있는 석탄은 모두 고로용 코크스를 만들 수 있다.",
+     "a": false,
+     "h": "점결탄과 코킹탄 가운데 어느 쪽이 더 넓은 범위인지 생각한다.",
+     "w": "코킹탄은 모두 점결탄이지만 그 반대는 아니다. 점결탄 가운데 점결성이 충분히 강한 것만 고로용 코크스를 만든다.",
+     "from": "traits"
+    },
+    {
+     "lv": 3,
+     "t": "mc",
+     "q": "다음 중 코크스화성을 설명한 것은?",
+     "o": [
+      "가열 중 석탄이 잠깐 녹아 끈적해지는 상태다",
+      "가열할 때 입자들이 서로 엉겨 붙는 성질 그 자체다",
+      "고로에 쓸 수 있는 코크스를 만드는 능력이다",
+      "도가니 팽창 지수 하나만 보면 정해진다"
+     ],
+     "a": 2,
+     "h": "만들어진 결과물을 어디에 쓸 수 있는지 따지는 성질이다.",
+     "w": "코크스화성은 고로에 쓸 수 있는 코크스를 만드는 능력이다. 첫째 보기는 가소성, 둘째 보기는 점결성이다. FSI 하나만으로는 코크스화성을 판정하지 않는다.",
+     "from": "contrast"
+    },
+    {
+     "lv": 4,
+     "t": "mc",
+     "q": "같은 조건에서 시험한 결과 시료 A의 FSI는 8, 시료 B의 FSI는 1이다. 맞는 판단은?",
+     "o": [
+      "B가 A보다 점결성이 강하다",
+      "A는 코크스로 안에서도 반드시 더 크게 팽창한다",
+      "FSI로는 두 시료의 점결성을 비교할 수 없다",
+      "A가 B보다 점결성이 강하다"
+     ],
+     "a": 3,
+     "h": "코크스 버튼이 더 크게 부풀수록 지수가 높다.",
+     "w": "FSI가 높으면 점결성이 강하다고 보므로 A가 더 강하다. ASTM D720은 FSI로 코크스로 안에서의 팽창을 판정하는 것을 권하지 않으므로 반드시 더 크게 팽창한다는 판단은 틀렸다.",
+     "from": "example"
+    }
+   ],
+   "notes": "[네트워크 제한] 이 세션에서는 www.britannica.com, www.iso.org, store.astm.org, cdn.standards.iteh.ai, link.springer.com, www.sgs.com, onemine.org, stacks.cdc.gov, www.911metallurgist.com 이 열리지 않았다. 모든 출처는 웹 검색 결과 발췌로만 확인했다. 원문으로 다시 확인하려면 이 호스트들을 세션 네트워크 설정에서 허용해야 한다.\n\n[점결성과 코크스화성] 점결성(caking)은 가열할 때 물러져 엉겨 붙는 성질이다. 코크스화성(coking)은 그 결과 고로에 쓸 수 있는 코크스를 만드는 능력이다. 코킹탄은 모두 점결탄이지만 점결탄이 모두 코킹탄은 아니다(Britannica).\n\n[가소 온도 범위] 출처마다 경계가 조금 다르다. 특허 문헌은 약 300~550℃, 일본 학술지 초록은 350~500℃를 가소 단계로 든다. 석탄 등급과 가열 속도에 따라 달라진다.\n\n[가소성과의 관계] 가소성은 가열 중 일시적으로 물러지는 단계이고, 점결성은 그 단계를 거쳐 덩어리로 굳는 결과다. 기슬러 유동도는 가소 단계에서 얼마나 녹는지를, FSI는 덩어리가 얼마나 부푸는지를 잰다. 둘 다 점결성을 재는 측정값이다.\n\n[합칠지 따로 둘지 판단] 합치는 쪽을 권한다. 가소성은 이 카드의 특징과 구분 항목으로, 유동성과 팽창성은 측정 기준으로 넣는다. 코크스화성은 '경질 코킹탄' 카드의 정의 쪽에 둔다. 분과를 너무 잘게 나누지 말라는 사용자 지시와 맞는다.\n\n[메모 보완] 11/23 메모의 정의 '열을 가했을 때 서로 엉겨붙는 성질'에는 '공기를 차단하고 가열할 때'라는 조건이 빠져 있어서 정의에 넣었다."
+  },
+  "issues": [
+   {
+    "field": "src[4] (Springer 2017 리뷰)",
+    "problem": "DOI 10.1007/s40789-017-0171-4로 검색해도 해당 논문의 제목과 내용을 찾지 못했고 페이지도 열리지 않았다. 출처로 확인되지 않는다.",
+    "fix": "이 출처를 빼고, 300~550℃ 가소화와 팽창, 재고화를 적은 미국 특허 12613176 발췌로 바꿨다. notes에 출처마다 350~500℃처럼 범위가 다르다는 점을 적었다."
+   },
+   {
+    "field": "src[2] (ASTM D720) what",
+    "problem": "산화 정도를 보여 준다는 내용은 적용 범위가 아니라 의의와 용도 항목에 있다.",
+    "fix": "적용 범위와 의의와 용도 항목을 나눠 적었다."
+   },
+   {
+    "field": "traits[1], contrast[0], questions[2].o[2]",
+    "problem": "Britannica는 '고로에 쓸 수 있는 성질의 코크스'라고 할 뿐 '단단한'이라고 하지 않는다. 출처에 없는 말을 덧붙였다.",
+    "fix": "'고로에 쓸 수 있는 코크스'로 고쳤다."
+   },
+   {
+    "field": "traits[2], example, questions[3].w",
+    "problem": "ASTM D720은 FSI를 점결 특성의 '지표'로 쓸 수 있다고만 하는데, 카드는 'FSI가 높을수록 점결성이 강하다'고 단정했다. 또 '쓰지 말라고 한다'는 원문의 '권하지 않는다'보다 강하다.",
+    "fix": "'점결성이 강하다고 본다', '판정하는 것을 권하지 않는다'로 표현을 낮췄다."
+   },
+   {
+    "field": "measure",
+    "problem": "가소 범위를 '연화가 시작된 온도에서 다시 굳는 온도까지의 폭'으로 풀어 썼는데, ASTM D2639 정의는 고화 온도에서 초기 연화 온도를 뺀 값이다.",
+    "fix": "규격의 정의대로 고쳤다."
+   },
+   {
+    "field": "notes",
+    "problem": "출처마다 확인 방법이 달라 열리지 않은 호스트 목록이 실제보다 적었다. 원래 교재 번호(해설 4-7 등)를 가리키는 부분은 검증할 수 없다.",
+    "fix": "열리지 않은 호스트 목록을 고치고, 확인할 수 없는 교재 번호를 빼 notes를 줄였다."
+   }
+  ],
+  "unverified": [
+   "Springer International Journal of Coal Science & Technology (2017) 리뷰 논문(DOI 10.1007/s40789-017-0171-4)의 실제 내용. 카드에서 뺐다.",
+   "CSN/FSI를 0.5 단위로 매기는지는 어느 출처에서도 확인하지 못했다.",
+   "FSI 범위가 1~9로 끝나는지. ASTM D720 본문 발췌에 9번 윤곽을 넘는 버튼은 보정 곡선을 늘려 쓴다는 말이 있어 원문으로 다시 확인해야 한다.",
+   "코킹탄으로 분류하려면 FSI가 얼마 이상이어야 하는지.",
+   "ISO 1213-2(석탄·코크스 용어집)에 실린 caking과 coking의 공식 정의 문구.",
+   "G 점결 지수와 그 근거 규격(GB/T 5447로 추정).",
+   "Britannica, ISO, ASTM, SGS, 미국 광산국 RI 3989 원문. 모두 검색 결과 발췌로만 확인했다."
+  ]
+ },
+ {
+  "key": "relativity",
+  "card": {
+   "name": "상대가격",
+   "en": "Brand relativity (to the Platts Premium Low Vol Hard Coking Coal benchmark)",
+   "def": "상대가격은 특정 브랜드 석탄의 시장 가격을 기준 지수인 PLV(프리미엄 저휘발 강점결탄) 가격에 대한 백분율로 나타낸 값이다.",
+   "traits": [
+    "Platts는 시장 설문으로 브랜드별 상대가격을 평가하고, 이를 PLV 강점결탄 FOB 호주 가격 대비 백분율로 낸다.",
+    "미리 정한 할인율이 아니어서 품질이 그대로여도 수급, 구매자 선호, 대체 공급이 바뀌면 값이 달라진다.",
+    "시장 참여자는 CSR, 휘발분 같은 품질 차이를 항목별 가감 대신 브랜드 상대가격 하나로 묶어서 본다.",
+    "브랜드 가격과 PLV 가격의 인도 조건을 같게 맞춰 비교하며, Platts의 주력 브랜드 상대가격은 FOB 호주 기준이다."
+   ],
+   "measure": "상대가격(%) = 해당 브랜드 가격 ÷ PLV 가격 × 100이고, 두 가격의 인도 조건은 같게 맞춘다(예: 둘 다 FOB 호주). 기준이 되는 PLV는 CSR 71%, 휘발분 21.5%, 회분 9.3%, 수분 9.7%, 황 0.5% 사양으로 맞춘 가격이다.",
+   "contrast": [
+    {
+     "with": "가격 실현율 (price realisation)",
+     "diff": "가격 실현율은 한 회사가 일정 기간 실제로 받은 평균 판매가를 같은 기간 PLV 평균으로 나눈 회사별 성과 비율이고, 상대가격은 특정 브랜드 석탄의 시장 평가 비율이다."
+    },
+    {
+     "with": "품질 가감 조정 (penalties and premia)",
+     "diff": "품질 가감 조정은 기준 지수에 CSR, 휘발분 같은 품질 항목 1단위 차이마다 정해진 금액이나 비율을 더하거나 빼는 방식이고, 상대가격은 품질 차이 전체를 브랜드 가격 비율 하나로 나타낸다."
+    }
+   ],
+   "example": "PLV FOB 호주 가격이 톤당 200달러이고 어떤 고휘발 강점결탄 브랜드의 FOB 호주 가격이 150달러면 상대가격은 150 ÷ 200 × 100 = 75%다. 둘 중 하나를 CFR 중국 가격으로 바꾸면 운임이 섞여 비율이 틀어진다.",
+   "analogy": "기준 석탄 가격을 100점으로 놓고 내 석탄이 몇 점을 받는지 보는 성적표다.",
+   "src": [
+    {
+     "title": "S&P Global Commodity Insights, The hidden language of coking coal: what relativities really tell us",
+     "url": "https://www.spglobal.com/energy/en/news-research/blog/metals/100926-the-hidden-language-of-coking-coal-what-relativities-really-tell-us",
+     "what": "Platts는 시장 설문으로 각 브랜드의 상대가격을 PLV 강점결탄 FOB 호주(PLVHA00) 대비 백분율로 평가한다. 저휘발 강점결탄 상대가격은 PLV에 대한 미리 정한 할인율에서 나오지 않는다. 상대가격은 품질뿐 아니라 수급, 구매자 선호, 배합 수요, 대체 공급의 영향을 받는다."
+    },
+    {
+     "title": "Platts subscriber note, Platts launches Caval Ridge coking coal brand relativity assessment, discontinues relativities with lower spot liquidity",
+     "url": "https://www.spglobal.com/energy/en/pricing-benchmarks/our-methodology/subscriber-notes/090224-platts-launches-caval-ridge-coking-coal-brand-relativity-assessment-discontinue-relativities-with-lower-spot-liquidity",
+     "what": "브랜드 상대가격은 Platts의 정식 가격평가 항목이고 FOB 호주 기준으로 평가한다. 현물 유동성에 따라 브랜드별 상대가격 평가를 새로 내거나 중단한다."
+    },
+    {
+     "title": "Platts subscriber note, Platts discontinues FOB Australia metallurgical coal penalties and premia differentials",
+     "url": "https://www.spglobal.com/energy/en/pricing-benchmarks/our-methodology/subscriber-notes/090224-platts-discontinues-fob-australia-metallurgical-coal-penalties-premia-differentials",
+     "what": "Platts는 PLV FOB 호주 대비 비율로 내던 FOB 호주 품질 가감 차등의 발행을 중단했다. 시장 참여자가 석탄 간 품질 차이를 가감이 아니라 PLV FOB 호주 대비 브랜드 상대가격으로 본다는 피드백이 이유였다. 미국 저휘발 강점결탄 가감은 계속 발행한다."
+    },
+    {
+     "title": "S&P Global Platts, Metallurgical coal methodology and specifications guide",
+     "url": "https://www.spglobal.com/commodityinsights/plattscontent/_assets/_files/en/our-methodology/methodology-specifications/metcoalmethod.pdf",
+     "what": "PLV 평가 사양은 CSR 71%, 휘발분 21.5%, 전수분 9.7%, 회분 9.3%, 황 0.5%다(황, 회분, 휘발분은 기건 기준)."
+    },
+    {
+     "title": "S&P Global, Premium Low Vol coking coal price explained",
+     "url": "https://www.spglobal.com/energy/en/pricing-benchmarks/assessments/metals/premium-low-vol-coking-coal-price-explained",
+     "what": "PLV 강점결탄 기준 가격을 같은 CSR, 휘발분, 회분, 황 값으로 정규화한다는 설명."
+    },
+    {
+     "title": "Whitehaven Coal, December 2024 Quarter Production Report Transcript",
+     "url": "https://whitehavencoal.com.au/wp-content/uploads/2025/01/WHC-December-2024-Quarter-Production-Report-Transcript.pdf",
+     "what": "광산 회사가 분기 평균 실현 판매가를 Platts PLV HCC 지수와 비교한 비율(PLV의 몇 %)을 가격 실현율로 보고한다는 점(contrast 근거)."
+    }
+   ],
+   "questions": [
+    {
+     "lv": 1,
+     "t": "mc",
+     "q": "특정 브랜드 석탄의 시장 가격을 PLV 가격에 대한 백분율로 나타낸 값은 무엇인가?",
+     "o": [
+      "가격 실현율",
+      "상대가격",
+      "품질 가감 조정",
+      "순회수가격(넷백)"
+     ],
+     "a": 1,
+     "h": "회사 실적이 아니라 석탄 브랜드 하나의 값을 묻는다.",
+     "w": "브랜드 가격을 PLV 대비 백분율로 낸 값이 상대가격이다. 가격 실현율은 회사가 받은 평균가 비율이고, 품질 가감 조정은 품질 항목별로 더하고 빼는 방식이며, 넷백은 판매가에서 운임 등을 뺀 값이다.",
+     "from": "def"
+    },
+    {
+     "lv": 2,
+     "t": "ox",
+     "q": "상대가격은 PLV에 대한 고정 할인율로 정해져 수급이 바뀌어도 거의 변하지 않는다.",
+     "a": false,
+     "h": "Platts가 상대가격을 어떤 방식으로 평가하는지 떠올려 본다.",
+     "w": "상대가격은 미리 정한 할인율이 아니라 시장 설문으로 평가한다. 그래서 수급, 구매자 선호, 대체 공급이 바뀌면 값이 달라진다.",
+     "from": "traits"
+    },
+    {
+     "lv": 3,
+     "t": "mc",
+     "q": "한 광산 회사가 분기 동안 실제로 받은 평균 판매가를 같은 분기 PLV 평균으로 나눈 값은 무엇인가?",
+     "o": [
+      "상대가격",
+      "품질 가감 조정",
+      "순회수가격(넷백)",
+      "가격 실현율"
+     ],
+     "a": 3,
+     "h": "브랜드 하나가 아니라 회사 전체의 판매 결과를 본다.",
+     "w": "회사가 받은 평균가를 PLV 평균으로 나눈 값은 가격 실현율이다. 상대가격은 특정 브랜드의 시장 평가 비율이고, 품질 가감 조정은 품질 차이를 더하고 빼는 방식이며, 넷백은 비율이 아니라 운임 등을 뺀 금액이다.",
+     "from": "contrast"
+    },
+    {
+     "lv": 4,
+     "t": "mc",
+     "q": "PLV FOB 호주 가격이 톤당 240달러이고, 어떤 저휘발 강점결탄 브랜드의 FOB 호주 상대가격이 80%다. 이 브랜드의 FOB 호주 가격은 톤당 얼마인가?",
+     "o": [
+      "$300",
+      "$160",
+      "$192",
+      "$48"
+     ],
+     "a": 2,
+     "h": "상대가격(%) = 브랜드 가격 ÷ PLV 가격 × 100을 떠올린다.",
+     "w": "240 × 0.8 = 192달러다. 300달러는 240을 0.8로 나눈 값이고, 160달러는 80을 그대로 뺀 값이며, 48달러는 PLV와의 차이일 뿐 가격이 아니다.",
+     "from": "example"
+    }
+   ],
+   "notes": "검증 환경 제약: www.spglobal.com과 whitehavencoal.com.au는 이 세션의 네트워크 설정에서 막혀 본문을 직접 열지 못했다. 두 곳의 내용은 웹 검색 결과에 나온 페이지 요약과 인용문으로 확인했다. 원문을 직접 읽으려면 세션 네트워크 설정에서 두 호스트를 허용해야 한다. 품질 가감 차등 발행 중단은 2024년 1월 제안, 2024년 6월 확정 공지를 거쳐 2024년 9월 2일부터 시행됐다(검색 결과로 확인). 2026년 1월 2일부터 Platts는 CFR 중국 브랜드 평가와 그 상대가격, Peak Downs 지역 평가를 중단했다(검색 결과로 확인). 그래서 브랜드 상대가격은 FOB 호주 기준이 중심이다. 시간이 지나면 바뀌는 수치라 카드에서 뺀 것(참고용): Whitehaven의 2026년 3월 분기 원료탄 가격 실현율은 PLV의 약 72%였고, 12개월 평균은 74%였다(투자자 설명회 녹취 검색 결과). 2026년 9월 분기 공시도 12개월 평균 74%였다. 프리미엄 중휘발 강점결탄 상대가격은 보통 96~97% 부근이지만 한때 102%까지 올랐다(Platts 보도). 이전 편집자가 적은 '지난 10년 저휘발 강점결탄 상대가격 월평균 75~95%', 'PCI 상대가격 2021년 3월 24일 99.5%, 2023년 9월 53.4%'는 이번 검증에서 확인하지 못했다."
+  },
+  "issues": [
+   {
+    "field": "traits[1]",
+    "problem": "출처는 '미리 정한 할인율이 아니다'와 품질 외에 수급, 구매자 선호, 배합 수요, 대체 공급이 영향을 준다고 말한다. '구매자 참여, 교역 흐름에 따라 시장이 계속 다시 매긴다'는 출처 표현보다 넓게 풀어 쓴 것이다.",
+    "fix": "'품질이 그대로여도 수급, 구매자 선호, 대체 공급이 바뀌면 값이 달라진다'로 고치고 lv2 해설과 src.what도 같이 맞췄다."
+   },
+   {
+    "field": "traits[3]",
+    "problem": "'Platts의 브랜드 상대가격은 FOB 호주 기준 가격끼리 비교한 값'이라고 단정했다. 하지만 Platts는 2026년 1월 2일까지 PLV CFR 중국 대비 상대가격도 냈다. 그래서 늘 FOB 호주 기준이었던 것처럼 읽힌다.",
+    "fix": "인도 조건을 같게 맞춘다는 원칙을 앞세우고, '주력 브랜드 상대가격은 FOB 호주 기준'으로 범위를 좁혔다."
+   },
+   {
+    "field": "en",
+    "problem": "Platts의 공식 용어는 'brand relativity'다. 그런데 카드는 설명을 늘어놓은 문구를 썼다.",
+    "fix": "'Brand relativity (to the Platts Premium Low Vol Hard Coking Coal benchmark)'로 바꿨다."
+   },
+   {
+    "field": "src[3]",
+    "problem": "'반복 거래 가능한 현물 가격'이라는 표현은 확인하지 못했다. PLV 사양 숫자도 1차 문서인 방법론 안내서를 출처로 달지 않았다.",
+    "fix": "Platts 방법론 안내서(metcoalmethod.pdf)를 사양 숫자의 출처로 더했다(전수분, 기건 기준 단서 포함). 설명 페이지의 what은 정규화 설명으로 줄였다."
+   },
+   {
+    "field": "questions[2].o",
+    "problem": "오답 'PLV 기준 사양'은 비율 값이 아니어서 바로 지워지는 약한 보기였다.",
+    "fix": "'순회수가격(넷백)'으로 바꾸고 해설에 왜 틀린지 더했다."
+   },
+   {
+    "field": "questions[3].h",
+    "problem": "힌트 '상대가격은 PLV에 곱하는 비율이다'가 계산 방법을 거의 알려 준다.",
+    "fix": "정의식을 떠올리게 하는 힌트로 바꿨다."
+   },
+   {
+    "field": "notes",
+    "problem": "'Whitehaven의 2026년 3월 분기 원료탄 가격 실현율은 PLV의 74%'는 틀렸다. 그 분기 값은 약 72%이고, 74%는 12개월 평균이다. 가감 차등 중단 시행 연도는 '추정'으로 적혀 있었다.",
+    "fix": "72%(분기), 74%(12개월 평균)로 고쳤다. 2024년 시행은 2024년 1월 제안과 2024년 6월 확정 공지로 확인했다고 고쳐 적었다."
+   }
+  ],
+  "unverified": [
+   "www.spglobal.com과 whitehavencoal.com.au 본문은 네트워크 차단으로 직접 열지 못했다. 카드의 S&P Global 및 Whitehaven 관련 사실은 웹 검색 결과의 요약과 인용문으로만 확인했다.",
+   "지난 10년 저휘발 강점결탄 상대가격 월평균이 대략 75~95%였다는 수치(notes에만 있음, 카드 본문에는 없음).",
+   "PCI 상대가격이 2021년 3월 24일 99.5%, 2023년 9월 53.4%였다는 수치(notes에만 있음, 카드 본문에는 없음).",
+   "2등급 석탄의 상대가격이 시장이 약할 때 더 크게 낮아진다는 주장(카드에 넣지 않음)."
+  ]
+ }
+]

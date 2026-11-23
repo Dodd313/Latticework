@@ -14,8 +14,8 @@ export type TaxNode = { id: string; ko: string; short?: string; en?: string; ran
 /** node 는 이 개념이 달린 마디(분과나 주제). field, topic 은 예전 자료에만 있고 읽지 않는다. */
 export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string };
 
-/** lv 1 인식 · 2 특징 · 3 구분 · 4 적용 · 5 설명. t 는 mc(4지선다), ox(맞다·틀리다), rc(떠올리고 스스로 채점). */
-export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox' | 'rc'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string; r?: string };
+/** lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다). */
+export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string };
 
 /** mis: 흔한 실수(어색한 연어). bad 는 term 과 같은 자리에 들어가는 꼴이라 빈칸과 정의 문제의 오답으로 쓴다. */
 export type VocMistake = { bad: string; good: string; why: string };
@@ -57,7 +57,8 @@ export const VOC_NEW_PER_DAY = 6;
 export const VOC_REVIEW_CAP = 10;
 export const LAT_NEW_PER_DAY = 3;
 
-export const LEVEL_NAME: Record<number, string> = { 1: '인식', 2: '특징', 3: '구분', 4: '적용', 5: '설명' };
+// 개념마다 4단계. 5단계(자기 말로 설명)는 문제 집합에서 뺐다 (2026-11-23 소유자 결정).
+export const LEVEL_NAME: Record<number, string> = { 1: '인식', 2: '특징', 3: '구분', 4: '적용' };
 
 export function emptyStudy(today: string): StudyState {
   return { v: 1, start: today, cards: {}, days: {}, xp: 0 };
@@ -256,15 +257,13 @@ export function conceptsOfNode(data: StudyData, nodeId: string): Concept[] {
 function latQ(data: StudyData, c: Concept, x: LatQuestion): Q {
   const kicker = [disciplineOf(data, c.id)?.ko, c.name].filter(Boolean).join(' · ');
   const base = { key: x.id, unit: c.id, sect: 'lat' as Section, type: `lv${x.lv}`, kicker, q: x.q, pre: x.pre };
-  if (x.t === 'rc') return { ...base, reveal: x.r ?? '' };
   if (x.t === 'ox') return { ...base, options: ['맞다', '틀리다'], answer: x.a ? 0 : 1, hint: x.h, explain: x.w };
   return { ...base, options: x.o ?? [], answer: typeof x.a === 'number' ? x.a : 0, hint: x.h, explain: x.w };
 }
 
 /** 그 개념에서 가장 덜 낸 유형의 문제를 고른다. 처음 보는 개념은 쉬운 유형부터. */
 function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, skip: Set<string>): LatQuestion | null {
-  // 자기 말로 설명하는 문제(rc)는 내지 않는다 (2026-11-19 사용자 결정).
-  const own = qs.filter((x) => x.cid === c.id && x.t !== 'rc' && !skip.has(x.id));
+  const own = qs.filter((x) => x.cid === c.id && !skip.has(x.id));
   if (own.length === 0) return null;
   const count = (x: LatQuestion) => card?.asked?.[`lv${x.lv}`] ?? 0;
   return own.slice().sort((a, b) => count(a) - count(b) || a.lv - b.lv)[0];
