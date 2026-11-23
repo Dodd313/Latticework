@@ -268,7 +268,7 @@ function branchOf(data: StudyData, c: Concept): string {
  * 한 학문, 한 분과만 몰려 나오지 않게 섞는다(2026-11-23 소유자 지적: CAPM 문제만 나온다).
  * 학문을 돌아가며 하나씩, 같은 학문 안에서는 분과를 돌아가며 하나씩 꺼낸다. 각 무리 안의 원래 순서(약한 순서, 자료 순서)는 지킨다.
  */
-export function mixByField(data: StudyData, list: Concept[]): Concept[] {
+export function mixByField(data: StudyData, list: Concept[], lastNew?: (discId: string) => string, learned?: (discId: string) => number): Concept[] {
   const discs = new Map<string, Map<string, Concept[]>>();
   for (const c of list) {
     const d = disciplineOf(data, c.id)?.id ?? '';
@@ -279,7 +279,10 @@ export function mixByField(data: StudyData, list: Concept[]): Concept[] {
     m.set(b, arr);
     arr.push(c);
   }
-  const queues = [...discs.values()].map((m) => {
+  // lastNew 가 있으면 새 개념을 가장 오래 안 배운 학문부터 돈다(한 번도 안 배운 학문이 맨 앞). 같으면 배운 개념이 적은 학문부터. 없으면 자료 순서.
+  const keys = [...discs.keys()];
+  if (lastNew) keys.sort((a, b) => (lastNew(a) < lastNew(b) ? -1 : lastNew(a) > lastNew(b) ? 1 : (learned?.(a) ?? 0) - (learned?.(b) ?? 0)));
+  const queues = keys.map((k) => discs.get(k)!).map((m) => {
     const lanes = [...m.values()];
     const out: Concept[] = [];
     for (let i = 0; lanes.some((l) => l.length); i++) {
@@ -359,7 +362,15 @@ export function buildLatFocus(data: StudyData, state: StudyState, today: string,
 function latOrder(data: StudyData, state: StudyState, today: string, now: Date, mode: 'daily' | 'weak', asked: Asked): Concept[] {
   const seen = data.concepts.filter((c) => state.cards[c.id]);
   // 새 개념과 빈자리를 채우는 복습은 학문과 분과를 번갈아 낸다. 복습할 때가 된 개념(due)은 약한 순서 그대로.
-  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id]));
+  const lastNew = new Map<string, string>();
+  const learned = new Map<string, number>();
+  for (const c of seen) {
+    const d = disciplineOf(data, c.id)?.id ?? '';
+    const f = state.cards[c.id].first ?? '';
+    if (f > (lastNew.get(d) ?? '')) lastNew.set(d, f);
+    learned.set(d, (learned.get(d) ?? 0) + 1);
+  }
+  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id]), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0);
   const byWeak = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const due = byWeak.filter((c) => state.cards[c.id].due <= today);
   const weakest = mixByField(data, byWeak);
