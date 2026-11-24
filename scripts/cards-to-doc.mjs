@@ -46,6 +46,11 @@ for (const g of doc.groups) {
       out.push(H3(++k, '예제'));
       out.push(`<table style="width:100%;border-collapse:collapse;"><tr><td style="background-color:${SHADE};padding:8pt 12pt;border:none;">${P('font-size:11pt;', esc(c.example))}</td></tr></table>`);
     }
+    for (const sb of c.sub ?? []) {
+      out.push(H3(null, `하위 요소: ${sb.name}`));
+      out.push(P('font-size:11pt;', esc(sb.def)));
+      if (sb.traits?.length) out.push(`<ul style="margin:0;">${sb.traits.map((t) => LI(esc(t))).join('')}</ul>`);
+    }
     if (c.contrast?.length) {
       out.push(H3(null, '유사 개념과의 구분'));
       out.push(`<ul style="margin:0;">${c.contrast.map((x) => LI(`${esc(x.with)}: ${esc(x.diff)}`)).join('')}</ul>`);

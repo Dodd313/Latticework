@@ -18,8 +18,10 @@ export type TaxNode = { id: string; ko: string; short?: string; en?: string; ran
  * 문제 글에서도 약어가 처음 나올 때는 "약어(풀네임)"으로 쓴다. 풀네임이 답을 드러내는 "약자 묻기" 문제는 만들지 않는다.
  */
 /** card 는 지식 카드 본문(정의, 특징, 구분 등). 앱은 아직 문제만 쓰고, 카드는 드라이브 문서와 앞으로의 개념 보기에 쓴다. */
-export type ConceptCard = { ko?: string; def: string; traits: string[]; measure?: string; contrast: { with: string; diff: string }[]; example?: string; analogy?: string; src: { title: string; url: string }[]; added?: string };
-export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string; card?: ConceptCard };
+/** sub 는 하위 요소: 이름이 너무 포괄적이라 따로 세우지 않고 이 개념 안에 둔 개념(예: PLV 안의 상대가격). 2026-11-24 소유자 결정. */
+export type ConceptSub = { name: string; en?: string; abbr?: string; full?: string; def: string; traits?: string[]; src?: { title: string; url: string }[] };
+export type ConceptCard = { ko?: string; def: string; traits: string[]; measure?: string; contrast: { with: string; diff: string }[]; example?: string; analogy?: string; src: { title: string; url: string }[]; added?: string; sub?: ConceptSub[] };
+export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string; card?: ConceptCard; was?: string[] };
 
 /** lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다). */
 export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string };
@@ -509,4 +511,32 @@ export function xpFor(g: 1 | 2 | 3): number {
 
 export function levelOf(xp: number): number {
   return Math.floor(Math.sqrt(xp / 60)) + 1;
+}
+
+/**
+ * 돌아보기의 지식 종합 퀴즈(2026-11-24 소유자 승인). 그 기간에 처음 배운 개념을 먼저, 모자라면 그 기간에 푼 개념으로 채워
+ * 학문을 번갈아 다섯 개를 고르고, 개념마다 적용, 구분, 특징, 인식 문제 순서로 하나를 낸다. 같은 기간이면 늘 같은 문제다.
+ */
+export function latPeriodQuiz(data: StudyData, state: StudyState, log: LogRow[], from: string, to: string, id: string, title: string, n = 5): { id: string; title: string; range: string; questions: { q: string; options: string[]; answer: number; explain: string }[] } | null {
+  const inRange = (d: string | undefined) => !!d && d >= from && d <= to;
+  const byId = new Map(data.concepts.map((c) => [c.id, c]));
+  const fresh = data.concepts.filter((c) => inRange(state.cards[c.id]?.first));
+  const solved: Concept[] = [];
+  for (const r of log) {
+    if (r.k !== 'lat' || !inRange(kstDate(r.t))) continue;
+    const c = byId.get(r.u);
+    if (c && !fresh.includes(c) && !solved.includes(c)) solved.push(c);
+  }
+  const picks = mixByField(data, fresh).concat(mixByField(data, solved)).slice(0, n);
+  const out: { q: string; options: string[]; answer: number; explain: string }[] = [];
+  for (const c of picks) {
+    const own = data.questions.filter((x) => x.cid === c.id);
+    const q = [4, 3, 2, 1].map((lv) => own.find((x) => x.lv === lv && (x.t === 'mc' ? (x.o?.length ?? 0) >= 2 : true))).find(Boolean);
+    if (!q) continue;
+    const head = q.pre ? `${q.pre}\n${q.q}` : q.q;
+    if (q.t === 'ox') out.push({ q: head, options: ['맞다', '틀리다'], answer: q.a ? 0 : 1, explain: q.w ?? '' });
+    else out.push({ q: head, options: q.o ?? [], answer: typeof q.a === 'number' ? q.a : 0, explain: q.w ?? '' });
+  }
+  if (out.length < 3) return null;
+  return { id, title, range: `${out.length}문항`, questions: out };
 }

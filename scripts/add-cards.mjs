@@ -68,8 +68,15 @@ for (const [i, it] of (input.items ?? []).entries()) {
   const texts = [c.name, c.def, ...(c.traits ?? []), c.measure, ...(c.contrast ?? []).flatMap((x) => [x.with, x.diff]), c.example, c.analogy];
   for (const t of texts) if (t && TEXT_BAD.test(t)) bad(where, `줄표, 화살표, 주소가 글에 있다: ${t.slice(0, 40)}`);
   const qs = c.questions ?? [];
-  const lvs = qs.map((q) => q.lv).sort().join(',');
-  if (qs.length !== 4 || lvs !== '1,2,3,4') bad(where, `문제는 단계 1~4 하나씩 4개여야 한다(지금 ${lvs})`);
+  // 문제는 단계 1~4 가 모두 있어야 하고 4~12개. 하위 요소가 있는 개념은 하위 요소의 구분, 적용 문제를 더 둔다.
+  const lvSet = new Set(qs.map((q) => q.lv));
+  if (qs.length < 4 || qs.length > 12 || ![1, 2, 3, 4].every((l) => lvSet.has(l)) || qs.some((q) => ![1, 2, 3, 4].includes(q.lv))) bad(where, `문제는 단계 1~4 가 모두 있고 4~12개여야 한다(지금 ${qs.map((q) => q.lv).join(',')})`);
+  for (const sb of c.sub ?? []) {
+    if (!sb.name || !sb.def) bad(where, '하위 요소에 name 과 def 가 있어야 한다');
+    if (sb.abbr && sb.name !== `${sb.abbr} (${sb.full})`) bad(where, `하위 요소 이름은 "${sb.abbr} (${sb.full})" 꼴`);
+    for (const t of [sb.name, sb.def, ...(sb.traits ?? [])]) if (t && TEXT_BAD.test(t)) bad(where, `하위 요소에 줄표, 화살표, 주소: ${String(t).slice(0, 40)}`);
+  }
+  const seenLv = {};
   for (const q of qs) {
     const qw = `${where} 문제 ${q.lv}`;
     if (!q.q || !q.w) bad(qw, '문제나 해설이 비었다');
@@ -80,7 +87,8 @@ for (const [i, it] of (input.items ?? []).entries()) {
     } else if (q.t === 'ox') {
       if (typeof q.a !== 'boolean') bad(qw, 'O/X 정답은 true 나 false');
     } else bad(qw, `모르는 형식 ${q.t}`);
-    const qid = `${id}-${q.lv}`;
+    const nth = (seenLv[q.lv] = (seenLv[q.lv] ?? 0) + 1);
+    const qid = nth === 1 ? `${id}-${q.lv}` : `${id}-${q.lv}-${nth}`;
     if (questionIds.has(qid)) bad(qw, `이미 있는 문제 id ${qid}`);
     questionIds.add(qid);
     const out = { id: qid, cid: id, lv: q.lv, t: q.t, q: q.q };
@@ -95,6 +103,7 @@ for (const [i, it] of (input.items ?? []).entries()) {
   concept.card = {
     ko: c.ko, def: c.def, traits: c.traits, measure: c.measure || undefined, contrast: c.contrast, example: c.example || undefined, analogy: c.analogy || undefined,
     src: (c.src ?? []).map((s) => ({ title: s.title, url: s.url })), added: input.added,
+    sub: c.sub?.length ? c.sub.map((sb) => ({ name: sb.name, en: sb.en, abbr: sb.abbr, full: sb.full, def: sb.def, traits: sb.traits, src: (sb.src ?? []).map((s) => ({ title: s.title, url: s.url })) })) : undefined,
   };
   addC.push(JSON.parse(JSON.stringify(concept)));
 }

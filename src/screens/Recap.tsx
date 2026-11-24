@@ -11,10 +11,14 @@ import { HeatWeek } from '../heatBand';
 import { LattiAvatar, LattiSays, useLattiLine } from '../latti';
 import { CSS_EASE, Count, EASE_OUT, NATIVE_DRIVER, Rise, SPRING, SinceCtx, WEB, motionOff, webAnimate, webTween } from '../motion';
 import { BOTTOM_PAD } from '../nav';
-import type { Period, PeriodStats } from '../period';
+import { quizScore, type Period, type PeriodStats } from '../period';
 import { QuizRunner } from '../quizKit';
-import { useGoals, usePeriodStats, useStore, weeklyReviewFor } from '../store';
-import { vocKind } from '../study';
+import { useGoals, useKnowledge, usePeriodStats, useStore, weeklyReviewFor } from '../store';
+import { latPeriodQuiz, vocKind } from '../study';
+import { fitBox } from '../graph/camera';
+import { GraphView, Pulse, RevealStep } from '../graph/GraphView';
+import { getModel } from '../graph/layout';
+import { dayDiff } from '../dates';
 import { useTheme } from '../theme';
 import type { Review } from '../types';
 import { Icon, PrimaryButton, T, Tap } from '../ui';
@@ -440,15 +444,57 @@ function NumLine({ sets, change }: { sets: number; change: number | null }) {
 }
 
 // ---------- 2장: Latticework
-function LatCard({ stats: st, due }: CardProps) {
+/**
+ * 지식 지도가 자라는 모습(2026-11-24 소유자 결정): 기간이 시작할 때의 방사형 지도에서 출발해, 그 기간에 새로 생긴 학문, 분과, 주제, 개념이
+ * 생긴 날 순서로 돋는다. 새 학문과 분과에는 고리가 한 번 퍼진다. 자리는 지금 지도의 자리를 그대로 쓴다(그래서 점이 움직이지 않고 돋기만 한다).
+ */
+function GrowthMap({ from, to, width, height }: { from: string; to: string; width: number; height: number }) {
+  const { tree } = useKnowledge();
+  const M = useMemo(() => (tree ? getModel(tree) : null), [tree]);
+  const scene = useMemo(() => {
+    if (!M) return null;
+    const fit = fitBox(M.box, width, height, { x: 28, y: 28 });
+    const cam = { x: fit.x, y: fit.y, k: fit.k * 0.96 };
+    const ns = [...M.N.values()].filter((x) => x.at >= from && x.at <= to).sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.depth - b.depth));
+    const order = new Map<string, RevealStep>();
+    const span = ns.length ? Math.max(1, dayDiff(ns[0].at, ns[ns.length - 1].at)) : 1;
+    ns.forEach((x, k) => order.set(x.id, { t: (dayDiff(ns[0].at, x.at) / span) * 1600 + k * 30, d: x.kind === 'disc' ? 560 : 440, mode: x.kind === 'disc' ? 'fade' : 'grow' }));
+    const pulses: Pulse[] = ns
+      .filter((x) => x.kind === 'disc' || x.kind === 'branch')
+      .slice(0, 8)
+      .map((x) => ({ id: x.id, delay: 700 + (order.get(x.id)?.t ?? 0) + 120, r: x.kind === 'disc' ? 30 : 20, d: 1000, key: `grow:${x.id}` }));
+    return { cam, K0: fit.k, order, pulses, n: ns.filter((x) => x.kind === 'concept').length };
+  }, [M, from, to, width, height]);
+  if (!M || !scene) return null;
+  return (
+    <View aria-hidden style={{ height, marginHorizontal: -8, marginTop: 10 }}>
+      <GraphView model={M} width={width} height={height} cam={scene.cam} K0={scene.K0} reveal={motionOff() ? null : { order: scene.order, t0Delay: 700 }} pulses={motionOff() ? [] : scene.pulses} />
+    </View>
+  );
+}
+
+function LatCard({ stats: st, due, width, onQuiz }: CardProps) {
   const t = useTheme();
+  const { height } = useWindowDimensions();
+  const s = useStore();
   const month = due.show.kind === 'month';
   const discs = st.lat.discs;
   const maxSolved = Math.max(1, ...discs.map((d) => d.solved));
-  const budget = month ? 46 : 120;
+  const budget = month ? 46 : 90;
+  const mapH = Math.round(Math.max(150, Math.min(220, height * 0.24)));
+  // 지식 종합 퀴즈: 그 기간에 배운 개념에서 다섯 문항
+  const quiz = useMemo(() => {
+    if (!s.studyData) return null;
+    const p = due.show;
+    const to = st.dates.length ? st.dates[st.dates.length - 1] : p.to;
+    return latPeriodQuiz(s.studyData, s.study, s.studyLog(), p.from, to, `lat-${p.kind === 'week' ? p.weekId ?? p.key : p.key}`, `${p.label} 지식 종합 퀴즈`);
+  }, [s.studyData, s.study, due.show.key]);
+  const score = quiz ? quizScore(s.user, quiz.id, quiz.questions) : null;
+  const taken = !!score && score.answered >= score.total;
   return (
     <>
       <Title>Latticework</Title>
+      <GrowthMap from={due.show.from} to={st.dates.length ? st.dates[st.dates.length - 1] : due.show.to} width={width + 16} height={mapH} />
       <View style={{ marginTop: 16, flexDirection: 'row', gap: 28 }}>
         <Hero label="푼 문제" to={st.lat.solved} />
         <Hero label="새 개념" to={st.lat.newConcepts.length} />
@@ -496,6 +542,18 @@ function LatCard({ stats: st, due }: CardProps) {
           );
         })}
       </View>
+      {quiz && taken ? (
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 14 }}>
+          <T s={15} w="600" c={t.sub}>
+            지식 종합 퀴즈
+          </T>
+          <T s={17} w="700" mono>
+            {`${score!.right}/${score!.total}`}
+          </T>
+        </View>
+      ) : quiz ? (
+        <PrimaryButton label="지식 종합 퀴즈" weak onPress={() => onQuiz(quiz as Review)} style={{ minHeight: 48, borderRadius: 14, marginTop: 14 }} />
+      ) : null}
       <Spacer min={0} />
     </>
   );
