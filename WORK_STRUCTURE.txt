@@ -266,7 +266,8 @@ Latticework 시사 앱: 작업 구조 공유 문서
 
 [수집함 자동 처리 (2026-11-24 만듦. 매일 순서는 ops/inbox-runbook.md, 진도는 ops/inbox-state.json, 폴더는 ops/drive-folders.json)]
 - 부품: scripts/add-vocab.mjs(단어 저장), scripts/add-cards.mjs(카드 저장), scripts/check-quotes.mjs(인용 원문 대조), scripts/cards-to-doc.mjs(학습 문서).
-- 하루 몫: 지식 카드 8장, 단어 40개. 큰 자료는 pending 에 남겨 다음 날 이어서 한다.
+- 하루 몫: 상한 없음(2026-11-24 소유자 결정). 사용 한도에 걸려 멈추면 넣은 것까지 커밋하고 남은 것은 pending 으로 다음 날. 한도 문제가 실제로 생기면 그때 조정.
+- 계속 고쳐 쓰는 문서(분석 일지 등)는 watch 상태로 수집함에 두고, 바뀐 부분만 처리한다(ops/inbox-seen/).
 - 세션 session_01D3n5ZBK8puhV9BWvzinbrL("수집함 매일 처리", 저장소가 붙음). 예약 작업 trig_011fdJV3gF2zfSns6oskBY7z, 매일 09:23(한국 시각).
   2026-11-26 전에는 쉰다(7일 사용 한도 초기화 전). 금융 전반 강의 노트(05:43)가 먼저 수집함에 들어온 뒤에 돈다.
 - 아래는 처음 세운 설계 논리다.
@@ -311,7 +312,7 @@ Latticework 시사 앱: 작업 구조 공유 문서
 - 2026-11-23 컴퓨터과학 11장(API, REST API, HTTP, JSON, HTML, XML, XBRL, LLM, 임베딩, 벡터 데이터베이스, RAG)과 논리학 20장
   (드라이브 학업 논리와사고 1~9강)을 넣었다. 카드 전체와 검증 기록은 motion-lab/v12/cs-logic-cards.json. 개념 99, 문제 396.
 - 하루 처리량(제안): 카드 작성과 검증은 카드 1장에 출력 약 2만 토큰이 든다(2026-11-23 코킹탄 26장 기준, 에이전트 8개, 약 50분).
-  새 개념은 하루 3개씩 배우므로 하루 8장 안팎만 만들고, 큰 자료는 여러 날에 나눠 처리한다.
+  (예전 제안이던 하루 8장 상한은 2026-11-24 소유자 결정으로 없앴다.)
 - name, en, node(분류), def(한 문장 정의), traits(특징 2~4개), measure(재는 기준, 있을 때), contrast(헷갈리는 이웃 개념 1~2개와 차이),
   example(계산이나 장면 하나), analogy(비유, 힌트에 씀), src(출처), added(넣은 날).
 - 문제는 개념마다 4개이고 카드 필드에서 나온다: lv1 인식(def, 4지선다), lv2 특징(traits, O/X), lv3 구분(contrast, 4지선다),
