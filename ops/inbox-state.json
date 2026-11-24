@@ -1,8 +1,26 @@
 {
-  "note": "수집함 처리 진도. 파일 id 마다 상태를 둔다. done 이면 처리됨으로 옮긴 것, partial 이면 남은 항목(pending)을 다음 날 이어서 한다. 직접 고치지 말고 수집함 처리 세션이 고친다.",
-  "files": {
-    "1q48T0HDSBDnrbqeOZ_KpC3w0MsvcD9Bn": { "title": "HCC_경질코킹탄_용어해설_교과서판.txt의 사본", "status": "done", "at": "2026-11-23", "cards": 26, "note": "수동 처리. 처리됨으로 옮김" },
-    "1t417y2sadTP2xHWWxdVbUgqBqmemJk9tuSu2pyXdTVE": { "title": "11/23", "status": "new", "note": "FOB, CFR, 점결성은 이미 카드가 있다(겹침 확인으로 건너뛸 것). 나머지 줄은 단어" }
+ "note": "수집함 처리 진도. 파일 id 마다 상태를 둔다. done 이면 처리됨으로 옮긴 것, partial 이면 남은 항목(pending)을 다음 날 이어서 한다. 직접 고치지 말고 수집함 처리 세션이 고친다.",
+ "files": {
+  "1q48T0HDSBDnrbqeOZ_KpC3w0MsvcD9Bn": {
+   "title": "HCC_경질코킹탄_용어해설_교과서판.txt의 사본",
+   "status": "done",
+   "at": "2026-11-23",
+   "cards": 26,
+   "note": "수동 처리. 처리됨으로 옮김"
   },
-  "log": []
+  "1t417y2sadTP2xHWWxdVbUgqBqmemJk9tuSu2pyXdTVE": {
+   "title": "11/23",
+   "status": "new",
+   "note": "FOB, CFR, 점결성은 이미 카드가 있다(겹침 확인으로 건너뛸 것). 나머지 줄은 단어"
+  },
+  "1xUpUeqF7cmd65qAFfG7JZ7oamsPLTUhkMBo5SX1j8bc": {
+   "title": "timeline_HCC의 사본",
+   "status": "watch",
+   "at": "2026-11-24",
+   "modifiedTime": "2026-11-24T03:51:40.844Z",
+   "facts": 53,
+   "note": "소유자가 계속 고쳐 쓰는 분석 일지. 2026-11-24 수동 처리: 11/21, 11/23 분을 Research 사실 53개로 넣음(일반 개념은 이미 지식 카드에 있음). 저장한 글은 03:51 판이라 그 뒤 고친 줄은 다음 실행이 새 줄로 처리한다. 보류: Mine No.4 탄질(공개 자료와 달라 보임, 소유자 확인 대기). 11/24 표의 빈칸은 채워지면 처리."
+  }
+ },
+ "log": []
 }

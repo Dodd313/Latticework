@@ -527,7 +527,7 @@ export function StudyScreen({ sect, focus }: { sect: StudySect; focus?: string }
   const [crossed, setCrossed] = useState<number[]>([]);
   const [attempts, setAttempts] = useState(0);
   const [tally, setTally] = useState({ right: 0, total: 0, xp: 0 });
-  const [exhausted, setExhausted] = useState(first.extra && first.queue.length === 0);
+  const [exhausted, setExhausted] = useState((first.extra || rs) && first.queue.length === 0);
   const [round, setRound] = useState(0);
   // 화면 장식: 채운 칸 수, 연속 정답, 판, 선택지 반응, 경험치 표시
   const [filled, setFilled] = useState(0);
@@ -720,8 +720,16 @@ export function StudyScreen({ sect, focus }: { sect: StudySect; focus?: string }
     // 푼 문제가 없을 때는 오늘 분량을 정말 마친 경우에만 한 줄을 건넨다.
     const solvedNow = doneNow + Math.max(0, extraNow - extraAtOpen);
     const lastUnit = sect === 'lat' ? [...queue].reverse().find((x) => !x.retry)?.unit : undefined;
-    const said =
-      tally.total === 0 && doneNow < goalNow
+    // Research 는 하루 목표와 무관한 선택 과제라 하루 분량, 연속 기록 문구를 쓰지 않고 이번 판의 결과만 말한다.
+    const rsLine =
+      tally.total === 0
+        ? null
+        : tally.right === tally.total
+          ? `${tally.total}문제 모두 맞혔어요`
+          : `${tally.total}문제 중 ${tally.right}문제 맞혔어요. 틀린 사실은 곧 다시 나와요`;
+    const said = rs
+      ? { text: rsLine, latti: false }
+      : tally.total === 0 && doneNow < goalNow
         ? { text: null, latti: false }
         : lattiSay(
             lattiSrc,

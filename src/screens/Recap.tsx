@@ -763,7 +763,7 @@ function CloseCard({ stats: st, onClose, line, due }: CardProps & { line: string
   const l1 = st.xp.level;
   const xp1 = study.xp;
   const x1 = xp1 - lvStart(l1);
-  const x0 = l0 === l1 ? xp1 - st.xp.gained - lvStart(l1) : 0;
+  const x0 = l0 === l1 ? xp1 - (st.xp.all ?? st.xp.gained) - lvStart(l1) : 0;
   const f0 = Math.max(0, Math.min(1, x0 / lvRange(l1)));
   const f1 = Math.max(0, Math.min(1, x1 / lvRange(l1)));
   const fill = useRef<any>(null);

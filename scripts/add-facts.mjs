@@ -57,6 +57,8 @@ for (const [i, it] of (input.items ?? []).entries()) {
   if (it.replaces) {
     const old = byId.get(it.replaces);
     if (!old || old.co !== it.co) bad(where, `바꿀 옛 사실 ${it.replaces} 가 그 기업에 없다`);
+    else if (old.retired) bad(where, `${it.replaces} 는 이미 물린 사실이다. 그것을 바꾼 지금 살아 있는 사실 id 를 적는다`);
+    else if (retire.has(it.replaces)) bad(where, `같은 입력에서 ${it.replaces} 를 두 번 바꾼다`);
     else retire.add(it.replaces);
   }
   addF.push({ id, co: it.co, group: it.group, q: it.q, a: it.a, o: it.o, w: it.w, asOf: it.asOf, added: input.added, links: it.links ?? [], ...(it.replaces ? { replaces: it.replaces } : {}) });

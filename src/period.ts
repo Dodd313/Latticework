@@ -81,7 +81,8 @@ export type PeriodStats = {
     weekly: { id: string; right: number; total: number; taken: boolean } | null;
     weeklyTaken: number;
   };
-  xp: { gained: number; level: number; levelFrom: number };
+  /** gained 는 Latticework, 영단어의 경험치(돌아보기에 보이는 수). all 은 Research 를 더한 전체(레벨 막대의 시작점 계산용). */
+  xp: { gained: number; all: number; level: number; levelFrom: number };
   /** 수리: 세트 수, 문제 수, 맞힌 수, 같은 분야 같은 수준에서 첫 세트 대비 마지막 세트 중앙값 변화율(%)의 중앙값 */
   num: { sets: number; n: number; ok: number; change: number | null };
 };
@@ -269,8 +270,10 @@ export function periodStats(p: Period, input: PeriodInput): PeriodStats {
   const news = { read: readIds.length, days: readDays.size, quizRight, quizAnswered, titles, weekly, weeklyTaken };
 
   // 경험치
-  const gained = rows.reduce((n, r) => n + xpFor(r.g), 0);
-  const xp = { gained, level: levelOf(study.xp), levelFrom: levelOf(Math.max(0, study.xp - gained)) };
+  // Research 는 선택 과제라 돌아보기의 경험치 수에 넣지 않는다. 레벨은 누적이라 시작 레벨은 전체로 계산한다.
+  const all = rows.reduce((n, r) => n + xpFor(r.g), 0);
+  const gained = rows.reduce((n, r) => n + (r.k === 'rs' ? 0 : xpFor(r.g)), 0);
+  const xp = { gained, all, level: levelOf(study.xp), levelFrom: levelOf(Math.max(0, study.xp - all)) };
 
   const num = input.num ? numPeriod(input.num, from, to) : { sets: 0, n: 0, ok: 0, change: null };
 

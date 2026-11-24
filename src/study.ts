@@ -659,8 +659,8 @@ export function buildResearch(rd: ResearchData, state: StudyState, co: string, t
   const push = (f: ResearchFact) => void (order.includes(f) || order.push(f));
   if (mode === 'daily') [due, fresh, seen].forEach((l) => l.forEach(push));
   else [due.filter(untouched), fresh, seen.filter(untouched), seen].forEach((l) => l.forEach(push));
-  return order
-    .filter((f) => !asked.keys.has(`${f.id}:mc`))
-    .slice(0, count)
-    .map((f) => rsQ(rd, company, f, today));
+  let pickList = order.filter((f) => !asked.keys.has(`${f.id}:mc`));
+  // 오늘 모든 사실을 이미 풀었어도 "다시 풀기"는 빈 화면이 되지 않게, 기억이 약한 순서로 다시 묻는다(추가 학습은 그대로 끝난다).
+  if (pickList.length === 0 && mode === 'daily') pickList = seen.length ? seen : order;
+  return pickList.slice(0, count).map((f) => rsQ(rd, company, f, today));
 }
