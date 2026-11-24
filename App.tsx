@@ -8,6 +8,7 @@ import { DayQuizScreen } from './src/screens/DayQuiz';
 import { NewsScreen } from './src/screens/News';
 import { NumeracyScreen } from './src/screens/Numeracy';
 import { StudyScreen } from './src/screens/Study';
+import { ResearchScreen } from './src/screens/Research';
 import { KnowledgeScreen } from './src/screens/Knowledge';
 import { SettingsScreen } from './src/screens/Settings';
 import { WeeklyQuizScreen } from './src/screens/WeeklyQuiz';
@@ -135,6 +136,8 @@ const RouteScreen = memo(function RouteScreen({ route }: { route: Route }) {
     <WeeklyQuizScreen id={route.id} />
   ) : route.name === 'num' ? (
     <NumeracyScreen start={route.start} />
+  ) : route.name === 'research' ? (
+    <ResearchScreen />
   ) : (
     <SettingsScreen />
   );

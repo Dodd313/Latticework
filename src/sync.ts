@@ -5,7 +5,7 @@
 // 받기:   GET ?info=1 은 개수만, ?after=N&limit=M 은 풀이 기록 N 번째부터(after=0 이면 수리 세트와 기기별 마지막 상태도 함께).
 // Apps Script 는 응답을 다른 주소(googleusercontent.com)로 넘겨(302) 돌려준다. fetch 가 따라가므로 따로 할 일은 없다.
 // 같은 id 는 시트가 한 번만 적는다. 그래서 sendBeacon 과 fetch 로 같은 묶음이 두 번 가도 된다.
-import type { Card, LogRow, Section, StudyDay } from './study';
+import type { Card, LogRow, StudyDay, StudySect } from './study';
 import type { NumDay, NumSession } from './numeracy';
 import type { UserData } from './types';
 
@@ -22,7 +22,7 @@ export type SyncConf = {
 };
 
 /** 시트의 풀이 탭 한 줄(보낼 때와 받을 때 같은 모양). t 는 한국 시각이 붙은 ISO 문자열로 보낸다. */
-export type SheetRow = { id: string; t: string; k: Section; u: string; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1 };
+export type SheetRow = { id: string; t: string; k: StudySect; u: string; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1 };
 /** 시트의 수리 탭 한 줄 */
 export type SheetSet = NumSession & { id: string };
 /** 상태 탭(기기마다 하루 한 줄). 풀이 기록으로 다시 만들 수 없는 것만 담는다. */
@@ -104,7 +104,7 @@ export function fromSheetRow(x: any): LogRow | null {
   if (!x || typeof x !== 'object') return null;
   const t = toUtc(x.t);
   const g = Number(x.g);
-  if (!t || (x.k !== 'lat' && x.k !== 'voc') || !x.u || !x.q || (g !== 1 && g !== 2 && g !== 3)) return null;
+  if (!t || (x.k !== 'lat' && x.k !== 'voc' && x.k !== 'rs') || !x.u || !x.q || (g !== 1 && g !== 2 && g !== 3)) return null;
   const row: LogRow = { t, u: String(x.u), k: x.k, q: String(x.q), ok: x.ok === true || x.ok === 'TRUE' || x.ok === 1, n: Number(x.n) || 1, sec: Number(x.sec) || 0, g: g as 1 | 2 | 3 };
   if (x.r === 1 || x.r === '1' || x.r === true) row.r = 1;
   row.id = String(x.id || '') || rowId(row);

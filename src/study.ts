@@ -42,6 +42,8 @@ const NONE: Asked = { keys: new Set(), units: new Set() };
 export type StudyData = { version: number; updatedAt?: string; nodes?: TaxNode[]; concepts: Concept[]; questions: LatQuestion[]; vocab: Vocab[] };
 
 export type Section = 'lat' | 'voc';
+/** 풀이 기록과 문제의 구역. rs 는 Research(분석 중인 기업의 사실 복습). 하루 목표에 들지 않는 선택 과제다(2026-11-24 소유자 결정). */
+export type StudySect = Section | 'rs';
 
 /** 항목 하나의 기억 상태. 개념 하나, 표현 하나가 단위다. */
 export type Card = {
@@ -93,7 +95,7 @@ export function carryWas(data: StudyData, state: StudyState): StudyState {
  * 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘. r 은 틀려서 세션 끝에 다시 나온 문제.
  * id 는 시트로 보낼 때 같은 줄을 한 번만 적는 열쇠(새 줄은 기기 id 와 순번, 예전 줄은 내용의 해시. src/sync.ts 의 rowId).
  */
-export type LogRow = { t: string; u: string; k: Section; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1; id?: string };
+export type LogRow = { t: string; u: string; k: StudySect; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1; id?: string };
 
 export const LAT_GOAL = 5;
 export const VOC_NEW_PER_DAY = 6;
@@ -208,6 +210,8 @@ export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
     if (row.r) continue;
     const d = kstDate(row.t);
     if (!d) continue;
+    // Research 풀이는 하루 목표와 추가 학습 어디에도 세지 않는다.
+    if (row.k === 'rs') continue;
     const day = (out[d] ??= { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 });
     if (row.k === 'lat') {
       if (day.lat < day.latGoal) {
@@ -228,7 +232,7 @@ export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
 export type Q = {
   key: string; // 기록에 남는 문제 이름
   unit: string; // 기억 단위 (개념 id, 표현 id)
-  sect: Section;
+  sect: StudySect;
   type: string; // 유형 키
   kicker: string;
   q: string;
@@ -594,4 +598,69 @@ export function latPeriodQuiz(data: StudyData, state: StudyState, log: LogRow[],
   }
   if (out.length < 3) return null;
   return { id, title, range: `${out.length}문항`, questions: out };
+}
+
+// ---------- Research: 분석 중인 기업의 사실 복습 ----------
+/**
+ * 자료는 docs/data/research.json. 사실 하나가 기억 단위다(id 는 rs-<기업>-<열쇠>). 소유자의 분석 일지에서 뽑고, 일지에 없는 사실은 더하지 않는다.
+ * 값이 바뀐 사실은 새 사실로 넣고 옛 사실은 retired 로 물린다(asOf 가 그 값의 기준일).
+ */
+export type ResearchCompany = { id: string; name: string; ticker: string; ko?: string; sector?: string; note?: string; since?: string };
+export type ResearchFact = { id: string; co: string; group: string; q: string; a: string; o: string[]; w: string; asOf: string; added?: string; links?: string[]; retired?: boolean };
+export type ResearchData = { version: number; updatedAt?: string; groups?: Record<string, string>; companies: ResearchCompany[]; facts: ResearchFact[] };
+
+export const liveFacts = (rd: ResearchData, co: string): ResearchFact[] => rd.facts.filter((f) => f.co === co && !f.retired);
+
+/** 기업 하나의 오늘 상황: 사실 수, 배운 수, 오늘 복습할 수. */
+export function researchStatus(rd: ResearchData, state: StudyState, co: string, today: string): { total: number; seen: number; due: number } {
+  const fs = liveFacts(rd, co);
+  let seen = 0;
+  let due = 0;
+  for (const f of fs) {
+    const c = state.cards[f.id];
+    if (!c) continue;
+    seen++;
+    if (c.due <= today) due++;
+  }
+  return { total: fs.length, seen, due };
+}
+
+function rsQ(rd: ResearchData, co: ResearchCompany, f: ResearchFact, seed: string): Q {
+  const rand = rng(`${seed}:${f.id}`);
+  const options = shuffle([f.a, ...f.o.slice(0, 3)], rand);
+  const group = rd.groups?.[f.group] ?? f.group;
+  // 해설은 "11/21 일지: ..." 처럼 일지 날짜로 시작한다. 날짜가 없으면 기준일을 붙인다.
+  const day = `${Number(f.asOf.slice(5, 7))}/${Number(f.asOf.slice(8, 10))}`;
+  const explain = f.w.startsWith(day) ? f.w : `${f.w} (${day} 기준)`;
+  return { key: `${f.id}:mc`, unit: f.id, sect: 'rs', type: 'mc', kicker: `${co.ticker} · ${group}`, q: f.q, options, answer: options.indexOf(f.a), explain };
+}
+
+/**
+ * 기업 하나의 Research 세션. 복습할 때가 된 사실(기억이 약한 순서), 새 사실(일지 순서, 묶음을 번갈아), 나머지(약한 순서).
+ * weak 는 추가 학습: 오늘 안 나온 사실부터.
+ */
+export function buildResearch(rd: ResearchData, state: StudyState, co: string, today: string, now: Date, count: number, mode: 'daily' | 'weak' = 'daily', asked: Asked = NONE): Q[] {
+  const company = rd.companies.find((c) => c.id === co);
+  if (!company) return [];
+  const fs = liveFacts(rd, co);
+  const weak = (a: ResearchFact, b: ResearchFact) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now);
+  const seen = fs.filter((f) => state.cards[f.id]).sort(weak);
+  const due = seen.filter((f) => state.cards[f.id].due <= today);
+  // 새 사실은 묶음(광산, 사업, 산업 등)을 번갈아 낸다. 같은 묶음 안은 일지 순서.
+  const groups = new Map<string, ResearchFact[]>();
+  for (const f of fs) if (!state.cards[f.id]) (groups.get(f.group) ?? groups.set(f.group, []).get(f.group)!).push(f);
+  const fresh: ResearchFact[] = [];
+  for (let i = 0, more = true; more; i++) {
+    more = false;
+    for (const g of groups.values()) if (g[i]) (fresh.push(g[i]), (more = true));
+  }
+  const untouched = (f: ResearchFact) => !asked.units.has(f.id);
+  const order: ResearchFact[] = [];
+  const push = (f: ResearchFact) => void (order.includes(f) || order.push(f));
+  if (mode === 'daily') [due, fresh, seen].forEach((l) => l.forEach(push));
+  else [due.filter(untouched), fresh, seen.filter(untouched), seen].forEach((l) => l.forEach(push));
+  return order
+    .filter((f) => !asked.keys.has(`${f.id}:mc`))
+    .slice(0, count)
+    .map((f) => rsQ(rd, company, f, today));
 }

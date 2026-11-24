@@ -2,13 +2,13 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { cheerHome, seedOf } from '../cheer';
-import { addDays, kstDate, kstHour, weekdaysOf } from '../dates';
+import { addDays, kstDate, kstHour, todayKST, weekdaysOf } from '../dates';
 import { LattiSays, useLattiSay } from '../latti';
 import { EASE_OUT, MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, webTween } from '../motion';
 import { TabScreen, useNav } from '../nav';
 import { quotesFor } from '../quotes';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
-import { conceptsWithNewQuestions } from '../study';
+import { conceptsWithNewQuestions, researchStatus } from '../study';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
 import { dayQuiz, quizOpen } from './DayQuiz';
@@ -197,6 +197,51 @@ const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
   num: { name: '수리', icon: 'calc' },
 };
 
+/**
+ * 수리 아래의 Research 줄(2026-11-24 소유자 결정). 분석 중인 기업의 사실 복습이다. 선택 과제라 하루 목표(오늘 n/m)에 들지 않는다.
+ * 오른쪽에 오늘 복습할 사실 수(없으면 아직 안 본 사실 수)를 보인다. 누르면 기업 고르기 화면.
+ */
+function ResearchRow() {
+  const t = useTheme();
+  const nav = useNav();
+  const { researchData, study } = useStore();
+  const today = todayKST();
+  const info = useMemo(() => {
+    if (!researchData?.companies.length) return null;
+    let due = 0;
+    let fresh = 0;
+    for (const c of researchData.companies) {
+      const s = researchStatus(researchData, study, c.id, today);
+      due += s.due;
+      fresh += s.total - s.seen;
+    }
+    const names = researchData.companies.map((c) => c.ticker).join(', ');
+    return { names, aside: due > 0 ? `복습 ${due}` : fresh > 0 ? `새 사실 ${fresh}` : '모두 봄', hot: due > 0 };
+  }, [researchData, study, today]);
+  if (!info) return null;
+  return (
+    <Tap press="soft" onPress={() => nav.push({ name: 'research' })} label="Research 열기">
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: t.layer, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="search" size={22} color={t.ink} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <T s={16} w="600" lines={1}>
+            Research
+          </T>
+          <T s={13} w="500" c={t.mute} lines={1} style={{ marginTop: 1 }}>
+            {info.names} · 선택
+          </T>
+        </View>
+        <T s={14} w="600" c={info.hot ? t.orangeText : t.mute} mono lines={1}>
+          {info.aside}
+        </T>
+        <Icon name="chev" size={16} color={t.p.grey400} />
+      </View>
+    </Tap>
+  );
+}
+
 export function TodayScreen() {
   const t = useTheme();
   const nav = useNav();
@@ -369,6 +414,7 @@ export function TodayScreen() {
                     doneLabel={p.key === 'news' ? undefined : '추가 학습'}
                   />
                 ))}
+                <ResearchRow />
                 {!allDone && next ? <PrimaryButton label="이어서 하기" onPress={goNext} style={{ marginTop: 10 }} /> : null}
               </Box>
             </Rise>

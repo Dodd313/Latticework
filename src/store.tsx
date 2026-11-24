@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
@@ -55,6 +55,13 @@ async function loadStudy(): Promise<StudyData> {
 }
 
 /** Latti 문구(늘 쓰는 줄과 오늘 줄). 자체 주소에서만 받는다. */
+/** Research(분석 중인 기업의 사실) 자료. 자체 주소에서만 받는다. */
+async function loadResearch(): Promise<ResearchData> {
+  const res = await fetch('./data/research.json?t=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('research ' + res.status);
+  return (await res.json()) as ResearchData;
+}
+
 async function loadLatti(): Promise<LattiData> {
   const res = await fetch('./data/latti.json?t=' + Date.now(), { cache: 'no-store' });
   if (!res.ok) throw new Error('latti ' + res.status);
@@ -76,6 +83,7 @@ const STUDY_KEY = 'lw.study.state.v1';
 const STUDY_LOG_KEY = 'lw.study.log.v1';
 const LOG_CAP = 6000;
 const LATTI_DATA_KEY = 'lw.latti.data.v1';
+const RESEARCH_DATA_KEY = 'lw.research.data.v1';
 // 수리 기록(분야마다 한 세트에 한 줄, 분야별 수준, 날짜별 할당). 기기에만 두고 내보내기에 함께 넣는다.
 const NUM_KEY = 'lw.num.v1';
 // 시트 보내기(src/sync.ts, ops/sheet-sync.gs). 설정(주소, 기기 id, 순번, 보낸 수)과 아직 시트가 받았다고 답하지 않은 줄.
@@ -183,6 +191,7 @@ type Store = {
   noteLatti: (id: string) => void; // 한 줄을 보여 줬다고 적는다
   studyLog: () => LogRow[]; // 풀이 기록(읽기만 한다. 바꾸지 않는다)
   studyData: StudyData | null; // 복습 문제와 표현. 자체 주소에서만 받는다
+  researchData: ResearchData | null; // Research: 분석 중인 기업과 그 사실. 자체 주소에서만 받는다
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
   recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => void;
@@ -385,6 +394,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   numRef.current = num;
 
   const [latti, setLatti] = useState<LattiData | null>(() => loadLocal<LattiData>(LATTI_DATA_KEY));
+  const [researchData, setResearchData] = useState<ResearchData | null>(() => loadLocal<ResearchData>(RESEARCH_DATA_KEY));
   const lattiHistRef = useRef<Record<string, number> | null>(null);
   const lattiHist = useCallback(() => {
     if (!lattiHistRef.current) {
@@ -456,6 +466,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (!alive || !data || !Array.isArray(data.concepts)) return;
             setStudyData(data);
             saveLocal(STUDY_DATA_KEY, data);
+          })
+          .catch(() => {
+            // 못 받으면 기기에 남아 있는 자료로 계속 쓴다.
+          });
+        loadResearch()
+          .then((data) => {
+            if (!alive || !data || !Array.isArray(data.companies) || !Array.isArray(data.facts)) return;
+            setResearchData(data);
+            saveLater(RESEARCH_DATA_KEY, () => data);
           })
           .catch(() => {
             // 못 받으면 기기에 남아 있는 자료로 계속 쓴다.
@@ -651,12 +670,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cards = { ...cur.cards };
     // 틀려서 다시 나온 문제는 기억 상태를 또 바꾸지 않는다.
     if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type);
+    // Research 는 선택 과제라 그날의 하루 목표, 추가 학습 수를 건드리지 않는다. 기억 상태, 경험치, 기록 줄만 남긴다.
+    const rs = q.sect === 'rs';
     // 그날 기록이 아직 없으면(자정을 넘겨 푼 경우 등) 아침에 정하는 것과 같은 방식으로 목표를 정한다.
     const sd = studyDataRef.current;
     const day = { ...(cur.days[today] ?? { lat: 0, voc: 0, latGoal: sd && sd.questions.length === 0 ? 0 : LAT_GOAL, vocGoal: sd ? vocGoalFor(sd, cur, today, now) : 0 }) };
     // 할당량인지 더 푼 것인지는 답을 저장하는 순간, 그날 기록을 보고 정한다. 다시 나온 문제는 어느 쪽에도 세지 않는다.
-    const counts = !q.retry && (q.sect === 'lat' ? day.lat < day.latGoal : day.voc < day.vocGoal);
-    const extra = !q.retry && !counts;
+    const counts = !rs && !q.retry && (q.sect === 'lat' ? day.lat < day.latGoal : day.voc < day.vocGoal);
+    const extra = !rs && !q.retry && !counts;
     if (counts) {
       if (q.sect === 'lat') {
         day.lat += 1;
@@ -669,7 +690,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // 할당량을 넘겨 더 푼 문제. 달력의 색 짙기에 쓴다.
       day.extra = (day.extra ?? 0) + 1;
     }
-    const next: StudyState = { ...cur, cards, days: { ...cur.days, [today]: day }, xp: cur.xp + (q.retry ? 0 : xpFor(result.grade)) };
+    const next: StudyState = { ...cur, cards, days: rs ? cur.days : { ...cur.days, [today]: day }, xp: cur.xp + (q.retry ? 0 : xpFor(result.grade)) };
     studyRef.current = next;
     setStudy(next);
     // 기기 안 보관은 조금 뒤에 한다(답을 확인하는 순간의 움직임을 막지 않게). 앱을 닫으면 바로 쓴다.
@@ -1124,8 +1145,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(
-    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet }),
-    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet],
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

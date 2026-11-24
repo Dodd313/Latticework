@@ -7,7 +7,7 @@ import { LattiSays, lattiSay, useLattiSay } from '../latti';
 import { Count, EASE_OUT, MView, NATIVE_DRIVER, Rise, Tween, WEB, lerp, motionOff, spring, tweenStop, lateBy, SinceCtx, useLater, webTween } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
-import { LAT_GOAL, Q, Section, buildLat, buildLatFocus, buildVoc, levelOf, xpFor } from '../study';
+import { LAT_GOAL, Q, StudySect, buildLat, buildLatFocus, buildResearch, buildVoc, levelOf, xpFor } from '../study';
 import { useTheme } from '../theme';
 import { Chip, Icon, LipButton, OptionState, OptionTile, ProgressBar, Rich, Ring, StatCard, T, Tap } from '../ui';
 
@@ -477,17 +477,27 @@ function PanelBody({ shown, ic, tx, body, iconRef, textRef, bodyRef }: { shown: 
 // 문제 풀이
 // ─────────────────────────────────────────────────────────────
 
-/** focus: 그 개념(또는 지식 노드 id)부터 묻는 Latticework 세션(지식 탭의 복습하기). 같은 노드의 개념이 이어 나온다. */
-export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) {
+/** Research 한 번에 묻는 사실 수 */
+const RS_COUNT = 10;
+
+/**
+ * focus: 그 개념(또는 지식 노드 id)부터 묻는 Latticework 세션(지식 탭의 복습하기). 같은 노드의 개념이 이어 나온다.
+ * sect 가 rs(Research)면 focus 는 기업 id. 그 기업의 사실 10개를 묻는다. 하루 목표가 없는 선택 과제다.
+ */
+export function StudyScreen({ sect, focus }: { sect: StudySect; focus?: string }) {
   const t = useTheme();
   const nav = useNav();
-  const { studyData, study, recordStudy, studyAsked, latti, lattiHist, noteLatti } = useStore();
+  const { studyData, researchData, study, recordStudy, studyAsked, latti, lattiHist, noteLatti } = useStore();
+  const rs = sect === 'rs';
+  // 응원 문구는 Research 를 개념 공부(lat)처럼 다룬다.
+  const cheerSect = sect === 'voc' ? 'voc' : 'lat';
+  const company = rs ? researchData?.companies.find((c) => c.id === focus) : undefined;
   const lattiSrc = { latti, lattiHist, noteLatti };
   const goals = useGoals();
   const today = todayKST();
   const rec = study.days[today];
-  const goal = sect === 'lat' ? (rec?.latGoal ?? LAT_GOAL) : (rec?.vocGoal ?? 0);
-  const doneAtOpen = useRef(sect === 'lat' ? (rec?.lat ?? 0) : (rec?.voc ?? 0)).current;
+  const goal = rs ? 0 : sect === 'lat' ? (rec?.latGoal ?? LAT_GOAL) : (rec?.vocGoal ?? 0);
+  const doneAtOpen = useRef(rs ? 0 : sect === 'lat' ? (rec?.lat ?? 0) : (rec?.voc ?? 0)).current;
   const streakAtOpen = useRef(goals.streak).current;
   // 오늘 추가 학습 수는 구역을 나누지 않고 센다. 이 화면을 연 뒤 늘어난 만큼이 이 구역의 추가 학습이다.
   const extraAtOpen = useRef(rec?.extra ?? 0).current;
@@ -495,6 +505,7 @@ export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) 
 
   // 세션은 화면을 열 때 한 번 짠다. 오늘 목표가 남았으면 남은 만큼, 다 했으면 "추가 학습"으로 연다.
   const first = useMemo<{ queue: Q[]; extra: boolean }>(() => {
+    if (rs) return { queue: researchData && focus ? buildResearch(researchData, study, focus, today, new Date(), RS_COUNT, 'daily', studyAsked()) : [], extra: false };
     if (!studyData) return { queue: [], extra: false };
     const left = Math.max(0, goal - doneAtOpen);
     const now = new Date();
@@ -657,10 +668,10 @@ export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) 
   };
 
   const more = () => {
-    if (!studyData) return;
     const now = new Date();
     const asked = studyAsked();
-    const list = sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak', asked) : buildVoc(studyData, study, today, now, 'weak', 8, asked);
+    if (rs ? !researchData || !focus : !studyData) return;
+    const list = rs ? buildResearch(researchData!, study, focus!, today, now, RS_COUNT, 'weak', asked) : !studyData ? [] : sect === 'lat' ? buildLat(studyData, study, today, now, 5, 'weak', asked) : buildVoc(studyData, study, today, now, 'weak', 8, asked);
     xpAtRound.current = study.xp;
     setExhausted(list.length === 0);
     setExtra(true);
@@ -687,7 +698,7 @@ export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) 
     return picked === i ? 'selected' : 'idle';
   };
 
-  if (!studyData) {
+  if (rs ? !researchData : !studyData) {
     return (
       <View style={{ flex: 1, backgroundColor: t.card }}>
         <Header onClose={nav.pop} value={0} hot={false} xp={shownXp} bolt={bolt} boltRef={boltRef} combo={0} />
@@ -702,10 +713,10 @@ export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) 
 
   if (finished) {
     const recNow = study.days[today];
-    const doneNow = sect === 'lat' ? (recNow?.lat ?? 0) : (recNow?.voc ?? 0);
-    const goalNow = sect === 'lat' ? (recNow?.latGoal ?? goal) : (recNow?.vocGoal ?? goal);
-    const extraNow = recNow?.extra ?? 0;
-    const name = sect === 'lat' ? 'Latticework' : '영단어';
+    const doneNow = rs ? tally.total : sect === 'lat' ? (recNow?.lat ?? 0) : (recNow?.voc ?? 0);
+    const goalNow = rs ? 0 : sect === 'lat' ? (recNow?.latGoal ?? goal) : (recNow?.vocGoal ?? goal);
+    const extraNow = rs ? 0 : (recNow?.extra ?? 0);
+    const name = rs ? `${company?.ticker ?? 'Research'} Research` : sect === 'lat' ? 'Latticework' : '영단어';
     // 푼 문제가 없을 때는 오늘 분량을 정말 마친 경우에만 한 줄을 건넨다.
     const solvedNow = doneNow + Math.max(0, extraNow - extraAtOpen);
     const lastUnit = sect === 'lat' ? [...queue].reverse().find((x) => !x.retry)?.unit : undefined;
@@ -722,13 +733,13 @@ export function StudyScreen({ sect, focus }: { sect: Section; focus?: string }) 
               streak: goals.streak,
               streakUp: goals.streak > streakAtOpen,
               extra,
-              sect,
+              sect: cheerSect,
               concept: lastUnit ? conceptName.get(lastUnit) : undefined,
             },
             `${today}:${sect}:${round}:finish`,
             () =>
               cheerFinish({
-                sect,
+                sect: cheerSect,
                 extra,
                 total: tally.total,
                 right: tally.right,
