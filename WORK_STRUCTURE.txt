@@ -297,7 +297,7 @@ Latticework 시사 앱: 작업 구조 공유 문서
   자동으로 가른 줄은 보고에 "자동 판단"으로 따로 적어 소유자가 고칠 수 있게 한다.
 
 [지식 카드 형식 (2026-11-23 소유자 확정. 예시 motion-lab/v12/hcc-cards.json)]
-- 드라이브 학습 문서 디자인: 소유자가 고른 논리학/증명 문서 양식(시안 E, 2026-11-23). scripts/cards-to-doc.mjs 가 카드를 이 양식의 HTML 로 만들고
+- 드라이브 학습 문서 디자인: 논리학/증명 문서 양식(시안 E). 2026-11-24 소유자 확정. 모든 학습 문서(지식 카드, 금융 전반 강의 노트)에 쓴다. scripts/cards-to-doc.mjs 가 카드를 이 양식의 HTML 로 만들고
   create_file(text/html)로 올린다. 문단 테두리는 구글 문서에서 옅어져 굵은 밑줄은 아래 테두리만 있는 한 칸 표로 그린다.
 - 저장은 scripts/add-cards.mjs 로만 한다. 입력은 마디 목록과 {node, card} 목록. 검사(형식, 문제 4개, 보기, 약어 이름, 줄표와 화살표와 주소 금지, id 겹침)에
   하나라도 걸리면 아무것도 쓰지 않는다. 개념 id 는 <분과 slug>-<key>, 문제 id 는 <개념 id>-<단계>. 카드 본문은 개념의 card 필드에 둔다.
@@ -326,7 +326,7 @@ Latticework 시사 앱: 작업 구조 공유 문서
 - 소유자 결정이 남은 것: 학문 이름 "소프트웨어"를 책에 맞춰 "컴퓨터과학"으로 바꿀지, 경영학 책(Daft)이 다루지 않는 마케팅,
   통계학 책이 다루지 않는 베이즈 통계와 시계열을 별도 분과로 둘지. 웹 검색 한도와 출판사 사이트 차단으로 판 번호와 장 범위 일부는 확인 못 했다.
 - 경질 코킹탄 해설을 지식 카드 26장으로 바꾼 시험 문서: 드라이브 Latticework/경제학/자원·원자재 경제/경질 코킹탄 지식 카드
-  (id 1rjXmfFUFXNafW3C7aI2_rIY4RmPK-YAwRBLP6VSqKNU). 전체 카드는 motion-lab/v12/hcc-cards.json, 문서 만들기는 scripts/cards-to-html.mjs.
+  (2026-11-24 확정 양식으로 다시 만든 문서 id 1zkVQ0wYG12EOua1Utkw6PheDr8QrKkTEGM3apmgCSzk. 예전 양식 문서는 "이전 양식, 지워도 됨"으로 이름을 바꿈). 전체 카드는 motion-lab/v12/hcc-cards.json, 문서 만들기는 scripts/cards-to-html.mjs.
   앱에는 아직 넣지 않았다. 드라이브에 큰 문서를 올릴 때는 create_file 의 base64Content 에 파일 참조(sha256:<해시>:<절대 경로>)를 쓴다.
 
 [금융 전반 매일 학습 (2026-11-23 소유자 지시)]
