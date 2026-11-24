@@ -1,0 +1,12 @@
+{
+  "note": "수집함 처리가 쓰는 드라이브 폴더 id. 학습 문서는 Latticework/<학문 이름>/<분과 이름> 에 둔다. 없으면 만들고 여기에 적는다. 소유자가 만든 예전 폴더(자본시장이론, Valuation, software, 섹터)는 그대로 둔다.",
+  "root": "1KblthOhzbplKWwGEA1SjMPpTrsbiQPUv",
+  "inbox": "1EZxARK6aYdL0JEjwGRc5j2FmMASqoF-y",
+  "processed": "14YnQbfACs1dGKSmcobq8MnExEgxi5tgd",
+  "disciplines": {
+    "경제학": { "id": "1laL5ajGN8N_xX7o-__j6CSzQLW8ZncOD", "branches": { "자원·원자재 경제": "1gYXGNZHt6L1L4ebVaTSrpZ6iYRNSRpmA" } },
+    "재무학": { "id": "1vN9QS2pefNOksKhjlS5MPfy4BcmlXqSD", "branches": { "금융 전반 학습": "1UPQy4_UeSMt2UBirrpT3MpkS9C7E5yQH" } },
+    "논리학": { "id": "1zfIHITQIc_pgjcT55zGD2ZiT3B2-cpS7", "branches": {} },
+    "통계학": { "id": "1Aar55NCEppQFdBemx2FS_frhKDhCzGPs", "branches": {} }
+  }
+}

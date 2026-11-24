@@ -1,0 +1,8 @@
+{
+  "note": "수집함 처리 진도. 파일 id 마다 상태를 둔다. done 이면 처리됨으로 옮긴 것, partial 이면 남은 항목(pending)을 다음 날 이어서 한다. 직접 고치지 말고 수집함 처리 세션이 고친다.",
+  "files": {
+    "1q48T0HDSBDnrbqeOZ_KpC3w0MsvcD9Bn": { "title": "HCC_경질코킹탄_용어해설_교과서판.txt의 사본", "status": "done", "at": "2026-11-23", "cards": 26, "note": "수동 처리. 처리됨으로 옮김" },
+    "1t417y2sadTP2xHWWxdVbUgqBqmemJk9tuSu2pyXdTVE": { "title": "11/23", "status": "new", "note": "FOB, CFR, 점결성은 이미 카드가 있다(겹침 확인으로 건너뛸 것). 나머지 줄은 단어" }
+  },
+  "log": []
+}
