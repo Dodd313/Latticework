@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyDay, StudyState, Vocab, daysFromLog, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
@@ -363,6 +363,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   });
   const studyRef = useRef(study);
   studyRef.current = study;
+  // 하위 요소로 옮긴 개념의 기억 상태를 부모 개념으로 옮긴다(자료가 바뀌거나 기록을 가져온 뒤에도 한 번씩 본다).
+  useEffect(() => {
+    if (!studyData) return;
+    const next = carryWas(studyData, studyRef.current);
+    if (next === studyRef.current) return;
+    studyRef.current = next;
+    setStudy(next);
+    saveLater(STUDY_KEY, () => studyRef.current);
+  }, [studyData, study]);
 
   // 수리: 처음 여는 날을 시작일로 적어 둔다(그날부터 하루 목표에 든다. 그 전 날의 기록은 그대로).
   const [num, setNum] = useState<NumState>(() => {

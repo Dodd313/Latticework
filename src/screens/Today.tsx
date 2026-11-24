@@ -8,6 +8,7 @@ import { EASE_OUT, MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, webTween }
 import { TabScreen, useNav } from '../nav';
 import { quotesFor } from '../quotes';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
+import { conceptsWithNewQuestions } from '../study';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
 import { dayQuiz, quizOpen } from './DayQuiz';
@@ -263,10 +264,11 @@ export function TodayScreen() {
     let nextName: string | undefined;
     let yName: string | undefined;
     if (studyData) {
+      const grown = conceptsWithNewQuestions(studyData, study);
       for (const c of studyData.concepts) {
         const card = study.cards[c.id];
         if (!card) continue;
-        if (card.due <= today) {
+        if (card.due <= today || grown.has(c.id)) {
           latDue += 1;
           dueName ??= c.name;
         }

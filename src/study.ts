@@ -23,8 +23,12 @@ export type ConceptSub = { name: string; en?: string; abbr?: string; full?: stri
 export type ConceptCard = { ko?: string; def: string; traits: string[]; measure?: string; contrast: { with: string; diff: string }[]; example?: string; analogy?: string; src: { title: string; url: string }[]; added?: string; sub?: ConceptSub[] };
 export type Concept = { id: string; name: string; en?: string; node: string; field?: string; topic?: string; abbr?: string; full?: string; card?: ConceptCard; was?: string[] };
 
-/** lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다). */
-export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string };
+/**
+ * lv 1 인식 · 2 특징 · 3 구분 · 4 적용. t 는 mc(4지선다), ox(맞다·틀리다).
+ * added 는 문제를 넣은 날. 이미 배운 개념에 나중에 더한 문제(하위 요소 문제 등)는 마지막 풀이보다 늦게 들어왔으면 그 개념을 복습에 올리고 먼저 낸다.
+ * retired 는 내용을 바로잡으며 물린 문제. 지우지 않고 남기되 내지 않는다(2026-11-24 소유자 결정).
+ */
+export type LatQuestion = { id: string; cid: string; lv: number; t: 'mc' | 'ox'; q: string; pre?: string; o?: string[]; a?: number | boolean; h?: string; w?: string; added?: string; retired?: boolean };
 
 /** mis: 흔한 실수(어색한 연어). bad 는 term 과 같은 자리에 들어가는 꼴이라 빈칸과 정의 문제의 오답으로 쓴다. */
 export type VocMistake = { bad: string; good: string; why: string };
@@ -54,6 +58,36 @@ export type Card = {
 export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number };
 
 export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number };
+
+/**
+ * 개념을 다른 개념의 하위 요소로 옮기면(concept.was 에 옛 id) 옛 개념의 기억 상태를 새 부모로 옮긴다(2026-11-24 소유자 결정).
+ * 부모를 아직 풀지 않았을 때만 옮긴다. 옛 개념이 여럿이면 가장 약한 쪽을 따른다(안정성은 가장 낮게, 복습일은 가장 이르게, 반복과 실수는 더한다).
+ * 옛 개념의 상태는 지우지 않는다(풀이 기록과 시트 동기화가 그 id 를 쓴다). 화면은 study.json 에 없는 id 를 보지 않는다.
+ */
+export function carryWas(data: StudyData, state: StudyState): StudyState {
+  let cards: Record<string, Card> | null = null;
+  for (const c of data.concepts) {
+    if (!c.was?.length || state.cards[c.id]) continue;
+    const olds = c.was.map((id) => state.cards[id]).filter(Boolean) as Card[];
+    if (!olds.length) continue;
+    const pick = <K extends keyof Card>(k: K, f: (a: Card[K], b: Card[K]) => Card[K]) => olds.map((x) => x[k]).reduce(f);
+    const asked: Record<string, number> = {};
+    for (const o of olds) for (const [k, v] of Object.entries(o.asked ?? {})) asked[k] = (asked[k] ?? 0) + v;
+    const firsts = olds.map((o) => o.first).filter(Boolean) as string[];
+    cards ??= { ...state.cards };
+    cards[c.id] = {
+      d: pick('d', (a, b) => Math.max(a, b)),
+      s: pick('s', (a, b) => Math.min(a, b)),
+      last: pick('last', (a, b) => (a > b ? a : b)),
+      due: pick('due', (a, b) => (a < b ? a : b)),
+      reps: olds.reduce((n, o) => n + o.reps, 0),
+      lapses: olds.reduce((n, o) => n + o.lapses, 0),
+      asked,
+      ...(firsts.length ? { first: firsts.sort()[0] } : {}),
+    };
+  }
+  return cards ? { ...state, cards } : state;
+}
 
 /**
  * 풀이 기록 한 줄. g 는 채점: 1 틀림 · 2 힌트 보고 맞힘 또는 애매함 · 3 맞힘. r 은 틀려서 세션 끝에 다시 나온 문제.
@@ -326,10 +360,22 @@ function latQ(data: StudyData, c: Concept, x: LatQuestion): Q {
 
 /** 그 개념에서 가장 덜 낸 유형의 문제를 고른다. 처음 보는 개념은 쉬운 유형부터. */
 function pickLatQuestion(c: Concept, qs: LatQuestion[], card: Card | undefined, skip: Set<string>): LatQuestion | null {
-  const own = qs.filter((x) => x.cid === c.id && !skip.has(x.id));
+  const own = qs.filter((x) => x.cid === c.id && !x.retired && !skip.has(x.id));
   if (own.length === 0) return null;
   const count = (x: LatQuestion) => card?.asked?.[`lv${x.lv}`] ?? 0;
-  return own.slice().sort((a, b) => count(a) - count(b) || a.lv - b.lv)[0];
+  // 마지막 풀이 뒤에 더한 문제를 먼저 낸다.
+  const fresh = (x: LatQuestion) => (isNewQuestion(x, card) ? 0 : 1);
+  return own.slice().sort((a, b) => fresh(a) - fresh(b) || count(a) - count(b) || a.lv - b.lv)[0];
+}
+
+/** 배운 개념에 마지막 풀이보다 늦게 더한 문제인가. */
+const isNewQuestion = (x: LatQuestion, card: Card | undefined): boolean => !!(card && x.added && !x.retired && x.added > kstDate(card.last));
+
+/** 배운 개념 가운데 마지막 풀이 뒤로 문제가 더해진 개념 id. 복습할 때가 된 것으로 본다. */
+export function conceptsWithNewQuestions(data: StudyData, state: StudyState): Set<string> {
+  const out = new Set<string>();
+  for (const x of data.questions) if (isNewQuestion(x, state.cards[x.cid])) out.add(x.cid);
+  return out;
 }
 
 /**
@@ -354,7 +400,15 @@ export function buildLatFocus(data: StudyData, state: StudyState, today: string,
     head.push(focus);
     head.push(...data.concepts.filter((c) => c !== focus && c.node === focus.node).sort(weak));
   } else {
-    head.push(...conceptsOfNode(data, focusId).sort(weak));
+    // 분야(학문, 분과, 주제)를 골라 풀 때는 그 분야 안의 개념만 낸다(2026-11-24 소유자 결정).
+    // 복습할 때가 된 개념(문제가 새로 더해진 개념 포함), 새 개념(분과를 번갈아), 나머지를 기억이 약한 순서로.
+    const all = conceptsOfNode(data, focusId);
+    const grown = conceptsWithNewQuestions(data, state);
+    const seen = all.filter((c) => state.cards[c.id]).sort(weak);
+    seen.filter((c) => state.cards[c.id].due <= today || grown.has(c.id)).forEach((c) => head.push(c));
+    mixByField(data, all.filter((c) => !state.cards[c.id])).forEach((c) => head.push(c));
+    seen.filter((c) => !head.includes(c)).forEach((c) => head.push(c));
+    return latFrom(data, state, head, count, asked);
   }
   const order = [...head];
   for (const c of latOrder(data, state, today, now, 'daily', asked)) if (!order.includes(c)) order.push(c);
@@ -374,7 +428,8 @@ function latOrder(data: StudyData, state: StudyState, today: string, now: Date, 
   }
   const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id]), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0);
   const byWeak = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
-  const due = byWeak.filter((c) => state.cards[c.id].due <= today);
+  const grown = conceptsWithNewQuestions(data, state);
+  const due = byWeak.filter((c) => state.cards[c.id].due <= today || grown.has(c.id));
   const weakest = mixByField(data, byWeak);
   const untouched = (c: Concept) => !asked.units.has(c.id);
 
@@ -530,7 +585,7 @@ export function latPeriodQuiz(data: StudyData, state: StudyState, log: LogRow[],
   const picks = mixByField(data, fresh).concat(mixByField(data, solved)).slice(0, n);
   const out: { q: string; options: string[]; answer: number; explain: string }[] = [];
   for (const c of picks) {
-    const own = data.questions.filter((x) => x.cid === c.id);
+    const own = data.questions.filter((x) => x.cid === c.id && !x.retired);
     const q = [4, 3, 2, 1].map((lv) => own.find((x) => x.lv === lv && (x.t === 'mc' ? (x.o?.length ?? 0) >= 2 : true))).find(Boolean);
     if (!q) continue;
     const head = q.pre ? `${q.pre}\n${q.q}` : q.q;

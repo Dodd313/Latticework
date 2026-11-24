@@ -6,7 +6,7 @@ import { dayDiff, todayKST } from '../dates';
 import { useLater, webTween, WEB, motionOff } from '../motion';
 import { useNav, useNodeRequest } from '../nav';
 import { useKnowledge, useStore } from '../store';
-import { recall } from '../study';
+import { StudyData, conceptsOfNode, conceptsWithNewQuestions, recall } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, Icon, PrimaryButton, Sheet, T, Tap } from '../ui';
 import { Cam, Mem, PNode, awayFromRoot, baseK, clamp, focusScope, hit, hitDots, kLim, nodeFit, outOf, project, rootFit, subtreeFit } from '../graph/camera';
@@ -25,12 +25,14 @@ const SHEET_H = 318;
 export function KnowledgeGraph({ active }: { active: boolean }) {
   const t = useTheme();
   const { tree, fresh } = useKnowledge();
-  const { study, markMapSeen } = useStore();
+  const { study, studyData, markMapSeen } = useStore();
   const later = useLater();
   const [size, setSize] = useState<{ W: number; H: number } | null>(null);
   const key = tree && tree.nodes.size ? tree.key : '';
   // 배치는 첫 장면을 그린 뒤에 계산한다(시작 화면이 떠 있는 동안 미리 계산해 두면 바로 나온다).
   const model = useMemo(() => (later.ready && tree && key ? getModel(tree) : null), [later.ready, key]);
+  // 마지막 풀이 뒤에 문제가 더해진 개념도 오늘 복습으로 보인다
+  const grown = useMemo(() => (studyData ? conceptsWithNewQuestions(studyData, study) : new Set<string>()), [studyData, study]);
   return (
     <View
       style={{ flex: 1, backgroundColor: t.card }}
@@ -46,15 +48,15 @@ export function KnowledgeGraph({ active }: { active: boolean }) {
           <EmptyState title="아직 배운 개념이 없어요" />
         </View>
       ) : model && size && size.W > 0 && size.H > 0 ? (
-        <GraphPane key={model.key} model={model} W={size.W} H={size.H} cards={study.cards} fresh={fresh} active={active} markMapSeen={markMapSeen} />
+        <GraphPane key={model.key} model={model} W={size.W} H={size.H} cards={study.cards} grown={grown} data={studyData} fresh={fresh} active={active} markMapSeen={markMapSeen} />
       ) : null}
     </View>
   );
 }
 
-type PaneProps = { model: GraphModel; W: number; H: number; cards: ReturnType<typeof useStore>['study']['cards']; fresh: Set<string>; active: boolean; markMapSeen: () => void };
+type PaneProps = { model: GraphModel; W: number; H: number; cards: ReturnType<typeof useStore>['study']['cards']; grown: Set<string>; data: StudyData | null; fresh: Set<string>; active: boolean; markMapSeen: () => void };
 
-function GraphPane({ model: M, W, H, cards, fresh, active, markMapSeen }: PaneProps) {
+function GraphPane({ model: M, W, H, cards, grown, data, fresh, active, markMapSeen }: PaneProps) {
   const t = useTheme();
   const nav = useNav();
   const stage = useRef<GraphStageHandle>(null);
@@ -70,10 +72,10 @@ function GraphPane({ model: M, W, H, cards, fresh, active, markMapSeen }: PanePr
       const c = cards[n.id];
       if (!c) continue;
       const R = recall(c, now);
-      m.set(n.id, { studied: true, strength: clamp((R * Math.log(1 + c.s)) / Math.log(1 + 60), 0, 1), due: c.due <= today, amount: c.reps * 3 });
+      m.set(n.id, { studied: true, strength: clamp((R * Math.log(1 + c.s)) / Math.log(1 + 60), 0, 1), due: c.due <= today || grown.has(n.id), amount: c.reps * 3 });
     }
     return m;
-  }, [M, cards]);
+  }, [M, cards, grown]);
   const mem = useCallback((id: string) => memMap.get(id), [memMap]);
 
   const [pick, setPick] = useState<{ id: string; set?: Set<string> } | null>(null);
@@ -247,6 +249,9 @@ function GraphPane({ model: M, W, H, cards, fresh, active, markMapSeen }: PanePr
     stage.current?.flyTo(c);
   };
   const selNode = sel ? (M.N.get(sel) ?? null) : null;
+  // 학문, 분과, 주제를 고르면 그 분야만 푸는 단추가 뜬다(2026-11-24 소유자 결정). 아직 안 배운 개념도 센다.
+  const pickNode = pick ? (M.N.get(pick.id) ?? null) : null;
+  const pickCount = useMemo(() => (pickNode && pickNode.kind !== 'concept' && data ? conceptsOfNode(data, pickNode.id).length : 0), [pickNode, data]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -290,6 +295,19 @@ function GraphPane({ model: M, W, H, cards, fresh, active, markMapSeen }: PanePr
         >
           <Icon name="fit" size={20} color={t.p.grey700} />
         </Tap>
+      ) : null}
+      {pickNode && pickCount > 0 ? (
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 16, right: 16, bottom: 16 }}>
+          <PrimaryButton
+            label={`${pickNode.ko.length <= 10 ? pickNode.ko : pickNode.short || pickNode.ko} 풀기 · 개념 ${pickCount}개`}
+            a11yLabel={`${pickNode.ko} 분야만 풀기`}
+            onPress={() => {
+              setPick(null);
+              nav.push({ name: 'study', sect: 'lat', focus: pickNode.id });
+            }}
+            style={floatShadow(t.mode)}
+          />
+        </View>
       ) : null}
       <Sheet clear open={!!selNode} onClose={() => setSel(null)}>
         {selNode ? <ConceptSheet n={selNode} card={cards[selNode.id]} onStudy={() => {

@@ -96,6 +96,7 @@ for (const [i, it] of (input.items ?? []).entries()) {
     out.a = q.a;
     if (q.h) out.h = q.h;
     out.w = q.w;
+    if (input.added) out.added = input.added;
     addQ.push(out);
   }
   const concept = { id, name: c.name, en: c.en ?? c.full ?? undefined, node: it.node };
