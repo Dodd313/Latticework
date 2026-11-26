@@ -4,9 +4,27 @@
   "inbox": "1EZxARK6aYdL0JEjwGRc5j2FmMASqoF-y",
   "processed": "14YnQbfACs1dGKSmcobq8MnExEgxi5tgd",
   "disciplines": {
-    "경제학": { "id": "1laL5ajGN8N_xX7o-__j6CSzQLW8ZncOD", "branches": { "자원·원자재 경제": "1gYXGNZHt6L1L4ebVaTSrpZ6iYRNSRpmA" } },
-    "재무학": { "id": "1vN9QS2pefNOksKhjlS5MPfy4BcmlXqSD", "branches": { "금융 전반 학습": "1UPQy4_UeSMt2UBirrpT3MpkS9C7E5yQH" } },
-    "논리학": { "id": "1zfIHITQIc_pgjcT55zGD2ZiT3B2-cpS7", "branches": {} },
-    "통계학": { "id": "1Aar55NCEppQFdBemx2FS_frhKDhCzGPs", "branches": {} }
+    "경제학": {
+      "id": "1laL5ajGN8N_xX7o-__j6CSzQLW8ZncOD",
+      "branches": {
+        "자원·원자재 경제": "1gYXGNZHt6L1L4ebVaTSrpZ6iYRNSRpmA"
+      }
+    },
+    "재무학": {
+      "id": "1vN9QS2pefNOksKhjlS5MPfy4BcmlXqSD",
+      "branches": {
+        "금융 전반 학습": "1UPQy4_UeSMt2UBirrpT3MpkS9C7E5yQH",
+        "금융기관": "1S441O4U0dvNX_JAo6lt8FHlybVnnNUMG",
+        "옵션·선물과 파생상품": "1XGymJT9Ez9oLcL2QxM7IB-9xGob5eKld"
+      }
+    },
+    "논리학": {
+      "id": "1zfIHITQIc_pgjcT55zGD2ZiT3B2-cpS7",
+      "branches": {}
+    },
+    "통계학": {
+      "id": "1Aar55NCEppQFdBemx2FS_frhKDhCzGPs",
+      "branches": {}
+    }
   }
 }
