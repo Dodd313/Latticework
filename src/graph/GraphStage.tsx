@@ -10,6 +10,14 @@ import { WEB, motionOff } from '../motion';
 import { Cam, camTransform, clamp, flightOf, project, toWorld, zoomAt, bound, PNode } from './camera';
 import { GraphView, GraphViewProps } from './GraphView';
 
+/** 장면 안 이름 글자를 숨기거나 다시 보인다. 다시 보일 때 fade 면 짧게 나타난다. */
+function labelsHidden(e: HTMLElement, hide: boolean, fade = false) {
+  e.querySelectorAll<HTMLElement | SVGElement>('[data-l]').forEach((x) => {
+    (x as any).style.visibility = hide ? 'hidden' : '';
+    if (!hide && fade) x.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease', fill: 'backwards' });
+  });
+}
+
 export type FlyOpts = { ms?: number; min?: number; lin?: boolean; delay?: number; done?: () => void };
 export type GraphStageHandle = {
   flyTo: (to: Cam, o?: FlyOpts) => void;
@@ -89,7 +97,9 @@ function StageWeb(p: InnerProps) {
     const host = ghosts.current as HTMLElement | null;
     if (!e || !host) return null;
     const g = e.cloneNode(true) as HTMLElement;
-    g.querySelectorAll('[data-n],[data-e],[data-l]').forEach((x) => {
+    // 복사본에는 이름 글자를 두지 않는다. 배율이 바뀌는 동안 SVG 글자는 매 프레임 다시 배치되어 휴대폰에서 끊긴다(렉 개선, 2026-11-27).
+    g.querySelectorAll('[data-l]').forEach((x) => x.remove());
+    g.querySelectorAll('[data-n],[data-e]').forEach((x) => {
       x.removeAttribute('data-n');
       x.removeAttribute('data-e');
       x.removeAttribute('data-l');
@@ -140,7 +150,10 @@ function StageWeb(p: InnerProps) {
     });
     f.ghost?.remove();
     const e = el();
-    if (e) e.style.opacity = '';
+    if (e) {
+      e.style.opacity = '';
+      labelsHidden(e, false);
+    }
     applyLive();
   };
   const finish = (f: Flight) => {
@@ -151,6 +164,7 @@ function StageWeb(p: InnerProps) {
     f.anims.forEach((a) => {
       if ((a.effect as KeyframeEffect | null)?.target === e) a.cancel();
     });
+    if (e) labelsHidden(e, false, true);
     live.current = f.to;
     applyLive();
     f.done?.();
@@ -165,6 +179,8 @@ function StageWeb(p: InnerProps) {
     const fi: Keyframe[] = [];
     for (let i = 0; i < n; i++) fi.push({ transform: css(camTransform(f.to, f.at(i / (n - 1)), w, h)) });
     e.style.transform = '';
+    // 새 장면도 나는 동안에는 이름을 숨기고(finish 에서 다시 보인다), 점과 선만 날린다.
+    labelsHidden(e, true);
     const now = performance.now();
     const a = e.animate(fi, { duration: f.ms, delay: f.delay, easing: 'linear', fill: 'both' });
     a.currentTime = now - f.t0;

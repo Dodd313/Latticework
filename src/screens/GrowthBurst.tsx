@@ -1,20 +1,40 @@
 // 일일 학습에서 "이해했어요"를 누른 순간 띄우는 부분 지도(2026-11-27 소유자 결정).
 // 그 개념이 속한 분과(분과가 없으면 학문) 무리를 확대해 보이고, 새 점(과 이 개념으로 처음 생긴 윗마디)이 돋은 뒤 고리가 한 번 퍼진다.
 // 새 점은 흐리게(아직 문제를 안 풀었다), 이미 배운 개념은 기억이 단단한 만큼 짙게 그린다. 지도 탭(KnowledgeGraph)과 같은 진하기 규칙.
-import React, { useCallback, useMemo } from 'react';
+import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Cam, Mem, baseK, clamp, fitBox, nodeFit } from '../graph/camera';
 import { GraphView, Pulse, RevealStep } from '../graph/GraphView';
 import { GNode, getModel, subtree } from '../graph/layout';
-import { TOPIC_MIN } from '../knowledge';
+import { TOPIC_MIN, learnedTree } from '../knowledge';
 import { motionOff } from '../motion';
 import { useKnowledge, useStore } from '../store';
-import { recall } from '../study';
+import { StudyData, StudyState, recall } from '../study';
+
+/**
+ * 카드를 읽는 동안, 이해했어요를 누른 뒤의 지도 모양을 틈틈이 미리 계산해 둔다(getModel 캐시). 누른 순간의 멈춤을 없앤다.
+ */
+export function prewarmBurst(data: StudyData | null, state: StudyState, id: string, today: string): () => void {
+  if (!data) return () => {};
+  const g = globalThis as any;
+  const run = () => {
+    const tree = learnedTree(data, state.cards, { ...(state.marks ?? {}), [id]: { k: 'ok', d: today, t: '' } });
+    if (tree) getModel(tree);
+  };
+  const h = g.requestIdleCallback ? g.requestIdleCallback(run, { timeout: 1500 }) : setTimeout(run, 300);
+  return () => (g.requestIdleCallback && g.cancelIdleCallback ? g.cancelIdleCallback(h) : clearTimeout(h));
+}
 
 export function GrowthBurst({ id, width, height, delay = 500 }: { id: string; width: number; height: number; delay?: number }) {
   const { tree } = useKnowledge();
   const cards = useStore().study.cards;
-  const M = useMemo(() => (tree ? getModel(tree) : null), [tree]);
+  // 지도 배치는 누른 순간이 아니라 한 프레임 뒤 급하지 않은 일로 꺼낸다(렉 개선). 대개 Read 화면이 카드를 읽는 동안 미리 데워 두어 캐시에 있다.
+  const [go, setGo] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => startTransition(() => setGo(true)));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const M = useMemo(() => (go && tree ? getModel(tree) : null), [go, tree]);
   const scene = useMemo(() => {
     const n = M?.N.get(id);
     if (!M || !n) return null;
@@ -71,7 +91,7 @@ export function GrowthBurst({ id, width, height, delay = 500 }: { id: string; wi
     },
     [cards, now],
   );
-  if (!M || !scene) return null;
+  if (!M || !scene) return <View aria-hidden style={{ width, height }} />;
   return (
     <View aria-hidden style={{ width, height, overflow: 'hidden' }}>
       <GraphView

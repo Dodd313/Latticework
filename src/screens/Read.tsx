@@ -2,7 +2,7 @@
 // "이해했어요"를 누르면 그 자리에서 지식 지도의 일부가 뜨고 새 점이 돋는다(GrowthBurst). 지도에는 흐린 점으로 남고, 문제를 풀수록 짙어진다.
 // "이해했어요"를 누른 개념만 다음 날부터, 하루 분량의 새 개념 자리가 날 때 Latticework 문제로 나온다. "나중에 다시"는 읽을 차례의 끝으로, "빼기"는 공부하지 않을 개념(숨김).
 // 읽기 상한은 없다(원하는 만큼). 하루 목표는 1개(store 의 readGoal).
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Easing, ScrollView, View, useWindowDimensions } from 'react-native';
 import { todayKST } from '../dates';
 import { Count, Rise, motionOff } from '../motion';
@@ -11,7 +11,7 @@ import { useGoals, useStore } from '../store';
 import { Concept, ReadMark, StudyData, nameWithEn, readOn, readQueue, startsIn } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, ExtLink, Icon, LipButton, PrimaryButton, Ring, T } from '../ui';
-import { GrowthBurst } from './GrowthBurst';
+import { GrowthBurst, prewarmBurst } from './GrowthBurst';
 import { Enter } from './Study';
 
 const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
@@ -43,6 +43,8 @@ export function ReadScreen() {
   const scroll = useRef<any>(null);
   const c = list[at];
   const readToday = readOn(study, today);
+  // 이 카드를 읽는 동안 이해했어요 뒤의 지도 모양을 미리 계산해 둔다(누른 순간 멈추지 않게).
+  useEffect(() => (c && !burst ? prewarmBurst(studyData, study, c.id, today) : undefined), [c?.id, !!burst]);
 
   const act = (k: ReadMark['k']) => {
     if (!c) return;

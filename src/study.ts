@@ -142,7 +142,7 @@ export type LogRow = { t: string; u: string; k: StudySect; q: string; ok: boolea
 /**
  * 하루 분량(2026-11-27 소유자 결정, motion-lab/v13/daily-load.html 의 해결 1, 2, 4).
  * 구역마다 하루 예산(문제 수)을 두고, 복습할 때가 된 것을 먼저 채운 뒤 남는 자리에만 새 항목을 넣는다(해결 1).
- * 새 항목 수는 앞으로 7일 가운데 가장 바쁜 날도 예산을 넘지 않게 정하고, 복습 날짜는 간격의 앞뒤 10% 안에서 한가한 날로 잡는다(해결 2).
+ * 새 항목 수는 앞으로 7일의 평균 복습량만큼 자리를 남기고 정하며, 복습 날짜는 간격의 앞뒤 10% 안에서 한가한 날로 잡는다(해결 2).
  * 쉬고 돌아와 밀린 복습이 예산을 넘으면 새 항목을 멈추고 예산의 1.5배까지 푼다(해결 4).
  */
 export const LAT_GOAL = 5; // Latticework 하루 예산
@@ -491,7 +491,10 @@ function latOrder(data: StudyData, state: StudyState, today: string, now: Date, 
     if (f > (lastNew.get(d) ?? '')) lastNew.set(d, f);
     learned.set(d, (learned.get(d) ?? 0) + 1);
   }
-  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id] && isOpen(c, state, today)), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0);
+  // 새 개념 차례: 일일 학습에서 이해했어요를 누른 개념을 누른 순서대로 먼저(화면이 "먼저 읽은 개념부터"라고 안내한다), 그 뒤 카드 없는 예전 개념을 학문을 번갈아.
+  const open = data.concepts.filter((c) => !state.cards[c.id] && isOpen(c, state, today));
+  const readFirst = open.filter((c) => c.card).sort((a, b) => ((state.marks?.[a.id]?.t ?? '') < (state.marks?.[b.id]?.t ?? '') ? -1 : 1));
+  const fresh = [...readFirst, ...mixByField(data, open.filter((c) => !c.card), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0)];
   const byWeak = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const grown = conceptsWithNewQuestions(data, state);
   const due = byWeak.filter((c) => state.cards[c.id].due <= today || grown.has(c.id));
@@ -692,7 +695,9 @@ export function sectPlan(data: StudyData, state: StudyState, today: string, sect
   const reviews = Math.min(due, cap);
   const avail = sect === 'voc' ? data.vocab.filter((v) => !state.cards[v.id]).length : data.concepts.filter((c) => !state.cards[c.id] && isOpen(c, state, today)).length;
   const most = sect === 'voc' ? VOC_NEW_PER_DAY : LAT_NEW_PER_DAY;
-  const nNew = recover ? 0 : Math.max(0, Math.min(most, budget - reviews, budget - Math.max(0, ...forecast), avail));
+  // 앞으로 7일 평균 복습량만큼 자리를 남긴다. 가장 바쁜 하루를 기준으로 하면 예전 방식으로 한날에 몰린 복습 때문에 일주일 내내 새 항목이 막힌다.
+  const ahead = Math.ceil(forecast.reduce((a, b) => a + b, 0) / forecast.length);
+  const nNew = recover ? 0 : Math.max(0, Math.min(most, budget - reviews, budget - ahead, avail));
   return { due, cap, nNew, recover, goal: reviews + nNew, forecast };
 }
 

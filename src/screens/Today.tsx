@@ -12,7 +12,7 @@ import { conceptsWithNewQuestions, researchStatus, sectPlan } from '../study';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
 import { dayQuiz, quizOpen } from './DayQuiz';
-import { UnlockBand, useHomeBand } from './UnlockBand';
+import { UnlockBand, useBandValue, useHomeBand } from './UnlockBand';
 
 const WEEK = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -233,6 +233,15 @@ function RecoverBand() {
   );
 }
 
+/**
+ * 해금 띠. useHomeBand 는 화면이 보이는지(ShownCtx)를 구독하므로, 탭을 바꾸거나 안쪽 화면을 여닫을 때마다 바뀐다.
+ * 홈 전체가 아니라 이 작은 자리만 다시 그리게 따로 둔다(렉 개선, 2026-11-27).
+ */
+function HomeBandSlot() {
+  const band = useHomeBand();
+  return band ? <UnlockBand key={band.item.id} band={band} /> : null;
+}
+
 /** 흐린 점선(일일 학습과 나머지 과제 사이) */
 function DashLine() {
   const t = useTheme();
@@ -409,8 +418,7 @@ export function TodayScreen() {
     () => cheerHome({ doneParts: doneCount, totalParts: parts.length, solvedToday, readToday, streakDays: streak, allDone, hourKST, seed: seedOf(today, 'home', doneCount, allDone) }),
   );
   // 해금 띠가 떠 있는 동안은 이 줄을 숨긴다(한 화면에 한 줄).
-  const band = useHomeBand();
-  const quiet = !!band;
+  const quiet = !!useBandValue();
   const homeLine = quiet ? null : home.text;
 
   const monday = weekdaysOf(today)[0];
@@ -434,7 +442,7 @@ export function TodayScreen() {
 
   return (
     <TabScreen title="Latticework" brand right={header} top={<QuoteBlock today={today} />}>
-      {band ? <UnlockBand key={band.item.id} band={band} /> : null}
+      <HomeBandSlot />
       <InstallHint />
       {loading ? (
         <Placeholder />

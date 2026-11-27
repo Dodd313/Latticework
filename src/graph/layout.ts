@@ -503,7 +503,8 @@ export function getModel(tree: LearnedTree): GraphModel {
   }
   const m = build(tree);
   cache.set(tree.key, m);
-  while (cache.size > 4) cache.delete(cache.keys().next().value!);
+  // 지도, 일일 학습 모션, 미리 데운 다음 모양이 서로 밀어내지 않게 넉넉히 둔다.
+  while (cache.size > 8) cache.delete(cache.keys().next().value!);
   return m;
 }
 

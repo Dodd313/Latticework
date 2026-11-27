@@ -228,8 +228,12 @@ const StoreCtx = createContext<Store | null>(null);
  */
 export function StoreDefer({ defer = true, children }: { defer?: boolean; children: React.ReactNode }) {
   const live = useContext(StoreCtx);
-  const later = useDeferredValue(live);
-  return <StoreCtx.Provider value={defer ? later : live}>{children}</StoreCtx.Provider>;
+  // 가려진 동안은 마지막 값을 붙들어 아예 다시 그리지 않는다(문제 하나 풀 때마다 홈과 기록 탭 전체가 다시 그려지던 렉, 2026-11-27).
+  // 다시 보이면 붙든 값으로 먼저 그리고, 새 값은 한 박자 늦게(끊어 가며) 따라잡는다.
+  const held = useRef(live);
+  if (!defer) held.current = live;
+  const later = useDeferredValue(defer ? held.current : live);
+  return <StoreCtx.Provider value={defer ? held.current : later}>{children}</StoreCtx.Provider>;
 }
 
 function mergeUser(a: UserData, b: Partial<UserData> | null | undefined): UserData {

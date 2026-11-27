@@ -33,6 +33,11 @@ const subscribe = (f: () => void) => {
 };
 const snap = () => (closed ? null : held);
 
+/** 지금 떠 있는 띠만 읽는다(화면이 보이는지는 구독하지 않는다). 홈이 띠가 있는 동안 Latti 한 줄을 숨기는 데 쓴다. */
+export function useBandValue(): Band | null {
+  return useSyncExternalStore(subscribe, snap, snap);
+}
+
 /** 지금 홈에 둘 띠. 홈이 보이고 시작 화면 뒤 차례가 끝났을 때 처음 잡는다. */
 export function useHomeBand(): Band | null {
   const { plan } = useKnowledge();

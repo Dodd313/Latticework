@@ -1,5 +1,5 @@
 // 지식 탭의 단어장: 이미 배운(한 번이라도 답한) 단어와 구문만. 새로 배운 것부터, 처음 배운 날로 묶는다.
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { addDays, todayKST } from '../dates';
 import { CSS_EASE, EASE_OUT, MView, NATIVE_DRIVER, WEB, motionOff, spring, webAnimate, webTween } from '../motion';
@@ -16,6 +16,29 @@ function dayTitle(d: string, today: string): string {
   if (d === addDays(today, -1)) return '어제';
   return md(d);
 }
+
+const DayHead = React.memo(function DayHead({ text }: { text: string }) {
+  const t = useTheme();
+  return (
+    <T s={13} w="600" c={t.mute} style={{ paddingTop: 16, paddingBottom: 2, paddingHorizontal: 20 }}>
+      {text}
+    </T>
+  );
+});
+
+const VocabRow = React.memo(function VocabRow({ id, term, ko, onOpen }: { id: string; term: string; ko: string; onOpen: (id: string) => void }) {
+  const t = useTheme();
+  return (
+    <Tap press="dim" label={`${term} ${ko}`} onPress={() => onOpen(id)} style={{ minHeight: 60, paddingVertical: 8, paddingHorizontal: 20, justifyContent: 'center' }}>
+      <T s={17} w="600" lines={1} lh={24 / 17} style={{ letterSpacing: -0.2 }}>
+        {term}
+      </T>
+      <T s={14} w="500" c={t.sub} lines={1} lh={20 / 14}>
+        {ko}
+      </T>
+    </Tap>
+  );
+});
 
 /** 지식 탭이 칸을 바꿀 때 다시 그리지 않게 memo 로 감싼다(자기 자료가 바뀔 때만 다시 그린다). */
 export const KnowledgeVocab = React.memo(function KnowledgeVocab() {
@@ -48,27 +71,25 @@ export const KnowledgeVocab = React.memo(function KnowledgeVocab() {
     return () => a?.cancel();
   }, [kind]);
 
+  // 줄은 memo 컴포넌트로 그려, 기록이 바뀌어도 바뀐 줄만 다시 그린다. 처음에는 앞의 60줄만 그리고 나머지는 틈틈이 붙인다(렉 개선).
+  const byId = useMemo(() => new Map(list.map((it) => [it.v.id, it])), [list]);
+  const onOpen = useCallback((id: string) => setOpen(byId.get(id) ?? null), [byId]);
+  const [limit, setLimit] = useState(60);
+  useEffect(() => {
+    if (limit >= list.length) return;
+    const g = globalThis as any;
+    const next = () => setLimit((n) => n + 80);
+    const id = g.requestIdleCallback ? g.requestIdleCallback(next, { timeout: 600 }) : setTimeout(next, 120);
+    return () => (g.cancelIdleCallback && g.requestIdleCallback ? g.cancelIdleCallback(id) : clearTimeout(id));
+  }, [limit, list.length]);
   const rows: React.ReactNode[] = [];
   let last = '';
-  for (const it of list) {
+  for (const it of list.slice(0, limit)) {
     if (it.first !== last) {
       last = it.first;
-      rows.push(
-        <T key={`d:${it.first}`} s={13} w="600" c={t.mute} style={{ paddingTop: 16, paddingBottom: 2, paddingHorizontal: 20 }}>
-          {dayTitle(it.first, today)}
-        </T>,
-      );
+      rows.push(<DayHead key={`d:${it.first}`} text={dayTitle(it.first, today)} />);
     }
-    rows.push(
-      <Tap key={it.v.id} press="dim" label={`${it.v.term} ${it.v.ko}`} onPress={() => setOpen(it)} style={{ minHeight: 60, paddingVertical: 8, paddingHorizontal: 20, justifyContent: 'center' }}>
-        <T s={17} w="600" lines={1} lh={24 / 17} style={{ letterSpacing: -0.2 }}>
-          {it.v.term}
-        </T>
-        <T s={14} w="500" c={t.sub} lines={1} lh={20 / 14}>
-          {it.v.ko}
-        </T>
-      </Tap>,
-    );
+    rows.push(<VocabRow key={it.v.id} id={it.v.id} term={it.v.term} ko={it.v.ko} onOpen={onOpen} />);
   }
 
   return (
