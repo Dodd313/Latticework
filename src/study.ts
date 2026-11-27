@@ -57,8 +57,8 @@ export type Card = {
   first?: string; // 처음 답한 날(한국 날짜). 이 날부터 배운 것으로 센다
 };
 
-/** readGoal 은 그날 읽기 목표(읽을 개념이 있던 날 1). 2026-11-27 소유자 결정. */
-export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number; readGoal?: number };
+/** readGoal 은 그날 읽기 목표(읽을 개념이 있던 날 1), read 는 그날 읽고 표시한 수(이해했어요와 빼기). 2026-11-27 소유자 결정. */
+export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number; readGoal?: number; read?: number };
 
 /**
  * 읽기 표시(2026-11-27 소유자 결정). 카드가 있는 새 개념은 먼저 읽기 화면에서 읽고 ok(이해했어요)를 누른 다음 날부터 문제로 나온다.
@@ -82,6 +82,21 @@ export function readQueue(data: StudyData, state: StudyState): Concept[] {
     return `${m ? `1${m.t}` : '0'}|${c.card?.added ?? ''}`;
   };
   return list.map((c, i) => ({ c, i, k: key(c) })).sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : a.i - b.i)).map((x) => x.c);
+}
+
+/**
+ * 읽기 표시 합치기(시트 불러오기, 파일 가져오기). 이해했어요와 빼기는 나중에 다시보다 앞선다(다른 기기의 늦은 "나중에"가 끝낸 읽기를 되돌리지 않게).
+ * 같은 무게면 늦게 누른 쪽.
+ */
+export function mergeMarks(a: Record<string, ReadMark> | undefined, b: Record<string, ReadMark> | undefined): Record<string, ReadMark> {
+  const w = (m: ReadMark) => (m.k === 'later' ? 0 : 1);
+  const out: Record<string, ReadMark> = { ...(a ?? {}) };
+  for (const [id, m] of Object.entries(b ?? {})) {
+    if (!m || typeof m.t !== 'string' || !['ok', 'later', 'skip'].includes(m.k)) continue;
+    const o = out[id];
+    if (!o || w(m) > w(o) || (w(m) === w(o) && m.t > o.t)) out[id] = m;
+  }
+  return out;
 }
 
 /** 그날 "이해했어요"를 누른 개념 수 */
@@ -427,8 +442,9 @@ export function buildLatFocus(data: StudyData, state: StudyState, today: string,
   const focus = data.concepts.find((c) => c.id === focusId);
   const head: Concept[] = [];
   if (focus) {
-    head.push(focus);
-    head.push(...data.concepts.filter((c) => c !== focus && c.node === focus.node).sort(weak));
+    // 읽기를 마치지 않아 잠긴 개념은 복습하기로도 내지 않는다(2026-11-27 소유자 결정).
+    if (isOpen(focus, state, today)) head.push(focus);
+    head.push(...data.concepts.filter((c) => c !== focus && c.node === focus.node && isOpen(c, state, today)).sort(weak));
   } else {
     // 분야(학문, 분과, 주제)를 골라 풀 때는 그 분야 안의 개념만 낸다(2026-11-24 소유자 결정).
     // 복습할 때가 된 개념(문제가 새로 더해진 개념 포함), 새 개념(분과를 번갈아), 나머지를 기억이 약한 순서로.

@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, ReadMark, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, readOn, readQueue, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, ReadMark, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, mergeMarks, readOn, readQueue, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
@@ -669,14 +669,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLater(STUDY_KEY, () => studyRef.current);
   }, [studyData, todayStr]);
 
-  // 읽을 개념이 있는 날은 읽기 목표 1개(2026-11-27 소유자 결정). 낮에 새 카드가 들어와도 1로 올린다. 한 번 1이 되면 내리지 않는다.
+  // 읽을 개념이 있는 날은 읽기 목표 1개(2026-11-27 소유자 결정). 낮에 새 카드가 들어와도 1로 올린다.
+  // 아무것도 읽지 않았는데 읽을 차례가 비면(자료가 바뀌어 빠지는 등) 0으로 되돌린다. 할 일이 없는 목표로 연속 기록이 끊기지 않게.
   useEffect(() => {
     if (!studyData) return;
     const cur = studyRef.current;
     const rec = cur.days[todayStr];
-    if (!rec || (rec.readGoal ?? 0) >= 1) return;
-    if (readQueue(studyData, cur).length === 0 && readOn(cur, todayStr) === 0) return;
-    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { ...rec, readGoal: 1 } } };
+    if (!rec) return;
+    const want = readQueue(studyData, cur).length > 0 || (rec.read ?? 0) > 0 ? 1 : 0;
+    if ((rec.readGoal ?? 0) === want) return;
+    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { ...rec, readGoal: want } } };
     studyRef.current = next;
     setStudy(next);
     saveLater(STUDY_KEY, () => studyRef.current);
@@ -685,7 +687,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const markConcept = useCallback((conceptId: string, k: ReadMark['k']) => {
     const cur = studyRef.current;
     const now = new Date();
-    const next: StudyState = { ...cur, marks: { ...(cur.marks ?? {}), [conceptId]: { k, d: todayKST(), t: now.toISOString() } } };
+    const today = todayKST();
+    // 이해했어요와 빼기는 그날 읽은 수로 센다(지난 날 기록은 표시가 나중에 바뀌어도 그대로).
+    const rec = cur.days[today];
+    const days = rec && k !== 'later' ? { ...cur.days, [today]: { ...rec, read: (rec.read ?? 0) + 1 } } : cur.days;
+    const next: StudyState = { ...cur, days, marks: { ...(cur.marks ?? {}), [conceptId]: { k, d: today, t: now.toISOString() } } };
     studyRef.current = next;
     setStudy(next);
     saveLater(STUDY_KEY, () => studyRef.current);
@@ -968,15 +974,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
     // 날짜별 푼 수: 기기, 시트의 상태 줄 가운데 많이 푼 쪽. 둘 다 없는 날만 풀이 기록으로 센다.
-    const total = (d: StudyDay) => d.lat + d.voc + (d.extra ?? 0);
+    const total = (d: StudyDay) => d.lat + d.voc + (d.extra ?? 0) + (d.read ?? 0);
     const days: Record<string, StudyDay> = { ...cur.days };
     for (const sn of snaps) for (const [d, v] of Object.entries(sn.study?.days ?? {})) if (v && (!days[d] || total(v) > total(days[d]))) days[d] = v;
     for (const [d, v] of Object.entries(daysFromLog(merged))) if (!days[d]) days[d] = v;
     const starts = [cur.start, rebuilt.start, ...snaps.map((x) => x.study?.start)].filter((x): x is string => !!x && /^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
     const xp = Math.max(cur.xp, rebuilt.xp, ...snaps.map((x) => Number(x.study?.xp) || 0));
     // 읽기 표시: 기기와 상태 줄 가운데 늦게 누른 쪽.
-    const marks: Record<string, ReadMark> = { ...(cur.marks ?? {}) };
-    for (const sn of snaps) for (const [id, m] of Object.entries(sn.study?.marks ?? {})) if (m && typeof m.t === 'string' && (!marks[id] || m.t > marks[id].t)) marks[id] = m;
+    let marks: Record<string, ReadMark> = { ...(cur.marks ?? {}) };
+    for (const sn of snaps) marks = mergeMarks(marks, sn.study?.marks);
     const nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp, marks };
     logRef.current = merged.slice(-LOG_CAP);
     studyRef.current = nextStudy;
@@ -1143,7 +1149,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             saveLater(STUDY_LOG_KEY, getLog);
           }
           // 예전 내보내기(버전 2)에는 처음 답한 날이 없다. 풀이 기록으로 채운다.
-          const st = withFirsts(st0, getLog());
+          // 읽기 표시는 기기 것과 파일 것을 합친다(예전 파일에는 표시가 없다).
+          const st = { ...withFirsts(st0, getLog()), marks: mergeMarks(studyRef.current.marks, st0.marks) };
           studyRef.current = st;
           setStudy(st);
           saveLater(STUDY_KEY, () => studyRef.current);
@@ -1226,7 +1233,7 @@ export function partsOf(date: string, days: Day[], user: UserData, study: StudyS
     // 개념 읽기: 그날 읽을 개념이 있었으면 1개
     const readTotal = rec?.readGoal ?? 0;
     if (readTotal > 0) {
-      const done = Math.min(readTotal, readOn(study, date));
+      const done = Math.min(readTotal, rec?.read ?? readOn(study, date));
       parts.push({ key: 'read', done, total: readTotal, complete: done >= readTotal });
     }
     const latTotal = rec ? rec.latGoal : LAT_GOAL;
