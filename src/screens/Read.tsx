@@ -110,6 +110,8 @@ export function ReadScreen() {
     const h = Math.round(Math.max(260, Math.min(420, win.height * 0.46)));
     return (
       <View style={{ flex: 1, backgroundColor: t.card }}>
+        {/* 지도 모션을 보는 동안은 쉬는 화면: 가려진 탭이 이 틈에 따라잡아 닫기가 가볍다 */}
+        <RestPoint />
         <BackBar label="홈" bg={t.card} progress={list.length ? (at + 1) / list.length : 0} />
         <View style={{ flex: 1, paddingTop: 4 }}>
           {goalFx ? <GoalDone streakFrom={goalFx.streakFrom} streakTo={goals.streak} /> : null}
