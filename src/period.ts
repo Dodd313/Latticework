@@ -172,8 +172,9 @@ export function periodStats(p: Period, input: PeriodInput): PeriodStats {
       const b = idx.branchOf(r.u);
       if (b) branchRow(d.id, b.id).solved += 1;
     }
+    // 새 개념의 날은 지도(나무)와 같은 기준: 처음 푼 날과 일일 학습에서 이해했어요를 누른 날 가운데 이른 날.
     const fresh = data.concepts
-      .map((c) => ({ id: c.id, c, at: firstOf(study.cards[c.id]) }))
+      .map((c) => ({ id: c.id, c, at: tree?.nodes.get(c.id)?.at ?? firstOf(study.cards[c.id]) }))
       .filter((x) => inRange(x.at))
       .sort(cmpAt);
     for (const x of fresh) {

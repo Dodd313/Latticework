@@ -318,7 +318,11 @@ function GraphPane({ model: M, W, H, cards, state, grown, data, fresh, active, m
         </View>
       ) : null}
       <Sheet clear open={!!selNode} onClose={() => setSel(null)}>
-        {selNode ? <ConceptSheet n={selNode} card={cards[selNode.id]} onStudy={() => {
+        {selNode ? <ConceptSheet n={selNode} card={cards[selNode.id]} locked={(() => {
+          // 일일 학습에서 오늘 이해했어요를 누른 개념은 내일부터 문제로 나온다. 그 전에는 복습하기 대신 안내를 보인다.
+          const c = data?.concepts.find((x) => x.id === selNode.id);
+          return !!c && !isOpen(c, state, todayKST());
+        })()} onStudy={() => {
           setSel(null);
           nav.push({ name: 'study', sect: 'lat', focus: selNode.id });
         }} /> : null}
@@ -382,7 +386,7 @@ function Crumb({ C, onBack, onItem }: { C: GNode; onBack: () => void; onItem: (n
 }
 
 /** 개념 시트: 옅은 길, 이름, 영어 이름, 반복 · 기억 · 다음 복습, 복습하기 */
-function ConceptSheet({ n, card, onStudy }: { n: GNode; card: ReturnType<typeof useStore>['study']['cards'][string] | undefined; onStudy: () => void }) {
+function ConceptSheet({ n, card, locked, onStudy }: { n: GNode; card: ReturnType<typeof useStore>['study']['cards'][string] | undefined; locked?: boolean; onStudy: () => void }) {
   const t = useTheme();
   const path: string[] = [];
   for (let p = n.parent; p; p = p.parent) path.unshift(p.ko);
@@ -421,7 +425,13 @@ function ConceptSheet({ n, card, onStudy }: { n: GNode; card: ReturnType<typeof 
           </View>
         ))}
       </View>
-      <PrimaryButton label="복습하기" onPress={onStudy} style={{ marginTop: 18 }} />
+      {locked ? (
+        <T s={15} w="600" c={t.mute} center lh={22 / 15} style={{ marginTop: 22 }}>
+          내일부터 문제로 나와요
+        </T>
+      ) : (
+        <PrimaryButton label="복습하기" onPress={onStudy} style={{ marginTop: 18 }} />
+      )}
     </View>
   );
 }
