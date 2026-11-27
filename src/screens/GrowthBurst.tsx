@@ -10,7 +10,7 @@ import { motionOff } from '../motion';
 import { useKnowledge, useStore } from '../store';
 import { recall } from '../study';
 
-export function GrowthBurst({ id, width, height }: { id: string; width: number; height: number }) {
+export function GrowthBurst({ id, width, height, delay = 500 }: { id: string; width: number; height: number; delay?: number }) {
   const { tree } = useKnowledge();
   const { study } = useStore();
   const M = useMemo(() => (tree ? getModel(tree) : null), [tree]);
@@ -39,10 +39,10 @@ export function GrowthBurst({ id, width, height }: { id: string; width: number; 
       .reverse()
       .forEach((x, i) => order.set(x.id, { t: i * 260, d: x.kind === 'concept' ? 520 : 440, mode: 'grow' }));
     const last = (born.length - 1) * 260 + 520;
-    const pulses: Pulse[] = [{ id, delay: 500 + last, r: 24, d: 1100, key: `burst:${id}` }];
+    const pulses: Pulse[] = [{ id, delay: delay + last, r: 24, d: 1100, key: `burst:${id}` }];
     const focus = new Set<string>([...group.map((x) => x.id), ...(scope.parent ? [scope.parent.id] : [])]);
     return { cam, K0, order, pulses, focus };
-  }, [M, id, width, height]);
+  }, [M, id, width, height, delay]);
   const now = useMemo(() => new Date(), [id]);
   const mem = (nid: string): Mem | undefined => {
     const c = study.cards[nid];
@@ -66,7 +66,7 @@ export function GrowthBurst({ id, width, height }: { id: string; width: number; 
         focus={scene.focus}
         forceLabels
         dimTo={0.18}
-        reveal={still ? null : { order: scene.order, t0Delay: 500 }}
+        reveal={still ? null : { order: scene.order, t0Delay: delay }}
         pulses={still ? [] : scene.pulses}
       />
     </View>

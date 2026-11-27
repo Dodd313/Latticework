@@ -3,15 +3,18 @@
 // "이해했어요"를 누른 개념만 다음 날부터 Latticework 문제로 나온다. "나중에 다시"는 읽을 차례의 끝으로, "빼기"는 공부하지 않을 개념(숨김).
 // 읽기 상한은 없다(원하는 만큼). 하루 목표는 1개(store 의 readGoal).
 import React, { useRef, useState } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { Easing, ScrollView, View, useWindowDimensions } from 'react-native';
 import { todayKST } from '../dates';
-import { Rise } from '../motion';
+import { Count, Rise, motionOff } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
-import { useStore } from '../store';
+import { useGoals, useStore } from '../store';
 import { Concept, ReadMark, StudyData, readOn, readQueue } from '../study';
 import { useTheme } from '../theme';
-import { EmptyState, ExtLink, LipButton, PrimaryButton, T } from '../ui';
+import { EmptyState, ExtLink, Icon, LipButton, PrimaryButton, Ring, T } from '../ui';
 import { GrowthBurst } from './GrowthBurst';
+import { Enter } from './Study';
+
+const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 /** 학문 · 분과(· 주제) 이름 */
 function pathOf(data: StudyData, c: Concept): string {
@@ -33,6 +36,9 @@ export function ReadScreen() {
   const [skipArm, setSkipArm] = useState(false);
   // 방금 이해한 개념(지도 모션을 보이는 중). 계속을 누르면 다음 카드로.
   const [burst, setBurst] = useState<Concept | null>(null);
+  // 이번 이해했어요로 오늘 일일 학습 목표를 채웠는지, 그때의 연속 기록(하루 목표를 모두 마쳤으면 연속이 오른다)
+  const [goalFx, setGoalFx] = useState<{ streakFrom: number } | null>(null);
+  const goals = useGoals();
   const win = useWindowDimensions();
   const scroll = useRef<any>(null);
   const c = list[at];
@@ -44,10 +50,14 @@ export function ReadScreen() {
       setSkipArm(true);
       return;
     }
+    const rec = study.days[today];
+    const before = rec?.read ?? 0;
+    const goal = rec?.readGoal ?? 1;
     markConcept(c.id, k);
     setSkipArm(false);
     if (k === 'ok') {
       setRead((n) => n + 1);
+      setGoalFx(before < goal && before + 1 >= goal ? { streakFrom: goals.streak } : null);
       setBurst(c);
       return;
     }
@@ -55,6 +65,7 @@ export function ReadScreen() {
   };
   const next = () => {
     setBurst(null);
+    setGoalFx(null);
     setAt((i) => i + 1);
     scroll.current?.scrollTo({ y: 0, animated: false });
   };
@@ -98,7 +109,8 @@ export function ReadScreen() {
       <View style={{ flex: 1, backgroundColor: t.card }}>
         <BackBar label="홈" bg={t.card} progress={list.length ? (at + 1) / list.length : 0} />
         <View style={{ flex: 1, paddingTop: 4 }}>
-          <Rise key={`b:${burst.id}`} delay={0} style={{ paddingHorizontal: 20 }}>
+          {goalFx ? <GoalDone streakFrom={goalFx.streakFrom} streakTo={goals.streak} /> : null}
+          <Rise key={`b:${burst.id}`} delay={goalFx ? 620 : 0} style={{ paddingHorizontal: 20 }}>
             <T s={13} w="600" c={t.greenText}>
               지식 지도에 새 점이 생겼어요
             </T>
@@ -110,7 +122,7 @@ export function ReadScreen() {
             </T>
           </Rise>
           <View style={{ alignItems: 'center', marginTop: 8 }}>
-            <GrowthBurst key={burst.id} id={burst.id} width={w} height={h} />
+            <GrowthBurst key={burst.id} id={burst.id} width={w} height={goalFx ? h - 72 : h} delay={goalFx ? 1100 : 500} />
           </View>
           <T s={14} c={t.sub} lh={21 / 14} style={{ paddingHorizontal: 20, marginTop: 8 }}>
             지금은 흐린 점이에요. 내일부터 문제로 나오고, 되풀이해 풀수록 점이 짙어져요.
@@ -225,6 +237,45 @@ export function ReadScreen() {
           <LipButton label={skipArm ? '한 번 더 누르면 빼요' : '빼기'} tone={skipArm ? 'red' : 'ghost'} onPress={() => act('skip')} style={{ flex: 1 }} a11yLabel="이 개념 빼기" />
         </View>
       </View>
+    </View>
+  );
+}
+
+/**
+ * 오늘 일일 학습 목표를 채운 순간의 표시(2026-11-27 소유자 결정). 초록 고리가 차오르고 체크가 튀어나온 뒤,
+ * 이것으로 하루 목표를 모두 마쳤으면 연속 기록이 한 칸 올라간다.
+ */
+function GoalDone({ streakFrom, streakTo }: { streakFrom: number; streakTo: number }) {
+  const t = useTheme();
+  const up = streakTo > streakFrom;
+  const still = motionOff();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, marginBottom: 14 }} accessible accessibilityLabel={up ? `일일 학습 완료, 연속 ${streakTo}일` : '일일 학습 완료'}>
+      <Ring value={1} size={56} stroke={6} color={t.green} duration={still ? 0 : 620} delay={still ? 0 : 60}>
+        <Enter delay={560} duration={420} easing={BACK} scale={0.4}>
+          <Icon name="check" size={22} color={t.greenText} sw={3.2} />
+        </Enter>
+      </Ring>
+      <Enter delay={240} duration={360} y={6} style={{ flex: 1 }}>
+        <T s={17} w="700" c={t.ink} lh={24 / 17}>
+          오늘의 일일 학습 완료
+        </T>
+        <T s={13} c={t.mute} lh={19 / 13}>
+          {up ? '오늘 목표를 모두 마쳤어요' : '남은 과제도 이어서 해 보세요'}
+        </T>
+      </Enter>
+      {up ? (
+        <Enter delay={700} duration={460} easing={BACK} y={10} scale={0.85}>
+          <View style={{ alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: t.orangeWeak }}>
+            <T s={11} w="700" c={t.orangeText}>
+              연속
+            </T>
+            <T s={20} w="800" c={t.orangeText} mono lh={26 / 20}>
+              <Count from={streakFrom} to={streakTo} duration={420} delay={900} />일
+            </T>
+          </View>
+        </Enter>
+      ) : null}
     </View>
   );
 }
