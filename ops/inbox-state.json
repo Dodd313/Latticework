@@ -10,23 +10,17 @@
   },
   "1t417y2sadTP2xHWWxdVbUgqBqmemJk9tuSu2pyXdTVE": {
    "title": "11/23",
-   "status": "partial",
-   "at": "2026-11-26",
-   "cards": 1,
+   "status": "done",
+   "at": "2026-11-27",
+   "cards": 2,
    "vocab": 20,
-   "note": "같음으로 건너뜀: FOB, CFR, 점결성, 이미 있는 단어 10개. 스왑 카드(n:fin-derivatives) 넣음. IEA 는 > 표시였지만 기관 이름이라 단어로 넣음(구조 문서의 소유자 예시). 드라이브가 이 파일의 이동을 허용하지 않음(canMoveItemWithinDrive false), 소유자가 직접 옮겨야 함.",
-   "pending": [
-    {
-     "line": "FAS(Free Alongside sheep) : FOB - 선적비용",
-     "judge": "새 개념(인코텀즈 규칙, 이름이 독립함). 마디 n:econ-resources-trade",
-     "why": "curl 로 받아지는 1등급 출처 없음(iccwbo.org, dhl.com, ups.com, trade.gov, 관세청, KITA 등 막힘). 메모의 FOB 에서 선적비용을 뺀 것이라는 이해와 sheep 오타는 원문 대조 못 함"
-    }
-   ]
+   "note": "같음으로 건너뜀: FOB, CFR, 점결성, 이미 있는 단어 10개. 스왑 카드(n:fin-derivatives) 넣음. IEA 는 > 표시였지만 기관 이름이라 단어로 넣음(구조 문서의 소유자 예시). 드라이브가 이 파일의 이동을 허용하지 않음(canMoveItemWithinDrive false), 소유자가 직접 옮겨야 함. 2026-11-27: iccwbo.org 가 열려 FAS 카드(econ-resources-trade) 넣음(ICC Academy 글과 Ross 책 두 2등급과 ICC 2010 소개). 이동은 여전히 막혀 수집함에 남음.",
+   "pending": []
   },
   "1xUpUeqF7cmd65qAFfG7JZ7oamsPLTUhkMBo5SX1j8bc": {
    "title": "timeline_HCC의 사본",
    "status": "watch",
-   "at": "2026-11-26",
+   "at": "2026-11-27",
    "modifiedTime": "2026-11-24T08:02:01.772Z",
    "facts": 53,
    "note": "소유자가 계속 고쳐 쓰는 분석 일지. 2026-11-24 수동 처리: 11/21, 11/23 분을 Research 사실 53개로 넣음(일반 개념은 이미 지식 카드에 있음). 저장한 글은 03:51 판이라 그 뒤 고친 줄은 다음 실행이 새 줄로 처리한다. 보류: Mine No.4 탄질(공개 자료와 달라 보임, 소유자 확인 대기). 11/24 표의 빈칸은 채워지면 처리. 2026-11-26: 새 줄은 11/24 표의 \"셋 모두 애팔래치아? 산맥\" 하나뿐. 소유자의 열린 질문이라 넣지 않음."
@@ -78,6 +72,16 @@
    "note": "셀사이드, 정보교류 차단, 조사분석자료(sub 공표 전후 자기매매 금지, 성과보수 연동 금지, 상장 후 40일 공표 제한). buy-side 단어는 이미 있음. 처리됨으로 옮김",
    "doc": "18CtAqm_eZaYq5v1vn6QZT6gby5fgfYCsSr4x7uQ9Bj0",
    "pending": []
+  },
+  "1-UhP7vnchkne08mMCMYnuQXPMVAmP8SIDZ2SM1D0Hu4": {
+   "title": "금융 전반 5강",
+   "status": "done",
+   "at": "2026-11-27",
+   "cards": 3,
+   "vocab": 4,
+   "doc": "1fouWHxBxNljS9p8HkN_tISaoFhiyl4OphfbEd_g4_4Q",
+   "note": "보험업(sub 생명, 손해, 제3보험업), 국민연금기금, 전문투자자 새 카드. 은행 고유업무 줄은 하위 요소 판정으로 은행업 카드에 sub \"은행의 업무 범위\"와 문제 2개를 더함(보강). BIS 는 > 표시였지만 기관 이름이라 단어로 넣음. 처리됨으로 옮김",
+   "pending": []
   }
  },
  "log": [
@@ -93,6 +97,19 @@
     "1znMxJnRMqx3BVgKIMnlDZcubNd0B5LSGDgFJzn0Vn6Q",
     "18CtAqm_eZaYq5v1vn6QZT6gby5fgfYCsSr4x7uQ9Bj0",
     "1R_hzmUsjekhTKg1Tdw7BqiPy9BeP2_iWKn55v8S3Pe4"
+   ]
+  },
+  {
+   "at": "2026-11-27",
+   "cards": 4,
+   "questions": 25,
+   "extended": 1,
+   "extendQuestions": 2,
+   "vocab": 4,
+   "facts": 0,
+   "docs": [
+    "1fouWHxBxNljS9p8HkN_tISaoFhiyl4OphfbEd_g4_4Q",
+    "1o7sQY4PC400l1QtZyGrnMgd4Zy2hoKgY_3t4NDKXVKE"
    ]
   }
  ]
