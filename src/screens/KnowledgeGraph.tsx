@@ -6,7 +6,7 @@ import { dayDiff, todayKST } from '../dates';
 import { useLater, webTween, WEB, motionOff } from '../motion';
 import { useNav, useNodeRequest } from '../nav';
 import { useKnowledge, useStore } from '../store';
-import { StudyData, StudyState, conceptsOfNode, conceptsWithNewQuestions, isOpen, recall } from '../study';
+import { StudyData, StudyState, conceptsOfNode, conceptsWithNewQuestions, isOpen, recall, startsIn } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, Icon, PrimaryButton, Sheet, T, Tap } from '../ui';
 import { Cam, Mem, PNode, awayFromRoot, baseK, clamp, focusScope, hit, hitDots, kLim, nodeFit, outOf, project, rootFit, subtreeFit } from '../graph/camera';
@@ -319,9 +319,10 @@ function GraphPane({ model: M, W, H, cards, state, grown, data, fresh, active, m
       ) : null}
       <Sheet clear open={!!selNode} onClose={() => setSel(null)}>
         {selNode ? <ConceptSheet n={selNode} card={cards[selNode.id]} locked={(() => {
-          // 일일 학습에서 오늘 이해했어요를 누른 개념은 내일부터 문제로 나온다. 그 전에는 복습하기 대신 안내를 보인다.
+          // 일일 학습에서 오늘 이해했어요를 누른 개념은 아직 문제로 낼 수 없다. 복습하기 대신 문제가 시작될 때를 안내한다.
           const c = data?.concepts.find((x) => x.id === selNode.id);
-          return !!c && !isOpen(c, state, todayKST());
+          const today = todayKST();
+          return c && data && !isOpen(c, state, today) ? startsIn(data, state, today) : null;
         })()} onStudy={() => {
           setSel(null);
           nav.push({ name: 'study', sect: 'lat', focus: selNode.id });
@@ -386,7 +387,7 @@ function Crumb({ C, onBack, onItem }: { C: GNode; onBack: () => void; onItem: (n
 }
 
 /** 개념 시트: 옅은 길, 이름, 영어 이름, 반복 · 기억 · 다음 복습, 복습하기 */
-function ConceptSheet({ n, card, locked, onStudy }: { n: GNode; card: ReturnType<typeof useStore>['study']['cards'][string] | undefined; locked?: boolean; onStudy: () => void }) {
+function ConceptSheet({ n, card, locked, onStudy }: { n: GNode; card: ReturnType<typeof useStore>['study']['cards'][string] | undefined; locked?: number | null; onStudy: () => void }) {
   const t = useTheme();
   const path: string[] = [];
   for (let p = n.parent; p; p = p.parent) path.unshift(p.ko);
@@ -427,7 +428,7 @@ function ConceptSheet({ n, card, locked, onStudy }: { n: GNode; card: ReturnType
       </View>
       {locked ? (
         <T s={15} w="600" c={t.mute} center lh={22 / 15} style={{ marginTop: 22 }}>
-          내일부터 문제로 나와요
+          {locked <= 1 ? '내일부터 문제로 나와요' : `약 ${locked}일 뒤부터 문제로 나와요`}
         </T>
       ) : (
         <PrimaryButton label="복습하기" onPress={onStudy} style={{ marginTop: 18 }} />

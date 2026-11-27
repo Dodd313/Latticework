@@ -8,7 +8,7 @@ import { EASE_OUT, MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, webTween }
 import { TabScreen, useNav } from '../nav';
 import { quotesFor } from '../quotes';
 import { GoalPart, STANDALONE, useGoals, useStore } from '../store';
-import { conceptsWithNewQuestions, researchStatus } from '../study';
+import { conceptsWithNewQuestions, researchStatus, sectPlan } from '../study';
 import { useTheme } from '../theme';
 import { Box, DayMark, Icon, IconName, Pill, PrimaryButton, ReadMark, T, Tap, TaskRow } from '../ui';
 import { dayQuiz, quizOpen } from './DayQuiz';
@@ -197,6 +197,41 @@ const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
   lat: { name: 'Latticework', icon: 'lattice' },
   num: { name: '수리', icon: 'calc' },
 };
+
+/**
+ * 밀림 회복 띠(해결 4, 2026-11-27 소유자 결정). 쉬고 돌아와 밀린 복습이 하루 예산을 넘은 날, 그날 기록의 recover 가 켜진다.
+ * 새 항목은 멈추고 예산의 1.5배까지 기억이 약한 것부터 풀어, 며칠에 나눠 갚는다.
+ */
+function RecoverBand() {
+  const t = useTheme();
+  const { studyData, study } = useStore();
+  const today = todayKST();
+  const rec = study.days[today];
+  const info = useMemo(() => {
+    if (!studyData || !rec?.recover) return null;
+    let due = 0;
+    let cap = 0;
+    for (const k of ['lat', 'voc'] as const) {
+      if (!rec.recover[k]) continue;
+      const p = sectPlan(studyData, study, today, k);
+      due += p.due;
+      cap += p.cap;
+    }
+    if (due === 0) return null;
+    return { due, days: Math.max(1, Math.ceil(due / Math.max(1, cap))) };
+  }, [studyData, study, rec, today]);
+  if (!info) return null;
+  return (
+    <View accessible accessibilityLabel={`밀린 복습 ${info.due}개를 ${info.days}일에 나눠 풀어요`} style={{ backgroundColor: t.orangeWeak, borderRadius: 14, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 8 }}>
+      <T s={14} w="700" c={t.orangeText} lh={20 / 14}>
+        {`쉬는 동안 밀린 복습 ${info.due}개`}
+      </T>
+      <T s={13} w="500" c={t.orangeText} lh={19 / 13}>
+        {info.days > 1 ? `${info.days}일에 나눠 풀어요. 그동안 새 항목은 잠시 멈춰요.` : '오늘 조금 더 풀어 갚아요. 새 항목은 내일부터 다시 들어와요.'}
+      </T>
+    </View>
+  );
+}
 
 /** 흐린 점선(일일 학습과 나머지 과제 사이) */
 function DashLine() {
@@ -415,6 +450,7 @@ export function TodayScreen() {
                     {homeLine}
                   </T>
                 ) : null}
+                <RecoverBand />
                 {parts.map((p) => (
                   <React.Fragment key={p.key}>
                     <TaskRow

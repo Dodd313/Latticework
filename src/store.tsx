@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, ReadMark, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, mergeMarks, readOn, readQueue, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, ReadMark, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, duePicker, emptyStudy, mergeMarks, newDayRecord, readOn, readQueue, rebuildFromLog, review, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
@@ -198,7 +198,7 @@ type Store = {
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
   recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => void;
-  /** 읽기 화면의 표시: ok 이해했어요(다음 날부터 문제), later 나중에 다시, skip 빼기 */
+  /** 일일 학습 화면의 표시: ok 이해했어요(다음 날부터 문제로 낼 수 있음), later 나중에 다시, skip 빼기 */
   markConcept: (conceptId: string, k: ReadMark['k']) => void;
   num: NumState; // 수리 기록
   /** 수리 한 분야 한 세트를 마쳤다고 적는다. daily 면 오늘 할당으로 센다(할당을 이미 채운 분야면 추가 학습). */
@@ -661,9 +661,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!studyData) return;
     const cur = studyRef.current;
     if (cur.days[todayStr]) return;
-    const latGoal = studyData.questions.length > 0 ? LAT_GOAL : 0;
-    const vocGoal = vocGoalFor(studyData, cur, todayStr, new Date());
-    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { lat: 0, voc: 0, latGoal, vocGoal } } };
+    // 하루 분량(예산, 새 항목 수, 회복)은 아침에 한 번 정해 그날 기록에 고정한다(src/study.ts sectPlan).
+    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: newDayRecord(studyData, cur, todayStr) } };
     studyRef.current = next;
     setStudy(next);
     saveLater(STUDY_KEY, () => studyRef.current);
@@ -705,12 +704,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const today = todayKST();
     const cards = { ...cur.cards };
     // 틀려서 다시 나온 문제는 기억 상태를 또 바꾸지 않는다.
-    if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type);
+    // 다음 복습 날은 그 구역에서 복습 예정이 가장 적은 날로(간격의 앞뒤 10% 안).
+    if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type, duePicker(studyDataRef.current, cur.cards, q.sect, today));
     // Research 는 선택 과제라 그날의 하루 목표, 추가 학습 수를 건드리지 않는다. 기억 상태, 경험치, 기록 줄만 남긴다.
     const rs = q.sect === 'rs';
     // 그날 기록이 아직 없으면(자정을 넘겨 푼 경우 등) 아침에 정하는 것과 같은 방식으로 목표를 정한다.
     const sd = studyDataRef.current;
-    const day = { ...(cur.days[today] ?? { lat: 0, voc: 0, latGoal: sd && sd.questions.length === 0 ? 0 : LAT_GOAL, vocGoal: sd ? vocGoalFor(sd, cur, today, now) : 0 }) };
+    const day = { ...(cur.days[today] ?? (sd ? newDayRecord(sd, cur, today) : { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 })) };
     // 할당량인지 더 푼 것인지는 답을 저장하는 순간, 그날 기록을 보고 정한다. 다시 나온 문제는 어느 쪽에도 세지 않는다.
     const counts = !rs && !q.retry && (q.sect === 'lat' ? day.lat < day.latGoal : day.voc < day.vocGoal);
     const extra = !rs && !q.retry && !counts;

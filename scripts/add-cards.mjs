@@ -62,6 +62,9 @@ for (const [i, it] of (input.items ?? []).entries()) {
     if (!c.full) bad(where, '약어 개념인데 full 이 없다');
     else if (c.name !== `${c.abbr} (${c.full})`) bad(where, `이름은 "${c.abbr} (${c.full})" 꼴이어야 한다`);
   }
+  // 한글 이름에는 영어 이름이 꼭 있어야 한다. 일일 학습 카드와 드라이브 문서 제목에 "한글 (English)" 로 붙는다(2026-11-27 소유자 결정).
+  if (!c.abbr && /[가-힣]/.test(c.name ?? '') && !c.en) bad(where, '한글 이름인데 영어 이름(en)이 없다');
+  for (const sb of c.sub ?? []) if (!sb.abbr && /[가-힣]/.test(sb.name ?? '') && !sb.en) bad(where, `하위 요소 ${sb.name} 에 영어 이름(en)이 없다`);
   if (!Array.isArray(c.traits) || c.traits.length < 2 || c.traits.length > 4) bad(where, '특징은 2~4개');
   if (!Array.isArray(c.contrast) || c.contrast.length < 1) bad(where, '구분이 없다');
   if (!Array.isArray(c.src) || c.src.length < 1) bad(where, '출처가 없다');

@@ -15,6 +15,8 @@ const P = (style, html) => `<p style="${F}margin:0;line-height:1.5;${style}">${h
 const LI = (html, style = '') => `<li style="${F}font-size:11pt;line-height:1.5;margin:0 0 2pt 0;${style}">${html}</li>`;
 const H3 = (n, t) => `<h3 style="${F}font-size:12pt;font-weight:bold;color:${INK};margin:16pt 0 4pt 0;line-height:1.5;">${n ? `${n} ` : ''}${esc(t)}</h3>`;
 const LV = { 1: '인식', 2: '특징', 3: '구분', 4: '적용' };
+// 개념 이름 옆에 영어 이름을 괄호로 붙인다(2026-11-27 소유자 결정). 약어 개념은 이미 "약어 (풀네임)" 꼴이다.
+const withEn = (x) => (x.abbr || !x.en || !/[가-힣]/.test(x.name) || x.name.includes(x.en) ? x.name : `${x.name} (${x.en})`);
 const rule = (html) => `<table style="width:100%;border-collapse:collapse;margin:0 0 12pt 0;"><tr><td style="border:none;border-bottom:1.5pt solid ${INK};padding:0 0 8pt 0;">${P(`font-size:10pt;font-style:italic;color:${GREY};`, html)}</td></tr></table>`;
 const diffs = [];
 const out = [];
@@ -27,8 +29,8 @@ let n = 0;
 for (const g of doc.groups) {
   for (const c of g.cards) {
     n++;
-    out.push(`<h2 style="${F}font-size:24pt;font-weight:bold;color:${INK};margin:28pt 0 2pt 0;line-height:1.4;">${esc(c.name)}</h2>`);
-    const sub = [c.abbr ? null : c.en || c.full, c.ko && c.ko !== c.name ? c.ko : null, g.path].filter(Boolean).map(esc).join(' · ');
+    out.push(`<h2 style="${F}font-size:24pt;font-weight:bold;color:${INK};margin:28pt 0 2pt 0;line-height:1.4;">${esc(withEn(c))}</h2>`);
+    const sub = [c.abbr || withEn(c) !== c.name ? null : c.en || c.full, c.ko && c.ko !== c.name ? c.ko : null, g.path].filter(Boolean).map(esc).join(' · ');
     // 부제와 굵은 밑줄: 문단 테두리는 구글 문서에서 옅은 선으로 바뀌어, 아래 테두리만 있는 한 칸 표로 그린다.
     out.push(rule(sub));
     // 정의 상자: 머리 칸(정의)과 본문 칸, 바깥 테두리만 1pt
@@ -47,7 +49,7 @@ for (const g of doc.groups) {
       out.push(`<table style="width:100%;border-collapse:collapse;"><tr><td style="background-color:${SHADE};padding:8pt 12pt;border:none;">${P('font-size:11pt;', esc(c.example))}</td></tr></table>`);
     }
     for (const sb of c.sub ?? []) {
-      out.push(H3(null, `하위 요소: ${sb.name}`));
+      out.push(H3(null, `하위 요소: ${withEn(sb)}`));
       out.push(P('font-size:11pt;', esc(sb.def)));
       if (sb.traits?.length) out.push(`<ul style="margin:0;">${sb.traits.map((t) => LI(esc(t))).join('')}</ul>`);
     }
@@ -63,13 +65,13 @@ for (const g of doc.groups) {
         const opts = q.t === 'mc' && q.o ? `<ol type="a" style="margin:2pt 0 4pt 0;">${q.o.map((o) => LI(esc(o), 'font-size:10.5pt;')).join('')}</ol>` : `<p style="${F}margin:2pt 0 4pt 0;font-size:10.5pt;color:${GREY};">O 또는 X</p>`;
         out.push(LI(`<span style="color:${GREY};font-size:9pt;">${LV[q.lv] ?? ''}</span> ${esc(q.q)}${opts}`));
         const ans = q.t === 'ox' ? (q.a ? 'O' : 'X') : `${'abcd'[q.a]}. ${q.o?.[q.a] ?? ''}`;
-        answers.push({ n, name: c.name, lv: q.lv, ans, w: q.w });
+        answers.push({ n, name: withEn(c), lv: q.lv, ans, w: q.w });
       }
       out.push('</ol>');
     }
     const src = (c.src ?? []).slice(0, 4).map((s) => `<a href="${esc(s.url)}" style="color:${GREY};">${esc(s.title)}</a>`).join(', ');
     if (src) out.push(P(`font-size:9pt;font-style:italic;color:${GREY};margin-top:14pt;`, `출처: ${src}`));
-    if (c.docDiff?.length) diffs.push({ name: c.name, items: c.docDiff });
+    if (c.docDiff?.length) diffs.push({ name: withEn(c), items: c.docDiff });
   }
 }
 

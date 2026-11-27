@@ -58,10 +58,11 @@ export type Card = {
 };
 
 /** readGoal 은 그날 읽기 목표(읽을 개념이 있던 날 1), read 는 그날 읽고 표시한 수(이해했어요와 빼기). 2026-11-27 소유자 결정. */
-export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number; readGoal?: number; read?: number };
+/** latNew, vocNew 는 그날 하루 분량에 든 새 항목 수(아침에 정해 고정), recover 는 그날 밀림 회복 중인 구역. */
+export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number; readGoal?: number; read?: number; latNew?: number; vocNew?: number; recover?: { lat?: boolean; voc?: boolean } };
 
 /**
- * 읽기 표시(2026-11-27 소유자 결정). 카드가 있는 새 개념은 먼저 읽기 화면에서 읽고 ok(이해했어요)를 누른 다음 날부터 문제로 나온다.
+ * 읽기 표시(2026-11-27 소유자 결정). 카드가 있는 새 개념은 먼저 일일 학습 화면에서 읽고 ok(이해했어요)를 누른 다음 날부터 문제로 낼 수 있다(하루 분량의 새 개념 자리가 날 때).
  * later 는 어려워서 나중에 다시 읽기(읽을 차례의 끝으로), skip 은 공부하지 않을 개념(숨김). d 는 한국 날짜, t 는 누른 시각.
  */
 export type ReadMark = { k: 'ok' | 'later' | 'skip'; d: string; t: string };
@@ -138,10 +139,17 @@ export function carryWas(data: StudyData, state: StudyState): StudyState {
  */
 export type LogRow = { t: string; u: string; k: StudySect; q: string; ok: boolean; n: number; sec: number; g: 1 | 2 | 3; r?: 1; id?: string };
 
-export const LAT_GOAL = 5;
-export const VOC_NEW_PER_DAY = 6;
-export const VOC_REVIEW_CAP = 10;
-export const LAT_NEW_PER_DAY = 3;
+/**
+ * 하루 분량(2026-11-27 소유자 결정, motion-lab/v13/daily-load.html 의 해결 1, 2, 4).
+ * 구역마다 하루 예산(문제 수)을 두고, 복습할 때가 된 것을 먼저 채운 뒤 남는 자리에만 새 항목을 넣는다(해결 1).
+ * 새 항목 수는 앞으로 7일 가운데 가장 바쁜 날도 예산을 넘지 않게 정하고, 복습 날짜는 간격의 앞뒤 10% 안에서 한가한 날로 잡는다(해결 2).
+ * 쉬고 돌아와 밀린 복습이 예산을 넘으면 새 항목을 멈추고 예산의 1.5배까지 푼다(해결 4).
+ */
+export const LAT_GOAL = 5; // Latticework 하루 예산
+export const VOC_BUDGET = 16; // 영단어 하루 예산
+export const LAT_NEW_PER_DAY = 3; // 새 개념 하루 최대
+export const VOC_NEW_PER_DAY = 6; // 새 표현 하루 최대
+export const RECOVER_STRETCH = 1.5;
 
 // 개념마다 4단계. 5단계(자기 말로 설명)는 문제 집합에서 뺐다 (2026-11-23 소유자 결정).
 export const LEVEL_NAME: Record<number, string> = { 1: '인식', 2: '특징', 3: '구분', 4: '적용' };
@@ -170,7 +178,7 @@ export function recall(card: Card | undefined, now: Date): number {
 }
 
 /** 한 번 풀고 난 뒤의 기억 상태. g: 1 틀림 · 2 어렵게 맞힘 · 3 맞힘 */
-export function review(card: Card | undefined, g: 1 | 2 | 3, now: Date, today: string, typeKey: string): Card {
+export function review(card: Card | undefined, g: 1 | 2 | 3, now: Date, today: string, typeKey: string, pick?: (iv: number) => string): Card {
   let d: number;
   let s: number;
   if (!card) {
@@ -190,7 +198,9 @@ export function review(card: Card | undefined, g: 1 | 2 | 3, now: Date, today: s
   const interval = g === 1 ? 1 : Math.max(1, Math.round(s));
   const asked = { ...(card?.asked ?? {}) };
   asked[typeKey] = (asked[typeKey] ?? 0) + 1;
-  return { d, s, last: now.toISOString(), due: addDays(today, interval), reps: (card?.reps ?? 0) + 1, lapses: (card?.lapses ?? 0) + (g === 1 ? 1 : 0), asked, first: card?.first ?? today };
+  // 다음 복습 날: 맞혔으면 간격의 앞뒤 10% 안에서 그 구역에 복습이 가장 적은 날(pick), 틀렸으면 내일.
+  const due = g !== 1 && pick ? pick(interval) : addDays(today, interval);
+  return { d, s, last: now.toISOString(), due, reps: (card?.reps ?? 0) + 1, lapses: (card?.lapses ?? 0) + (g === 1 ? 1 : 0), asked, first: card?.first ?? today };
 }
 
 /**
@@ -228,6 +238,9 @@ export function rebuildFromLog(rows: LogRow[], data: StudyData | null): { cards:
   for (const x of data?.questions ?? []) lv.set(x.id, x.lv);
   const sorted = rows.slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0));
   const cards: Record<string, Card> = {};
+  // 복습 날짜 고르기를 앱에서 풀 때와 같게 다시 한다: 구역별 날짜마다 예정된 수.
+  const load = new Map<string, number>();
+  const sectOf = new Map<string, string>();
   let xp = 0;
   for (const row of sorted) {
     if (row.r) continue;
@@ -235,7 +248,13 @@ export function rebuildFromLog(rows: LogRow[], data: StudyData | null): { cards:
     const day = kstDate(row.t);
     if (!day || (row.g !== 1 && row.g !== 2 && row.g !== 3)) continue;
     const type = row.k === 'lat' ? `lv${lv.get(row.q) ?? 1}` : row.q.slice(row.q.lastIndexOf(':') + 1);
-    cards[row.u] = review(cards[row.u], row.g, at, day, type);
+    const old = cards[row.u];
+    const k = sectOf.get(row.u) ?? row.k;
+    sectOf.set(row.u, k);
+    if (old) load.set(`${k}|${old.due}`, (load.get(`${k}|${old.due}`) ?? 1) - 1);
+    const next = review(old, row.g, at, day, type, (iv) => spreadDue(day, iv, (d) => load.get(`${k}|${d}`) ?? 0));
+    load.set(`${k}|${next.due}`, (load.get(`${k}|${next.due}`) ?? 0) + 1);
+    cards[row.u] = next;
     xp += xpFor(row.g);
   }
   return { cards, xp, start: sorted.length ? kstDate(sorted[0].t) : null };
@@ -259,7 +278,7 @@ export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
         day.lat += 1;
         if (day.lat >= day.latGoal) day.latDoneAt = row.t;
       } else day.extra = (day.extra ?? 0) + 1;
-    } else if (day.voc < VOC_REVIEW_CAP + VOC_NEW_PER_DAY) {
+    } else if (day.voc < VOC_BUDGET) {
       day.voc += 1;
       day.vocGoal = day.voc;
       day.vocDoneAt = row.t;
@@ -484,10 +503,11 @@ function latOrder(data: StudyData, state: StudyState, today: string, now: Date, 
     if (!order.includes(c)) order.push(c);
   };
   if (mode === 'daily') {
+    // 하루 분량: 복습할 때가 된 개념(약한 순서) 다음에, 아침에 정한 새 개념 수에서 오늘 이미 시작한 수를 뺀 만큼만.
+    // 약한 개념은 분량이 남을 때만 채우는 자리다(자료가 바뀌어 복습할 것이 줄어든 경우).
     due.forEach(push);
-    fresh.slice(0, LAT_NEW_PER_DAY).forEach(push);
+    fresh.slice(0, newLeft(data, state, today, 'lat')).forEach(push);
     weakest.forEach(push);
-    fresh.forEach(push);
   } else {
     due.filter(untouched).forEach(push);
     fresh.forEach(push);
@@ -584,7 +604,7 @@ export function buildVoc(data: StudyData, state: StudyState, today: string, now:
   }
 
   let order: Vocab[];
-  if (mode === 'daily') order = [...due.slice(0, VOC_REVIEW_CAP), ...mixed.slice(0, VOC_NEW_PER_DAY)];
+  if (mode === 'daily') order = [...due, ...mixed.slice(0, newLeft(data, state, today, 'voc')), ...weakest];
   else order = [...due.filter(untouched), ...mixed, ...weakest.filter(untouched), ...weakest];
   order = order.filter((v, i) => order.indexOf(v) === i);
 
@@ -602,8 +622,112 @@ export function buildVoc(data: StudyData, state: StudyState, today: string, now:
 }
 
 /** 오늘 영단어 목표 문항 수. 하루에 한 번 정해 두고 바꾸지 않는다. */
-export function vocGoalFor(data: StudyData, state: StudyState, today: string, now: Date): number {
-  return buildVoc(data, state, today, now, 'daily').length;
+export function vocGoalFor(data: StudyData, state: StudyState, today: string, _now?: Date): number {
+  return sectPlan(data, state, today, 'voc').goal;
+}
+
+// ---------- 하루 분량 계산(해결 1, 2, 4) ----------
+const idSets = new WeakMap<StudyData, { voc: Set<string>; lat: Set<string> }>();
+function idsOf(data: StudyData) {
+  let s = idSets.get(data);
+  if (!s) idSets.set(data, (s = { voc: new Set(data.vocab.map((v) => v.id)), lat: new Set(data.concepts.map((c) => c.id)) }));
+  return s;
+}
+/** 기억 상태 열쇠의 구역. 자료에 없는 예전 id 도 풀이 기록과 같게 개념(lat)으로 센다. */
+export function sectOfId(data: StudyData | null, id: string): StudySect {
+  if (id.startsWith('rs-')) return 'rs';
+  return data && idsOf(data).voc.has(id) ? 'voc' : 'lat';
+}
+
+/** 복습 날짜 고르기: 간격이 3일 이상이면 앞뒤 10%(적어도 하루) 안에서 예정이 가장 적은 날. 같으면 본래 날. */
+export function spreadDue(today: string, iv: number, loadOn: (date: string) => number): string {
+  const base = addDays(today, iv);
+  if (iv < 3) return base;
+  const w = Math.max(1, Math.round(iv * 0.1));
+  let best = base;
+  let low = loadOn(base);
+  for (let x = iv - w; x <= iv + w; x++) {
+    const d = addDays(today, x);
+    const l = loadOn(d);
+    if (l < low) {
+      best = d;
+      low = l;
+    }
+  }
+  return best;
+}
+
+/** 답할 때 쓰는 날짜 고르기. 그 구역(영단어, 개념, Research)의 날짜별 복습 예정 수를 한 번 세어 둔다. */
+export function duePicker(data: StudyData | null, cards: Record<string, Card>, sect: StudySect, today: string): (iv: number) => string {
+  const load = new Map<string, number>();
+  for (const [id, c] of Object.entries(cards)) if (sectOfId(data, id) === sect) load.set(c.due, (load.get(c.due) ?? 0) + 1);
+  return (iv) => spreadDue(today, iv, (d) => load.get(d) ?? 0);
+}
+
+export type SectPlan = { due: number; cap: number; nNew: number; recover: boolean; goal: number; forecast: number[] };
+/**
+ * 한 구역의 오늘 분량. 복습할 것(due)을 예산(cap)까지 먼저, 남는 자리와 7일 예보 안에서 새 항목(nNew).
+ * 어제 아무것도 안 했거나 어제가 회복 중이었고, 복습할 것이 예산을 넘으면 회복(새 항목 멈춤, 예산의 1.5배까지).
+ */
+export function sectPlan(data: StudyData, state: StudyState, today: string, sect: 'lat' | 'voc'): SectPlan {
+  const budget = sect === 'voc' ? VOC_BUDGET : data.questions.length > 0 ? LAT_GOAL : 0;
+  const ids = sect === 'voc' ? data.vocab.map((v) => v.id) : data.concepts.map((c) => c.id);
+  const grown = sect === 'lat' ? conceptsWithNewQuestions(data, state) : null;
+  const days7 = Array.from({ length: 7 }, (_, i) => addDays(today, i + 1));
+  const forecast = days7.map(() => 0);
+  let due = 0;
+  for (const id of ids) {
+    const c = state.cards[id];
+    if (!c) continue;
+    if (c.due <= today || grown?.has(id)) due++;
+    else {
+      const k = days7.indexOf(c.due);
+      if (k >= 0) forecast[k]++;
+    }
+  }
+  const prev = state.days[addDays(today, -1)];
+  const idle = !prev || prev.lat + prev.voc + (prev.extra ?? 0) + (prev.read ?? 0) === 0;
+  const recover = budget > 0 && due > budget && (idle || !!prev?.recover?.[sect]);
+  const cap = recover ? Math.ceil(budget * RECOVER_STRETCH) : budget;
+  const reviews = Math.min(due, cap);
+  const avail = sect === 'voc' ? data.vocab.filter((v) => !state.cards[v.id]).length : data.concepts.filter((c) => !state.cards[c.id] && isOpen(c, state, today)).length;
+  const most = sect === 'voc' ? VOC_NEW_PER_DAY : LAT_NEW_PER_DAY;
+  const nNew = recover ? 0 : Math.max(0, Math.min(most, budget - reviews, budget - Math.max(0, ...forecast), avail));
+  return { due, cap, nNew, recover, goal: reviews + nNew, forecast };
+}
+
+/** 그날 기록을 처음 만들 때(아침) 정하는 하루 분량. 하루 동안 바꾸지 않는다. */
+export function newDayRecord(data: StudyData, state: StudyState, today: string): StudyDay {
+  const lp = sectPlan(data, state, today, 'lat');
+  const vp = sectPlan(data, state, today, 'voc');
+  const day: StudyDay = { lat: 0, voc: 0, latGoal: lp.goal, vocGoal: vp.goal, latNew: lp.nNew, vocNew: vp.nNew };
+  if (lp.recover || vp.recover) day.recover = { ...(lp.recover ? { lat: true } : {}), ...(vp.recover ? { voc: true } : {}) };
+  return day;
+}
+
+/** 오늘 하루 분량에 남은 새 항목 수: 아침에 정한 수에서 오늘 처음 푼 항목 수를 뺀다. 기록이 없으면 지금 계산한다. */
+function newLeft(data: StudyData, state: StudyState, today: string, sect: 'lat' | 'voc'): number {
+  const rec = state.days[today];
+  const planned = (sect === 'voc' ? rec?.vocNew : rec?.latNew) ?? sectPlan(data, state, today, sect).nNew;
+  const list = sect === 'voc' ? data.vocab : data.concepts;
+  let started = 0;
+  for (const x of list) if (state.cards[x.id]?.first === today) started++;
+  return Math.max(0, planned - started);
+}
+
+/**
+ * 일일 학습에서 오늘 읽은 개념이 문제로 나오기 시작할 때(대략 며칠 뒤). 먼저 읽어 기다리는 개념이 앞 차례이고,
+ * 새 개념은 하루 최대 LAT_NEW_PER_DAY 개씩, 복습이 많은 날은 덜 들어간다.
+ */
+export function startsIn(data: StudyData, state: StudyState, today: string): number {
+  const waiting = data.concepts.filter((c) => c.card && !state.cards[c.id] && isOpen(c, state, today)).length;
+  return 1 + Math.floor(waiting / LAT_NEW_PER_DAY);
+}
+
+/** 개념 이름에 영어 이름을 괄호로 붙인다(2026-11-27 소유자 결정). 약어 개념은 이미 "약어 (풀네임)" 꼴이다. 지식 지도에는 쓰지 않는다. */
+export function nameWithEn(c: { name: string; en?: string; abbr?: string }): string {
+  if (c.abbr || !c.en || !/[가-힣]/.test(c.name) || c.name.includes(c.en)) return c.name;
+  return `${c.name} (${c.en})`;
 }
 
 export function xpFor(g: 1 | 2 | 3): number {

@@ -41,6 +41,7 @@ for (const [i, it] of (input.items ?? []).entries()) {
     if (!sb.name || !sb.def) bad(where, '하위 요소에 name 과 def 가 있어야 한다');
     if (sb.abbr && sb.name !== `${sb.abbr} (${sb.full})`) bad(where, `하위 요소 이름은 "${sb.abbr} (${sb.full})" 꼴`);
     if (!Array.isArray(sb.src) || !sb.src.length) bad(where, `하위 요소 ${sb.name} 에 출처가 없다`);
+    if (!sb.abbr && /[가-힣]/.test(sb.name ?? '') && !sb.en) bad(where, `하위 요소 ${sb.name} 에 영어 이름(en)이 없다`);
     if ((card.sub ?? []).some((x) => x.name === sb.name)) bad(where, `이미 있는 하위 요소 ${sb.name}`);
     for (const t of [sb.name, sb.def, ...(sb.traits ?? [])]) if (t && TEXT_BAD.test(t)) bad(where, `하위 요소에 줄표, 화살표, 주소: ${String(t).slice(0, 40)}`);
     card.sub = [...(card.sub ?? []), { name: sb.name, en: sb.en, abbr: sb.abbr, full: sb.full, def: sb.def, traits: sb.traits, src: (sb.src ?? []).map((s) => ({ title: s.title, url: s.url })) }];

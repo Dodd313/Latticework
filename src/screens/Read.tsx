@@ -1,6 +1,6 @@
 // 일일 학습(새 개념 읽기, 2026-11-27 소유자 결정). 수집함에서 만든 새 개념은 문제보다 먼저 여기서 읽는다.
 // "이해했어요"를 누르면 그 자리에서 지식 지도의 일부가 뜨고 새 점이 돋는다(GrowthBurst). 지도에는 흐린 점으로 남고, 문제를 풀수록 짙어진다.
-// "이해했어요"를 누른 개념만 다음 날부터 Latticework 문제로 나온다. "나중에 다시"는 읽을 차례의 끝으로, "빼기"는 공부하지 않을 개념(숨김).
+// "이해했어요"를 누른 개념만 다음 날부터, 하루 분량의 새 개념 자리가 날 때 Latticework 문제로 나온다. "나중에 다시"는 읽을 차례의 끝으로, "빼기"는 공부하지 않을 개념(숨김).
 // 읽기 상한은 없다(원하는 만큼). 하루 목표는 1개(store 의 readGoal).
 import React, { useRef, useState } from 'react';
 import { Easing, ScrollView, View, useWindowDimensions } from 'react-native';
@@ -8,7 +8,7 @@ import { todayKST } from '../dates';
 import { Count, Rise, motionOff } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
 import { useGoals, useStore } from '../store';
-import { Concept, ReadMark, StudyData, readOn, readQueue } from '../study';
+import { Concept, ReadMark, StudyData, nameWithEn, readOn, readQueue, startsIn } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, ExtLink, Icon, LipButton, PrimaryButton, Ring, T } from '../ui';
 import { GrowthBurst } from './GrowthBurst';
@@ -91,7 +91,7 @@ export function ReadScreen() {
           </T>
           <T s={15} c={t.sub} lh={23 / 15}>
             {read > 0
-              ? `이번에 ${read}개를 이해했어요. 문제는 내일부터 Latticework 에 나와요.`
+              ? `이번에 ${read}개를 이해했어요. 먼저 읽은 개념부터 하루 몇 개씩 Latticework 문제로 나와요.`
               : list.length === 0
                 ? '수집함에 새 지식이 들어오면 다음 날 아침에 여기에 생겨요.'
                 : '나중에 다시 읽을 개념은 다음에 열 때 다시 나와요.'}
@@ -115,7 +115,7 @@ export function ReadScreen() {
               지식 지도에 새 점이 생겼어요
             </T>
             <T s={24} w="700" lh={1.35} role="heading" level={1} style={{ marginTop: 4 }}>
-              {burst.name}
+              {nameWithEn(burst)}
             </T>
             <T s={14} c={t.mute} lh={21 / 14} style={{ marginTop: 4 }}>
               {pathOf(studyData, burst)}
@@ -125,7 +125,11 @@ export function ReadScreen() {
             <GrowthBurst key={burst.id} id={burst.id} width={w} height={goalFx ? h - 72 : h} delay={goalFx ? 1100 : 500} />
           </View>
           <T s={14} c={t.sub} lh={21 / 14} style={{ paddingHorizontal: 20, marginTop: 8 }}>
-            지금은 흐린 점이에요. 내일부터 문제로 나오고, 되풀이해 풀수록 점이 짙어져요.
+            {(() => {
+              const n = startsIn(studyData, study, today);
+              const when = n <= 1 ? '내일부터 문제로 나오고' : `약 ${n}일 뒤부터 문제로 나오고(먼저 읽은 개념부터, 복습이 많은 날은 새 개념을 덜 넣어요)`;
+              return `지금은 흐린 점이에요. ${when}, 되풀이해 풀수록 점이 짙어져요.`;
+            })()}
           </T>
         </View>
         <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: BOTTOM_PAD, borderTopWidth: 1, borderTopColor: t.line, backgroundColor: t.card }}>
@@ -136,7 +140,8 @@ export function ReadScreen() {
   }
 
   const card = c.card!;
-  const sub = [c.abbr ? null : c.en || c.full, card.ko && card.ko !== c.name ? card.ko : null].filter(Boolean).join(' · ');
+  // 제목에 영어 이름을 붙였으므로 부제에는 영어 이름을 되풀이하지 않는다.
+  const sub = [c.abbr || nameWithEn(c) !== c.name ? null : c.en || c.full, card.ko && card.ko !== c.name ? card.ko : null].filter(Boolean).join(' · ');
   const left = list.length - at;
   return (
     <View style={{ flex: 1, backgroundColor: t.card }}>
@@ -152,7 +157,7 @@ export function ReadScreen() {
             </T>
           </View>
           <T s={26} w="700" lh={1.35} role="heading" level={1} style={{ marginTop: 6 }}>
-            {c.name}
+            {nameWithEn(c)}
           </T>
           {sub ? (
             <T s={14} c={t.mute} lh={20 / 14} style={{ marginTop: 2 }}>
@@ -231,7 +236,7 @@ export function ReadScreen() {
         </Rise>
       </ScrollView>
       <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: BOTTOM_PAD, gap: 8, borderTopWidth: 1, borderTopColor: t.line, backgroundColor: t.card }}>
-        <LipButton label="이해했어요" tone="green" onPress={() => act('ok')} a11yLabel="이해했어요, 내일부터 문제로" />
+        <LipButton label="이해했어요" tone="green" onPress={() => act('ok')} a11yLabel="이해했어요, 차례가 오면 문제로" />
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <LipButton label="나중에 다시" tone="ghost" onPress={() => act('later')} style={{ flex: 1 }} />
           <LipButton label={skipArm ? '한 번 더 누르면 빼요' : '빼기'} tone={skipArm ? 'red' : 'ghost'} onPress={() => act('skip')} style={{ flex: 1 }} a11yLabel="이 개념 빼기" />
