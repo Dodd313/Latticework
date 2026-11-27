@@ -226,16 +226,18 @@ const StoreCtx = createContext<Store | null>(null);
  * 맨 위 화면을 먼저 그린 뒤 틈틈이(끊어 가며) 다시 그린다. 누른 순간의 일이 그만큼 가벼워진다.
  * defer 가 false 면(맨 위 화면) 그대로 바로 그린다.
  */
-export function StoreDefer({ defer = true, children }: { defer?: boolean; children: React.ReactNode }) {
+export function StoreDefer({ defer = true, pause = false, children }: { defer?: boolean; pause?: boolean; children: React.ReactNode }) {
   const live = useContext(StoreCtx);
   // 가려진 동안은 마지막 값을 붙들어 아예 다시 그리지 않는다(문제 하나 풀 때마다 홈과 기록 탭 전체가 다시 그려지던 렉, 2026-11-27).
   // 다시 보이면 붙든 값으로 먼저 그리고, 새 값은 한 박자 늦게(끊어 가며) 따라잡는다.
   // 가려진 동안은 값이 바뀔 때마다 다시 그리지 않고, 1.2초 동안 더 바뀌지 않으면 한가한 틈에 따라잡는다.
   // 그래서 문제를 연달아 푸는 동안에는 가려진 탭이 그려지지 않고, 돌아올 때는 대개 이미 새 값이라 옛 숫자가 비치지 않는다.
   // 보이는 화면(defer false)은 늘 새 값으로 바로 그린다.
+  // pause 면(문제 풀이 같은 안쪽 화면이 탭 위에 열려 있는 동안) 따라잡기도 미룬다. 답과 답 사이에 가려진 탭을 그리지 않고,
+  // 안쪽 화면을 닫아 탭이 보이는 순간 새 값으로 한 번 그린다(최종 측정에서 답마다 가려진 탭을 그리던 몫을 없앤다).
   const [held, setHeld] = useState(live);
   useEffect(() => {
-    if (!defer || held === live) return;
+    if (!defer || pause || held === live) return;
     const g = globalThis as any;
     let idle: any = null;
     const timer = setTimeout(() => {
@@ -246,7 +248,7 @@ export function StoreDefer({ defer = true, children }: { defer?: boolean; childr
       clearTimeout(timer);
       if (idle != null) (g.cancelIdleCallback && g.requestIdleCallback ? g.cancelIdleCallback(idle) : clearTimeout(idle));
     };
-  }, [defer, live, held]);
+  }, [defer, pause, live, held]);
   return <StoreCtx.Provider value={defer ? held : live}>{children}</StoreCtx.Provider>;
 }
 

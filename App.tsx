@@ -194,13 +194,15 @@ function Shell() {
   // 탭 화면은 한 번 만든 요소를 계속 쓴다. 탭을 바꾸거나 화면을 쌓아도 보이지 않는 탭까지 다시 그리지 않는다.
   const screens = useMemo(() => ({ today: <TodayScreen />, archive: <ArchiveScreen />, knowledge: <KnowledgeScreen /> }), []);
   const topId = stack.length ? stack[stack.length - 1].id : 0;
+  // 닫히는 중인 화면은 빼고 센 맨 위. 닫기가 시작되는 순간 아래 탭이 새 값으로 그려져 옛 숫자가 비치지 않는다.
+  const openTop = [...stack].reverse().find((e) => !e.closing)?.id ?? 0;
 
   const layer = (name: TabName) =>
     visited[name] ? (
       <TabLayer key={name} active={tab === name}>
         {/* 안쪽 화면이 덮고 있거나 가려진 탭은 기록이 바뀌어도 맨 위 화면을 먼저 그린 뒤에 다시 그린다. */}
         <ShownCtx.Provider value={tab === name && topId === 0 && !overlay}>
-          <StoreDefer defer={tab !== name || topId !== 0 || overlay}>{screens[name]}</StoreDefer>
+          <StoreDefer defer={tab !== name || openTop !== 0 || overlay} pause={openTop !== 0}>{screens[name]}</StoreDefer>
         </ShownCtx.Provider>
       </TabLayer>
     ) : null;
