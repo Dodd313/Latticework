@@ -70,7 +70,11 @@ function GraphPane({ model: M, W, H, cards, state, grown, data, fresh, active, m
     for (const n of M.list) {
       if (n.kind !== 'concept') continue;
       const c = cards[n.id];
-      if (!c) continue;
+      // 일일 학습에서 읽기만 하고 아직 문제를 안 푼 개념: 흐린 점
+      if (!c) {
+        m.set(n.id, { studied: true, strength: 0, due: false, amount: 0 });
+        continue;
+      }
       const R = recall(c, now);
       m.set(n.id, { studied: true, strength: clamp((R * Math.log(1 + c.s)) / Math.log(1 + 60), 0, 1), due: c.due <= today || grown.has(n.id), amount: c.reps * 3 });
     }
@@ -386,7 +390,7 @@ function ConceptSheet({ n, card, onStudy }: { n: GNode; card: ReturnType<typeof 
   const R = card ? recall(card, new Date()) : 0;
   const k = card ? dayDiff(today, card.due) : 0;
   const due = !!card && k <= 0;
-  const next = !card ? '' : k <= 0 ? '오늘' : k === 1 ? '내일' : mdKo(card.due);
+  const next = !card ? '문제 전' : k <= 0 ? '오늘' : k === 1 ? '내일' : mdKo(card.due);
   const cells: [string, string, boolean][] = [
     ['반복', `${card?.reps ?? 0}회`, false],
     ['기억', `${Math.round(R * 100)}%`, false],

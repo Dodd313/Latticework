@@ -155,7 +155,7 @@ function Seg({ color, delay }: { color: string; delay: number }) {
 }
 
 
-const PART_NAME = { news: '뉴스', voc: '영단어', read: '개념 읽기', lat: 'Latticework', num: '수리' } as const;
+const PART_NAME = { news: '뉴스', voc: '영단어', read: '일일 학습', lat: 'Latticework', num: '수리' } as const;
 
 /** 달력에서 고른 하루: 과제별 막대와, 마친 날이면 그날 기사. */
 function DaySheet({ date, onClose }: { date: string | null; onClose: () => void }) {

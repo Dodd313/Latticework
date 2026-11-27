@@ -1,8 +1,9 @@
-// 개념 읽기(2026-11-27 소유자 결정). 수집함에서 만든 새 개념은 문제보다 먼저 여기서 읽는다.
+// 일일 학습(새 개념 읽기, 2026-11-27 소유자 결정). 수집함에서 만든 새 개념은 문제보다 먼저 여기서 읽는다.
+// "이해했어요"를 누르면 그 자리에서 지식 지도의 일부가 뜨고 새 점이 돋는다(GrowthBurst). 지도에는 흐린 점으로 남고, 문제를 풀수록 짙어진다.
 // "이해했어요"를 누른 개념만 다음 날부터 Latticework 문제로 나온다. "나중에 다시"는 읽을 차례의 끝으로, "빼기"는 공부하지 않을 개념(숨김).
 // 읽기 상한은 없다(원하는 만큼). 하루 목표는 1개(store 의 readGoal).
 import React, { useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { todayKST } from '../dates';
 import { Rise } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
@@ -10,6 +11,7 @@ import { useStore } from '../store';
 import { Concept, ReadMark, StudyData, readOn, readQueue } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, ExtLink, LipButton, PrimaryButton, T } from '../ui';
+import { GrowthBurst } from './GrowthBurst';
 
 /** 학문 · 분과(· 주제) 이름 */
 function pathOf(data: StudyData, c: Concept): string {
@@ -29,6 +31,9 @@ export function ReadScreen() {
   const [at, setAt] = useState(0);
   const [read, setRead] = useState(0);
   const [skipArm, setSkipArm] = useState(false);
+  // 방금 이해한 개념(지도 모션을 보이는 중). 계속을 누르면 다음 카드로.
+  const [burst, setBurst] = useState<Concept | null>(null);
+  const win = useWindowDimensions();
   const scroll = useRef<any>(null);
   const c = list[at];
   const readToday = readOn(study, today);
@@ -40,8 +45,16 @@ export function ReadScreen() {
       return;
     }
     markConcept(c.id, k);
-    if (k === 'ok') setRead((n) => n + 1);
     setSkipArm(false);
+    if (k === 'ok') {
+      setRead((n) => n + 1);
+      setBurst(c);
+      return;
+    }
+    next();
+  };
+  const next = () => {
+    setBurst(null);
     setAt((i) => i + 1);
     scroll.current?.scrollTo({ y: 0, animated: false });
   };
@@ -73,6 +86,38 @@ export function ReadScreen() {
                 : '나중에 다시 읽을 개념은 다음에 열 때 다시 나와요.'}
           </T>
           <PrimaryButton label="홈으로" onPress={nav.pop} style={{ marginTop: 16 }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (burst) {
+    const w = Math.min(win.width, 560);
+    const h = Math.round(Math.max(260, Math.min(420, win.height * 0.46)));
+    return (
+      <View style={{ flex: 1, backgroundColor: t.card }}>
+        <BackBar label="홈" bg={t.card} progress={list.length ? (at + 1) / list.length : 0} />
+        <View style={{ flex: 1, paddingTop: 4 }}>
+          <Rise key={`b:${burst.id}`} delay={0} style={{ paddingHorizontal: 20 }}>
+            <T s={13} w="600" c={t.greenText}>
+              지식 지도에 새 점이 생겼어요
+            </T>
+            <T s={24} w="700" lh={1.35} role="heading" level={1} style={{ marginTop: 4 }}>
+              {burst.name}
+            </T>
+            <T s={14} c={t.mute} lh={21 / 14} style={{ marginTop: 4 }}>
+              {pathOf(studyData, burst)}
+            </T>
+          </Rise>
+          <View style={{ alignItems: 'center', marginTop: 8 }}>
+            <GrowthBurst key={burst.id} id={burst.id} width={w} height={h} />
+          </View>
+          <T s={14} c={t.sub} lh={21 / 14} style={{ paddingHorizontal: 20, marginTop: 8 }}>
+            지금은 흐린 점이에요. 내일부터 문제로 나오고, 되풀이해 풀수록 점이 짙어져요.
+          </T>
+        </View>
+        <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: BOTTOM_PAD, borderTopWidth: 1, borderTopColor: t.line, backgroundColor: t.card }}>
+          <LipButton label={at + 1 < list.length ? '다음 개념' : '마치기'} tone="green" onPress={next} />
         </View>
       </View>
     );

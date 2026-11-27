@@ -215,10 +215,11 @@ function GraphViewImpl(props: GraphViewProps) {
     if (n.kind === 'concept') {
       const mm = props.mem?.(id);
       const studied = mm ? mm.studied : true;
-      const strength = mm?.strength ?? 0.5;
+      // 진하기: 일일 학습에서 읽기만 한 개념은 0(흐린 점), 문제를 되풀이해 기억이 단단해질수록 짙어진다(2026-11-27 소유자 결정).
+      const strength = mm?.strength ?? 0.6;
       dots.push(
         studied ? (
-          <Circle key={id} {...d} cx={p.x} cy={p.y} r={r} fill={rgba(n.color, (0.45 + 0.55 * strength) * a * e)} />
+          <Circle key={id} {...d} cx={p.x} cy={p.y} r={r} fill={rgba(n.color, (0.28 + 0.72 * strength) * a * e)} />
         ) : (
           <Circle key={id} {...d} cx={p.x} cy={p.y} r={Math.max(1, r - 0.6)} fill="none" stroke={rgba(n.color, 0.75 * a * e)} strokeWidth={1.2} />
         ),

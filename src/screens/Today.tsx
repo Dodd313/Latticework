@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { cheerHome, seedOf } from '../cheer';
 import { addDays, kstDate, kstHour, todayKST, weekdaysOf } from '../dates';
 import { LattiSays, useLattiSay } from '../latti';
@@ -193,10 +193,22 @@ function Placeholder() {
 const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
   news: { name: '뉴스', icon: 'news' },
   voc: { name: '영단어', icon: 'word' },
-  read: { name: '개념 읽기', icon: 'note' },
+  read: { name: '일일 학습', icon: 'note' },
   lat: { name: 'Latticework', icon: 'lattice' },
   num: { name: '수리', icon: 'calc' },
 };
+
+/** 흐린 점선(일일 학습과 나머지 과제 사이) */
+function DashLine() {
+  const t = useTheme();
+  return (
+    <View aria-hidden style={{ height: 9, justifyContent: 'center' }}>
+      <Svg width="100%" height={2}>
+        <Line x1={0} y1={1} x2="100%" y2={1} stroke={t.p.grey300} strokeWidth={1.2} strokeDasharray="3 5" strokeLinecap="round" />
+      </Svg>
+    </View>
+  );
+}
 
 /**
  * 수리 아래의 Research 줄(2026-11-24 소유자 결정). 분석 중인 기업의 사실 복습이다. 선택 과제라 하루 목표(오늘 n/m)에 들지 않는다.
@@ -257,7 +269,7 @@ export function TodayScreen() {
   const tint: Record<GoalPart['key'], { color: string; ink: string; bg: string }> = {
     news: { color: t.blue, ink: t.blueText, bg: t.blueWeak },
     voc: { color: t.purple, ink: t.purple, bg: t.purpleWeak },
-    // 개념 읽기는 Latticework 의 첫 단계라 같은 색
+    // 일일 학습(새 개념 읽기)은 Latticework 의 첫 단계라 같은 색
     read: { color: t.green, ink: t.greenText, bg: t.greenWeak },
     lat: { color: t.green, ink: t.greenText, bg: t.greenWeak },
     num: { color: t.orange, ink: t.orangeText, bg: t.orangeWeak },
@@ -404,19 +416,22 @@ export function TodayScreen() {
                   </T>
                 ) : null}
                 {parts.map((p) => (
-                  <TaskRow
-                    key={p.key}
-                    name={PART[p.key].name}
-                    value={p.complete ? p.total : p.done}
-                    of={p.total}
-                    color={tint[p.key].color}
-                    icon={PART[p.key].icon}
-                    iconColor={tint[p.key].ink}
-                    iconBg={tint[p.key].bg}
-                    onPress={() => open(p.key)}
-                    a11yLabel={`${PART[p.key].name} 열기`}
-                    doneLabel={p.key === 'news' ? undefined : p.key === 'read' ? '더 읽기' : '추가 학습'}
-                  />
+                  <React.Fragment key={p.key}>
+                    <TaskRow
+                      name={PART[p.key].name}
+                      value={p.complete ? p.total : p.done}
+                      of={p.total}
+                      color={tint[p.key].color}
+                      icon={PART[p.key].icon}
+                      iconColor={tint[p.key].ink}
+                      iconBg={tint[p.key].bg}
+                      onPress={() => open(p.key)}
+                      a11yLabel={`${PART[p.key].name} 열기`}
+                      doneLabel={p.key === 'news' ? undefined : p.key === 'read' ? '더 읽기' : '추가 학습'}
+                    />
+                    {/* 일일 학습은 맨 위에 두고, 나머지 과제와 흐린 점선으로 나눈다 */}
+                    {p.key === 'read' && parts.length > 1 ? <DashLine /> : null}
+                  </React.Fragment>
                 ))}
                 <ResearchRow />
                 {!allDone && next ? <PrimaryButton label="이어서 하기" onPress={goNext} style={{ marginTop: 10 }} /> : null}

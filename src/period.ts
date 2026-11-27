@@ -146,7 +146,7 @@ export function periodStats(p: Period, input: PeriodInput): PeriodStats {
   const lat: PeriodStats['lat'] = { solved: latRows.length, discs: [], newConcepts: [], newDiscs: [] };
   if (data && data.nodes && data.nodes.length) {
     const idx = taxIndex(data);
-    const tree = learnedTree(data, study.cards);
+    const tree = learnedTree(data, study.cards, study.marks);
     type B = PeriodStats['lat']['discs'][number]['branches'][number];
     const discs = new Map<string, PeriodStats['lat']['discs'][number]>();
     const discRow = (id: string) => {

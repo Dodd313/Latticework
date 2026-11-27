@@ -4,7 +4,7 @@
 // 학문과 분과는 그 아래 개념 가운데 가장 먼저 배운 날에 생긴다. 주제는 그 아래 개념을 3개 배운 날에 생기고,
 // 그 전까지 그 개념들은 주제의 윗마디(분과)에 바로 달린다.
 import { dayDiff, kstDate } from './dates';
-import { Card, Concept, StudyData, TaxNode, TaxRank } from './study';
+import { Card, Concept, ReadMark, StudyData, TaxNode, TaxRank } from './study';
 
 export type LRank = TaxRank | 'concept';
 
@@ -89,12 +89,20 @@ export function firstOf(card: Card | undefined): string {
   return card.first ?? kstDate(card.last);
 }
 
-/** 기억 상태(cards)로 배운 나무를 만든다. 분류(nodes)가 없는 자료면 null. */
-export function learnedTree(data: StudyData, cards: Record<string, Card>): LearnedTree | null {
+/**
+ * 기억 상태(cards)로 배운 나무를 만든다. 분류(nodes)가 없는 자료면 null.
+ * 일일 학습에서 "이해했어요"를 누른 개념(marks 의 ok)도 그 날부터 나무에 든다(2026-11-27 소유자 결정. 지도에는 흐린 점으로 보인다).
+ */
+export function learnedTree(data: StudyData, cards: Record<string, Card>, marks?: Record<string, ReadMark>): LearnedTree | null {
   if (!data.nodes || data.nodes.length === 0) return null;
   const idx = taxIndex(data);
+  const readAt = (id: string) => (marks?.[id]?.k === 'ok' ? marks[id].d : '');
   const learned = data.concepts
-    .map((c) => ({ c, at: firstOf(cards[c.id]) }))
+    .map((c) => {
+      const a = firstOf(cards[c.id]);
+      const b = readAt(c.id);
+      return { c, at: a && b ? (a < b ? a : b) : a || b };
+    })
     .filter((x) => !!x.at && idx.node.has(x.c.node))
     .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.c.id < b.c.id ? -1 : a.c.id > b.c.id ? 1 : 0));
 

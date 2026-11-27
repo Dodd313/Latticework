@@ -1119,7 +1119,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cur = userRef.current;
     const today = todayKST();
     // 오늘 생긴 것 가운데 지금 본 것을 함께 적는다(오늘 이 뒤에 배운 것은 다음에 열 때 반짝인다).
-    const ids = idsOn(eventsFor(treeFor(studyDataRef.current, studyRef.current.cards)), today);
+    const ids = idsOn(eventsFor(treeFor(studyDataRef.current, studyRef.current.cards, studyRef.current.marks)), today);
     const prev = cur.seen?.map === today ? (cur.seen.mapIds ?? ids) : null;
     if (prev && ids.every((id) => prev.includes(id))) return;
     const mapIds = [...new Set([...(prev ?? []), ...ids])].sort();
@@ -1219,6 +1219,15 @@ export type GoalPart = { key: 'news' | 'voc' | 'read' | 'lat' | 'num'; done: num
 export function partsOf(date: string, days: Day[], user: UserData, study: StudyState, hasStudy: boolean, today: string, num?: NumState | null): GoalPart[] {
   const parts: GoalPart[] = [];
   const day = days.find((d) => d.date === date);
+  // 일일 학습(새 개념 읽기): 그날 읽을 개념이 있었으면 1개. 홈에서 맨 위에 따로 보인다(2026-11-27 소유자 결정).
+  if (hasStudy && study.start <= date) {
+    const rec = study.days[date];
+    const readTotal = rec?.readGoal ?? 0;
+    if (readTotal > 0) {
+      const done = Math.min(readTotal, rec?.read ?? readOn(study, date));
+      parts.push({ key: 'read', done, total: readTotal, complete: done >= readTotal });
+    }
+  }
   if (day && day.articles.length > 0) {
     const total = day.articles.length;
     const done = day.articles.filter((a) => !!user.read[a.id]).length;
@@ -1230,12 +1239,6 @@ export function partsOf(date: string, days: Day[], user: UserData, study: StudyS
     const rec = study.days[date];
     const vocTotal = rec ? rec.vocGoal : date === today ? 0 : 1;
     if (vocTotal > 0) parts.push({ key: 'voc', done: rec?.voc ?? 0, total: vocTotal, complete: !!rec && rec.voc >= rec.vocGoal });
-    // 개념 읽기: 그날 읽을 개념이 있었으면 1개
-    const readTotal = rec?.readGoal ?? 0;
-    if (readTotal > 0) {
-      const done = Math.min(readTotal, rec?.read ?? readOn(study, date));
-      parts.push({ key: 'read', done, total: readTotal, complete: done >= readTotal });
-    }
     const latTotal = rec ? rec.latGoal : LAT_GOAL;
     if (latTotal > 0) parts.push({ key: 'lat', done: rec?.lat ?? 0, total: latTotal, complete: !!rec && rec.lat >= rec.latGoal });
   }
@@ -1300,12 +1303,12 @@ export function findArticle(days: Day[], id: string) {
 // ─────────────────────────────────────────────────────────────
 
 // 배운 나무는 자료와 기억 상태가 같으면 다시 만들지 않는다(여러 화면이 같이 읽어도 한 번).
-let treeMemo: { data: StudyData | null; cards: Record<string, Card> | null; tree: LearnedTree | null } = { data: null, cards: null, tree: null };
-function treeFor(data: StudyData | null, cards: Record<string, Card>): LearnedTree | null {
+let treeMemo: { data: StudyData | null; cards: Record<string, Card> | null; marks: StudyState['marks'] | null; tree: LearnedTree | null } = { data: null, cards: null, marks: null, tree: null };
+function treeFor(data: StudyData | null, cards: Record<string, Card>, marks?: StudyState['marks']): LearnedTree | null {
   if (!data) return null;
-  if (treeMemo.data === data && treeMemo.cards === cards) return treeMemo.tree;
-  const tree = learnedTree(data, cards);
-  treeMemo = { data, cards, tree };
+  if (treeMemo.data === data && treeMemo.cards === cards && treeMemo.marks === (marks ?? null)) return treeMemo.tree;
+  const tree = learnedTree(data, cards, marks);
+  treeMemo = { data, cards, marks: marks ?? null, tree };
   return tree;
 }
 const eventsMemo = new WeakMap<LearnedTree, UnlockEvent[]>();
@@ -1323,7 +1326,7 @@ function eventsFor(tree: LearnedTree | null): UnlockEvent[] {
 export function useKnowledge(): { data: StudyData | null; tree: LearnedTree | null; events: UnlockEvent[]; plan: UnlockPlan; fresh: Set<string> } {
   const { studyData, study, user } = useStore();
   const today = todayKST();
-  const tree = treeFor(studyData, study.cards);
+  const tree = treeFor(studyData, study.cards, study.marks);
   const events = eventsFor(tree);
   const seen = user.seen;
   return useMemo(() => {
