@@ -10,7 +10,7 @@ import { LattiSays, useLattiSay } from '../latti';
 import { MView, NATIVE_DRIVER, Pulse, Rise, WEB, motionOff, tweenStop, Tween, webShake, webTween } from '../motion';
 import { useNav } from '../nav';
 import { NumItem, NumResult, Problem, REASON, SkillId, check, extraSkill, fmtNum, lastAt, overall, perDayAll, quotaLeft, setFor } from '../numeracy';
-import { useGoals, useStore } from '../store';
+import { useGoals, useStore, RestPoint } from '../store';
 import { FONT_SANS, useTheme } from '../theme';
 import { Icon, LipButton, ProgressBar, Rich, StatCard, T, Tap } from '../ui';
 import { Enter, FOOT_PAD, Fb, Panel, SlideIn } from './Study';
@@ -149,16 +149,19 @@ export function NumeracyScreen(_: { start?: boolean }) {
   if (rec) return <Records onBack={() => setRec(false)} />;
   if (done) {
     return (
-      <Summary
-        key={done.id}
-        done={done}
-        onRecords={() => setRec(true)}
-        onMore={() => {
-          setDone(null);
-          setRun(plan());
-        }}
-        onDone={nav.pop}
-      />
+      <>
+        <RestPoint />
+        <Summary
+          key={done.id}
+          done={done}
+          onRecords={() => setRec(true)}
+          onMore={() => {
+            setDone(null);
+            setRun(plan());
+          }}
+          onDone={nav.pop}
+        />
+      </>
     );
   }
   return <View style={{ flex: 1 }} />;

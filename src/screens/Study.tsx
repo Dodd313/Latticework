@@ -6,7 +6,7 @@ import { dayDiff, kstDate, todayKST } from '../dates';
 import { LattiSays, lattiSay, useLattiSay } from '../latti';
 import { Count, EASE_OUT, MView, NATIVE_DRIVER, Rise, Tween, WEB, lerp, motionOff, spring, tweenStop, lateBy, SinceCtx, useLater, webTween } from '../motion';
 import { BOTTOM_PAD, useNav } from '../nav';
-import { useGoals, useStore } from '../store';
+import { useGoals, useStore, RestPoint } from '../store';
 import { LAT_GOAL, Q, StudySect, buildLat, buildLatFocus, buildResearch, buildVoc, levelOf, xpFor } from '../study';
 import { useTheme } from '../theme';
 import { Chip, Icon, LipButton, OptionState, OptionTile, ProgressBar, Rich, Ring, StatCard, T, Tap } from '../ui';
@@ -996,6 +996,7 @@ function Finish({
 
   return (
     <View style={{ flex: 1, backgroundColor: t.card }}>
+      <RestPoint />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingTop: 56, paddingHorizontal: 16, paddingBottom: 24, gap: 22 }}>
         {any ? (
           <>

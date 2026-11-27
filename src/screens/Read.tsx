@@ -7,7 +7,7 @@ import { Easing, ScrollView, View, useWindowDimensions } from 'react-native';
 import { todayKST } from '../dates';
 import { Count, Rise, motionOff } from '../motion';
 import { BOTTOM_PAD, BackBar, useNav } from '../nav';
-import { useGoals, useStore } from '../store';
+import { RestPoint, useGoals, useStore } from '../store';
 import { Concept, ReadMark, StudyData, nameWithEn, readOn, readQueue, startsIn } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, ExtLink, Icon, LipButton, PrimaryButton, Ring, T } from '../ui';
@@ -86,6 +86,7 @@ export function ReadScreen() {
   if (!c) {
     return (
       <View style={{ flex: 1, backgroundColor: t.bg }}>
+        <RestPoint />
         <BackBar label="홈" bg={t.bg} />
         <View style={{ paddingHorizontal: 20, paddingTop: 8, gap: 8 }}>
           <T s={26} w="700" lh={1.35} role="heading" level={1}>

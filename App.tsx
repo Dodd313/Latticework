@@ -15,7 +15,7 @@ import { SettingsScreen } from './src/screens/Settings';
 import { WeeklyQuizScreen } from './src/screens/WeeklyQuiz';
 import { AfterSplash, ShownCtx } from './src/screens/Flow';
 import { TodayScreen } from './src/screens/Today';
-import { StoreDefer, StoreProvider } from './src/store';
+import { StoreDefer, StoreProvider, useResting } from './src/store';
 import { Splash } from './src/ui';
 import { ThemeProvider, useTheme } from './src/theme';
 
@@ -196,13 +196,15 @@ function Shell() {
   const topId = stack.length ? stack[stack.length - 1].id : 0;
   // 닫히는 중인 화면은 빼고 센 맨 위. 닫기가 시작되는 순간 아래 탭이 새 값으로 그려져 옛 숫자가 비치지 않는다.
   const openTop = [...stack].reverse().find((e) => !e.closing)?.id ?? 0;
+  // 결과 화면처럼 잠시 머무는 화면이 맨 위면 가려진 탭이 그 틈에 따라잡는다.
+  const resting = useResting();
 
   const layer = (name: TabName) =>
     visited[name] ? (
       <TabLayer key={name} active={tab === name}>
         {/* 안쪽 화면이 덮고 있거나 가려진 탭은 기록이 바뀌어도 맨 위 화면을 먼저 그린 뒤에 다시 그린다. */}
         <ShownCtx.Provider value={tab === name && topId === 0 && !overlay}>
-          <StoreDefer defer={tab !== name || openTop !== 0 || overlay} pause={openTop !== 0}>{screens[name]}</StoreDefer>
+          <StoreDefer defer={tab !== name || openTop !== 0 || overlay} pause={openTop !== 0 && !resting}>{screens[name]}</StoreDefer>
         </ShownCtx.Provider>
       </TabLayer>
     ) : null;

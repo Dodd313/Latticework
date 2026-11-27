@@ -252,6 +252,34 @@ export function StoreDefer({ defer = true, pause = false, children }: { defer?: 
   return <StoreCtx.Provider value={defer ? held : live}>{children}</StoreCtx.Provider>;
 }
 
+// ---------- 쉬는 화면 ----------
+// 문제 풀이의 결과 화면처럼 사용자가 잠시 머무는 화면이 맨 위에 있으면, 가려진 탭이 그 틈에 따라잡는다(StoreDefer 의 pause 를 푼다).
+// 그래서 문제를 푸는 동안에는 가려진 탭을 그리지 않고, 닫을 때는 이미 새 값이라 닫기가 가볍다(렉 개선, 2026-11-27).
+let resting = 0;
+const restSubs = new Set<() => void>();
+const restSub = (f: () => void) => {
+  restSubs.add(f);
+  return () => {
+    restSubs.delete(f);
+  };
+};
+/** 맨 위 화면이 쉬는 화면인지 */
+export function useResting(): boolean {
+  return React.useSyncExternalStore(restSub, () => resting > 0, () => false);
+}
+/** 이 자리가 그려져 있는 동안은 쉬는 화면이다(결과 화면, 다 읽음 화면에 둔다) */
+export function RestPoint() {
+  useEffect(() => {
+    resting++;
+    restSubs.forEach((f) => f());
+    return () => {
+      resting--;
+      restSubs.forEach((f) => f());
+    };
+  }, []);
+  return null;
+}
+
 /** 오늘 기록이 아직 진행 전이면(푼 문제 0) 지금 기억 상태로 오늘 분량을 다시 정한다. 읽기 목표와 읽은 수는 남긴다. */
 function refreshToday(st: StudyState, data: StudyData | null, today: string): StudyState {
   const rec = st.days[today];
