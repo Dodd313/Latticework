@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useDeferredValue, useEff
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
-import { Asked, Card, LAT_GOAL, LogRow, Q, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
+import { Asked, Card, LAT_GOAL, LogRow, Q, ReadMark, ResearchData, StudyData, StudyDay, StudyState, Vocab, daysFromLog, carryWas, emptyStudy, readOn, readQueue, rebuildFromLog, review, vocGoalFor, vocKind, withFirsts, xpFor } from './study';
 import { LearnedTree, UnlockEvent, UnlockPlan, carryIds, carrySeen, firstOf, freshSince, idsOn, learnedTree, unlockEvents, unlockPlan } from './knowledge';
 import { Period, PeriodStats, periodDates, periodStats, recapDue } from './period';
 import type { LattiData } from './lattiTypes';
@@ -84,6 +84,9 @@ const STUDY_LOG_KEY = 'lw.study.log.v1';
 const LOG_CAP = 6000;
 const LATTI_DATA_KEY = 'lw.latti.data.v1';
 const RESEARCH_DATA_KEY = 'lw.research.data.v1';
+const NUM_PARTIAL_KEY = 'lw.num.partial.v1';
+/** sig 는 그 묶음 문제들의 글(같은 묶음인지 가린다). items 는 이미 답한 문제의 시간과 정답 여부. */
+export type NumPartial = { date: string; k: SkillId; lv: number; sig: string; items: NumItem[] };
 // 수리 기록(분야마다 한 세트에 한 줄, 분야별 수준, 날짜별 할당). 기기에만 두고 내보내기에 함께 넣는다.
 const NUM_KEY = 'lw.num.v1';
 // 시트 보내기(src/sync.ts, ops/sheet-sync.gs). 설정(주소, 기기 id, 순번, 보낸 수)과 아직 시트가 받았다고 답하지 않은 줄.
@@ -195,9 +198,14 @@ type Store = {
   study: StudyState; // 항목별 기억 상태와 날짜별 푼 수
   studyAsked: () => Asked; // 오늘 이미 낸 문제와 항목
   recordStudy: (q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => void;
+  /** 읽기 화면의 표시: ok 이해했어요(다음 날부터 문제), later 나중에 다시, skip 빼기 */
+  markConcept: (conceptId: string, k: ReadMark['k']) => void;
   num: NumState; // 수리 기록
   /** 수리 한 분야 한 세트를 마쳤다고 적는다. daily 면 오늘 할당으로 센다(할당을 이미 채운 분야면 추가 학습). */
   recordNum: (k: SkillId, lv: number, items: NumItem[], daily: boolean) => NumResult;
+  /** 수리 6문제 묶음을 풀다 나간 자리(기기 안에만). 다시 열면 같은 묶음의 남은 문제부터 잇는다. */
+  numPartial: () => NumPartial | null;
+  saveNumPartial: (p: NumPartial | null) => void;
   exportData: () => string;
   importData: (json: string) => boolean;
   sync: SyncView; // 시트 보내기 상태(보낼 때마다가 아니라 한 번 보내기를 마칠 때 바뀐다)
@@ -661,6 +669,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     saveLater(STUDY_KEY, () => studyRef.current);
   }, [studyData, todayStr]);
 
+  // 읽을 개념이 있는 날은 읽기 목표 1개(2026-11-27 소유자 결정). 낮에 새 카드가 들어와도 1로 올린다. 한 번 1이 되면 내리지 않는다.
+  useEffect(() => {
+    if (!studyData) return;
+    const cur = studyRef.current;
+    const rec = cur.days[todayStr];
+    if (!rec || (rec.readGoal ?? 0) >= 1) return;
+    if (readQueue(studyData, cur).length === 0 && readOn(cur, todayStr) === 0) return;
+    const next: StudyState = { ...cur, days: { ...cur.days, [todayStr]: { ...rec, readGoal: 1 } } };
+    studyRef.current = next;
+    setStudy(next);
+    saveLater(STUDY_KEY, () => studyRef.current);
+  }, [studyData, study.days[todayStr], todayStr]);
+
+  const markConcept = useCallback((conceptId: string, k: ReadMark['k']) => {
+    const cur = studyRef.current;
+    const now = new Date();
+    const next: StudyState = { ...cur, marks: { ...(cur.marks ?? {}), [conceptId]: { k, d: todayKST(), t: now.toISOString() } } };
+    studyRef.current = next;
+    setStudy(next);
+    saveLater(STUDY_KEY, () => studyRef.current);
+  }, []);
+
   const studyDataRef = useRef(studyData);
   studyDataRef.current = studyData;
   const recordStudy = useCallback((q: Q, result: { ok: boolean; attempts: number; sec: number; grade: 1 | 2 | 3 }) => {
@@ -706,6 +736,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (conf.url) enqueue([toSheetRow(row)], []);
   }, []);
 
+  const numPartial = useCallback((): NumPartial | null => loadLocal<NumPartial>(NUM_PARTIAL_KEY), []);
+  const saveNumPartial = useCallback((p: NumPartial | null) => saveLocal(NUM_PARTIAL_KEY, p), []);
   const recordNum = useCallback((k: SkillId, lv: number, items: NumItem[], daily: boolean): NumResult => {
     const { state, result } = addSet(numRef.current, todayKST(), k, lv, items, daily, new Date().toISOString());
     numRef.current = state;
@@ -761,7 +793,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const st = studyRef.current;
     const nm = numRef.current;
     if (!Object.keys(st.cards).length && !nm.sessions.length && !Object.keys(userRef.current.read).length) return null;
-    const body = { v: 1 as const, date: todayKST(), device: c.device, user: SYNC_USER_STATE ? userRef.current : null, study: { start: st.start, days: st.days, xp: st.xp, cards: st.cards }, num: { start: nm.start, level: nm.level, days: nm.days } };
+    const body = { v: 1 as const, date: todayKST(), device: c.device, user: SYNC_USER_STATE ? userRef.current : null, study: { start: st.start, days: st.days, xp: st.xp, cards: st.cards, marks: st.marks ?? {} }, num: { start: nm.start, level: nm.level, days: nm.days } };
     const key = hash53(JSON.stringify(body));
     if (key === c.snapKey) return null;
     return { snap: { ...body, at: new Date().toISOString() }, key };
@@ -942,7 +974,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     for (const [d, v] of Object.entries(daysFromLog(merged))) if (!days[d]) days[d] = v;
     const starts = [cur.start, rebuilt.start, ...snaps.map((x) => x.study?.start)].filter((x): x is string => !!x && /^\d{4}-\d{2}-\d{2}$/.test(x)).sort();
     const xp = Math.max(cur.xp, rebuilt.xp, ...snaps.map((x) => Number(x.study?.xp) || 0));
-    const nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp };
+    // 읽기 표시: 기기와 상태 줄 가운데 늦게 누른 쪽.
+    const marks: Record<string, ReadMark> = { ...(cur.marks ?? {}) };
+    for (const sn of snaps) for (const [id, m] of Object.entries(sn.study?.marks ?? {})) if (m && typeof m.t === 'string' && (!marks[id] || m.t > marks[id].t)) marks[id] = m;
+    const nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp, marks };
     logRef.current = merged.slice(-LOG_CAP);
     studyRef.current = nextStudy;
     setStudy(nextStudy);
@@ -1145,8 +1180,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<Store>(
-    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet }),
-    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, studyAsked, studyLog, num, recordNum, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet],
+    () => ({ status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, markConcept, studyAsked, studyLog, num, recordNum, numPartial, saveNumPartial, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet }),
+    [status, canSave, days, threads, reviews, user, markRead, setMemo, setMarket, answerQuiz, markSeen, markMapSeen, exportData, importData, studyData, researchData, study, recordStudy, markConcept, studyAsked, studyLog, num, recordNum, numPartial, saveNumPartial, latti, lattiHist, noteLatti, sync, setSyncUrl, testSync, probeSheet, restoreFromSheet],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
@@ -1172,7 +1207,7 @@ export type DayStatus = 'done' | 'late' | 'pending' | 'missed' | 'none';
  * 하루 목표를 이루는 과제 하나. 뉴스는 발행된 날에만, 영단어와 Latticework 는 복습을 시작한 날부터 매일 있다.
  * 수리는 처음 연 날(num.start)부터 매일 12문제(2026-11-21 소유자 결정: 하루 목표와 연속 기록에 든다).
  */
-export type GoalPart = { key: 'news' | 'voc' | 'lat' | 'num'; done: number; total: number; complete: boolean; late?: boolean };
+export type GoalPart = { key: 'news' | 'voc' | 'read' | 'lat' | 'num'; done: number; total: number; complete: boolean; late?: boolean };
 
 export function partsOf(date: string, days: Day[], user: UserData, study: StudyState, hasStudy: boolean, today: string, num?: NumState | null): GoalPart[] {
   const parts: GoalPart[] = [];
@@ -1188,6 +1223,12 @@ export function partsOf(date: string, days: Day[], user: UserData, study: StudyS
     const rec = study.days[date];
     const vocTotal = rec ? rec.vocGoal : date === today ? 0 : 1;
     if (vocTotal > 0) parts.push({ key: 'voc', done: rec?.voc ?? 0, total: vocTotal, complete: !!rec && rec.voc >= rec.vocGoal });
+    // 개념 읽기: 그날 읽을 개념이 있었으면 1개
+    const readTotal = rec?.readGoal ?? 0;
+    if (readTotal > 0) {
+      const done = Math.min(readTotal, readOn(study, date));
+      parts.push({ key: 'read', done, total: readTotal, complete: done >= readTotal });
+    }
     const latTotal = rec ? rec.latGoal : LAT_GOAL;
     if (latTotal > 0) parts.push({ key: 'lat', done: rec?.lat ?? 0, total: latTotal, complete: !!rec && rec.lat >= rec.latGoal });
   }

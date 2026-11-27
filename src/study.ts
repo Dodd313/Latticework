@@ -57,9 +57,35 @@ export type Card = {
   first?: string; // 처음 답한 날(한국 날짜). 이 날부터 배운 것으로 센다
 };
 
-export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number };
+/** readGoal 은 그날 읽기 목표(읽을 개념이 있던 날 1). 2026-11-27 소유자 결정. */
+export type StudyDay = { lat: number; voc: number; latGoal: number; vocGoal: number; latDoneAt?: string; vocDoneAt?: string; extra?: number; readGoal?: number };
 
-export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number };
+/**
+ * 읽기 표시(2026-11-27 소유자 결정). 카드가 있는 새 개념은 먼저 읽기 화면에서 읽고 ok(이해했어요)를 누른 다음 날부터 문제로 나온다.
+ * later 는 어려워서 나중에 다시 읽기(읽을 차례의 끝으로), skip 은 공부하지 않을 개념(숨김). d 는 한국 날짜, t 는 누른 시각.
+ */
+export type ReadMark = { k: 'ok' | 'later' | 'skip'; d: string; t: string };
+export type StudyState = { v: 1; start: string; cards: Record<string, Card>; days: Record<string, StudyDay>; xp: number; marks?: Record<string, ReadMark> };
+
+/** 문제로 낼 수 있는 개념인가. 카드가 없는 예전 개념과 이미 푼 개념은 늘 열려 있고, 카드가 있는 새 개념은 어제까지 "이해했어요"를 누른 것만 열린다. */
+export function isOpen(c: Concept, state: StudyState, today: string): boolean {
+  if (!c.card || state.cards[c.id]) return true;
+  const m = state.marks?.[c.id];
+  return !!m && m.k === 'ok' && m.d < today;
+}
+
+/** 읽을 차례: 카드가 있고 아직 안 푼 개념 가운데 이해했어요, 빼기를 누르지 않은 것. 들어온 순서대로, 나중에 다시 읽기는 끝으로. */
+export function readQueue(data: StudyData, state: StudyState): Concept[] {
+  const list = data.concepts.filter((c) => c.card && !state.cards[c.id] && !['ok', 'skip'].includes(state.marks?.[c.id]?.k ?? ''));
+  const key = (c: Concept) => {
+    const m = state.marks?.[c.id];
+    return `${m ? `1${m.t}` : '0'}|${c.card?.added ?? ''}`;
+  };
+  return list.map((c, i) => ({ c, i, k: key(c) })).sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : a.i - b.i)).map((x) => x.c);
+}
+
+/** 그날 "이해했어요"를 누른 개념 수 */
+export const readOn = (state: StudyState, date: string): number => Object.values(state.marks ?? {}).filter((m) => m.k === 'ok' && m.d === date).length;
 
 /**
  * 개념을 다른 개념의 하위 요소로 옮기면(concept.was 에 옛 id) 옛 개념의 기억 상태를 새 부모로 옮긴다(2026-11-24 소유자 결정).
@@ -410,7 +436,7 @@ export function buildLatFocus(data: StudyData, state: StudyState, today: string,
     const grown = conceptsWithNewQuestions(data, state);
     const seen = all.filter((c) => state.cards[c.id]).sort(weak);
     seen.filter((c) => state.cards[c.id].due <= today || grown.has(c.id)).forEach((c) => head.push(c));
-    mixByField(data, all.filter((c) => !state.cards[c.id])).forEach((c) => head.push(c));
+    mixByField(data, all.filter((c) => !state.cards[c.id] && isOpen(c, state, today))).forEach((c) => head.push(c));
     seen.filter((c) => !head.includes(c)).forEach((c) => head.push(c));
     return latFrom(data, state, head, count, asked);
   }
@@ -430,7 +456,7 @@ function latOrder(data: StudyData, state: StudyState, today: string, now: Date, 
     if (f > (lastNew.get(d) ?? '')) lastNew.set(d, f);
     learned.set(d, (learned.get(d) ?? 0) + 1);
   }
-  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id]), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0);
+  const fresh = mixByField(data, data.concepts.filter((c) => !state.cards[c.id] && isOpen(c, state, today)), (d) => lastNew.get(d) ?? '', (d) => learned.get(d) ?? 0);
   const byWeak = seen.slice().sort((a, b) => recall(state.cards[a.id], now) - recall(state.cards[b.id], now));
   const grown = conceptsWithNewQuestions(data, state);
   const due = byWeak.filter((c) => state.cards[c.id].due <= today || grown.has(c.id));

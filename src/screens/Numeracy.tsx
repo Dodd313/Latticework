@@ -17,7 +17,10 @@ import { Enter, FOOT_PAD, Fb, Panel, SlideIn } from './Study';
 
 type Mode = 'daily' | 'extra';
 type Item = { k: SkillId; lv: number; p: Problem };
-type RunState = { id: number; mode: Mode; flat: Item[]; prevMed: Partial<Record<SkillId, number | null>>; streakFrom: number };
+/** start, init: 같은 묶음을 풀다 나갔으면 그 자리부터(앞서 답한 문제의 기록을 이어받는다) */
+type RunState = { id: number; mode: Mode; flat: Item[]; prevMed: Partial<Record<SkillId, number | null>>; streakFrom: number; start: number; init: Record<string, NumItem[]> };
+/** 한 분야 묶음의 문제 글. 같은 묶음인지 가리는 데 쓴다. */
+const sigOf = (flat: Item[], k: SkillId) => flat.filter((x) => x.k === k).map((x) => x.p.show).join('|');
 type Done = { mode: Mode; results: NumResult[]; items: NumItem[]; streakFrom: number; id: number };
 
 const BACK = Easing.bezier(0.34, 1.56, 0.64, 1);
@@ -93,7 +96,7 @@ function Trend({ pts, w, h, best }: { pts: Pt[]; w: number; h: number; best: num
 // ─────────────────────────────────────────────────────────────
 export function NumeracyScreen(_: { start?: boolean }) {
   const nav = useNav();
-  const { num } = useStore();
+  const { num, numPartial } = useStore();
   const goals = useGoals();
   const seq = useRef(0);
   const plan = (): RunState => {
@@ -108,7 +111,19 @@ export function NumeracyScreen(_: { start?: boolean }) {
       prevMed[k] = lastAt(num.sessions, k, lv)?.med ?? null;
       for (const p of problems) flat.push({ k, lv, p });
     }
-    return { id: ++seq.current, mode, flat, prevMed, streakFrom: goals.streak };
+    // 같은 날 같은 묶음을 풀다 나갔으면 남은 문제부터 잇는다(2026-11-27 소유자 결정).
+    let start = 0;
+    const init: Record<string, NumItem[]> = {};
+    const part = numPartial();
+    const k0 = flat[0]?.k;
+    if (part && k0 && part.date === today && part.k === k0 && part.lv === flat[0].lv && part.sig === sigOf(flat, k0)) {
+      const n = flat.filter((x) => x.k === k0).length;
+      if (part.items.length > 0 && part.items.length < n) {
+        start = part.items.length;
+        init[k0] = part.items.slice();
+      }
+    }
+    return { id: ++seq.current, mode, flat, prevMed, streakFrom: goals.streak, start, init };
   };
   const [run, setRun] = useState<RunState | null>(plan);
   const [done, setDone] = useState<Done | null>(null);
@@ -121,6 +136,8 @@ export function NumeracyScreen(_: { start?: boolean }) {
         mode={run.mode}
         flat={run.flat}
         prevMed={run.prevMed}
+        start={run.start}
+        init={run.init}
         onClose={nav.pop}
         onDone={(results, items) => {
           setDone({ mode: run.mode, results, items, streakFrom: run.streakFrom, id: run.id });
@@ -324,17 +341,17 @@ const SHAKE: [number[], number[]] = [
   [0, -8, 7, -4, 2, 0],
 ];
 
-function Run({ mode, flat, prevMed, onClose, onDone }: { mode: Mode; flat: Item[]; prevMed: Partial<Record<SkillId, number | null>>; onClose: () => void; onDone: (results: NumResult[], items: NumItem[]) => void }) {
+function Run({ mode, flat, prevMed, start, init, onClose, onDone }: { mode: Mode; flat: Item[]; prevMed: Partial<Record<SkillId, number | null>>; start: number; init: Record<string, NumItem[]>; onClose: () => void; onDone: (results: NumResult[], items: NumItem[]) => void }) {
   const t = useTheme();
-  const { recordNum } = useStore();
-  const [i, setI] = useState(0);
+  const { recordNum, saveNumPartial } = useStore();
+  const [i, setI] = useState(start);
   const [input, setInput] = useState('');
   const [settled, setSettled] = useState<null | boolean>(null);
   const [fb, setFb] = useState<Fb | null>(null);
   const [shake, setShake] = useState(0);
   // 시계: t0 는 시계가 돈 시각(아직이면 0), hiddenAt 은 앱을 떠난 시각, frozen 은 확인을 누른 순간의 초
   const clock = useRef({ t0: 0, hiddenAt: 0, frozen: null as number | null });
-  const items = useRef<Record<string, { ms: number; ok: boolean }[]>>({});
+  const items = useRef<Record<string, { ms: number; ok: boolean }[]>>(init);
   const results = useRef<NumResult[]>([]);
   const inputRef = useRef('');
   inputRef.current = input;
@@ -414,7 +431,13 @@ function Run({ mode, flat, prevMed, onClose, onDone }: { mode: Mode; flat: Item[
     }
     // 한 분야의 6문제를 마치면 그 자리에서 기록한다(두 분야 세트를 반쯤 하고 닫아도 앞 분야는 남는다).
     const next = flat[i + 1];
-    if (!next || next.k !== item.k) results.current.push(recordNum(item.k, item.lv, items.current[item.k], mode === 'daily'));
+    if (!next || next.k !== item.k) {
+      results.current.push(recordNum(item.k, item.lv, items.current[item.k], mode === 'daily'));
+      saveNumPartial(null);
+    } else {
+      // 묶음 중간: 나갔다 와도 이어 풀 수 있게 답한 문제를 기기에 적어 둔다.
+      saveNumPartial({ date: todayKST(), k: item.k, lv: item.lv, sig: sigOf(flat, item.k), items: items.current[item.k].slice() });
+    }
   };
 
   const next = () => {

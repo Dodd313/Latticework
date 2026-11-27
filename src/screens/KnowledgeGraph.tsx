@@ -6,7 +6,7 @@ import { dayDiff, todayKST } from '../dates';
 import { useLater, webTween, WEB, motionOff } from '../motion';
 import { useNav, useNodeRequest } from '../nav';
 import { useKnowledge, useStore } from '../store';
-import { StudyData, conceptsOfNode, conceptsWithNewQuestions, recall } from '../study';
+import { StudyData, StudyState, conceptsOfNode, conceptsWithNewQuestions, isOpen, recall } from '../study';
 import { useTheme } from '../theme';
 import { EmptyState, Icon, PrimaryButton, Sheet, T, Tap } from '../ui';
 import { Cam, Mem, PNode, awayFromRoot, baseK, clamp, focusScope, hit, hitDots, kLim, nodeFit, outOf, project, rootFit, subtreeFit } from '../graph/camera';
@@ -48,15 +48,15 @@ export function KnowledgeGraph({ active }: { active: boolean }) {
           <EmptyState title="아직 배운 개념이 없어요" />
         </View>
       ) : model && size && size.W > 0 && size.H > 0 ? (
-        <GraphPane key={model.key} model={model} W={size.W} H={size.H} cards={study.cards} grown={grown} data={studyData} fresh={fresh} active={active} markMapSeen={markMapSeen} />
+        <GraphPane key={model.key} model={model} W={size.W} H={size.H} cards={study.cards} state={study} grown={grown} data={studyData} fresh={fresh} active={active} markMapSeen={markMapSeen} />
       ) : null}
     </View>
   );
 }
 
-type PaneProps = { model: GraphModel; W: number; H: number; cards: ReturnType<typeof useStore>['study']['cards']; grown: Set<string>; data: StudyData | null; fresh: Set<string>; active: boolean; markMapSeen: () => void };
+type PaneProps = { model: GraphModel; W: number; H: number; cards: ReturnType<typeof useStore>['study']['cards']; state: StudyState; grown: Set<string>; data: StudyData | null; fresh: Set<string>; active: boolean; markMapSeen: () => void };
 
-function GraphPane({ model: M, W, H, cards, grown, data, fresh, active, markMapSeen }: PaneProps) {
+function GraphPane({ model: M, W, H, cards, state, grown, data, fresh, active, markMapSeen }: PaneProps) {
   const t = useTheme();
   const nav = useNav();
   const stage = useRef<GraphStageHandle>(null);
@@ -249,9 +249,13 @@ function GraphPane({ model: M, W, H, cards, grown, data, fresh, active, markMapS
     stage.current?.flyTo(c);
   };
   const selNode = sel ? (M.N.get(sel) ?? null) : null;
-  // 학문, 분과, 주제를 고르면 그 분야만 푸는 단추가 뜬다(2026-11-24 소유자 결정). 아직 안 배운 개념도 센다.
+  // 학문, 분과, 주제를 고르면 그 분야만 푸는 단추가 뜬다(2026-11-24 소유자 결정). 아직 안 배운 개념도 세되, 읽기를 마치지 않아 잠긴 개념은 빼고 센다.
   const pickNode = pick ? (M.N.get(pick.id) ?? null) : null;
-  const pickCount = useMemo(() => (pickNode && pickNode.kind !== 'concept' && data ? conceptsOfNode(data, pickNode.id).length : 0), [pickNode, data]);
+  const pickCount = useMemo(() => {
+    if (!pickNode || pickNode.kind === 'concept' || !data) return 0;
+    const today = todayKST();
+    return conceptsOfNode(data, pickNode.id).filter((c) => isOpen(c, state, today)).length;
+  }, [pickNode, data, state]);
 
   return (
     <View style={{ flex: 1 }}>

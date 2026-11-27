@@ -779,11 +779,14 @@ export function StudyScreen({ sect, focus }: { sect: StudySect; focus?: string }
   }
 
   const kicker = q.kicker.split(' · ').pop() ?? q.kicker;
+  // 오늘 분량을 풀다 나갔다 다시 열면, 막대는 처음부터가 아니라 이미 푼 만큼 찬 채로 시작한다(2026-11-27 소유자 결정).
+  const barBase = !extra && !rs && round === 0 && goal > 0 ? Math.min(doneAtOpen, goal) : 0;
+  const barOf = barBase + firstRun;
   const ox = isOX(q);
 
   return (
     <View style={{ flex: 1, backgroundColor: t.card, overflow: 'hidden' }}>
-      <Header onClose={nav.pop} value={firstRun ? filled / firstRun : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} boltRef={boltRef} combo={combo} a11yValue={`${filled}/${firstRun}`} extra={extra} />
+      <Header onClose={nav.pop} value={barOf ? (barBase + filled) / barOf : 0} hot={combo >= 3} xp={shownXp} bolt={bolt} boltRef={boltRef} combo={combo} a11yValue={`${barBase + filled}/${barOf}`} extra={extra} />
       {fly ? (
         <FlyXp
           key={fly.id}

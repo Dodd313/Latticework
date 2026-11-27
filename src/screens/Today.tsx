@@ -193,6 +193,7 @@ function Placeholder() {
 const PART: Record<GoalPart['key'], { name: string; icon: IconName }> = {
   news: { name: '뉴스', icon: 'news' },
   voc: { name: '영단어', icon: 'word' },
+  read: { name: '개념 읽기', icon: 'note' },
   lat: { name: 'Latticework', icon: 'lattice' },
   num: { name: '수리', icon: 'calc' },
 };
@@ -256,6 +257,8 @@ export function TodayScreen() {
   const tint: Record<GoalPart['key'], { color: string; ink: string; bg: string }> = {
     news: { color: t.blue, ink: t.blueText, bg: t.blueWeak },
     voc: { color: t.purple, ink: t.purple, bg: t.purpleWeak },
+    // 개념 읽기는 Latticework 의 첫 단계라 같은 색
+    read: { color: t.green, ink: t.greenText, bg: t.greenWeak },
     lat: { color: t.green, ink: t.greenText, bg: t.greenWeak },
     num: { color: t.orange, ink: t.orangeText, bg: t.orangeWeak },
   };
@@ -263,6 +266,7 @@ export function TodayScreen() {
   const open = (key: GoalPart['key']) => {
     if (key === 'news') nav.push({ name: 'news' });
     else if (key === 'num') nav.push({ name: 'num', start: true }); // 수리는 다른 과제처럼 누르면 바로 문제(할당을 채웠으면 추가 학습)
+    else if (key === 'read') nav.push({ name: 'read' });
     else nav.push({ name: 'study', sect: key });
   };
 
@@ -411,7 +415,7 @@ export function TodayScreen() {
                     iconBg={tint[p.key].bg}
                     onPress={() => open(p.key)}
                     a11yLabel={`${PART[p.key].name} 열기`}
-                    doneLabel={p.key === 'news' ? undefined : '추가 학습'}
+                    doneLabel={p.key === 'news' ? undefined : p.key === 'read' ? '더 읽기' : '추가 학습'}
                   />
                 ))}
                 <ResearchRow />

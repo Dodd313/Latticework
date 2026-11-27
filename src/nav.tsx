@@ -20,7 +20,9 @@ export type Route =
   /** 수리 구역. start 면 오늘 할당 세트를 바로 연다(홈의 이어서 하기) */
   | { name: 'num'; start?: boolean }
   /** Research: 분석 중인 기업을 고르는 화면 */
-  | { name: 'research' };
+  | { name: 'research' }
+  /** 개념 읽기: 새 개념 카드를 읽고 이해했어요를 누르면 다음 날부터 문제로 나온다 */
+  | { name: 'read' };
 
 /** 화면 이동 동작. 앱이 떠 있는 동안 바뀌지 않으므로, 이것만 쓰는 화면은 탭을 바꿔도 다시 그려지지 않는다. */
 export type Nav = {
