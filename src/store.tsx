@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, startTransition, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { Day, EMPTY_USER, Market, Memo, NewsLogEntry, QuizScore, Review, SeenState, Thread, UserData } from './types';
 import { addDays, kstDate, todayKST } from './dates';
@@ -230,10 +230,33 @@ export function StoreDefer({ defer = true, children }: { defer?: boolean; childr
   const live = useContext(StoreCtx);
   // 가려진 동안은 마지막 값을 붙들어 아예 다시 그리지 않는다(문제 하나 풀 때마다 홈과 기록 탭 전체가 다시 그려지던 렉, 2026-11-27).
   // 다시 보이면 붙든 값으로 먼저 그리고, 새 값은 한 박자 늦게(끊어 가며) 따라잡는다.
-  const held = useRef(live);
-  if (!defer) held.current = live;
-  const later = useDeferredValue(defer ? held.current : live);
-  return <StoreCtx.Provider value={defer ? held.current : later}>{children}</StoreCtx.Provider>;
+  // 가려진 동안은 값이 바뀔 때마다 다시 그리지 않고, 1.2초 동안 더 바뀌지 않으면 한가한 틈에 따라잡는다.
+  // 그래서 문제를 연달아 푸는 동안에는 가려진 탭이 그려지지 않고, 돌아올 때는 대개 이미 새 값이라 옛 숫자가 비치지 않는다.
+  // 보이는 화면(defer false)은 늘 새 값으로 바로 그린다.
+  const [held, setHeld] = useState(live);
+  useEffect(() => {
+    if (!defer || held === live) return;
+    const g = globalThis as any;
+    let idle: any = null;
+    const timer = setTimeout(() => {
+      const run = () => startTransition(() => setHeld(live));
+      idle = g.requestIdleCallback ? g.requestIdleCallback(run, { timeout: 1500 }) : setTimeout(run, 0);
+    }, 1200);
+    return () => {
+      clearTimeout(timer);
+      if (idle != null) (g.cancelIdleCallback && g.requestIdleCallback ? g.cancelIdleCallback(idle) : clearTimeout(idle));
+    };
+  }, [defer, live, held]);
+  return <StoreCtx.Provider value={defer ? held : live}>{children}</StoreCtx.Provider>;
+}
+
+/** 오늘 기록이 아직 진행 전이면(푼 문제 0) 지금 기억 상태로 오늘 분량을 다시 정한다. 읽기 목표와 읽은 수는 남긴다. */
+function refreshToday(st: StudyState, data: StudyData | null, today: string): StudyState {
+  const rec = st.days[today];
+  if (!data || (rec && rec.lat + rec.voc + (rec.extra ?? 0) > 0)) return st;
+  const fresh = newDayRecord(data, st, today);
+  const day: StudyDay = { ...fresh, ...(rec?.readGoal != null ? { readGoal: rec.readGoal } : {}), ...(rec?.read != null ? { read: rec.read } : {}) };
+  return { ...st, days: { ...st.days, [today]: day } };
 }
 
 function mergeUser(a: UserData, b: Partial<UserData> | null | undefined): UserData {
@@ -709,7 +732,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cards = { ...cur.cards };
     // 틀려서 다시 나온 문제는 기억 상태를 또 바꾸지 않는다.
     // 다음 복습 날은 그 구역에서 복습 예정이 가장 적은 날로(간격의 앞뒤 10% 안).
-    if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type, duePicker(studyDataRef.current, cur.cards, q.sect, today));
+    if (!q.retry) cards[q.unit] = review(cards[q.unit], result.grade, now, today, q.type, duePicker(studyDataRef.current, cur.cards, q.sect, today, q.unit));
     // Research 는 선택 과제라 그날의 하루 목표, 추가 학습 수를 건드리지 않는다. 기억 상태, 경험치, 기록 줄만 남긴다.
     const rs = q.sect === 'rs';
     // 그날 기록이 아직 없으면(자정을 넘겨 푼 경우 등) 아침에 정하는 것과 같은 방식으로 목표를 정한다.
@@ -987,7 +1010,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // 읽기 표시: 기기와 상태 줄 가운데 늦게 누른 쪽.
     let marks: Record<string, ReadMark> = { ...(cur.marks ?? {}) };
     for (const sn of snaps) marks = mergeMarks(marks, sn.study?.marks);
-    const nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp, marks };
+    let nextStudy: StudyState = { ...cur, start: starts[0] ?? cur.start, cards, days, xp, marks };
+    // 오늘 아직 아무것도 안 풀었으면, 오늘 분량을 불러온 기억 상태로 다시 정한다(빈 기기에서 아침에 정한 분량이 남지 않게). 읽기 목표는 그대로.
+    nextStudy = refreshToday(nextStudy, studyDataRef.current, today);
     logRef.current = merged.slice(-LOG_CAP);
     studyRef.current = nextStudy;
     setStudy(nextStudy);
@@ -1154,7 +1179,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
           // 예전 내보내기(버전 2)에는 처음 답한 날이 없다. 풀이 기록으로 채운다.
           // 읽기 표시는 기기 것과 파일 것을 합친다(예전 파일에는 표시가 없다).
-          const st = { ...withFirsts(st0, getLog()), marks: mergeMarks(studyRef.current.marks, st0.marks) };
+          const st = refreshToday({ ...withFirsts(st0, getLog()), marks: mergeMarks(studyRef.current.marks, st0.marks) }, studyDataRef.current, todayKST());
           studyRef.current = st;
           setStudy(st);
           saveLater(STUDY_KEY, () => studyRef.current);

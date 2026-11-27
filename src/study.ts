@@ -262,7 +262,8 @@ export function rebuildFromLog(rows: LogRow[], data: StudyData | null): { cards:
 
 /**
  * 풀이 기록만으로 만든 날짜별 푼 수. 그날의 목표 문항 수는 기록에 없으므로, 날마다 남긴 상태(시트의 상태 탭)가 없을 때만 쓴다.
- * Latticework 목표는 LAT_GOAL, 영단어 목표는 그날 할당으로 푼 수로 잡는다(남은 것은 추가 학습).
+ * 하루 분량이 날마다 달라지므로(예산제) Latticework 와 영단어 모두 그날 푼 수를 목표로 잡는다. 회복 상한(예산의 1.5배)을 넘는 몫만 추가 학습.
+ * 그래서 풀이 기록만 남은 날은 푼 만큼 마친 날로 되살아난다(목표를 고정 5로 두면 마친 날이 놓친 날이 된다).
  */
 export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
   const out: Record<string, StudyDay> = {};
@@ -272,13 +273,14 @@ export function daysFromLog(rows: LogRow[]): Record<string, StudyDay> {
     if (!d) continue;
     // Research 풀이는 하루 목표와 추가 학습 어디에도 세지 않는다.
     if (row.k === 'rs') continue;
-    const day = (out[d] ??= { lat: 0, voc: 0, latGoal: LAT_GOAL, vocGoal: 0 });
+    const day = (out[d] ??= { lat: 0, voc: 0, latGoal: 0, vocGoal: 0 });
     if (row.k === 'lat') {
-      if (day.lat < day.latGoal) {
+      if (day.lat < Math.ceil(LAT_GOAL * RECOVER_STRETCH)) {
         day.lat += 1;
-        if (day.lat >= day.latGoal) day.latDoneAt = row.t;
+        day.latGoal = day.lat;
+        day.latDoneAt = row.t;
       } else day.extra = (day.extra ?? 0) + 1;
-    } else if (day.voc < VOC_BUDGET) {
+    } else if (day.voc < Math.ceil(VOC_BUDGET * RECOVER_STRETCH)) {
       day.voc += 1;
       day.vocGoal = day.voc;
       day.vocDoneAt = row.t;
@@ -660,10 +662,13 @@ export function spreadDue(today: string, iv: number, loadOn: (date: string) => n
   return best;
 }
 
-/** 답할 때 쓰는 날짜 고르기. 그 구역(영단어, 개념, Research)의 날짜별 복습 예정 수를 한 번 세어 둔다. */
-export function duePicker(data: StudyData | null, cards: Record<string, Card>, sect: StudySect, today: string): (iv: number) => string {
+/**
+ * 답할 때 쓰는 날짜 고르기. 그 구역(영단어, 개념, Research)의 날짜별 복습 예정 수를 한 번 세어 둔다.
+ * 지금 푸는 항목(self)의 예전 날짜는 세지 않는다(기록을 다시 쌓는 rebuildFromLog 와 같은 규칙이라 같은 날이 나온다).
+ */
+export function duePicker(data: StudyData | null, cards: Record<string, Card>, sect: StudySect, today: string, self?: string): (iv: number) => string {
   const load = new Map<string, number>();
-  for (const [id, c] of Object.entries(cards)) if (sectOfId(data, id) === sect) load.set(c.due, (load.get(c.due) ?? 0) + 1);
+  for (const [id, c] of Object.entries(cards)) if (id !== self && sectOfId(data, id) === sect) load.set(c.due, (load.get(c.due) ?? 0) + 1);
   return (iv) => spreadDue(today, iv, (d) => load.get(d) ?? 0);
 }
 
@@ -721,12 +726,17 @@ function newLeft(data: StudyData, state: StudyState, today: string, sect: 'lat' 
 }
 
 /**
- * 일일 학습에서 오늘 읽은 개념이 문제로 나오기 시작할 때(대략 며칠 뒤). 먼저 읽어 기다리는 개념이 앞 차례이고,
- * 새 개념은 하루 최대 LAT_NEW_PER_DAY 개씩, 복습이 많은 날은 덜 들어간다.
+ * 일일 학습에서 이해했어요를 누른 개념 id 가 문제로 나오기 시작할 때(대략 며칠 뒤, 1 이면 내일).
+ * 차례는 이해했어요를 누른 순서다. 어제까지 읽은 것 가운데 오늘 남은 새 개념 자리에 들어갈 몫은 오늘 시작하므로 빼고,
+ * 그 뒤로 하루 최대 LAT_NEW_PER_DAY 개씩 들어간다고 본다(복습이 많은 날은 덜 들어가니 "약"으로 안내한다).
  */
-export function startsIn(data: StudyData, state: StudyState, today: string): number {
-  const waiting = data.concepts.filter((c) => c.card && !state.cards[c.id] && isOpen(c, state, today)).length;
-  return 1 + Math.floor(waiting / LAT_NEW_PER_DAY);
+export function startsIn(data: StudyData, state: StudyState, today: string, id: string): number {
+  const t = (x: string) => state.marks?.[x]?.t ?? '';
+  const mine = t(id);
+  const waitingOld = data.concepts.filter((c) => c.card && !state.cards[c.id] && isOpen(c, state, today)).length;
+  const aheadToday = data.concepts.filter((c) => c.id !== id && c.card && !state.cards[c.id] && state.marks?.[c.id]?.k === 'ok' && state.marks[c.id].d === today && t(c.id) < mine).length;
+  const before = Math.max(0, waitingOld - newLeft(data, state, today, 'lat')) + aheadToday;
+  return 1 + Math.floor(before / LAT_NEW_PER_DAY);
 }
 
 /** 개념 이름에 영어 이름을 괄호로 붙인다(2026-11-27 소유자 결정). 약어 개념은 이미 "약어 (풀네임)" 꼴이다. 지식 지도에는 쓰지 않는다. */

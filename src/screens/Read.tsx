@@ -128,7 +128,7 @@ export function ReadScreen() {
           </View>
           <T s={14} c={t.sub} lh={21 / 14} style={{ paddingHorizontal: 20, marginTop: 8 }}>
             {(() => {
-              const n = startsIn(studyData, study, today);
+              const n = startsIn(studyData, study, today, burst.id);
               const when = n <= 1 ? '내일부터 문제로 나오고' : `약 ${n}일 뒤부터 문제로 나오고(먼저 읽은 개념부터, 복습이 많은 날은 새 개념을 덜 넣어요)`;
               return `지금은 흐린 점이에요. ${when}, 되풀이해 풀수록 점이 짙어져요.`;
             })()}
@@ -200,7 +200,7 @@ export function ReadScreen() {
             </Section>
           ) : null}
           {(card.sub ?? []).map((sb) => (
-            <Section key={sb.name} title={`하위 요소 · ${sb.name}`}>
+            <Section key={sb.name} title={`하위 요소 · ${nameWithEn(sb)}`}>
               <T s={15} lh={23 / 15}>
                 {sb.def}
               </T>

@@ -210,15 +210,16 @@ function RecoverBand() {
   const info = useMemo(() => {
     if (!studyData || !rec?.recover) return null;
     let due = 0;
-    let cap = 0;
+    let days = 1;
+    // 며칠은 구역마다 따로 세어 가장 오래 걸리는 구역을 따른다(합으로 나누면 짧게 나온다).
     for (const k of ['lat', 'voc'] as const) {
       if (!rec.recover[k]) continue;
       const p = sectPlan(studyData, study, today, k);
       due += p.due;
-      cap += p.cap;
+      days = Math.max(days, Math.ceil(p.due / Math.max(1, p.cap)));
     }
     if (due === 0) return null;
-    return { due, days: Math.max(1, Math.ceil(due / Math.max(1, cap))) };
+    return { due, days };
   }, [studyData, study, rec, today]);
   if (!info) return null;
   return (

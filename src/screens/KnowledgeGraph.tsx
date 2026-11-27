@@ -322,7 +322,7 @@ function GraphPane({ model: M, W, H, cards, state, grown, data, fresh, active, m
           // 일일 학습에서 오늘 이해했어요를 누른 개념은 아직 문제로 낼 수 없다. 복습하기 대신 문제가 시작될 때를 안내한다.
           const c = data?.concepts.find((x) => x.id === selNode.id);
           const today = todayKST();
-          return c && data && !isOpen(c, state, today) ? startsIn(data, state, today) : null;
+          return c && data && !isOpen(c, state, today) ? startsIn(data, state, today, c.id) : null;
         })()} onStudy={() => {
           setSel(null);
           nav.push({ name: 'study', sect: 'lat', focus: selNode.id });
