@@ -20,7 +20,7 @@
   "1xUpUeqF7cmd65qAFfG7JZ7oamsPLTUhkMBo5SX1j8bc": {
    "title": "timeline_HCC의 사본",
    "status": "watch",
-   "at": "2026-11-27",
+   "at": "2026-11-28",
    "modifiedTime": "2026-11-24T08:02:01.772Z",
    "facts": 53,
    "note": "소유자가 계속 고쳐 쓰는 분석 일지. 2026-11-24 수동 처리: 11/21, 11/23 분을 Research 사실 53개로 넣음(일반 개념은 이미 지식 카드에 있음). 저장한 글은 03:51 판이라 그 뒤 고친 줄은 다음 실행이 새 줄로 처리한다. 보류: Mine No.4 탄질(공개 자료와 달라 보임, 소유자 확인 대기). 11/24 표의 빈칸은 채워지면 처리. 2026-11-26: 새 줄은 11/24 표의 \"셋 모두 애팔래치아? 산맥\" 하나뿐. 소유자의 열린 질문이라 넣지 않음."
@@ -82,6 +82,25 @@
    "doc": "1fouWHxBxNljS9p8HkN_tISaoFhiyl4OphfbEd_g4_4Q",
    "note": "보험업(sub 생명, 손해, 제3보험업), 국민연금기금, 전문투자자 새 카드. 은행 고유업무 줄은 하위 요소 판정으로 은행업 카드에 sub \"은행의 업무 범위\"와 문제 2개를 더함(보강). BIS 는 > 표시였지만 기관 이름이라 단어로 넣음. 처리됨으로 옮김",
    "pending": []
+  },
+  "1iIoHUEl-7ZL4pOuRL2Z834W0xIj-twg3vCSVdq2a_qA": {
+   "title": "금융 전반 6강",
+   "status": "done",
+   "at": "2026-11-28",
+   "cards": 2,
+   "vocab": 3,
+   "doc": "1qByzMxTxQZ9DITb882ouOx8fgmDnyeahzhgL5_b5boo",
+   "note": "집합투자기구(sub 사모집합투자기구, 기관전용 사모집합투자기구; PEF 와 GP, LP 는 이 sub 의 특징으로), 벤처투자조합 새 카드. 증권사 사업부문과 법상 업의 대응은 노트 스스로 법 용어가 아닌 정리라 했고 이를 직접 적은 1등급 출처나 독립 2등급 둘을 찾지 못해 넣지 않음(소유자 확인 필요, 다시 처리하지 않음). 처리됨으로 옮김",
+   "pending": []
+  },
+  "113BHqtgNW0_6CJlyEcVlHvDedz_MMdD8THSeQ5ES4mI": {
+   "title": "11/27",
+   "status": "done",
+   "at": "2026-11-28",
+   "cards": 1,
+   "doc": "1L8HzOyLnNhQOvNWa5Z7dQcGzMlUOGqPGqUdYkQdDpYI",
+   "note": "> pig iron: 선철 카드(n:econ-resources, EIA 용어집과 worldsteel). 드라이브가 이동을 허용하지 않아 수집함에 남음(소유자가 옮겨야 함).",
+   "pending": []
   }
  },
  "log": [
@@ -110,6 +129,17 @@
    "docs": [
     "1fouWHxBxNljS9p8HkN_tISaoFhiyl4OphfbEd_g4_4Q",
     "1o7sQY4PC400l1QtZyGrnMgd4Zy2hoKgY_3t4NDKXVKE"
+   ]
+  },
+  {
+   "at": "2026-11-28",
+   "cards": 3,
+   "questions": 17,
+   "vocab": 3,
+   "facts": 0,
+   "docs": [
+    "1qByzMxTxQZ9DITb882ouOx8fgmDnyeahzhgL5_b5boo",
+    "1L8HzOyLnNhQOvNWa5Z7dQcGzMlUOGqPGqUdYkQdDpYI"
    ]
   }
  ]
